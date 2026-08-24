@@ -1,57 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import logoinicio from '../assets/logoinicio.png';
 
 const LogoSvg = () => (
-  <svg viewBox="0 0 220 60" width="180" height="50" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Map Pin Icon (Orange) */}
-    <g transform="translate(5, 5)">
-      {/* Outer Pin Pinhead */}
-      <path 
-        d="M20 0C8.95 0 0 8.95 0 20C0 32 20 42 20 42C20 42 40 32 40 20C40 8.95 31.05 0 20 0Z" 
-        fill="#ff6a00" 
-      />
-      {/* Inner Pin Hole (Dark Blue) */}
-      <circle cx="20" cy="18" r="8" fill="#0f172a" />
-      {/* Airplane Arc / Orbit */}
-      <path 
-        d="M-2 25C3 10 32 5 42 16" 
-        stroke="#ffffff" 
-        strokeWidth="2" 
-        fill="none" 
-        strokeLinecap="round"
-      />
-      {/* Small Plane on Arc */}
-      <path 
-        d="M40 14L43 18L39 19L38 17L35 18L36 16L40 14Z" 
-        fill="#ffffff" 
-      />
-    </g>
-    
-    {/* Text "PLAN DE VIAJE" */}
-    <text 
-      x="58" 
-      y="26" 
-      fill="#ffffff" 
-      fontSize="18" 
-      fontWeight="800" 
-      fontFamily="system-ui, -apple-system, sans-serif" 
-      letterSpacing="1.5"
-    >
-      PLAN DE VIAJE
-    </text>
-    {/* Text "Más que Viajar" */}
-    <text 
-      x="75" 
-      y="40" 
-      fill="#ff6a00" 
-      fontSize="9" 
-      fontWeight="700" 
-      fontFamily="system-ui, -apple-system, sans-serif" 
-      letterSpacing="2"
-    >
-      — Más que Viajar —
-    </text>
-  </svg>
+  <img src={logoinicio} alt="Plan de Viaje Logo" style={{ maxHeight: '50px', width: 'auto' }} />
 );
 
 export default function Login({ onLoginSuccess }) {
