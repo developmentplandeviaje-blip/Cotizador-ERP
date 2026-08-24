@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit36793882908b6cbdd344b5a4840231db
+class ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -1469,9 +1469,11 @@ class ComposerStaticInit36793882908b6cbdd344b5a4840231db
         'GuzzleHttp\\Handler\\ProxyEnv' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/Handler/ProxyEnv.php',
         'GuzzleHttp\\Handler\\RequestFraming' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/Handler/RequestFraming.php',
         'GuzzleHttp\\Handler\\StreamHandler' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/Handler/StreamHandler.php',
+        'GuzzleHttp\\Handler\\StreamTlsSessionCache' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/Handler/StreamTlsSessionCache.php',
         'GuzzleHttp\\Handler\\Timeout' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/Handler/Timeout.php',
         'GuzzleHttp\\Handler\\TlsVersion' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/Handler/TlsVersion.php',
         'GuzzleHttp\\Handler\\TransferByteCounter' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/Handler/TransferByteCounter.php',
+        'GuzzleHttp\\Handler\\UriDiagnostic' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/Handler/UriDiagnostic.php',
         'GuzzleHttp\\HostIdentity' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/HostIdentity.php',
         'GuzzleHttp\\Idn' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/Idn.php',
         'GuzzleHttp\\MessageFormatter' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/MessageFormatter.php',
@@ -7486,9 +7488,9 @@ class ComposerStaticInit36793882908b6cbdd344b5a4840231db
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit36793882908b6cbdd344b5a4840231db::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit36793882908b6cbdd344b5a4840231db::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit36793882908b6cbdd344b5a4840231db::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9::$classMap;
 
         }, null, ClassLoader::class);
     }
