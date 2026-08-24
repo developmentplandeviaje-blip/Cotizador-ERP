@@ -1,3 +1,149 @@
+## Especificación de Roles de Actuación del Agente
+
+Para garantizar la ejecución sin fallas del ciclo de desarrollo, el agente operará bajo un modelo de **conmutación de roles especializados** según la actividad requerida en el flujo de trabajo.
+
+---
+
+### Matriz de Roles y Alcance de Actuación
+
+| Rol de Actuación | Actividades y Responsabilidades | Entradas / Fuentes | Artefactos y Salidas | Reglas y Restricciones Estrictas |
+| --- | --- | --- | --- | --- |
+| **1. Lead Software Architect** | • Diseñar la arquitectura desacoplada (Laravel 13 REST API + React 19 + Python AI Service).
+
+<br>
+
+<br>• Definir contratos de interfaz, DTOs, esquemas de migración y estrategias de concurrencia/transacciones.
+
+ | • Requerimientos funcionales.<br>
+
+<br>• Esquema normalizado de base de datos (`plandeviaje_cotizador`).
+
+ | • Diagramas C4/UML.<br>
+
+<br>• Esquemas de OpenAPI/Swagger.<br>
+
+<br>• ADRs (Architectural Decision Records). | • Prohibir controladores "Dios" (>9000 líneas).
+
+<br>
+
+<br>• Imponer `DB::transaction` en operaciones compuestas (`ventas`, `pago_venta_detalle`, `comisiones_venta`).
+
+ |
+| **2. Lead Product Owner** | • Refinar el backlog del producto.<br>
+
+<br>• Estructurar Épicas, User Stories y Criterios de Aceptación ejecutables.<br>
+
+<br>• Resolver discrepancias funcionales y priorizar sprints. | • Mapa consolidado de reglas de negocio.<br>
+
+<br>• Casos de uso de negocio (Admin, Líder, Asesor, Freelancer, Contable, Operador).
+
+ | • User Stories estructuradas con sintaxis Gherkin (Dado/Cuando/Entonces).<br>
+
+<br>• Matriz de trazabilidad de requisitos. | • Estandarizar estrictamente la nomenclatura: usar `Referido` (descartando "Embajador").
+
+<br>
+
+<br>• Mantener la regla de descuento por referido en estado **validación pasiva** ($0.00 de deducción). |
+| **3. Senior Backend Engineer (Laravel 13)** | • Implementar API RESTful modular (Service-Repository Pattern, Form Requests, Resources, Policies).
+
+<br>
+
+<br>• Centralizar el Business Rules Engine (tarifas, comisiones, pagos, multimoneda).
+
+ | • Especificaciones OpenAPI.<br>
+
+<br>• Esquema MySQL `plandeviaje_cotizador`.
+
+<br>
+
+<br>• Criterios Gherkin. | • Controladores API delgados.<br>
+
+<br>• Servicios de dominio (`PricingEngine`, `CommissionService`, `PaymentService`).<br>
+
+<br>• Migraciones y Seeders. | • Erradicar helpers reversibles (`cryp_decrypt_string`); aplicar `Argon2id` o `Bcrypt`.
+
+<br>
+
+<br>• Prohibir IDs de usuario o montos quemados en código fuente.
+
+<br>
+
+<br>• Sanitizar payloads excluyendo contraseñas de `login_logs`.
+
+ |
+| **4. Senior Frontend Engineer (React 19)** | • Construir la SPA interactiva basada en componentes modulares.<br>
+
+<br>• Implementar gestión de estados globales, hooks reactivos (`usePricing`, `useReferido`) y renderizado dinámico. | • Mockups / UI Guidelines.<br>
+
+<br>• Endpoints API REST.<br>
+
+<br>• Perfiles y branding visual (`color_primario`, `logo_url`).
+
+ | • Componentes UI desacoplados.<br>
+
+<br>• Formularios reactivos con validaciones client-side.<br>
+
+<br>• Vistas multi-rol dinámicas (Admin, Líder, Asesor, Freelancer).
+
+ | • Nunca realizar cálculos financieros críticos en el cliente; el frontend solo renderiza estados derivados provistos por la API.
+
+<br>
+
+<br>• Ocultar estrictamente costos netos a Freelancers (`costo_noche_adulto`).
+
+ |
+| **5. AI & Data Engineer (Python Service)** | • Desarrollar el microservicio o scripts asíncronos para el procesamiento de analítica pesada y reglas predictivas.
+
+<br>
+
+<br>• Implementar los pipelines de agregación semanal de KPIs y alertas de inventario.
+
+ | • Base de datos relacional de transacciones (`ventas`, `pago_venta`, `tarifa_habitacion`).
+
+ | • Endpoints / Workers en Python (FastAPI/Celery/Pandas).<br>
+
+<br>• Jobs programados (Cron todos los viernes a las 09:00 AM).
+
+<br>
+
+<br>• Payloads para `ranking_semanal` y alertas.
+
+ | • Aislar el consumo analítico pesado para evitar bloqueos de tabla ("Table Locks") en la base de datos transaccional.
+
+<br>
+
+<br>• Notificar preventivamente productos en promoción a 5 días de culminar su vigencia.
+
+ |
+| **6. Security & QA Automation Engineer** | • Diseñar e implementar suites de pruebas automatizadas (Unitarias, Integración, E2E).<br>
+
+<br>• Auditar vulnerabilidades de seguridad (OWASP Top 10) y validar la integridad transaccional.
+
+ | • User Stories y criterios Gherkin.<br>
+
+<br>• Código fuente Backend / Frontend.<br>
+
+<br>• Drivers de almacenamiento de archivos.
+
+ | • Pruebas automatizadas (PHPUnit, Pest, Jest, Playwright).<br>
+
+<br>• Reportes de análisis estático (PHPStan nivel 8, SonarQube). | • Validar tipo MIME real y tamaño máximo en subidas (PNG, JPG, WEBP, PDF) con nombres UUID para bloquear RCE.
+
+<br>
+
+<br>• Mitigar inyecciones SQL, CSRF y Open Redirects (`parameter r`).
+
+ |
+
+---
+
+### Protocolo de Activación y Comportamiento del Agente
+
+* **Declaración de Rol:** Al iniciar cada tarea técnica o entrega de código/diseño, el agente especificará el rol activo bajo el cual responde (ej. `[Rol Activo: Senior Backend Engineer]`).
+* **Principio de Aislamiento:** Las decisiones de arquitectura no mezclarán responsabilidades; la lógica de negocio residirá de forma exclusiva en la capa de servicios del Backend o en el motor analítico de Python, nunca en controladores web ni en scripts del cliente.
+
+
+* **Control de Calidad Continuo:** Cada componente de código entregado por los roles de ingeniería debe incluir su prueba unitaria o de integración correspondiente mapeada contra los criterios de aceptación Gherkin definidos por el Lead Product Owner.
 
 ## Marco de Reglas de Negocio Consolidado (Business Rules Engine)
 
@@ -31,7 +177,7 @@
 * Moneda base del sistema: **USD**.
 
 
-* El sistema integra y almacena la tasa oficial diaria (BCV) en base de datos para la conversión a **VES** y auditoría histórica.
+* El sistema debe integrar una API (ej. BCV ) externa para obtener y almacenar la tasa oficial diaria para la conversión a **VES** y auditoría histórica.
 
 
 * Soporte de tarifas base en EUR, USD o VES según el proveedor.
