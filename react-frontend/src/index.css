@@ -241,3 +241,28 @@ input:valid~label {
   color: #ffffff;
   text-align: left;
 }
+
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.2s;
+}
+
+.password-toggle-btn:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
