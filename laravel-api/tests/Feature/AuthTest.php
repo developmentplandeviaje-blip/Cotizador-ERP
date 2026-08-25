@@ -33,12 +33,12 @@ class AuthTest extends TestCase
     }
 
     /**
-     * Test a successful login.
+     * Test a successful login for an Asesor (with id_freelancer null).
      */
-    public function test_login_successful(): void
+    public function test_login_successful_asesor_null_freelancer(): void
     {
         $user = User::create([
-            'id_freelancer' => $this->freelancerId,
+            'id_freelancer' => null, // null is allowed now as per Actividad 2
             'first_name' => 'John',
             'last_name' => 'Doe',
             'email' => 'john@example.com',
@@ -63,7 +63,8 @@ class AuthTest extends TestCase
                          'email',
                          'level',
                      ]
-                 ]);
+                 ])
+                 ->assertJsonPath('user.branding', null);
 
         // Check if DB log exists
         $this->assertDatabaseHas('login_logs', [
@@ -74,12 +75,53 @@ class AuthTest extends TestCase
     }
 
     /**
+     * Test a successful login for a Freelancer (with valid id_freelancer).
+     */
+    public function test_login_successful_freelancer(): void
+    {
+        $user = User::create([
+            'id_freelancer' => $this->freelancerId, // linked freelancer
+            'first_name' => 'Alex',
+            'last_name' => 'Freelance',
+            'email' => 'alex@example.com',
+            'password' => Hash::make('secret123'),
+            'level' => 'Freelancer',
+            'status' => true,
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => 'alex@example.com',
+            'password' => 'secret123',
+        ]);
+
+        $response->assertStatus(200)
+                 ->assertJsonStructure([
+                     'access_token',
+                     'token_type',
+                     'user' => [
+                         'id',
+                         'first_name',
+                         'last_name',
+                         'email',
+                         'level',
+                         'branding' => [
+                             'rif',
+                             'color_primario',
+                             'logo_url',
+                             'hoja_membrete_config'
+                         ]
+                     ]
+                 ])
+                 ->assertJsonPath('user.branding.rif', 'J-12345678-0');
+    }
+
+    /**
      * Test login failure due to invalid credentials (wrong password).
      */
     public function test_login_failed_wrong_password(): void
     {
         $user = User::create([
-            'id_freelancer' => $this->freelancerId,
+            'id_freelancer' => null,
             'first_name' => 'John',
             'last_name' => 'Doe',
             'email' => 'john@example.com',
@@ -116,7 +158,7 @@ class AuthTest extends TestCase
         $response->assertStatus(422)
                  ->assertJson(['message' => 'Credenciales incorrectas o usuario no encontrado.']);
 
-        // Since the user doesn't exist, we don't write to DB (foreign key constraint)
+        // Since the user doesn't exist, we don't write to DB
         $this->assertDatabaseCount('login_logs', 0);
     }
 
@@ -126,13 +168,13 @@ class AuthTest extends TestCase
     public function test_login_blocked_inactive_user(): void
     {
         $user = User::create([
-            'id_freelancer' => $this->freelancerId,
+            'id_freelancer' => null,
             'first_name' => 'Inactive',
             'last_name' => 'User',
             'email' => 'inactive@example.com',
             'password' => Hash::make('secret123'),
             'level' => 'Asesor',
-            'status' => false, // inactive
+            'status' => false,
         ]);
 
         $response = $this->postJson('/api/v1/auth/login', [

@@ -70,60 +70,60 @@ export default function Login({ onLoginSuccess }) {
   return (
     <div className="login-container">
       <div className="login-card">
-        {/* Logo Section */}
-        <div className="login-logo">
-          <LogoSvg />
+        <div className="login-linebord">
+          {/* Logo Section */}
+          <div className="login-logo">
+            <LogoSvg />
+          </div>
+
+          {/* Title */}
+          <div className="login-title">Inicio de Sesión</div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="login-form">
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
+
+            {/* User Input */}
+            <div className="input-group">
+              <input
+                type="email"
+                id="email"
+                className="login-input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                autoComplete="email"
+                required
+              />
+              <label className="input-label" htmlFor="email">Usuario:</label>
+            </div>
+
+            {/* Password Input */}
+            <div className="input-group">
+              <input
+                type="password"
+                id="password"
+                className="login-input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                autoComplete="current-password"
+                required
+              />
+              <label className="input-label" htmlFor="password">Contraseña:</label>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="login-button"
+              disabled={loading}
+            >
+              {loading ? 'Procesando...' : 'Iniciar'}
+            </button>
+          </form>
         </div>
-
-        {/* Title */}
-        <div className="login-title">Inicio de Sesión</div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="login-form">
-          {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">{success}</div>}
-
-          {/* User Input */}
-          <div className="input-group">
-            <label className="input-label" htmlFor="email">Usuario:</label>
-            <input
-              type="email"
-              id="email"
-              className="login-input"
-              placeholder="ejemplo@correo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              autoComplete="email"
-              required
-            />
-          </div>
-
-          {/* Password Input */}
-          <div className="input-group">
-            <label className="input-label" htmlFor="password">Contraseña:</label>
-            <input
-              type="password"
-              id="password"
-              className="login-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              autoComplete="current-password"
-              required
-            />
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="login-button"
-            disabled={loading}
-          >
-            {loading ? 'Procesando...' : 'Iniciar'}
-          </button>
-        </form>
       </div>
     </div>
   );
