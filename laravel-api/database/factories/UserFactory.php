@@ -22,24 +22,8 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        // Check if there is an existing freelancer to link to, or create one.
-        $freelancerId = DB::table('freelancer')->value('id');
-
-        if (!$freelancerId) {
-            $freelancerId = DB::table('freelancer')->insertGetId([
-                'nombre' => 'Freelancer Seed',
-                'rif' => 'V-' . fake()->unique()->numberBetween(10000000, 99999999) . '-0',
-                'correo' => fake()->unique()->safeEmail(),
-                'telefono_1' => fake()->phoneNumber(),
-                'direccion' => fake()->address(),
-                'color_primario' => '#000000',
-                'logo_url' => 'logo.png',
-                'hoja_membrete_config' => '{}',
-            ]);
-        }
-
         return [
-            'id_freelancer' => $freelancerId,
+            'id_freelancer' => null, // default is null as per Actividad 2
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),

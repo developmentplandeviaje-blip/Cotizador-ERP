@@ -30,9 +30,9 @@ class DatabaseSeeder extends Seeder
             ]),
         ]);
 
-        // Seed Admin user
+        // Seed Admin user (id_freelancer is null)
         User::create([
-            'id_freelancer' => $freelancerId,
+            'id_freelancer' => null,
             'first_name' => 'Admin',
             'last_name' => 'Cotizador',
             'email' => 'admin@example.com',
@@ -41,9 +41,9 @@ class DatabaseSeeder extends Seeder
             'status' => true,
         ]);
 
-        // Seed active Asesor
+        // Seed active Asesor (id_freelancer is null)
         User::create([
-            'id_freelancer' => $freelancerId,
+            'id_freelancer' => null,
             'first_name' => 'Asesor',
             'last_name' => 'Activo',
             'email' => 'asesor@example.com',
@@ -52,9 +52,9 @@ class DatabaseSeeder extends Seeder
             'status' => true,
         ]);
 
-        // Seed blocked Asesor
+        // Seed blocked Asesor (id_freelancer is null)
         User::create([
-            'id_freelancer' => $freelancerId,
+            'id_freelancer' => null,
             'first_name' => 'Asesor',
             'last_name' => 'Inactivo',
             'email' => 'blocked@example.com',
@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
             'status' => false,
         ]);
 
-        // Seed Freelancer user
+        // Seed Freelancer user (id_freelancer is linked)
         User::create([
             'id_freelancer' => $freelancerId,
             'first_name' => 'Freelancer',
