@@ -1,3 +1,5 @@
+@import './styles/design-system.css';
+
 :root {
   --text-color: #6b6375;
   --bg-color: #16171d;
