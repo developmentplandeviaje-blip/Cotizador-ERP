@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Login from './components/Login';
+import MainLayout from './components/layout/MainLayout';
+import HotelList from './components/catalog/hotels/HotelList';
 
 // Configure default base URL for Axios
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -21,6 +23,7 @@ axios.interceptors.request.use(
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState('hoteles');
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -50,6 +53,7 @@ function App() {
 
   const handleLoginSuccess = (userProfile) => {
     setUser(userProfile);
+    setActiveSection('hoteles');
   };
 
   const handleLogout = async () => {
@@ -66,7 +70,7 @@ function App() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#fff' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#fff', background: '#0b1120' }}>
         <h3>Cargando sistema...</h3>
       </div>
     );
@@ -77,68 +81,60 @@ function App() {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Dashboard / Panel view
-  const isFreelancer = user.level === 'Freelancer';
-  const branding = user.branding;
-
-  return (
-    <div className="dashboard-container" style={{
-      backgroundColor: isFreelancer && branding?.color_primario ? branding.color_primario : '#0f172a',
-      minHeight: '100vh',
-      color: '#fff',
-      padding: '40px',
-      boxSizing: 'border-box'
-    }}>
-      <div style={{ 
-        maxWidth: '800px', 
-        margin: '40px auto', 
-        background: 'rgba(255, 255, 255, 0.05)', 
-        padding: '40px', 
-        borderRadius: '24px', 
-        border: '1px solid rgba(255, 255, 255, 0.1)', 
-        backdropFilter: 'blur(16px)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)'
-      }}>
-        
-        {/* Branding header for Freelancer */}
-        {isFreelancer && branding && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '30px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '20px' }}>
-            <img src={branding.logo_url} alt="Freelancer Logo" style={{ maxHeight: '60px', borderRadius: '8px' }} onError={(e) => { e.target.style.display = 'none'; }} />
-            <div>
-              <h2 style={{ margin: 0, color: '#fff' }}>{user.first_name} {user.last_name}</h2>
-              <p style={{ margin: 0, fontSize: '14px', opacity: 0.8 }}>RIF: {branding.rif} (Perfil Freelancer)</p>
-            </div>
-          </div>
-        )}
-
-        {!isFreelancer && (
-          <h2 style={{ marginBottom: '25px', color: '#fff' }}>Cotizador ERP — Panel de Control</h2>
-        )}
-
-        <div style={{ marginBottom: '30px', lineHeight: '1.6' }}>
-          <p>Bienvenido, <strong>{user.first_name} {user.last_name}</strong>!</p>
-          <p>Tu correo: <strong>{user.email}</strong></p>
-          <p>Rol / Nivel: <strong style={{ color: '#ff6a00' }}>{user.level}</strong></p>
+  // Dashboard preview (Pages 1-2)
+  const renderDashboard = () => (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700' }}>Panel Principal</h1>
+          <p style={{ margin: '4px 0 0 0', color: '#94A3B8', fontSize: '0.875rem' }}>
+            Bienvenido, {user.first_name} {user.last_name} ({user.level})
+          </p>
         </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button className="btn-primary" onClick={() => setActiveSection('hoteles')}>
+            Ver Catálogo de Hoteles
+          </button>
+        </div>
+      </div>
 
-        <button 
-          onClick={handleLogout} 
-          style={{
-            background: 'linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%)',
-            border: 'none',
-            borderRadius: '20px',
-            padding: '12px 30px',
-            color: '#fff',
-            fontWeight: '600',
-            cursor: 'pointer',
-            boxShadow: '0 4px 10px rgba(220, 38, 38, 0.3)',
-            fontSize: '15px'
-          }}
-        >
-          Cerrar Sesión
-        </button>
+      {/* KPI Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+        <div style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '12px' }}>
+          <span style={{ color: '#94A3B8', fontSize: '0.8125rem' }}>Meta Anual</span>
+          <h2 style={{ margin: '8px 0 0 0', color: '#E87217', fontSize: '1.5rem' }}>USD 112,645.65</h2>
+        </div>
+        <div style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '12px' }}>
+          <span style={{ color: '#94A3B8', fontSize: '0.8125rem' }}>Total Recibido</span>
+          <h2 style={{ margin: '8px 0 0 0', color: '#2563EB', fontSize: '1.5rem' }}>USD 101,325.11</h2>
+        </div>
+        <div style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '12px' }}>
+          <span style={{ color: '#94A3B8', fontSize: '0.8125rem' }}>Rendimiento</span>
+          <h2 style={{ margin: '8px 0 0 0', color: '#15803D', fontSize: '1.5rem' }}>853 Ventas (7.78%)</h2>
+        </div>
       </div>
     </div>
+  );
+
+  return (
+    <MainLayout
+      activeSection={activeSection}
+      onNavigate={(sec) => setActiveSection(sec)}
+      onLogout={handleLogout}
+      user={user}
+    >
+      {activeSection === 'hoteles' && <HotelList user={user} />}
+      {activeSection === 'dashboard' && renderDashboard()}
+      {activeSection !== 'hoteles' && activeSection !== 'dashboard' && (
+        <div style={{ background: 'rgba(30, 41, 59, 0.7)', padding: '40px', borderRadius: '12px', textAlign: 'center' }}>
+          <h2>Módulo en Desarrollo: {activeSection.toUpperCase()}</h2>
+          <p style={{ color: '#94A3B8' }}>Este módulo se conectará en las siguientes épicas del ERP.</p>
+          <button className="btn-primary" onClick={() => setActiveSection('hoteles')}>
+            Volver al Catálogo de Hoteles
+          </button>
+        </div>
+      )}
+    </MainLayout>
   );
 }
 

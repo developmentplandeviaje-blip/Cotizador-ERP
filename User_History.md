@@ -1,6 +1,7 @@
 US-01: Validación y Asociación de Código de Referido en Cotización
 Como: Asesor o Freelancer.  
-Quiero: Ingresar y validar un código de referido dentro del cotizador.  Para: Asociar la venta al promotor correspondiente sin alterar los montos de la cotización mientras la regla de descuento permanezca inactiva.  
+Quiero: Ingresar y validar un código de referido dentro del cotizador.  
+Para: Asociar la venta al promotor correspondiente sin alterar los montos de la cotización mientras la regla de descuento permanezca inactiva.  
 
 Escenario: Validación exitosa de un código de referido existente
   Dado que el asesor se encuentra en el formulario de creación de cotización

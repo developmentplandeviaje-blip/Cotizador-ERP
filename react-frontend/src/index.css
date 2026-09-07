@@ -1,3 +1,5 @@
+@import './styles/design-system.css';
+
 :root {
   --text-color: #6b6375;
   --bg-color: #16171d;
@@ -28,7 +30,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: url('./assets/fondo.jpg');
+  background-image: url('./assets/hero.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -37,31 +39,14 @@ body {
 }
 
 .login-card {
-  background: rgb(0 4 61 / 5%);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 24px;
-  /*width: 100%;*/
-  max-width: 440px;
-  padding: 15px;
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-  text-align: center;
-}
-
-.login-linebord {
-  /*background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);*/
-  -webkit-backdrop-filter: blur(16px);
-  border: 2px solid rgb(255, 255, 255);
-  border-radius: 24px;
   width: 100%;
   max-width: 440px;
-  padding: 30px;
+  padding: 40px;
   box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
@@ -105,8 +90,7 @@ body {
 }
 
 .logo-sub-text {
-  color: #ff7a00;
-  /* orange */
+  color: #ff7a00; /* orange */
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 2.5px;
@@ -133,10 +117,11 @@ body {
 }
 
 .input-group {
-  position: relative;
-  margin: 12px 0;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   text-align: left;
+  width: 100%;
 }
 
 .input-label {
@@ -144,37 +129,23 @@ body {
   font-size: 14px;
   font-weight: 500;
   padding-left: 4px;
-  position: absolute;
-  top: 50%;
-  left: 5px;
-  transform: translateY(-50%);
-  pointer-events: none;
-  transition: all 0.5s ease-in-out;
-}
-
-input:focus~label,
-input:valid~label {
-  top: -8px;
-  font-size: 0.85rem;
-  left: 0;
-  color: #cdd5e1;
 }
 
 .login-input {
-  background: rgb(255 255 255 / 25%);
-  border: 1px solid rgb(0 0 0 / 36%);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
   padding: 14px 18px;
   color: #ffffff;
+  font-size: 16px;
   outline: none;
   transition: border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
   box-sizing: border-box;
   width: 100%;
-  font-size: 1rem;
 }
 
 .login-input:focus {
-  border-color: rgba(192, 185, 185, 0.45);
+  border-color: rgba(255, 255, 255, 0.45);
   background-color: rgba(0, 0, 0, 0.35);
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
 }
