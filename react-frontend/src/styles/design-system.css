@@ -20,7 +20,8 @@
   --color-warning-text: #B45309;
 
   /* 4. Neutros y Superficies (Dark Slate ERP Theme) */
-  --color-surface-bg: #0b1120;
+  --color-surface-bg: #090e24;
+  --color-surface-gradient: radial-gradient(circle at 10% 45%, #223768 0%, #101c44 42%, #080d22 85%);
   --color-surface-sidebar: #0f172a;
   --color-surface-card: rgba(30, 41, 59, 0.72);
   --color-surface-row-hover: rgba(51, 65, 85, 0.4);
@@ -52,6 +53,9 @@ body {
   font-family: var(--font-family-base);
   color: var(--color-text-primary);
   background-color: var(--color-surface-bg);
+  background-image: var(--color-surface-gradient);
+  background-attachment: fixed;
+  background-size: cover;
   margin: 0;
   padding: 0;
 }
