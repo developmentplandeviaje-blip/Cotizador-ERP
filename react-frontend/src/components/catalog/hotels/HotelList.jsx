@@ -237,7 +237,7 @@ export default function HotelList({ user }) {
                       <td style={{ padding: '14px 16px', fontWeight: '600', color: '#FFFFFF' }}>{hotel.nombre}</td>
                       <td style={{ padding: '14px 16px', color: '#F8FAFC' }}>{hotel.tipo}</td>
                       <td style={{ padding: '14px 16px', color: '#F8FAFC' }}>{hotel.ubicacion_nombre}</td>
-                      
+
                       {/* Desc. Contado Badge */}
                       <td style={{ padding: '14px 16px' }}>
                         <Badge variant={hotel.desc_contado.includes('%') ? 'warning' : 'neutral'}>

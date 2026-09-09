@@ -1,7 +1,7 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 
-export default function MainLayout({ activeSection, onNavigate, onLogout, user, children }) {
+export default function MainLayout({ activeRoute, onNavigate, onLogout, user, children }) {
   return (
     <div style={{
       display: 'flex',
@@ -12,7 +12,7 @@ export default function MainLayout({ activeSection, onNavigate, onLogout, user, 
       boxSizing: 'border-box',
     }}>
       <Sidebar
-        activeSection={activeSection}
+        activeRoute={activeRoute}
         onNavigate={onNavigate}
         onLogout={onLogout}
         user={user}

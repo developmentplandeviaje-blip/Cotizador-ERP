@@ -20,10 +20,38 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Route metadata dictionary
+const routeTitles = {
+  dashboard: { parent: 'General', title: 'Dashboard' },
+  nueva_cotizacion: { parent: 'Cotizaciones', title: 'Nueva Cotización' },
+  ventas_agencia: { parent: 'Ventas', title: 'Agencia' },
+  ventas_freelancer: { parent: 'Ventas', title: 'Freelancer' },
+  reportes_operativo: { parent: 'Reportes', title: 'Operativo' },
+  reportes_comisiones: { parent: 'Reportes', title: 'Comisiones' },
+  reportes_ventas: { parent: 'Reportes', title: 'Reporte Ventas' },
+  reportes_gastos: { parent: 'Reportes', title: 'Gastos' },
+  reportes_cuentas_cobrar: { parent: 'Reportes', title: 'Cuentas por Cobrar' },
+  reportes_cuentas_pagar: { parent: 'Reportes', title: 'Cuentas por Pagar' },
+  reportes_pagos_entrantes: { parent: 'Reportes', title: 'Pagos Entrantes' },
+  reportes_checkin: { parent: 'Reportes', title: 'Check-in' },
+  reportes_estado_venta: { parent: 'Reportes', title: 'Estado de Venta' },
+  servicios_hoteles: { parent: 'Servicios', title: 'Hoteles' },
+  servicios_excursiones: { parent: 'Servicios', title: 'Excursiones' },
+  servicios_paquetes: { parent: 'Servicios', title: 'Paquetes' },
+  servicios_traslados: { parent: 'Servicios', title: 'Traslados' },
+  servicios_vehiculos: { parent: 'Servicios', title: 'Vehículos' },
+  servicios_aerolineas: { parent: 'Servicios', title: 'Aerolíneas' },
+  servicios_ubicaciones: { parent: 'Servicios', title: 'Ubicaciones' },
+  gastos: { parent: 'Finanzas', title: 'Gastos' },
+  metodos_pago: { parent: 'Finanzas', title: 'Métodos de pago' },
+  usuarios_agencia: { parent: 'Usuarios', title: 'Agencia' },
+  usuarios_freelancer: { parent: 'Usuarios', title: 'Freelancer' },
+};
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('hoteles');
+  const [activeRoute, setActiveRoute] = useState('servicios_hoteles');
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -53,7 +81,7 @@ function App() {
 
   const handleLoginSuccess = (userProfile) => {
     setUser(userProfile);
-    setActiveSection('hoteles');
+    setActiveRoute('servicios_hoteles');
   };
 
   const handleLogout = async () => {
@@ -81,6 +109,9 @@ function App() {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
+  // Current route information
+  const currentMeta = routeTitles[activeRoute] || { parent: 'Módulo', title: activeRoute };
+
   // Dashboard preview (Pages 1-2)
   const renderDashboard = () => (
     <div>
@@ -92,7 +123,7 @@ function App() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="btn-primary" onClick={() => setActiveSection('hoteles')}>
+          <button className="btn-primary" onClick={() => setActiveRoute('servicios_hoteles')}>
             Ver Catálogo de Hoteles
           </button>
         </div>
@@ -118,19 +149,44 @@ function App() {
 
   return (
     <MainLayout
-      activeSection={activeSection}
-      onNavigate={(sec) => setActiveSection(sec)}
+      activeRoute={activeRoute}
+      onNavigate={(route) => setActiveRoute(route)}
       onLogout={handleLogout}
       user={user}
     >
-      {activeSection === 'hoteles' && <HotelList user={user} />}
-      {activeSection === 'dashboard' && renderDashboard()}
-      {activeSection !== 'hoteles' && activeSection !== 'dashboard' && (
-        <div style={{ background: 'rgba(30, 41, 59, 0.7)', padding: '40px', borderRadius: '12px', textAlign: 'center' }}>
-          <h2>Módulo en Desarrollo: {activeSection.toUpperCase()}</h2>
-          <p style={{ color: '#94A3B8' }}>Este módulo se conectará en las siguientes épicas del ERP.</p>
-          <button className="btn-primary" onClick={() => setActiveSection('hoteles')}>
-            Volver al Catálogo de Hoteles
+      {activeRoute === 'servicios_hoteles' && <HotelList user={user} />}
+      {activeRoute === 'dashboard' && renderDashboard()}
+      
+      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'dashboard' && (
+        <div style={{
+          background: 'rgba(30, 41, 59, 0.72)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: '16px',
+          padding: '40px',
+          textAlign: 'center',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+        }}>
+          {/* Breadcrumb */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(255, 255, 255, 0.05)', padding: '6px 14px', borderRadius: '9999px', fontSize: '0.8125rem', color: '#94A3B8' }}>
+            <span>{currentMeta.parent}</span>
+            <span>›</span>
+            <span style={{ color: '#E87217', fontWeight: '600' }}>{currentMeta.title}</span>
+          </div>
+
+          <h2 style={{ margin: '0 0 12px 0', fontSize: '1.5rem', color: '#FFFFFF' }}>
+            Módulo: {currentMeta.title}
+          </h2>
+
+          <p style={{ color: '#94A3B8', maxWidth: '500px', margin: '0 auto 24px auto', lineHeight: '1.5' }}>
+            Esta sección del sistema está estructurada y conectada a la barra de navegación del ERP. Sus vistas y formularios específicos se habilitarán en las siguientes etapas del proyecto.
+          </p>
+
+          <button
+            className="btn-primary"
+            onClick={() => setActiveRoute('servicios_hoteles')}
+            style={{ margin: '0 auto' }}
+          >
+            Ir al Catálogo de Hoteles
           </button>
         </div>
       )}

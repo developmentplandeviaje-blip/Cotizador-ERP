@@ -63,7 +63,8 @@ body {
   justify-content: center;
   padding: 2px 10px;
   border-radius: var(--radius-pill);
-  font-size: 0.6875rem; /* 11px */
+  font-size: 0.6875rem;
+  /* 11px */
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: 0.03em;
@@ -97,7 +98,8 @@ body {
   border: none;
   border-radius: var(--radius-sm);
   padding: 8px 16px;
-  font-size: 0.8125rem; /* 13px */
+  font-size: 0.8125rem;
+  /* 13px */
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s, transform 0.1s;
@@ -150,7 +152,8 @@ body {
 }
 
 /* Inputs y Selects */
-.erp-input, .erp-select {
+.erp-input,
+.erp-select {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
@@ -163,7 +166,8 @@ body {
   width: 100%;
 }
 
-.erp-input:focus, .erp-select:focus {
+.erp-input:focus,
+.erp-select:focus {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
