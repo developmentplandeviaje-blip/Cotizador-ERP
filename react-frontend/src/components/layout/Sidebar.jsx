@@ -1,5 +1,23 @@
 import React, { useState } from 'react';
-import logoinicio from '../../assets/logoinicio.png';
+import logoinicio from '../../assets/logo_blanc_naranja.png';
+import nuevacotizacion from '../../assets/NuevaCotizacion.svg';
+import ventas from '../../assets/Ventas.svg';
+import ventasagencia from '../../assets/VentasAgencia.svg';
+import ventasfreelancer from '../../assets/Ventasfreelance.svg';
+import reportes from '../../assets/reportes.svg';
+import servicios from '../../assets/Servicios.svg';
+import hoteles from '../../assets/Hoteles.svg';
+import excursiones from '../../assets/Excursiones.svg';
+import paquetes from '../../assets/Paqueteria.svg';
+import traslado from '../../assets/Traslados.svg';
+import vehiculos from '../../assets/Vehiculos.svg';
+import aerolinea from '../../assets/Aerolineas.svg';
+import ubicacion from '../../assets/Ubicaciones.svg';
+import gastos from '../../assets/Gastos.svg';
+import Metodosdepago from '../../assets/Metodosdepago.svg';
+import usuarios from '../../assets/Usuario.svg';
+import cerrarsesion from '../../assets/Cerrarsesion.svg';
+
 
 export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
   // Track open state of submenus. Defaults to 'servicios' open.
@@ -61,7 +79,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
       {/* Navigation List */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '0 16px', flex: 1 }}>
-        
+
         {/* 1. Dashboard */}
         <button
           onClick={() => onNavigate('dashboard')}
@@ -85,11 +103,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             color: isRouteActive('nueva_cotizacion') ? '#E87217' : '#FFFFFF',
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="4" />
-            <line x1="12" y1="8" x2="12" y2="16" />
-            <line x1="8" y1="12" x2="16" y2="12" />
-          </svg>
+          <img
+            src={nuevacotizacion}
+            style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+          />
           <span style={{ fontWeight: isRouteActive('nueva_cotizacion') ? '700' : '500' }}>Nueva Cotización</span>
         </button>
 
@@ -102,12 +119,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               color: isParentActive('ventas') ? '#E87217' : '#FFFFFF',
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="8" />
-              <line x1="12" y1="2" x2="12" y2="4" />
-              <line x1="12" y1="20" x2="12" y2="22" />
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
+            <img
+              src={ventas}
+              style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+            />
             <span style={{ fontWeight: isParentActive('ventas') ? '700' : '500' }}>Ventas</span>
           </button>
 
@@ -120,10 +135,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('ventas_agencia') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="6" width="20" height="12" rx="2" />
-                  <circle cx="12" cy="12" r="2" />
-                </svg>
+                <img
+                  src={ventasagencia}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Agencia</span>
               </button>
 
@@ -134,9 +149,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('ventas_freelancer') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 11V7a4 4 0 0 0-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
+                <img
+                  src={ventasfreelancer}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Freelancer</span>
               </button>
             </div>
@@ -152,12 +168,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               color: isParentActive('reportes') ? '#E87217' : '#FFFFFF',
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <line x1="8" y1="12" x2="16" y2="12" />
-              <line x1="8" y1="16" x2="14" y2="16" />
-              <line x1="8" y1="8" x2="12" y2="8" />
-            </svg>
+            <img
+              src={reportes}
+              style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+            />
             <span style={{ fontWeight: isParentActive('reportes') ? '700' : '500' }}>Reportes</span>
           </button>
 
@@ -182,11 +196,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                     color: isRouteActive(sub.id) ? '#E87217' : '#FFFFFF',
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <line x1="3" y1="9" x2="21" y2="9" />
-                    <line x1="9" y1="21" x2="9" y2="9" />
-                  </svg>
+                  <img
+                    src={reportes}
+                    style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                  />
                   <span>{sub.label}</span>
                 </button>
               ))}
@@ -203,11 +216,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               color: isParentActive('servicios') ? '#E87217' : '#FFFFFF',
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="7" r="4" />
-              <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
-              <path d="M19 10l3-3-3-3" />
-            </svg>
+            <img
+              src={servicios}
+              style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+            />
             <span style={{ fontWeight: isParentActive('servicios') ? '700' : '500' }}>Servicios</span>
           </button>
 
@@ -221,9 +233,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('servicios_hoteles') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 21h18M3 7v14M21 7v14M6 3h12a2 2 0 0 1 2 2v2H4V5a2 2 0 0 1 2-2zM9 10h2M13 10h2M9 14h2M13 14h2M9 18h2M13 18h2" />
-                </svg>
+                <img
+                  src={hoteles}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Hoteles</span>
               </button>
 
@@ -235,11 +248,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('servicios_excursiones') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="13" cy="4" r="2" />
-                  <path d="M9 20l3-6 2 3 4-8" />
-                  <path d="M6 17l4-2" />
-                </svg>
+                <img
+                  src={excursiones}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Excursiones</span>
               </button>
 
@@ -251,10 +263,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('servicios_paquetes') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="7" width="20" height="14" rx="2" />
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                </svg>
+                <img
+                  src={paquetes}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Paquetes</span>
               </button>
 
@@ -266,11 +278,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('servicios_traslados') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="6" width="18" height="11" rx="2" />
-                  <circle cx="7" cy="18" r="2" />
-                  <circle cx="17" cy="18" r="2" />
-                </svg>
+                <img
+                  src={traslado}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Traslados</span>
               </button>
 
@@ -282,9 +293,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('servicios_vehiculos') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 17h14M5 17a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2M7 17v2M17 17v2" />
-                </svg>
+                <img
+                  src={vehiculos}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Vehículos</span>
               </button>
 
@@ -296,9 +308,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('servicios_aerolineas') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-                </svg>
+                <img
+                  src={aerolinea}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Aerolíneas</span>
               </button>
 
@@ -310,10 +323,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('servicios_ubicaciones') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
+                <img
+                  src={ubicacion}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Ubicaciones</span>
               </button>
             </div>
@@ -328,11 +341,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             color: isRouteActive('gastos') ? '#E87217' : '#FFFFFF',
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="8" />
-            <line x1="12" y1="14" x2="12" y2="22" />
-            <line x1="9" y1="19" x2="15" y2="19" />
-          </svg>
+          <img
+            src={gastos}
+            style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+          />
           <span style={{ fontWeight: isRouteActive('gastos') ? '700' : '500' }}>Gastos</span>
         </button>
 
@@ -344,10 +356,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             color: isRouteActive('metodos_pago') ? '#E87217' : '#FFFFFF',
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="5" width="20" height="14" rx="2" />
-            <line x1="2" y1="10" x2="22" y2="10" />
-          </svg>
+          <img
+            src={Metodosdepago}
+            style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+          />
           <span style={{ fontWeight: isRouteActive('metodos_pago') ? '700' : '500' }}>Métodos de pago</span>
         </button>
 
@@ -360,10 +372,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               color: isParentActive('usuarios') ? '#E87217' : '#FFFFFF',
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
+            <img
+              src={usuarios}
+              style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+            />
             <span style={{ fontWeight: isParentActive('usuarios') ? '700' : '500' }}>Usuarios</span>
           </button>
 
@@ -376,10 +388,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('usuarios_agencia') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
+                <img
+                  src={usuarios}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Agencia</span>
               </button>
 
@@ -390,10 +402,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   color: isRouteActive('usuarios_freelancer') ? '#E87217' : '#FFFFFF',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="10" cy="7" r="4" />
-                </svg>
+                <img
+                  src={usuarios}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
                 <span>Freelancer</span>
               </button>
             </div>
@@ -412,11 +424,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             opacity: 0.9,
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
+          <img
+            src={cerrarsesion}
+            style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+          />
           <span style={{ fontWeight: '500' }}>Cerrar Sesión</span>
         </button>
       </div>
