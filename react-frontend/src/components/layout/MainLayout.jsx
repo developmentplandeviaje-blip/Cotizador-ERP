@@ -1,12 +1,18 @@
 import React from 'react';
 import Sidebar from './Sidebar';
+import erpBg from '../../assets/erp-bg.png';
 
 export default function MainLayout({ activeRoute, onNavigate, onLogout, user, children }) {
   return (
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-      backgroundColor: '#0b1120',
+      backgroundImage: `url(${erpBg})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed',
+      backgroundColor: '#090e24',
       color: '#F8FAFC',
       width: '100%',
       boxSizing: 'border-box',
