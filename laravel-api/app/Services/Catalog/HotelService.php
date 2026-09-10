@@ -24,10 +24,10 @@ class HotelService
             $search = '%' . $filters['search'] . '%';
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'like', $search)
-                  ->orWhere('tipo', 'like', $search)
-                  ->orWhereHas('ubicacion', function ($uq) use ($search) {
-                      $uq->where('ubicacion', 'like', $search);
-                  });
+                    ->orWhere('tipo', 'like', $search)
+                    ->orWhereHas('ubicacion', function ($uq) use ($search) {
+                        $uq->where('ubicacion', 'like', $search);
+                    });
             });
         }
 
@@ -94,6 +94,21 @@ class HotelService
 
                     if (!empty($habData['tarifas'])) {
                         foreach ($habData['tarifas'] as $tarifaData) {
+                            if (isset($tarifaData['desde_venta']) && $tarifaData['desde_venta'] === '') {
+                                $tarifaData['desde_venta'] = null;
+                            }
+                            if (isset($tarifaData['hasta_venta']) && $tarifaData['hasta_venta'] === '') {
+                                $tarifaData['hasta_venta'] = null;
+                            }
+
+                            // If they are strictly required in the DB, default to the validity dates
+                            if (empty($tarifaData['desde_venta'])) {
+                                $tarifaData['desde_venta'] = $tarifaData['desde'] ?? null;
+                            }
+                            if (empty($tarifaData['hasta_venta'])) {
+                                $tarifaData['hasta_venta'] = $tarifaData['hasta'] ?? null;
+                            }
+
                             $habitacion->tarifas()->create($tarifaData);
                         }
                     }
