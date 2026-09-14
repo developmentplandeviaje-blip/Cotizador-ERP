@@ -148,7 +148,7 @@ export default function HotelList({ user }) {
                   position: 'absolute',
                   top: '110%',
                   right: 0,
-                  backgroundColor: '#F9F3E0', /////////////////////////////// F9F3E0
+                  backgroundColor: '#F9F3E0',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                   borderRadius: '8px',
                   boxShadow: 'var(--shadow-dropdown)',
@@ -164,7 +164,7 @@ export default function HotelList({ user }) {
                       padding: '14px 14px 5px',
                       background: 'none',
                       border: 'none',
-                      color: '#595959', /////////////////////////////// #595959
+                      color: '#595959',
                       fontSize: '0.8125rem',
                       cursor: 'pointer',
                     }}
