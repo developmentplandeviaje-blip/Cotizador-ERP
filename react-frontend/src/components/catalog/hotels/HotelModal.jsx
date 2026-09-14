@@ -64,6 +64,17 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
           desc_divisas_status: false,
           desc_divisas_monto: '',
         });
+        setHabitaciones(hotelToEdit.habitaciones || [
+          {
+            habitacion: 'Doble',
+            cantidad_personas: 2,
+            minimo_noches: 1,
+            posicion: 1,
+            por_defecto: true,
+            nota: '',
+            tarifas: []
+          }
+        ]);
       } else {
         setHotelInfo({
           nombre: '',
@@ -134,7 +145,11 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
     });
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSaveHotel = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const payload = {
         nombre: hotelInfo.nombre,
@@ -172,8 +187,15 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
       onSaveSuccess();
       onClose();
     } catch (err) {
-      console.error(err);
-      alert('Error al guardar el hotel. Verifique los campos requeridos.');
+      console.error("Error saving hotel:", err.response?.data || err.message || err);
+      const errors = err.response?.data?.errors;
+      let errorMsg = 'Error al guardar el hotel. Verifique los campos requeridos.';
+      if (errors) {
+         errorMsg = Object.values(errors).flat().join('\n');
+      }
+      alert(errorMsg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -564,8 +586,8 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
               <button type="button" className="btn-secondary" onClick={() => setCurrentStep(1)}>
                 Anterior
               </button>
-              <button type="button" className="btn-primary" onClick={handleSaveHotel}>
-                Guardar Hotel
+              <button type="button" className="btn-primary" onClick={handleSaveHotel} disabled={isSubmitting}>
+                {isSubmitting ? 'Guardando...' : 'Guardar Hotel'}
               </button>
             </div>
           </div>

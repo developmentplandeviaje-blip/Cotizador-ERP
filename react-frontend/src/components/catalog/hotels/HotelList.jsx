@@ -197,7 +197,7 @@ export default function HotelList({ user }) {
         background: 'rgba(30, 41, 59, 0.72)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: '12px',
-        overflow: 'hidden',
+        overflow: 'visible',
         boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>

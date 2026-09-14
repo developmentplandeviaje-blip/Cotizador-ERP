@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Modal from '../../common/Modal';
 
 export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = false }) {
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     desde: '',
     hasta: '',
     ninos_gratis: 0,
@@ -21,7 +21,17 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
     has_fecha_venta: false,
     desde_venta: '',
     hasta_venta: '',
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData(initialFormState);
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -36,14 +46,24 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    
     if (!formData.desde || !formData.hasta || !formData.precio_noche_adulto) {
       alert('Por favor complete las fechas y al menos el precio del adulto.');
       return;
     }
-    onSave(formData);
-    onClose();
+    
+    setIsSubmitting(true);
+    try {
+      await onSave(formData);
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -299,8 +319,8 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
           <button type="button" className="btn-secondary" onClick={onClose}>
             Cancelar
           </button>
-          <button type="submit" className="btn-primary">
-            Guardar Tarifa
+          <button type="submit" className="btn-primary" disabled={isSubmitting}>
+            {isSubmitting ? 'Guardando...' : 'Guardar Tarifa'}
           </button>
         </div>
       </form>

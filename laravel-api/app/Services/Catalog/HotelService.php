@@ -155,6 +155,17 @@ class HotelService
      */
     public function deleteHotel(Hotel $hotel): bool
     {
-        return DB::transaction(fn() => $hotel->delete());
+        return DB::transaction(function () use ($hotel) {
+            // Eliminar tarifas de las habitaciones
+            foreach ($hotel->habitaciones as $habitacion) {
+                $habitacion->tarifas()->delete();
+                $habitacion->delete();
+            }
+            
+            // Eliminar reglas comerciales
+            $hotel->reglasComerciales()->delete();
+
+            return $hotel->delete();
+        });
     }
 }
