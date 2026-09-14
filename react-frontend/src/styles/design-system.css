@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
   /* 1. Primarios (Brand) */
@@ -12,10 +12,10 @@
   --color-accent-hover: #1D4ED8;
 
   /* 3. Semánticos / Estado */
-  --color-success-bg: #DCFCE7;
-  --color-success-text: #15803D;
-  --color-error-bg: #FEE2E2;
-  --color-error-text: #B91C1C;
+  --color-success-bg: #246c6863;
+  --color-success-text: #19dfaa;
+  --color-error-bg: #83405163;
+  --color-error-text: #FF8F8F;
   --color-warning-bg: #FEF3C7;
   --color-warning-text: #B45309;
 
@@ -23,19 +23,20 @@
   --color-surface-bg: #090e24;
   --color-surface-gradient: radial-gradient(circle at 10% 45%, #223768 0%, #101c44 42%, #080d22 85%);
   --color-surface-sidebar: #0f172a;
-  --color-surface-card: rgba(30, 41, 59, 0.72);
+  --color-surface-card: rgba(30, 59, 30, 0.72);
   --color-surface-row-hover: rgba(51, 65, 85, 0.4);
   --color-surface-modal: #1e293b;
   --color-border-subtle: rgba(255, 255, 255, 0.12);
   --color-border-table: rgba(255, 255, 255, 0.08);
+  --color-border-btn: rgba(255, 255, 255, 0.45);
 
   /* 5. Textos */
   --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
+  --color-text-secondary: #b9c8ddff;
   --color-text-disabled: #64748B;
 
   /* Tipografía */
-  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-tittle: 'Poppins', 'Segoe UI', sans-serif;
 
   /* Geometría */
   --radius-sm: 6px;
@@ -50,7 +51,7 @@
 
 /* Base Styles */
 body {
-  font-family: var(--font-family-base);
+  font-family: var(--font-family-tittle);
   color: var(--color-text-primary);
   background-color: var(--color-surface-bg);
   background-image: var(--color-surface-gradient);
@@ -67,7 +68,8 @@ body {
   justify-content: center;
   padding: 2px 10px;
   border-radius: var(--radius-pill);
-  font-size: 0.6875rem; /* 11px */
+  font-size: 0.6875rem;
+  /* 11px */
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: 0.03em;
@@ -75,23 +77,21 @@ body {
 }
 
 .badge-success {
+  border: 2px solid #246C68;
   background-color: var(--color-success-bg);
   color: var(--color-success-text);
 }
 
 .badge-error {
+  border: 2px solid #834051;
   background-color: var(--color-error-bg);
   color: var(--color-error-text);
 }
 
-.badge-warning {
-  background-color: var(--color-warning-bg);
-  color: var(--color-warning-text);
-}
-
 .badge-neutral {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-btn);
+  background-color: rgba(255, 255, 255, 0.267);
+  color: var(--color-text-primary);
 }
 
 /* Botones UI */
@@ -101,7 +101,8 @@ body {
   border: none;
   border-radius: var(--radius-sm);
   padding: 8px 16px;
-  font-size: 0.8125rem; /* 13px */
+  font-size: 0.8125rem;
+  /* 13px */
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s, transform 0.1s;
@@ -119,18 +120,87 @@ body {
 }
 
 .btn-secondary {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(327deg, rgba(106, 109, 119, 0.808) 10%, rgb(157 157 157 / 8%) 100%);
+  border: 1px solid var(--color-border-btn);
+  padding: 8px 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  box-shadow: var(--shadow-dropdown);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  gap: 6px;
+}
+
+.btn-secondary-form {
+  background: linear-gradient(327deg, rgba(106, 109, 119, 0.808) 10%, rgb(157 157 157 / 8%) 100%);
+  border: 1px solid var(--color-border-btn);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-subtle);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-dropdown);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  gap: 6px;
+}
+
+.btn-form-cancel {
+  color: #2c303d;
+  background: linear-gradient(135deg, rgb(237 237 237 / 60%) 8%, #f2f4ff 54%, rgb(23 59 155) 107%);
+  border: 1px solid rgb(206 207 213 / 72%);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-dropdown);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  gap: 6px;
+}
+
+.btn-form-nxt {
+  background: linear-gradient(134deg, #08196d 10%, rgb(11 94 227 / 55%), #08196d 90%);
+  color: #FFFFFF;
+  border: 1px solid #898d9f;
   border-radius: var(--radius-sm);
   padding: 8px 16px;
   font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, transform 0.1s;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.btn-form-prv {
+  color: #08196d;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, rgb(237 237 237 / 60%) 8%, #f2f4ff 54%, rgb(23 59 155) 107%);
+  border: 1px solid #08196d;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-dropdown);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  gap: 6px;
+}
+
+.title-input {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
 }
 
 .btn-secondary:hover {
@@ -154,8 +224,9 @@ body {
 }
 
 /* Inputs y Selects */
-.erp-input, .erp-select {
-  background: rgba(15, 23, 42, 0.6);
+.erp-input,
+.erp-select {
+  background: #1e387599;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
   padding: 8px 12px;
@@ -167,9 +238,10 @@ body {
   width: 100%;
 }
 
-.erp-input:focus, .erp-select:focus {
+.erp-input:focus,
+.erp-select:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 0 0 2px rgba(66, 118, 230, 0.349);
 }
 
 .erp-label {

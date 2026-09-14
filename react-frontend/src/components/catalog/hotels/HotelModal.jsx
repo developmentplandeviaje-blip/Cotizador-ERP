@@ -377,12 +377,12 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
 
             {/* Wizard Actions Step 1 */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button type="button" className="btn-secondary" onClick={onClose}>
+              <button type="button" className="btn-form-cancel" onClick={onClose}>
                 Cancelar
               </button>
               <button
                 type="button"
-                className="btn-primary"
+                className="btn-form-nxt"
                 onClick={() => {
                   if (!hotelInfo.nombre) {
                     alert('Por favor ingrese el nombre del hotel.');
@@ -475,17 +475,17 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
               overflow: 'hidden',
               marginBottom: '16px',
             }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(30, 41, 59, 0.8)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', textAlign: 'left' }}>
-                    <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Desde - Hasta</th>
-                    <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Precio Adulto</th>
-                    <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Precio Adolesc.</th>
-                    <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Precio Niño</th>
-                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Costo Adulto</th>}
-                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Costo Adolesc.</th>}
-                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Costo Niño</th>}
-                    <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Acciones</th>
+                  <tr style={{ background: 'rgba(0, 18, 49, 0.4)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', textAlign: 'left' }}>
+                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Desde - Hasta</th>
+                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Precio Adulto</th>
+                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Precio Adolesc.</th>
+                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Precio Niño</th>
+                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Costo Adulto</th>}
+                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Costo Adolesc.</th>}
+                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Costo Niño</th>}
+                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -549,7 +549,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
 
             <button
               type="button"
-              className="btn-secondary"
+              className="btn-secondary-form"
               onClick={handleAddRoom}
               style={{ marginBottom: '20px' }}
             >
@@ -558,13 +558,13 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
 
             {/* Wizard Actions Step 2 */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button type="button" className="btn-secondary" onClick={onClose}>
+              <button type="button" className="btn-form-cancel" onClick={onClose}>
                 Cancelar
               </button>
-              <button type="button" className="btn-secondary" onClick={() => setCurrentStep(1)}>
+              <button type="button" className="btn-form-prv" onClick={() => setCurrentStep(1)}>
                 Anterior
               </button>
-              <button type="button" className="btn-primary" onClick={handleSaveHotel}>
+              <button type="button" className="btn-form-nxt" onClick={handleSaveHotel}>
                 Guardar Hotel
               </button>
             </div>
