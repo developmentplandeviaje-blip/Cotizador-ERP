@@ -296,10 +296,10 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
 
         {/* Actions */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-          <button type="button" className="btn-secondary" onClick={onClose}>
+          <button type="button" className="btn-form-cancel" onClick={onClose}>
             Cancelar
           </button>
-          <button type="submit" className="btn-primary">
+          <button type="submit" className="btn-form-nxt">
             Guardar Tarifa
           </button>
         </div>
