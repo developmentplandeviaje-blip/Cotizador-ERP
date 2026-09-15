@@ -10,6 +10,8 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [search, setSearch] = useState('');
 
+  const showAdolescentes = hotel?.edad_adolescentes && !hotel.edad_adolescentes.includes('0 - 0');
+
   useEffect(() => {
     if (hotel?.id) {
       fetchHabitaciones();
@@ -216,17 +218,17 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
                                   <th style={{ padding: '8px 10px' }}>Niños gratis</th>
                                   <th style={{ padding: '8px 10px' }}>Noches gratis</th>
                                   <th onClick={() => handleSort('precio_adulto', true)} style={{ padding: '8px 10px', cursor: 'pointer' }}>Precio Adulto{getSortIndicator('precio_adulto', true)}</th>
-                                  <th onClick={() => handleSort('precio_adolescente', true)} style={{ padding: '8px 10px', cursor: 'pointer' }}>Precio Adolesc.{getSortIndicator('precio_adolescente', true)}</th>
+                                  {showAdolescentes && <th onClick={() => handleSort('precio_adolescente', true)} style={{ padding: '8px 10px', cursor: 'pointer' }}>Precio Adolesc.{getSortIndicator('precio_adolescente', true)}</th>}
                                   <th onClick={() => handleSort('precio_nino', true)} style={{ padding: '8px 10px', cursor: 'pointer' }}>Precio Niño{getSortIndicator('precio_nino', true)}</th>
                                   {!isFreelancer && <th style={{ padding: '8px 10px' }}>Costo Adulto</th>}
-                                  {!isFreelancer && <th style={{ padding: '8px 10px' }}>Costo Adolesc.</th>}
+                                  {!isFreelancer && showAdolescentes && <th style={{ padding: '8px 10px' }}>Costo Adolesc.</th>}
                                   {!isFreelancer && <th style={{ padding: '8px 10px' }}>Costo Niño</th>}
                                 </tr>
                               </thead>
                               <tbody>
                                 {(!hab.tarifas || hab.tarifas.length === 0) ? (
                                   <tr>
-                                    <td colSpan={isFreelancer ? 7 : 10} style={{ padding: '16px', textAlign: 'center', color: '#64748B' }}>
+                                    <td colSpan={4 + (showAdolescentes ? 1 : 0) + (!isFreelancer ? 2 + (showAdolescentes ? 1 : 0) : 0)} style={{ padding: '16px', textAlign: 'center', color: '#64748B' }}>
                                       No hay tarifas registradas en esta habitación.
                                     </td>
                                   </tr>
@@ -240,9 +242,11 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
                                       <td style={{ padding: '10px', color: '#E87217', fontWeight: '600' }}>
                                         {t.precio_noche_adulto} {t.moneda}
                                       </td>
-                                      <td style={{ padding: '10px', color: '#F8FAFC' }}>
-                                        {t.precio_noche_adolescente || '0.00'} {t.moneda}
-                                      </td>
+                                      {showAdolescentes && (
+                                        <td style={{ padding: '10px', color: '#F8FAFC' }}>
+                                          {t.precio_noche_adolescente || '0.00'} {t.moneda}
+                                        </td>
+                                      )}
                                       <td style={{ padding: '10px', color: '#F8FAFC' }}>
                                         {t.precio_noche_nino || '0.00'} {t.moneda}
                                       </td>
@@ -251,7 +255,7 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
                                           {t.costo_noche_adulto || '0.00'} {t.moneda}
                                         </td>
                                       )}
-                                      {!isFreelancer && (
+                                      {!isFreelancer && showAdolescentes && (
                                         <td style={{ padding: '10px', color: '#94A3B8' }}>
                                           {t.costo_noche_adolescente || '0.00'} {t.moneda}
                                         </td>
@@ -289,6 +293,7 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
         onClose={() => setIsTarifaModalOpen(false)}
         onSave={handleSaveTarifa}
         isFreelancer={isFreelancer}
+        showAdolescentes={showAdolescentes}
       />
     </div>
   );
