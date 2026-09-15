@@ -140,7 +140,10 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
   const handleAddTarifaToActiveRoom = (newTarifa) => {
     setHabitaciones(prev => {
       const updated = [...prev];
-      updated[activeHabitacionIndex].tarifas.push(newTarifa);
+      updated[activeHabitacionIndex] = {
+        ...updated[activeHabitacionIndex],
+        tarifas: [...updated[activeHabitacionIndex].tarifas, newTarifa]
+      };
       return updated;
     });
   };
@@ -455,7 +458,10 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                     const val = e.target.value;
                     setHabitaciones(prev => {
                       const updated = [...prev];
-                      updated[activeHabitacionIndex].habitacion = val;
+                      updated[activeHabitacionIndex] = {
+                        ...updated[activeHabitacionIndex],
+                        habitacion: val
+                      };
                       return updated;
                     });
                   }}
@@ -473,7 +479,10 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                     const val = parseInt(e.target.value) || 1;
                     setHabitaciones(prev => {
                       const updated = [...prev];
-                      updated[activeHabitacionIndex].posicion = val;
+                      updated[activeHabitacionIndex] = {
+                        ...updated[activeHabitacionIndex],
+                        posicion: val
+                      };
                       return updated;
                     });
                   }}
@@ -545,11 +554,14 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                           <button
                             type="button"
                             onClick={() => {
-                              setHabitaciones(prev => {
-                                const updated = [...prev];
-                                updated[activeHabitacionIndex].tarifas.splice(tIdx, 1);
-                                return updated;
-                              });
+                                setHabitaciones(prev => {
+                                  const updated = [...prev];
+                                  const room = { ...updated[activeHabitacionIndex] };
+                                  room.tarifas = [...room.tarifas];
+                                  room.tarifas.splice(tIdx, 1);
+                                  updated[activeHabitacionIndex] = room;
+                                  return updated;
+                                });
                             }}
                             style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}
                           >
