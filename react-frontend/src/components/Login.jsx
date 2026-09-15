@@ -1,0 +1,152 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import logoinicio from '../assets/logoinicio.png';
+
+const LogoSvg = () => (
+  <img src={logoinicio} alt="Plan de Viaje Logo" style={{ maxHeight: '50px', width: 'auto' }} />
+);
+
+export default function Login({ onLoginSuccess }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    // Basic client-side validation
+    if (!email || !password) {
+      setError('Por favor, complete todos los campos.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Por favor, ingrese un correo electrónico válido.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Call the Laravel backend API endpoint
+      const response = await axios.post('/v1/auth/login', {
+        email,
+        password
+      });
+
+      const data = response.data;
+
+      // Store token and user information securely
+      localStorage.setItem('auth_token', data.access_token);
+      localStorage.setItem('user_profile', JSON.stringify(data.user));
+
+      setSuccess('¡Inicio de sesión exitoso! Redirigiendo...');
+
+      // Trigger callback to update App state
+      setTimeout(() => {
+        onLoginSuccess(data.user);
+      }, 1000);
+
+    } catch (err) {
+      console.error(err);
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else if (err.response && err.response.status === 403) {
+        setError('Cuenta inhabilitada. Contacte al administrador.');
+      } else {
+        setError('Error al conectar con el servidor. Intente más tarde.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-linebord">
+          {/* Logo Section */}
+          <div className="login-logo">
+            <LogoSvg />
+          </div>
+
+          {/* Title */}
+          <div className="login-title">Inicio de Sesión</div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="login-form">
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
+
+            {/* User Input */}
+            <div className="input-group">
+              <input
+                type="email"
+                id="email"
+                className="login-input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                autoComplete="email"
+                required
+              />
+              <label className="input-label" htmlFor="email">Usuario:</label>
+            </div>
+
+            {/* Password Input */}
+            <div className="input-group">
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  className="login-input"
+                  style={{ paddingRight: '48px' }}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  autoComplete="current-password"
+                  required
+                />
+                <label className="input-label" htmlFor="password">Contraseña:</label>
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  {showPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="login-button"
+              disabled={loading}
+            >
+              {loading ? 'Procesando...' : 'Iniciar'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
