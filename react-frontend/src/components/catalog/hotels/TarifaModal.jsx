@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Modal from '../../common/Modal';
 
-export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = false }) {
+export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = false, showAdolescentes = true }) {
   const initialFormState = {
     desde: '',
     hasta: '',
@@ -179,50 +179,52 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
         </div>
 
         {/* Adolescent Rates */}
-        <div style={{ display: 'grid', gridTemplateColumns: isFreelancer ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '14px' }}>
-          {!isFreelancer && (
+        {showAdolescentes && (
+          <div style={{ display: 'grid', gridTemplateColumns: isFreelancer ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+            {!isFreelancer && (
+              <div>
+                <label className="erp-label">Costo Adolesc.</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="erp-input"
+                  placeholder="0.00"
+                  value={formData.costo_noche_adolescente}
+                  onChange={(e) => {
+                    handleChange('costo_noche_adolescente', e.target.value);
+                    handleCalculatePercent('costo_noche_adolescente', 'precio_noche_adolescente', 'porcentaje_adolescente', e.target.value, formData.precio_noche_adolescente);
+                  }}
+                />
+              </div>
+            )}
             <div>
-              <label className="erp-label">Costo Adolesc.</label>
+              <label className="erp-label">Precio Adolesc.</label>
               <input
                 type="number"
                 step="0.01"
                 className="erp-input"
                 placeholder="0.00"
-                value={formData.costo_noche_adolescente}
+                value={formData.precio_noche_adolescente}
                 onChange={(e) => {
-                  handleChange('costo_noche_adolescente', e.target.value);
-                  handleCalculatePercent('costo_noche_adolescente', 'precio_noche_adolescente', 'porcentaje_adolescente', e.target.value, formData.precio_noche_adolescente);
+                  handleChange('precio_noche_adolescente', e.target.value);
+                  handleCalculatePercent('costo_noche_adolescente', 'precio_noche_adolescente', 'porcentaje_adolescente', formData.costo_noche_adolescente, e.target.value);
                 }}
               />
             </div>
-          )}
-          <div>
-            <label className="erp-label">Precio Adolesc.</label>
-            <input
-              type="number"
-              step="0.01"
-              className="erp-input"
-              placeholder="0.00"
-              value={formData.precio_noche_adolescente}
-              onChange={(e) => {
-                handleChange('precio_noche_adolescente', e.target.value);
-                handleCalculatePercent('costo_noche_adolescente', 'precio_noche_adolescente', 'porcentaje_adolescente', formData.costo_noche_adolescente, e.target.value);
-              }}
-            />
+            {!isFreelancer && (
+              <div>
+                <label className="erp-label">Porcentaje Adolesc. %</label>
+                <input
+                  type="text"
+                  readOnly
+                  className="erp-input"
+                  style={{ opacity: 0.7 }}
+                  value={`${formData.porcentaje_adolescente}%`}
+                />
+              </div>
+            )}
           </div>
-          {!isFreelancer && (
-            <div>
-              <label className="erp-label">Porcentaje Adolesc. %</label>
-              <input
-                type="text"
-                readOnly
-                className="erp-input"
-                style={{ opacity: 0.7 }}
-                value={`${formData.porcentaje_adolescente}%`}
-              />
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Children Rates */}
         <div style={{ display: 'grid', gridTemplateColumns: isFreelancer ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '18px' }}>
@@ -319,8 +321,8 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
           <button type="button" className="btn-form-cancel" onClick={onClose}>
             Cancelar
           </button>
-          <button type="submit" className="btn-form-nxt">
-            Guardar Tarifa
+          <button type="submit" className="btn-form-nxt" disabled={isSubmitting}>
+            {isSubmitting ? 'Guardando...' : 'Guardar Tarifa'}
           </button>
         </div>
       </form>
