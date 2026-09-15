@@ -313,7 +313,8 @@ export default function HotelList({ user }) {
                               <div style={{
                                 position: 'absolute',
                                 right: 0,
-                                top: '100%',
+                                top: (index >= hotels.length - 2 && hotels.length > 2) ? 'auto' : '100%',
+                                bottom: (index >= hotels.length - 2 && hotels.length > 2) ? '100%' : 'auto',
                                 backgroundColor: '#F9F3E0',
                                 border: '1px solid rgba(255, 255, 255, 0.15)',
                                 borderRadius: '8px',
