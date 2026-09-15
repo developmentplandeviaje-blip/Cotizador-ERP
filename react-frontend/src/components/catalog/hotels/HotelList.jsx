@@ -64,8 +64,8 @@ export default function HotelList({ user }) {
       await axios.delete(`/v1/catalog/hoteles/${hotel.id}`);
       fetchHotels();
     } catch (err) {
-      console.error('Error eliminando hotel', err);
-      alert('No se pudo eliminar el hotel.');
+      console.error('Error eliminando hotel', err.response?.data || err);
+      alert('No se pudo eliminar el hotel: ' + (err.response?.data?.message || err.message || ''));
     }
   };
 
@@ -148,7 +148,7 @@ export default function HotelList({ user }) {
                   position: 'absolute',
                   top: '110%',
                   right: 0,
-                  backgroundColor: '#F9F3E0', /////////////////////////////// F9F3E0
+                  backgroundColor: '#F9F3E0',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                   borderRadius: '8px',
                   boxShadow: 'var(--shadow-dropdown)',
@@ -164,7 +164,7 @@ export default function HotelList({ user }) {
                       padding: '14px 14px 5px',
                       background: 'none',
                       border: 'none',
-                      color: '#595959', /////////////////////////////// #595959
+                      color: '#595959',
                       fontSize: '0.8125rem',
                       cursor: 'pointer',
                     }}
@@ -313,7 +313,8 @@ export default function HotelList({ user }) {
                               <div style={{
                                 position: 'absolute',
                                 right: 0,
-                                top: '100%',
+                                top: (index >= hotels.length - 2 && hotels.length > 2) ? 'auto' : '100%',
+                                bottom: (index >= hotels.length - 2 && hotels.length > 2) ? '100%' : 'auto',
                                 backgroundColor: '#F9F3E0',
                                 border: '1px solid rgba(255, 255, 255, 0.15)',
                                 borderRadius: '8px',
