@@ -49,9 +49,51 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
     }
   };
 
+  const [sortConfig, setSortConfig] = useState({ key: 'posicion', direction: 'asc' });
+  const [tarifaSortConfig, setTarifaSortConfig] = useState({ key: 'desde', direction: 'asc' });
+
   const filteredHabitaciones = habitaciones.filter(h =>
     h.habitacion.toLowerCase().includes(search.toLowerCase())
-  );
+  ).sort((a, b) => {
+    let aValue = a[sortConfig.key];
+    let bValue = b[sortConfig.key];
+    
+    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const getSortedTarifas = (tarifas) => {
+    return [...(tarifas || [])].sort((a, b) => {
+      let aValue = a[tarifaSortConfig.key];
+      let bValue = b[tarifaSortConfig.key];
+      if (aValue < bValue) return tarifaSortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return tarifaSortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const handleSort = (key, isTarifa = false) => {
+    if (isTarifa) {
+      let direction = 'asc';
+      if (tarifaSortConfig.key === key && tarifaSortConfig.direction === 'asc') {
+        direction = 'desc';
+      }
+      setTarifaSortConfig({ key, direction });
+    } else {
+      let direction = 'asc';
+      if (sortConfig.key === key && sortConfig.direction === 'asc') {
+        direction = 'desc';
+      }
+      setSortConfig({ key, direction });
+    }
+  };
+
+  const getSortIndicator = (key, isTarifa = false) => {
+    const config = isTarifa ? tarifaSortConfig : sortConfig;
+    if (config.key !== key) return <span style={{opacity: 0.3, marginLeft: '4px'}}>↕</span>;
+    return <span style={{marginLeft: '4px'}}>{config.direction === 'asc' ? '▲' : '▼'}</span>;
+  };
 
   return (
     <div style={{ width: '100%' }}>
@@ -91,10 +133,10 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
           <thead>
-            <tr style={{ background: 'rgba(15, 23, 42, 0.6)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <th style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600' }}>Posición</th>
-              <th style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600' }}>Habitación</th>
-              <th style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600' }}>Cotizador</th>
+            <tr style={{ background: 'rgba(15, 23, 42, 0.6)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', userSelect: 'none' }}>
+              <th onClick={() => handleSort('posicion')} style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Posición{getSortIndicator('posicion')}</th>
+              <th onClick={() => handleSort('habitacion')} style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Habitación{getSortIndicator('habitacion')}</th>
+              <th onClick={() => handleSort('por_defecto')} style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Cotizador{getSortIndicator('por_defecto')}</th>
               <th style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600' }}>Nota</th>
               <th style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600', textAlign: 'right' }}>Opciones</th>
             </tr>
@@ -168,22 +210,28 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
 
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem', textAlign: 'left' }}>
                               <thead>
-                                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#94A3B8' }}>
-                                  <th style={{ padding: '8px 10px' }}>Desde - Hasta</th>
-                                  <th style={{ padding: '8px 10px' }}>Tipo</th>
+                                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#94A3B8', userSelect: 'none' }}>
+                                  <th onClick={() => handleSort('desde', true)} style={{ padding: '8px 10px', cursor: 'pointer' }}>Desde - Hasta{getSortIndicator('desde', true)}</th>
+                                  <th onClick={() => handleSort('tipo', true)} style={{ padding: '8px 10px', cursor: 'pointer' }}>Tipo{getSortIndicator('tipo', true)}</th>
                                   <th style={{ padding: '8px 10px' }}>Niños gratis</th>
                                   <th style={{ padding: '8px 10px' }}>Noches gratis</th>
-                                  <th style={{ padding: '8px 10px' }}>Precio Adulto</th>
-                                  <th style={{ padding: '8px 10px' }}>Precio Adolesc.</th>
-                                  <th style={{ padding: '8px 10px' }}>Precio Niño</th>
+                                  <th onClick={() => handleSort('precio_adulto', true)} style={{ padding: '8px 10px', cursor: 'pointer' }}>Precio Adulto{getSortIndicator('precio_adulto', true)}</th>
+                                  <th onClick={() => handleSort('precio_adolescente', true)} style={{ padding: '8px 10px', cursor: 'pointer' }}>Precio Adolesc.{getSortIndicator('precio_adolescente', true)}</th>
+                                  <th onClick={() => handleSort('precio_nino', true)} style={{ padding: '8px 10px', cursor: 'pointer' }}>Precio Niño{getSortIndicator('precio_nino', true)}</th>
                                   {!isFreelancer && <th style={{ padding: '8px 10px' }}>Costo Adulto</th>}
                                   {!isFreelancer && <th style={{ padding: '8px 10px' }}>Costo Adolesc.</th>}
                                   {!isFreelancer && <th style={{ padding: '8px 10px' }}>Costo Niño</th>}
                                 </tr>
                               </thead>
                               <tbody>
-                                {hab.tarifas && hab.tarifas.length > 0 ? (
-                                  hab.tarifas.map((t) => (
+                                {(!hab.tarifas || hab.tarifas.length === 0) ? (
+                                  <tr>
+                                    <td colSpan={isFreelancer ? 7 : 10} style={{ padding: '16px', textAlign: 'center', color: '#64748B' }}>
+                                      No hay tarifas registradas en esta habitación.
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  getSortedTarifas(hab.tarifas).map((t) => (
                                     <tr key={t.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
                                       <td style={{ padding: '10px', color: '#F8FAFC' }}>{t.desde} al {t.hasta}</td>
                                       <td style={{ padding: '10px', color: '#94A3B8' }}>{t.promocion ? 'Promo' : 'Normal'}</td>
@@ -215,12 +263,6 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
                                       )}
                                     </tr>
                                   ))
-                                ) : (
-                                  <tr>
-                                    <td colSpan={isFreelancer ? 7 : 10} style={{ padding: '16px', textAlign: 'center', color: '#64748B' }}>
-                                      No hay tarifas registradas en esta habitación.
-                                    </td>
-                                  </tr>
                                 )}
                               </tbody>
                             </table>

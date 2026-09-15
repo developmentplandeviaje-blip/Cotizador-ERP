@@ -14,6 +14,8 @@ export default function HotelList({ user }) {
   const [activeMenuHotelId, setActiveMenuHotelId] = useState(null);
   const [showDescuentoMenu, setShowDescuentoMenu] = useState(false);
 
+  const [sortConfig, setSortConfig] = useState({ key: 'nombre', direction: 'asc' });
+
   // Modals and views state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hotelToEdit, setHotelToEdit] = useState(null);
@@ -23,7 +25,7 @@ export default function HotelList({ user }) {
 
   useEffect(() => {
     fetchHotels();
-  }, [page, search]);
+  }, [page, search, sortConfig]);
 
   const fetchHotels = async () => {
     setLoading(true);
@@ -33,6 +35,8 @@ export default function HotelList({ user }) {
           search,
           page,
           per_page: 10,
+          sort_by: sortConfig.key,
+          sort_dir: sortConfig.direction,
         }
       });
       setHotels(res.data.data || []);
@@ -44,6 +48,14 @@ export default function HotelList({ user }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
   };
 
   const handleToggleStatus = async (hotel) => {
@@ -76,6 +88,11 @@ export default function HotelList({ user }) {
       />
     );
   }
+
+  const getSortIndicator = (key) => {
+    if (sortConfig.key !== key) return <span style={{opacity: 0.3, marginLeft: '4px'}}>↕</span>;
+    return <span style={{marginLeft: '4px'}}>{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>;
+  };
 
   return (
     <div style={{ width: '100%' }}>
@@ -202,14 +219,14 @@ export default function HotelList({ user }) {
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
           <thead>
-            <tr style={{ background: 'rgba(15, 23, 42, 0.65)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>#</th>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>Nombre</th>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>Tipo</th>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>Ubicación</th>
+            <tr style={{ background: 'rgba(15, 23, 42, 0.65)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', userSelect: 'none' }}>
+              <th onClick={() => handleSort('id')} style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>#{getSortIndicator('id')}</th>
+              <th onClick={() => handleSort('nombre')} style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Nombre{getSortIndicator('nombre')}</th>
+              <th onClick={() => handleSort('tipo')} style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Tipo{getSortIndicator('tipo')}</th>
+              <th onClick={() => handleSort('ubicacion')} style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Ubicación{getSortIndicator('ubicacion')}</th>
               <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>Desc. Contado</th>
               <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>Desc. Divisas</th>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>Estado</th>
+              <th onClick={() => handleSort('status')} style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Estado{getSortIndicator('status')}</th>
               <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>Nota</th>
               <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', textAlign: 'right' }}>Opciones</th>
             </tr>
