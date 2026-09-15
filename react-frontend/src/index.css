@@ -57,8 +57,6 @@ body {
 }
 
 .login-linebord {
-  /*background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);*/
   -webkit-backdrop-filter: blur(16px);
   border: 2px solid rgb(255, 255, 255);
   border-radius: 24px;

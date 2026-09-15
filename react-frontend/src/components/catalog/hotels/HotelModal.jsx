@@ -64,6 +64,17 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
           desc_divisas_status: false,
           desc_divisas_monto: '',
         });
+        setHabitaciones(hotelToEdit.habitaciones || [
+          {
+            habitacion: 'Doble',
+            cantidad_personas: 2,
+            minimo_noches: 1,
+            posicion: 1,
+            por_defecto: true,
+            nota: '',
+            tarifas: []
+          }
+        ]);
       } else {
         setHotelInfo({
           nombre: '',
@@ -129,12 +140,19 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
   const handleAddTarifaToActiveRoom = (newTarifa) => {
     setHabitaciones(prev => {
       const updated = [...prev];
-      updated[activeHabitacionIndex].tarifas.push(newTarifa);
+      updated[activeHabitacionIndex] = {
+        ...updated[activeHabitacionIndex],
+        tarifas: [...updated[activeHabitacionIndex].tarifas, newTarifa]
+      };
       return updated;
     });
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSaveHotel = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const payload = {
         nombre: hotelInfo.nombre,
@@ -172,8 +190,15 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
       onSaveSuccess();
       onClose();
     } catch (err) {
-      console.error(err);
-      alert('Error al guardar el hotel. Verifique los campos requeridos.');
+      console.error("Error saving hotel:", err.response?.data || err.message || err);
+      const errors = err.response?.data?.errors;
+      let errorMsg = 'Error al guardar el hotel. Verifique los campos requeridos.';
+      if (errors) {
+        errorMsg = Object.values(errors).flat().join('\n');
+      }
+      alert(errorMsg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -285,6 +310,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   value={hotelInfo.id_ubicacion}
                   onChange={(e) => setHotelInfo({ ...hotelInfo, id_ubicacion: e.target.value })}
                 >
+                  <option value="">Seleccione una ubicación</option>
                   {ubicaciones.map(u => (
                     <option key={u.id} value={u.id}>{u.ubicacion}</option>
                   ))}
@@ -377,12 +403,12 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
 
             {/* Wizard Actions Step 1 */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button type="button" className="btn-secondary" onClick={onClose}>
+              <button type="button" className="btn-form-cancel" onClick={onClose}>
                 Cancelar
               </button>
               <button
                 type="button"
-                className="btn-primary"
+                className="btn-form-nxt"
                 onClick={() => {
                   if (!hotelInfo.nombre) {
                     alert('Por favor ingrese el nombre del hotel.');
@@ -433,7 +459,10 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                     const val = e.target.value;
                     setHabitaciones(prev => {
                       const updated = [...prev];
-                      updated[activeHabitacionIndex].habitacion = val;
+                      updated[activeHabitacionIndex] = {
+                        ...updated[activeHabitacionIndex],
+                        habitacion: val
+                      };
                       return updated;
                     });
                   }}
@@ -451,7 +480,10 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                     const val = parseInt(e.target.value) || 1;
                     setHabitaciones(prev => {
                       const updated = [...prev];
-                      updated[activeHabitacionIndex].posicion = val;
+                      updated[activeHabitacionIndex] = {
+                        ...updated[activeHabitacionIndex],
+                        posicion: val
+                      };
                       return updated;
                     });
                   }}
@@ -475,17 +507,17 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
               overflow: 'hidden',
               marginBottom: '16px',
             }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(30, 41, 59, 0.8)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', textAlign: 'left' }}>
-                    <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Desde - Hasta</th>
-                    <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Precio Adulto</th>
-                    <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Precio Adolesc.</th>
-                    <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Precio Niño</th>
-                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Costo Adulto</th>}
-                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Costo Adolesc.</th>}
-                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Costo Niño</th>}
-                    <th style={{ padding: '8px 10px', color: '#94A3B8' }}>Acciones</th>
+                  <tr style={{ background: 'rgba(0, 18, 49, 0.4)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', textAlign: 'left' }}>
+                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Desde - Hasta</th>
+                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Precio Adulto</th>
+                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Precio Adolesc.</th>
+                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Precio Niño</th>
+                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Costo Adulto</th>}
+                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Costo Adolesc.</th>}
+                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Costo Niño</th>}
+                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -525,7 +557,10 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                             onClick={() => {
                               setHabitaciones(prev => {
                                 const updated = [...prev];
-                                updated[activeHabitacionIndex].tarifas.splice(tIdx, 1);
+                                const room = { ...updated[activeHabitacionIndex] };
+                                room.tarifas = [...room.tarifas];
+                                room.tarifas.splice(tIdx, 1);
+                                updated[activeHabitacionIndex] = room;
                                 return updated;
                               });
                             }}
@@ -549,7 +584,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
 
             <button
               type="button"
-              className="btn-secondary"
+              className="btn-secondary-form"
               onClick={handleAddRoom}
               style={{ marginBottom: '20px' }}
             >
@@ -558,13 +593,13 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
 
             {/* Wizard Actions Step 2 */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button type="button" className="btn-secondary" onClick={onClose}>
+              <button type="button" className="btn-form-cancel" onClick={onClose}>
                 Cancelar
               </button>
-              <button type="button" className="btn-secondary" onClick={() => setCurrentStep(1)}>
+              <button type="button" className="btn-form-prv" onClick={() => setCurrentStep(1)}>
                 Anterior
               </button>
-              <button type="button" className="btn-primary" onClick={handleSaveHotel}>
+              <button type="button" className="btn-form-nxt" onClick={handleSaveHotel}>
                 Guardar Hotel
               </button>
             </div>

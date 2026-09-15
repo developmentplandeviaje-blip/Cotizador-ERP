@@ -3,6 +3,9 @@ import axios from 'axios';
 import Badge from '../../common/Badge';
 import HotelModal from './HotelModal';
 import HabitacionDetail from './HabitacionDetail';
+import imgImprimir from '../../../assets/Imprimir.svg';
+import imgDescuento from '../../../assets/Descuentos.svg';
+import imgAgregar from '../../../assets/Agregar.svg';
 
 export default function HotelList({ user }) {
   const [hotels, setHotels] = useState([]);
@@ -61,8 +64,8 @@ export default function HotelList({ user }) {
       await axios.delete(`/v1/catalog/hoteles/${hotel.id}`);
       fetchHotels();
     } catch (err) {
-      console.error('Error eliminando hotel', err);
-      alert('No se pudo eliminar el hotel.');
+      console.error('Error eliminando hotel', err.response?.data || err);
+      alert('No se pudo eliminar el hotel: ' + (err.response?.data?.message || err.message || ''));
     }
   };
 
@@ -85,7 +88,7 @@ export default function HotelList({ user }) {
           Hoteles
         </h1>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           {/* Search bar with magnifying glass (Page 3) */}
           <div style={{ position: 'relative', width: '280px' }}>
             <input
@@ -100,8 +103,9 @@ export default function HotelList({ user }) {
               style={{
                 paddingLeft: '36px',
                 borderRadius: '9999px',
-                background: 'rgba(30, 41, 59, 0.6)',
+                background: 'linear-gradient(355deg, rgb(106 109 119 / 69%) 8%, rgb(157 157 157 / 8%) 30%)',
                 height: '38px',
+                border: '1px solid var(--color-border-btn)',
               }}
             />
             <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, fontSize: '0.875rem' }}>
@@ -110,16 +114,22 @@ export default function HotelList({ user }) {
           </div>
 
           {/* Action Buttons: Imprimir, Descuento, Agregar (Page 3 & 16) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
               className="btn-secondary"
               title="Imprimir"
               onClick={() => window.print()}
               style={{ padding: '8px 14px', borderRadius: '9999px' }}
             >
-              Imprimir
+              <img
+                src={imgImprimir}
+                style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+              />
             </button>
+            <span className='title-input'>Imprimir</span>
+          </div>
 
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             {/* Dropdown Descuento (Page 16) */}
             <div style={{ position: 'relative' }}>
               <button
@@ -127,7 +137,10 @@ export default function HotelList({ user }) {
                 onClick={() => setShowDescuentoMenu(!showDescuentoMenu)}
                 style={{ padding: '8px 14px', borderRadius: '9999px' }}
               >
-                Descuento ▾
+                <img
+                  src={imgDescuento}
+                  style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+                />
               </button>
 
               {showDescuentoMenu && (
@@ -135,7 +148,7 @@ export default function HotelList({ user }) {
                   position: 'absolute',
                   top: '110%',
                   right: 0,
-                  backgroundColor: '#F9F3E0', /////////////////////////////// F9F3E0
+                  backgroundColor: '#F9F3E0',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                   borderRadius: '8px',
                   boxShadow: 'var(--shadow-dropdown)',
@@ -151,7 +164,7 @@ export default function HotelList({ user }) {
                       padding: '14px 14px 5px',
                       background: 'none',
                       border: 'none',
-                      color: '#595959', /////////////////////////////// #595959
+                      color: '#595959',
                       fontSize: '0.8125rem',
                       cursor: 'pointer',
                     }}
@@ -177,24 +190,31 @@ export default function HotelList({ user }) {
                 </div>
               )}
             </div>
+            <span className='title-input'>Descuento</span>
+          </div>
 
+          <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', position: 'relative' }}>
             <button
-              className="btn-primary"
+              className="btn-secondary"
               onClick={() => {
                 setHotelToEdit(null);
                 setIsModalOpen(true);
               }}
               style={{ padding: '8px 18px', borderRadius: '9999px' }}
             >
-              + Agregar
+              <img
+                src={imgAgregar}
+                style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+              />
             </button>
+            <span className='title-input'>Agregar</span>
           </div>
         </div>
       </div>
 
       {/* Main DataTable Card */}
       <div style={{
-        background: 'rgb(188 192 215 / 40%)',
+        background: 'rgba(188, 192, 215, 0.09)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: '12px',
         overflow: 'hidden',
@@ -202,7 +222,7 @@ export default function HotelList({ user }) {
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
           <thead>
-            <tr style={{ background: 'rgba(188, 192, 215, 0.35)', borderBottom: '1px solid rgba(255, 255, 255, 0.84)' }}>
+            <tr style={{ background: '#e8721726', borderBottom: '1px solid rgba(255, 255, 255, 0.84)' }}>
               <th style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600' }}>#</th>
               <th style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600' }}>Nombre</th>
               <th style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600' }}>Tipo</th>
@@ -230,7 +250,7 @@ export default function HotelList({ user }) {
                   <React.Fragment key={hotel.id}>
                     <tr style={{
                       borderBottom: '1px solid rgba(255, 255, 255, 0.51)',
-                      background: isExpanded ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+                      background: isExpanded ? 'rgba(112, 133, 255, 0.23)' : 'transparent',
                       transition: 'background-color 0.15s',
                     }}>
                       <td style={{ padding: '14px 16px', color: '#b9c8ddff' }}>{index + 1}</td>
@@ -240,14 +260,14 @@ export default function HotelList({ user }) {
 
                       {/* Desc. Contado Badge */}
                       <td style={{ padding: '14px 16px' }}>
-                        <Badge variant={hotel.desc_contado.includes('%') ? 'warning' : 'neutral'}>
+                        <Badge variant={hotel.desc_contado.includes('%') ? 'success' : 'neutral'}>
                           {hotel.desc_contado}
                         </Badge>
                       </td>
 
                       {/* Desc. Divisas Badge */}
                       <td style={{ padding: '14px 16px' }}>
-                        <Badge variant={hotel.desc_divisas.includes('%') ? 'warning' : 'neutral'}>
+                        <Badge variant={hotel.desc_divisas.includes('%') ? 'success' : 'neutral'}>
                           {hotel.desc_divisas}
                         </Badge>
                       </td>
@@ -293,7 +313,8 @@ export default function HotelList({ user }) {
                               <div style={{
                                 position: 'absolute',
                                 right: 0,
-                                top: '100%',
+                                top: (index >= hotels.length - 2 && hotels.length > 2) ? 'auto' : '100%',
+                                bottom: (index >= hotels.length - 2 && hotels.length > 2) ? '100%' : 'auto',
                                 backgroundColor: '#F9F3E0',
                                 border: '1px solid rgba(255, 255, 255, 0.15)',
                                 borderRadius: '8px',
@@ -361,7 +382,7 @@ export default function HotelList({ user }) {
                       <tr>
                         <td colSpan="9" style={{ padding: '0 20px 16px 20px', background: 'rgba(15, 23, 42, 0.35)' }}>
                           <div style={{
-                            background: '#b9c8ddff',
+                            background: '#00123180',
                             border: '1px solid rgba(255, 255, 255, 0.08)',
                             borderRadius: '8px',
                             padding: '12px 20px',
@@ -372,18 +393,18 @@ export default function HotelList({ user }) {
                             color: '#1b2024ff',
                           }}>
                             <div>
-                              <span style={{ color: '#595959' }}>Adolescente: </span>
-                              <span style={{ fontWeight: '600' }}>{hotel.edad_adolescentes}</span>
+                              <span style={{ color: '#b9c8ddff' }}>Adolescente: </span>
+                              <span style={{ color: '#F8FAFC', fontWeight: '600' }}>{hotel.edad_adolescentes}</span>
                             </div>
                             <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)' }} />
                             <div>
-                              <span style={{ color: '#595959' }}>Niño: </span>
-                              <span style={{ fontWeight: '600' }}>{hotel.edad_ninos}</span>
+                              <span style={{ color: '#b9c8ddff' }}>Niño: </span>
+                              <span style={{ color: '#F8FAFC', fontWeight: '600' }}>{hotel.edad_ninos}</span>
                             </div>
                             <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)' }} />
                             <div>
-                              <span style={{ color: '#595959' }}>Infante: </span>
-                              <span style={{ fontWeight: '600' }}>{hotel.edad_infantes}</span>
+                              <span style={{ color: '#b9c8ddff' }}>Infante: </span>
+                              <span style={{ color: '#F8FAFC', fontWeight: '600' }}>{hotel.edad_infantes}</span>
                             </div>
                           </div>
                         </td>
@@ -415,14 +436,14 @@ export default function HotelList({ user }) {
           <button
             onClick={() => setPage(1)}
             disabled={page === 1}
-            style={{ background: 'none', border: 'none', color: page === 1 ? '#ffffff' : '#E87217', cursor: page === 1 ? 'default' : 'pointer' }}
+            style={{ background: 'none', border: 'none', color: page === 1 ? '#ffffff' : '#E87217', cursor: page === 1 ? 'default' : 'pointer', fontSize: '24px' }}
           >
             «
           </button>
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            style={{ background: 'none', border: 'none', color: page === 1 ? '#ffffff' : '#E87217', cursor: page === 1 ? 'default' : 'pointer' }}
+            style={{ background: 'none', border: 'none', color: page === 1 ? '#ffffff' : '#E87217', cursor: page === 1 ? 'default' : 'pointer', fontSize: '24px' }}
           >
             ‹
           </button>
@@ -453,14 +474,14 @@ export default function HotelList({ user }) {
           <button
             onClick={() => setPage(p => Math.min(lastPage, p + 1))}
             disabled={page === lastPage}
-            style={{ background: 'none', border: 'none', color: page === lastPage ? '#ffffff' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer' }}
+            style={{ background: 'none', border: 'none', color: page === lastPage ? '#ffffff' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer', fontSize: '24px' }}
           >
             ›
           </button>
           <button
             onClick={() => setPage(lastPage)}
             disabled={page === lastPage}
-            style={{ background: 'none', border: 'none', color: page === lastPage ? '#ffffff' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer' }}
+            style={{ background: 'none', border: 'none', color: page === lastPage ? '#ffffff' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer', fontSize: '24px' }}
           >
             »
           </button>

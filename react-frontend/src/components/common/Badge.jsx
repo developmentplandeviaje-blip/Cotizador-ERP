@@ -4,7 +4,7 @@ export default function Badge({ children, variant = 'neutral', className = '' })
   const variantClass = {
     success: 'badge-success',
     error: 'badge-error',
-    warning: 'badge-warning',
+    status: 'badge-status',
     neutral: 'badge-neutral',
   }[variant] || 'badge-neutral';
 

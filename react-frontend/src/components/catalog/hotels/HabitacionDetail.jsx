@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TarifaModal from './TarifaModal';
+import Imgvolver from '../../../assets/Volver.svg';
 
 export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }) {
   const [habitaciones, setHabitaciones] = useState([]);
@@ -56,12 +57,12 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
   return (
     <div style={{ width: '100%' }}>
       {/* Top Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '0px 30px 0px 0px' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0, color: '#F8FAFC' }}>
           Habitaciones “{hotel?.nombre}”
         </h1>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ position: 'relative', width: '260px' }}>
             <input
               type="text"
@@ -69,40 +70,52 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
               placeholder="Buscar habitación..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ paddingLeft: '34px', borderRadius: '9999px', background: 'rgba(30, 41, 59, 0.6)' }}
+              style={{
+                paddingLeft: '36px',
+                borderRadius: '9999px',
+                background: 'linear-gradient(355deg, rgb(106 109 119 / 69%) 8%, rgb(157 157 157 / 8%) 30%)',
+                height: '38px',
+                border: '1px solid var(--color-border-btn)',
+              }}
             />
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>
               🔍
             </span>
           </div>
 
-          <button className="btn-secondary" onClick={onBack}>
-            Volver
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+            <button className="btn-secondary" onClick={onBack}>
+              <img
+                src={Imgvolver}
+                style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+              />
+            </button>
+            <span className='title-input'>Volver</span>
+          </div>
         </div>
       </div>
 
       {/* Rooms Table */}
       <div style={{
-        background: 'rgba(30, 41, 59, 0.7)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        background: 'rgba(53, 81, 236, 0.09)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: '12px',
         overflow: 'hidden',
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
           <thead>
-            <tr style={{ background: 'rgba(15, 23, 42, 0.6)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <th style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600' }}>Posición</th>
-              <th style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600' }}>Habitación</th>
-              <th style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600' }}>Cotizador</th>
-              <th style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600' }}>Nota</th>
-              <th style={{ padding: '14px 20px', color: '#94A3B8', fontWeight: '600', textAlign: 'right' }}>Opciones</th>
+            <tr style={{ background: '#e8721726', borderBottom: '1px solid rgba(255, 255, 255, 0.84)' }}>
+              <th style={{ padding: '14px 20px', color: '#ffffffff', fontWeight: '600' }}>Posición</th>
+              <th style={{ padding: '14px 20px', color: '#ffffffff', fontWeight: '600' }}>Habitación</th>
+              <th style={{ padding: '14px 20px', color: '#ffffffff', fontWeight: '600' }}>Cotizador</th>
+              <th style={{ padding: '14px 20px', color: '#ffffffff', fontWeight: '600' }}>Nota</th>
+              <th style={{ padding: '14px 20px', color: '#ffffffff', fontWeight: '600', textAlign: 'right' }}>Opciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="5" style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>
+                <td colSpan="5" style={{ padding: '30px', textAlign: 'center', color: '#f4f9ffff' }}>
                   Cargando habitaciones...
                 </td>
               </tr>
@@ -112,27 +125,29 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
                 return (
                   <React.Fragment key={hab.id}>
                     <tr style={{
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-                      background: isExpanded ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.51)',
+                      background: isExpanded ? 'rgba(112, 133, 255, 0.23)' : 'transparent',
                     }}>
-                      <td style={{ padding: '14px 20px', color: '#94A3B8' }}>{hab.posicion}</td>
+                      <td style={{ padding: '14px 20px', color: '#b9c8ddff' }}>{hab.posicion}</td>
                       <td style={{ padding: '14px 20px', fontWeight: '600', color: '#FFFFFF' }}>{hab.habitacion}</td>
-                      <td style={{ padding: '14px 20px', color: '#94A3B8' }}>{hab.por_defecto ? 'Por Defecto' : 'N/A'}</td>
-                      <td style={{ padding: '14px 20px', color: '#94A3B8' }}>{hab.nota || 'Nota'}</td>
+                      <td style={{ padding: '14px 20px', color: '#F8FAFC' }}>{hab.por_defecto ? 'Por Defecto' : 'N/A'}</td>
+                      <td style={{ padding: '14px 20px', color: '#b9c8ddff' }}>{hab.nota || 'Nota'}</td>
                       <td style={{ padding: '14px 20px', textAlign: 'right' }}>
                         <button
                           onClick={() => setExpandedRoomId(isExpanded ? null : hab.id)}
                           style={{
-                            background: isExpanded ? '#E87217' : 'rgba(255,255,255,0.1)',
+                            background: isExpanded ? '#E87217' : 'rgba(255, 255, 255, 0.18)',
                             border: 'none',
                             color: '#FFFFFF',
-                            width: '32px',
-                            height: '32px',
+                            width: '28px',
+                            height: '28px',
                             borderRadius: '50%',
+                            boxShadow: isExpanded ? 'none' : 'var(--shadow-dropdown)',
                             cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            fontSize: '0.75rem',
                             transition: 'all 0.2s',
                           }}
                         >
@@ -144,10 +159,10 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
                     {/* Accordion: Rates for this room (Page 21) */}
                     {isExpanded && (
                       <tr>
-                        <td colSpan="5" style={{ padding: '0 20px 20px 20px', background: 'rgba(15, 23, 42, 0.4)' }}>
+                        <td colSpan="5" style={{ padding: '0 20px 20px 20px', background: 'rgba(50, 58, 76, 0.4)' }}>
                           <div style={{
-                            background: 'rgba(30, 41, 59, 0.5)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            background: '#00123180',
+                            border: '1px solid rgba(255, 255, 255, 0.18)',
                             borderRadius: '8px',
                             padding: '16px',
                             marginTop: '10px',
@@ -168,7 +183,7 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
 
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem', textAlign: 'left' }}>
                               <thead>
-                                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#94A3B8' }}>
+                                <tr style={{ borderBottom: '1px solid rgba(69, 97, 172, 0.46)', color: '#b9c8ddff' }}>
                                   <th style={{ padding: '8px 10px' }}>Desde - Hasta</th>
                                   <th style={{ padding: '8px 10px' }}>Tipo</th>
                                   <th style={{ padding: '8px 10px' }}>Niños gratis</th>
@@ -184,11 +199,11 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
                               <tbody>
                                 {hab.tarifas && hab.tarifas.length > 0 ? (
                                   hab.tarifas.map((t) => (
-                                    <tr key={t.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                                    <tr key={t.id} style={{ borderBottom: '1px solid rgba(60, 84, 119, 0.51)' }}>
                                       <td style={{ padding: '10px', color: '#F8FAFC' }}>{t.desde} al {t.hasta}</td>
-                                      <td style={{ padding: '10px', color: '#94A3B8' }}>{t.promocion ? 'Promo' : 'Normal'}</td>
-                                      <td style={{ padding: '10px', color: '#94A3B8' }}>{t.ninos_gratis}</td>
-                                      <td style={{ padding: '10px', color: '#94A3B8' }}>{t.noches_gratis}</td>
+                                      <td style={{ padding: '10px', color: '#b9c8ddff' }}>{t.promocion ? 'Promo' : 'Normal'}</td>
+                                      <td style={{ padding: '10px', color: '#b9c8ddff' }}>{t.ninos_gratis}</td>
+                                      <td style={{ padding: '10px', color: '#b9c8ddff' }}>{t.noches_gratis}</td>
                                       <td style={{ padding: '10px', color: '#E87217', fontWeight: '600' }}>
                                         {t.precio_noche_adulto} {t.moneda}
                                       </td>
@@ -199,17 +214,17 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
                                         {t.precio_noche_nino || '0.00'} {t.moneda}
                                       </td>
                                       {!isFreelancer && (
-                                        <td style={{ padding: '10px', color: '#94A3B8' }}>
+                                        <td style={{ padding: '10px', color: '#b9c8ddff' }}>
                                           {t.costo_noche_adulto || '0.00'} {t.moneda}
                                         </td>
                                       )}
                                       {!isFreelancer && (
-                                        <td style={{ padding: '10px', color: '#94A3B8' }}>
+                                        <td style={{ padding: '10px', color: '#b9c8ddff' }}>
                                           {t.costo_noche_adolescente || '0.00'} {t.moneda}
                                         </td>
                                       )}
                                       {!isFreelancer && (
-                                        <td style={{ padding: '10px', color: '#94A3B8' }}>
+                                        <td style={{ padding: '10px', color: '#b9c8ddff' }}>
                                           {t.costo_noche_nino || '0.00'} {t.moneda}
                                         </td>
                                       )}
