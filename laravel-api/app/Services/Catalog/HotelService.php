@@ -18,7 +18,22 @@ class HotelService
     public function getHotels(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
         $query = Hotel::with(['ubicacion', 'habitaciones.tarifas', 'reglasComerciales'])
-            ->orderBy('nombre', 'asc');
+            ->select('hotel.*');
+
+        $sortBy = $filters['sort_by'] ?? 'nombre';
+        $sortDir = ($filters['sort_dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+
+        if ($sortBy === 'ubicacion') {
+            $query->leftJoin('ubicacion', 'hotel.id_ubicacion', '=', 'ubicacion.id')
+                ->orderBy('ubicacion.ubicacion', $sortDir);
+        } else {
+            $allowedSorts = ['id', 'nombre', 'tipo', 'status'];
+            if (in_array($sortBy, $allowedSorts)) {
+                $query->orderBy('hotel.' . $sortBy, $sortDir);
+            } else {
+                $query->orderBy('hotel.nombre', 'asc');
+            }
+        }
 
         if (!empty($filters['search'])) {
             $search = '%' . $filters['search'] . '%';

@@ -20,7 +20,7 @@ class HotelController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $filters = $request->only(['search', 'id_ubicacion', 'status']);
+        $filters = $request->only(['search', 'id_ubicacion', 'status', 'sort_by', 'sort_dir']);
         $perPage = (int) $request->get('per_page', 10);
         $hotels = $this->hotelService->getHotels($filters, $perPage);
 
