@@ -59,8 +59,11 @@ class HotelController extends Controller
 
     public function destroy(Hotel $hotel): JsonResponse
     {
-        $this->hotelService->deleteHotel($hotel);
-
-        return response()->json(['message' => 'Hotel eliminado exitosamente.']);
+        try {
+            $this->hotelService->deleteHotel($hotel);
+            return response()->json(['message' => 'Hotel eliminado exitosamente.']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 }

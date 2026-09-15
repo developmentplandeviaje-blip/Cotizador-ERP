@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9
+class ComposerStaticInit43a9df06dabe4d355a5f946bd686b588
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -557,9 +557,32 @@ class ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9
 
     public static $classMap = array (
         'AllowDynamicProperties' => __DIR__ . '/..' . '/symfony/polyfill-php82/Resources/stubs/AllowDynamicProperties.php',
+        'App\\Http\\Controllers\\Api\\v1\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/v1/AuthController.php',
+        'App\\Http\\Controllers\\Api\\v1\\Catalog\\HabitacionController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/v1/Catalog/HabitacionController.php',
+        'App\\Http\\Controllers\\Api\\v1\\Catalog\\HotelController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/v1/Catalog/HotelController.php',
+        'App\\Http\\Controllers\\Api\\v1\\Catalog\\TarifaController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/v1/Catalog/TarifaController.php',
+        'App\\Http\\Controllers\\Api\\v1\\Catalog\\UbicacionController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/v1/Catalog/UbicacionController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
+        'App\\Http\\Requests\\Auth\\LoginRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Auth/LoginRequest.php',
+        'App\\Http\\Requests\\Catalog\\StoreHabitacionRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Catalog/StoreHabitacionRequest.php',
+        'App\\Http\\Requests\\Catalog\\StoreHotelRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Catalog/StoreHotelRequest.php',
+        'App\\Http\\Requests\\Catalog\\StoreTarifaRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Catalog/StoreTarifaRequest.php',
+        'App\\Http\\Requests\\Catalog\\UpdateHotelRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Catalog/UpdateHotelRequest.php',
+        'App\\Http\\Resources\\Catalog\\HabitacionResource' => __DIR__ . '/../..' . '/app/Http/Resources/Catalog/HabitacionResource.php',
+        'App\\Http\\Resources\\Catalog\\HotelResource' => __DIR__ . '/../..' . '/app/Http/Resources/Catalog/HotelResource.php',
+        'App\\Http\\Resources\\Catalog\\TarifaHabitacionResource' => __DIR__ . '/../..' . '/app/Http/Resources/Catalog/TarifaHabitacionResource.php',
+        'App\\Http\\Resources\\Catalog\\UbicacionResource' => __DIR__ . '/../..' . '/app/Http/Resources/Catalog/UbicacionResource.php',
+        'App\\Models\\Catalog\\HabitacionHotel' => __DIR__ . '/../..' . '/app/Models/Catalog/HabitacionHotel.php',
+        'App\\Models\\Catalog\\Hotel' => __DIR__ . '/../..' . '/app/Models/Catalog/Hotel.php',
+        'App\\Models\\Catalog\\HotelReglaComercial' => __DIR__ . '/../..' . '/app/Models/Catalog/HotelReglaComercial.php',
+        'App\\Models\\Catalog\\TarifaHabitacion' => __DIR__ . '/../..' . '/app/Models/Catalog/TarifaHabitacion.php',
+        'App\\Models\\Catalog\\Ubicacion' => __DIR__ . '/../..' . '/app/Models/Catalog/Ubicacion.php',
+        'App\\Models\\Freelancer' => __DIR__ . '/../..' . '/app/Models/Freelancer.php',
+        'App\\Models\\LoginLog' => __DIR__ . '/../..' . '/app/Models/LoginLog.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
+        'App\\Services\\Catalog\\HotelService' => __DIR__ . '/../..' . '/app/Services/Catalog/HotelService.php',
+        'App\\Services\\Catalog\\PricingEngine' => __DIR__ . '/../..' . '/app/Services/Catalog/PricingEngine.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
         'Brick\\Math\\BigInteger' => __DIR__ . '/..' . '/brick/math/src/BigInteger.php',
@@ -690,6 +713,7 @@ class ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9
         'Cron\\MinutesField' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/MinutesField.php',
         'Cron\\MonthField' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/MonthField.php',
         'Database\\Factories\\UserFactory' => __DIR__ . '/../..' . '/database/factories/UserFactory.php',
+        'Database\\Seeders\\CatalogSeeder' => __DIR__ . '/../..' . '/database/seeders/CatalogSeeder.php',
         'Database\\Seeders\\DatabaseSeeder' => __DIR__ . '/../..' . '/database/seeders/DatabaseSeeder.php',
         'DateError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateError.php',
         'DateException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateException.php',
@@ -7465,6 +7489,8 @@ class ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9
         'Termwind\\ValueObjects\\Node' => __DIR__ . '/..' . '/nunomaduro/termwind/src/ValueObjects/Node.php',
         'Termwind\\ValueObjects\\Style' => __DIR__ . '/..' . '/nunomaduro/termwind/src/ValueObjects/Style.php',
         'Termwind\\ValueObjects\\Styles' => __DIR__ . '/..' . '/nunomaduro/termwind/src/ValueObjects/Styles.php',
+        'Tests\\Feature\\AuthTest' => __DIR__ . '/../..' . '/tests/Feature/AuthTest.php',
+        'Tests\\Feature\\Catalog\\HotelCatalogTest' => __DIR__ . '/../..' . '/tests/Feature/Catalog/HotelCatalogTest.php',
         'Tests\\Feature\\ExampleTest' => __DIR__ . '/../..' . '/tests/Feature/ExampleTest.php',
         'Tests\\TestCase' => __DIR__ . '/../..' . '/tests/TestCase.php',
         'Tests\\Unit\\ExampleTest' => __DIR__ . '/../..' . '/tests/Unit/ExampleTest.php',
@@ -7513,9 +7539,9 @@ class ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitcea731ca241e901c1ad70deb1d2f6ff9::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit43a9df06dabe4d355a5f946bd686b588::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit43a9df06dabe4d355a5f946bd686b588::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit43a9df06dabe4d355a5f946bd686b588::$classMap;
 
         }, null, ClassLoader::class);
     }

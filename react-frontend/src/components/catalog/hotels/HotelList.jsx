@@ -61,8 +61,8 @@ export default function HotelList({ user }) {
       await axios.delete(`/v1/catalog/hoteles/${hotel.id}`);
       fetchHotels();
     } catch (err) {
-      console.error('Error eliminando hotel', err);
-      alert('No se pudo eliminar el hotel.');
+      console.error('Error eliminando hotel', err.response?.data || err);
+      alert('No se pudo eliminar el hotel: ' + (err.response?.data?.message || err.message || ''));
     }
   };
 
