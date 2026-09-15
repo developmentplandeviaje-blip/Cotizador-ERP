@@ -307,6 +307,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   value={hotelInfo.id_ubicacion}
                   onChange={(e) => setHotelInfo({ ...hotelInfo, id_ubicacion: e.target.value })}
                 >
+                  <option value="">Seleccione una ubicación</option>
                   {ubicaciones.map(u => (
                     <option key={u.id} value={u.id}>{u.ubicacion}</option>
                   ))}
