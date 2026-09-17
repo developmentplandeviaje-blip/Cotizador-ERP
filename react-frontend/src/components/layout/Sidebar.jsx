@@ -54,7 +54,9 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
   const isParentActive = (parentKey) => activeRoute?.startsWith(parentKey);
 
   return (
-    <aside style={{
+    <aside
+      className="sidebar-container"
+      style={{
       width: '240px',
       minHeight: '100vh',
       background: 'linear-gradient(260deg, rgb(17 46 139 / 55%) 0%, rgb(28 39 85 / 55%) 100%)',
