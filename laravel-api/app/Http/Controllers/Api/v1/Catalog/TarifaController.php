@@ -22,7 +22,7 @@ class TarifaController extends Controller
     public function store(StoreTarifaRequest $request): JsonResponse
     {
         $data = $request->validated();
-        
+
         if (empty($data['desde_venta'])) {
             $data['desde_venta'] = $data['desde'] ?? null;
         }

@@ -57,7 +57,8 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
     <aside style={{
       width: '240px',
       minHeight: '100vh',
-      background: 'linear-gradient(180deg, #101d46 0%, #090e24 100%)',
+      background: 'linear-gradient(260deg, rgb(17 46 139 / 55%) 0%, rgb(28 39 85 / 55%) 100%)',
+      //background: 'linear-gradient(45deg, rgba(220deg, 3, 65, 232, 0.2) 0%, rgb(28 39 85 / 55%) 100%)',
       borderTopRightRadius: '45px',
       borderBottomRightRadius: '45px',
       borderRight: '1.5px solid rgba(255, 255, 255, 0.35)',
@@ -77,7 +78,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
       <div
         style={{
           padding: '0 24px',
-          marginBottom: '28px',
+          marginBottom: '5px',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -87,7 +88,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         <img
           src={logoinicio}
           alt="Plan de Viaje"
-          style={{ width: '65px', height: 'auto', objectFit: 'contain' }}
+          style={{ width: '80px', height: 'auto', objectFit: 'contain' }}
         />
       </div>
 

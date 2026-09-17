@@ -49,12 +49,12 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
-    
+
     if (!formData.desde || !formData.hasta || !formData.precio_noche_adulto) {
       alert('Por favor complete las fechas y al menos el precio del adulto.');
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       await onSave(formData);
@@ -318,10 +318,10 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
 
         {/* Actions */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-          <button type="button" className="btn-secondary" onClick={onClose}>
+          <button type="button" className="btn-form-cancel" onClick={onClose}>
             Cancelar
           </button>
-          <button type="submit" className="btn-primary" disabled={isSubmitting}>
+          <button type="submit" className="btn-form-nxt" disabled={isSubmitting}>
             {isSubmitting ? 'Guardando...' : 'Guardar Tarifa'}
           </button>
         </div>

@@ -25,7 +25,7 @@ class HotelService
 
         if ($sortBy === 'ubicacion') {
             $query->leftJoin('ubicacion', 'hotel.id_ubicacion', '=', 'ubicacion.id')
-                  ->orderBy('ubicacion.ubicacion', $sortDir);
+                ->orderBy('ubicacion.ubicacion', $sortDir);
         } else {
             $allowedSorts = ['id', 'nombre', 'tipo', 'status'];
             if (in_array($sortBy, $allowedSorts)) {
@@ -39,10 +39,10 @@ class HotelService
             $search = '%' . $filters['search'] . '%';
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'like', $search)
-                  ->orWhere('tipo', 'like', $search)
-                  ->orWhereHas('ubicacion', function ($uq) use ($search) {
-                      $uq->where('ubicacion', 'like', $search);
-                  });
+                    ->orWhere('tipo', 'like', $search)
+                    ->orWhereHas('ubicacion', function ($uq) use ($search) {
+                        $uq->where('ubicacion', 'like', $search);
+                    });
             });
         }
 
@@ -115,7 +115,7 @@ class HotelService
                             if (isset($tarifaData['hasta_venta']) && $tarifaData['hasta_venta'] === '') {
                                 $tarifaData['hasta_venta'] = null;
                             }
-                            
+
                             // If they are strictly required in the DB, default to the validity dates
                             if (empty($tarifaData['desde_venta'])) {
                                 $tarifaData['desde_venta'] = $tarifaData['desde'] ?? null;
@@ -123,7 +123,7 @@ class HotelService
                             if (empty($tarifaData['hasta_venta'])) {
                                 $tarifaData['hasta_venta'] = $tarifaData['hasta'] ?? null;
                             }
-                            
+
                             $habitacion->tarifas()->create($tarifaData);
                         }
                     }
@@ -176,7 +176,7 @@ class HotelService
                 $habitacion->tarifas()->delete();
                 $habitacion->delete();
             }
-            
+
             // Eliminar reglas comerciales
             $hotel->reglasComerciales()->delete();
 

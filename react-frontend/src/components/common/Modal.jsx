@@ -17,8 +17,8 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, chil
       boxSizing: 'border-box',
     }}>
       <div style={{
-        background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
-        border: '1px solid rgba(255, 255, 255, 0.15)',
+        background: 'linear-gradient(180deg, #101c44 15%, #061251 24%)',
+        border: '1px solid rgba(255, 255, 255, 0.18)',
         borderRadius: '16px',
         width: '100%',
         maxWidth: width,
@@ -31,7 +31,7 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, chil
         {/* Modal Header */}
         <div style={{
           padding: '20px 24px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.16)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',

@@ -3,6 +3,9 @@ import axios from 'axios';
 import Badge from '../../common/Badge';
 import HotelModal from './HotelModal';
 import HabitacionDetail from './HabitacionDetail';
+import imgImprimir from '../../../assets/Imprimir.svg';
+import imgDescuento from '../../../assets/Descuentos.svg';
+import imgAgregar from '../../../assets/Agregar.svg';
 
 export default function HotelList({ user }) {
   const [hotels, setHotels] = useState([]);
@@ -90,8 +93,8 @@ export default function HotelList({ user }) {
   }
 
   const getSortIndicator = (key) => {
-    if (sortConfig.key !== key) return <span style={{opacity: 0.3, marginLeft: '4px'}}>↕</span>;
-    return <span style={{marginLeft: '4px'}}>{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>;
+    if (sortConfig.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}>↕</span>;
+    return <span style={{ marginLeft: '4px' }}>{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>;
   };
 
   return (
@@ -102,7 +105,7 @@ export default function HotelList({ user }) {
           Hoteles
         </h1>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           {/* Search bar with magnifying glass (Page 3) */}
           <div style={{ position: 'relative', width: '280px' }}>
             <input
@@ -117,8 +120,9 @@ export default function HotelList({ user }) {
               style={{
                 paddingLeft: '36px',
                 borderRadius: '9999px',
-                background: 'rgba(30, 41, 59, 0.6)',
+                background: 'linear-gradient(355deg, rgb(106 109 119 / 69%) 8%, rgb(157 157 157 / 8%) 30%)',
                 height: '38px',
+                border: '1px solid var(--color-border-btn)',
               }}
             />
             <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, fontSize: '0.875rem' }}>
@@ -127,27 +131,33 @@ export default function HotelList({ user }) {
           </div>
 
           {/* Action Buttons: Imprimir, Descuento, Agregar (Page 3 & 16) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
               className="btn-secondary"
               title="Imprimir"
               onClick={() => window.print()}
               style={{ padding: '8px 14px', borderRadius: '9999px' }}
             >
-              Imprimir
+              <img
+                src={imgImprimir}
+                style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+              />
             </button>
+            <span className='title-input'>Imprimir</span>
+          </div>
 
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             {/* Dropdown Descuento (Page 16) */}
             <div style={{ position: 'relative' }}>
               <button
                 className="btn-secondary"
-                onClick={() => {
-                  setShowDescuentoMenu(!showDescuentoMenu);
-                  setActiveMenuHotelId(null); // Close row menus
-                }}
+                onClick={() => setShowDescuentoMenu(!showDescuentoMenu)}
                 style={{ padding: '8px 14px', borderRadius: '9999px' }}
               >
-                Descuento ▾
+                <img
+                  src={imgDescuento}
+                  style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+                />
               </button>
 
               {showDescuentoMenu && (
@@ -155,7 +165,7 @@ export default function HotelList({ user }) {
                   position: 'absolute',
                   top: '110%',
                   right: 0,
-                  backgroundColor: '#1e293b',
+                  backgroundColor: '#F9F3E0',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                   borderRadius: '8px',
                   boxShadow: 'var(--shadow-dropdown)',
@@ -168,10 +178,10 @@ export default function HotelList({ user }) {
                     style={{
                       width: '100%',
                       textAlign: 'left',
-                      padding: '10px 14px',
+                      padding: '14px 14px 5px',
                       background: 'none',
                       border: 'none',
-                      color: '#F8FAFC',
+                      color: '#595959',
                       fontSize: '0.8125rem',
                       cursor: 'pointer',
                     }}
@@ -187,7 +197,7 @@ export default function HotelList({ user }) {
                       background: 'none',
                       border: 'none',
                       borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: '#F8FAFC',
+                      color: '#595959',
                       fontSize: '0.8125rem',
                       cursor: 'pointer',
                     }}
@@ -197,47 +207,54 @@ export default function HotelList({ user }) {
                 </div>
               )}
             </div>
+            <span className='title-input'>Descuento</span>
+          </div>
 
+          <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', position: 'relative' }}>
             <button
-              className="btn-primary"
+              className="btn-secondary"
               onClick={() => {
                 setHotelToEdit(null);
                 setIsModalOpen(true);
               }}
               style={{ padding: '8px 18px', borderRadius: '9999px' }}
             >
-              + Agregar
+              <img
+                src={imgAgregar}
+                style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+              />
             </button>
+            <span className='title-input'>Agregar</span>
           </div>
         </div>
       </div>
 
       {/* Main DataTable Card */}
       <div style={{
-        background: 'rgba(30, 41, 59, 0.72)',
+        background: 'rgba(188, 192, 215, 0.09)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: '12px',
-        overflow: 'visible',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+        overflow: 'hidden',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
           <thead>
-            <tr style={{ background: 'rgba(15, 23, 42, 0.65)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', userSelect: 'none' }}>
-              <th onClick={() => handleSort('id')} style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>#{getSortIndicator('id')}</th>
-              <th onClick={() => handleSort('nombre')} style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Nombre{getSortIndicator('nombre')}</th>
-              <th onClick={() => handleSort('tipo')} style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Tipo{getSortIndicator('tipo')}</th>
-              <th onClick={() => handleSort('ubicacion')} style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Ubicación{getSortIndicator('ubicacion')}</th>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>Desc. Contado</th>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>Desc. Divisas</th>
-              <th onClick={() => handleSort('status')} style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', cursor: 'pointer' }}>Estado{getSortIndicator('status')}</th>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600' }}>Nota</th>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontWeight: '600', textAlign: 'right' }}>Opciones</th>
+            <tr style={{ background: '#e8721726', borderBottom: '1px solid rgba(255, 255, 255, 0.84)', userSelect: 'none' }}>
+              <th onClick={() => handleSort('id')} style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600', cursor: 'pointer' }}>#{getSortIndicator('id')}</th>
+              <th onClick={() => handleSort('nombre')} style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600', cursor: 'pointer' }}>Nombre{getSortIndicator('nombre')}</th>
+              <th onClick={() => handleSort('tipo')} style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600', cursor: 'pointer' }}>Tipo{getSortIndicator('tipo')}</th>
+              <th onClick={() => handleSort('ubicacion')} style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600', cursor: 'pointer' }}>Ubicación{getSortIndicator('ubicacion')}</th>
+              <th style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600' }}>Desc. Contado</th>
+              <th style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600' }}>Desc. Divisas</th>
+              <th onClick={() => handleSort('status')} style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600', cursor: 'pointer' }}>Estado{getSortIndicator('status')}</th>
+              <th style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600' }}>Nota</th>
+              <th style={{ padding: '14px 16px', color: '#ffffffff', fontWeight: '600', textAlign: 'right' }}>Opciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="9" style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>
+                <td colSpan="9" style={{ padding: '30px', textAlign: 'center', color: '#f4f9ffff' }}>
                   Cargando catálogo de hoteles...
                 </td>
               </tr>
@@ -249,25 +266,25 @@ export default function HotelList({ user }) {
                 return (
                   <React.Fragment key={hotel.id}>
                     <tr style={{
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-                      background: isExpanded ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.51)',
+                      background: isExpanded ? 'rgba(112, 133, 255, 0.23)' : 'transparent',
                       transition: 'background-color 0.15s',
                     }}>
-                      <td style={{ padding: '14px 16px', color: '#94A3B8' }}>{index + 1}</td>
+                      <td style={{ padding: '14px 16px', color: '#b9c8ddff' }}>{index + 1}</td>
                       <td style={{ padding: '14px 16px', fontWeight: '600', color: '#FFFFFF' }}>{hotel.nombre}</td>
                       <td style={{ padding: '14px 16px', color: '#F8FAFC' }}>{hotel.tipo}</td>
                       <td style={{ padding: '14px 16px', color: '#F8FAFC' }}>{hotel.ubicacion_nombre}</td>
 
                       {/* Desc. Contado Badge */}
                       <td style={{ padding: '14px 16px' }}>
-                        <Badge variant={hotel.desc_contado.includes('%') ? 'warning' : 'neutral'}>
+                        <Badge variant={hotel.desc_contado.includes('%') ? 'success' : 'neutral'}>
                           {hotel.desc_contado}
                         </Badge>
                       </td>
 
                       {/* Desc. Divisas Badge */}
                       <td style={{ padding: '14px 16px' }}>
-                        <Badge variant={hotel.desc_divisas.includes('%') ? 'warning' : 'neutral'}>
+                        <Badge variant={hotel.desc_divisas.includes('%') ? 'success' : 'neutral'}>
                           {hotel.desc_divisas}
                         </Badge>
                       </td>
@@ -285,8 +302,8 @@ export default function HotelList({ user }) {
                         </span>
                       </td>
 
-                      <td style={{ padding: '14px 16px', color: '#94A3B8', fontSize: '0.8125rem' }}>
-                        {hotel.nota || 'Nota'}
+                      <td style={{ padding: '14px 16px', color: '#b9c8ddff', fontSize: '0.8125rem' }}>
+                        {hotel.nota || 'Sin observaciones'}
                       </td>
 
                       {/* Options Column (3-dots and accordion toggle) */}
@@ -302,7 +319,7 @@ export default function HotelList({ user }) {
                               style={{
                                 background: 'none',
                                 border: 'none',
-                                color: '#94A3B8',
+                                color: '#b9c8ddff',
                                 fontSize: '1.25rem',
                                 cursor: 'pointer',
                                 padding: '4px',
@@ -318,7 +335,7 @@ export default function HotelList({ user }) {
                                 right: 0,
                                 top: (index >= hotels.length - 2 && hotels.length > 2) ? 'auto' : '100%',
                                 bottom: (index >= hotels.length - 2 && hotels.length > 2) ? '100%' : 'auto',
-                                backgroundColor: '#1e293b',
+                                backgroundColor: '#F9F3E0',
                                 border: '1px solid rgba(255, 255, 255, 0.15)',
                                 borderRadius: '8px',
                                 boxShadow: 'var(--shadow-dropdown)',
@@ -329,25 +346,25 @@ export default function HotelList({ user }) {
                               }}>
                                 <button
                                   onClick={() => { setActiveMenuHotelId(null); window.print(); }}
-                                  style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: '#F8FAFC', fontSize: '0.8125rem', cursor: 'pointer' }}
+                                  style={{ width: '100%', textAlign: 'left', padding: '8px 10px 8px 24px', background: 'none', border: 'none', color: '#595959', fontSize: '0.875rem', cursor: 'pointer', fontWeight: '600' }}
                                 >
                                   Imprimir
                                 </button>
                                 <button
                                   onClick={() => { setActiveMenuHotelId(null); setHotelToEdit(hotel); setIsModalOpen(true); }}
-                                  style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: '#F8FAFC', fontSize: '0.8125rem', cursor: 'pointer' }}
+                                  style={{ width: '100%', textAlign: 'left', padding: '8px 10px 8px 24px', background: 'none', border: 'none', color: '#595959', fontSize: '0.875rem', cursor: 'pointer', fontWeight: '600' }}
                                 >
                                   Editar
                                 </button>
                                 <button
                                   onClick={() => { setActiveMenuHotelId(null); setSelectedHotelForRooms(hotel); }}
-                                  style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: '#2563EB', fontSize: '0.8125rem', cursor: 'pointer', fontWeight: '600' }}
+                                  style={{ width: '100%', textAlign: 'left', padding: '8px 10px 8px 24px', background: 'none', border: 'none', color: '#2563EB', fontSize: '0.875rem', cursor: 'pointer', fontWeight: '600' }}
                                 >
                                   Habitación
                                 </button>
                                 <button
                                   onClick={() => { setActiveMenuHotelId(null); handleDelete(hotel); }}
-                                  style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: '#EF4444', fontSize: '0.8125rem', cursor: 'pointer' }}
+                                  style={{ width: '100%', textAlign: 'left', padding: '8px 10px 8px 24px', background: 'none', border: 'none', color: '#EF4444', fontSize: '0.875rem', cursor: 'pointer', fontWeight: '600' }}
                                 >
                                   Eliminar
                                 </button>
@@ -356,14 +373,14 @@ export default function HotelList({ user }) {
                           </div>
 
                           {/* Accordion expand button (Page 18-19) */}
-                            <button
-                              onClick={() => {
-                                setExpandedHotelId(isExpanded ? null : hotel.id);
-                                setActiveMenuHotelId(null);
-                                setShowDescuentoMenu(false);
-                              }}
-                              style={{
-                              background: isExpanded ? '#E87217' : 'rgba(255,255,255,0.08)',
+                          <button
+                            onClick={() => {
+                              setExpandedHotelId(isExpanded ? null : hotel.id);
+                              setActiveMenuHotelId(null);
+                              setShowDescuentoMenu(false);
+                            }}
+                            style={{
+                              background: isExpanded ? '#E87217' : 'rgba(255, 255, 255, 0.18)',
                               border: 'none',
                               color: '#FFFFFF',
                               width: '28px',
@@ -388,7 +405,7 @@ export default function HotelList({ user }) {
                       <tr>
                         <td colSpan="9" style={{ padding: '0 20px 16px 20px', background: 'rgba(15, 23, 42, 0.35)' }}>
                           <div style={{
-                            background: 'rgba(30, 41, 59, 0.6)',
+                            background: '#00123180',
                             border: '1px solid rgba(255, 255, 255, 0.08)',
                             borderRadius: '8px',
                             padding: '12px 20px',
@@ -396,21 +413,21 @@ export default function HotelList({ user }) {
                             gap: '30px',
                             alignItems: 'center',
                             fontSize: '0.8125rem',
-                            color: '#F8FAFC',
+                            color: '#1b2024ff',
                           }}>
                             <div>
-                              <span style={{ color: '#94A3B8' }}>Adolescente: </span>
-                              <span style={{ fontWeight: '600' }}>{hotel.edad_adolescentes}</span>
+                              <span style={{ color: '#b9c8ddff' }}>Adolescente: </span>
+                              <span style={{ color: '#F8FAFC', fontWeight: '600' }}>{hotel.edad_adolescentes}</span>
                             </div>
                             <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)' }} />
                             <div>
-                              <span style={{ color: '#94A3B8' }}>Niño: </span>
-                              <span style={{ fontWeight: '600' }}>{hotel.edad_ninos}</span>
+                              <span style={{ color: '#b9c8ddff' }}>Niño: </span>
+                              <span style={{ color: '#F8FAFC', fontWeight: '600' }}>{hotel.edad_ninos}</span>
                             </div>
                             <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)' }} />
                             <div>
-                              <span style={{ color: '#94A3B8' }}>Infante: </span>
-                              <span style={{ fontWeight: '600' }}>{hotel.edad_infantes}</span>
+                              <span style={{ color: '#b9c8ddff' }}>Infante: </span>
+                              <span style={{ color: '#F8FAFC', fontWeight: '600' }}>{hotel.edad_infantes}</span>
                             </div>
                           </div>
                         </td>
@@ -421,7 +438,7 @@ export default function HotelList({ user }) {
               })
             ) : (
               <tr>
-                <td colSpan="9" style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>
+                <td colSpan="9" style={{ padding: '30px', textAlign: 'center', color: '#595959' }}>
                   No se encontraron hoteles registrados.
                 </td>
               </tr>
@@ -442,14 +459,14 @@ export default function HotelList({ user }) {
           <button
             onClick={() => setPage(1)}
             disabled={page === 1}
-            style={{ background: 'none', border: 'none', color: page === 1 ? '#475569' : '#E87217', cursor: page === 1 ? 'default' : 'pointer' }}
+            style={{ background: 'none', border: 'none', color: page === 1 ? '#ffffff' : '#E87217', cursor: page === 1 ? 'default' : 'pointer', fontSize: '24px' }}
           >
             «
           </button>
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            style={{ background: 'none', border: 'none', color: page === 1 ? '#475569' : '#E87217', cursor: page === 1 ? 'default' : 'pointer' }}
+            style={{ background: 'none', border: 'none', color: page === 1 ? '#ffffff' : '#E87217', cursor: page === 1 ? 'default' : 'pointer', fontSize: '24px' }}
           >
             ‹
           </button>
@@ -465,8 +482,8 @@ export default function HotelList({ user }) {
                   width: '30px',
                   height: '30px',
                   borderRadius: '6px',
-                  border: isCurrent ? '1px solid #E87217' : 'none',
-                  background: isCurrent ? 'rgba(232, 114, 23, 0.2)' : 'transparent',
+                  border: isCurrent ? '1px solid #919191a1' : 'none',
+                  background: isCurrent ? 'linear-gradient(45deg, rgb(68 78 109 / 20%) 0%, rgb(178 193 239 / 55%) 100%)' : 'transparent',
                   color: isCurrent ? '#FFFFFF' : '#94A3B8',
                   fontWeight: isCurrent ? '700' : '400',
                   cursor: 'pointer',
@@ -480,14 +497,14 @@ export default function HotelList({ user }) {
           <button
             onClick={() => setPage(p => Math.min(lastPage, p + 1))}
             disabled={page === lastPage}
-            style={{ background: 'none', border: 'none', color: page === lastPage ? '#475569' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer' }}
+            style={{ background: 'none', border: 'none', color: page === lastPage ? '#ffffff' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer', fontSize: '24px' }}
           >
             ›
           </button>
           <button
             onClick={() => setPage(lastPage)}
             disabled={page === lastPage}
-            style={{ background: 'none', border: 'none', color: page === lastPage ? '#475569' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer' }}
+            style={{ background: 'none', border: 'none', color: page === lastPage ? '#ffffff' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer', fontSize: '24px' }}
           >
             »
           </button>
