@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Badge from '../../common/Badge';
+import TarifaModal from './TarifaModal';
 import HotelModal from './HotelModal';
+import DescuentoMasivoModal from './DescuentoMasivoModal';
+import Badge from '../../common/Badge';
 import HabitacionDetail from './HabitacionDetail';
 import imgImprimir from '../../../assets/Imprimir.svg';
 import imgDescuento from '../../../assets/Descuentos.svg';
@@ -15,6 +17,8 @@ export default function HotelList({ user }) {
   const [lastPage, setLastPage] = useState(1);
   const [expandedHotelId, setExpandedHotelId] = useState(null);
   const [activeMenuHotelId, setActiveMenuHotelId] = useState(null);
+  const [isDescuentoMasivoOpen, setIsDescuentoMasivoOpen] = useState(false);
+  const [tipoDescuentoMasivo, setTipoDescuentoMasivo] = useState('contado');
   const [showDescuentoMenu, setShowDescuentoMenu] = useState(false);
 
   const [sortConfig, setSortConfig] = useState({ key: 'nombre', direction: 'asc' });
@@ -93,8 +97,8 @@ export default function HotelList({ user }) {
   }
 
   const getSortIndicator = (key) => {
-    if (sortConfig.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}></span>;
-    return <span style={{ marginLeft: '4px' }}>{sortConfig.direction === 'asc' ? '' : ''}</span>;
+    if (sortConfig.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}>↕</span>;
+    return <span style={{ marginLeft: '4px' }}>{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>;
   };
 
   return (
@@ -174,7 +178,7 @@ export default function HotelList({ user }) {
                   overflow: 'hidden',
                 }}>
                   <button
-                    onClick={() => { setShowDescuentoMenu(false); alert('Filtro por Descuento Al Contado aplicado'); }}
+                    onClick={() => { setShowDescuentoMenu(false); setTipoDescuentoMasivo('contado'); setIsDescuentoMasivoOpen(true); }}
                     style={{
                       width: '100%',
                       textAlign: 'left',
@@ -189,7 +193,7 @@ export default function HotelList({ user }) {
                     Al Contado
                   </button>
                   <button
-                    onClick={() => { setShowDescuentoMenu(false); alert('Filtro por Descuento en Divisas aplicado'); }}
+                    onClick={() => { setShowDescuentoMenu(false); setTipoDescuentoMasivo('divisas'); setIsDescuentoMasivoOpen(true); }}
                     style={{
                       width: '100%',
                       textAlign: 'left',
@@ -518,6 +522,13 @@ export default function HotelList({ user }) {
         onSaveSuccess={fetchHotels}
         hotelToEdit={hotelToEdit}
         isFreelancer={isFreelancer}
+      />
+
+      <DescuentoMasivoModal
+        isOpen={isDescuentoMasivoOpen}
+        onClose={() => setIsDescuentoMasivoOpen(false)}
+        tipoDescuento={tipoDescuentoMasivo}
+        onSuccess={fetchHotels}
       />
     </div>
   );

@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/v1/catalog/hoteles', HotelController::class)->parameters([
         'hoteles' => 'hotel'
     ]);
+    Route::post('/v1/catalog/hoteles/descuento-masivo', [HotelController::class, 'descuentoMasivo']);
     Route::patch('/v1/catalog/hoteles/{hotel}/toggle-status', [HotelController::class, 'toggleStatus']);
 
     // Catalog: Habitaciones
