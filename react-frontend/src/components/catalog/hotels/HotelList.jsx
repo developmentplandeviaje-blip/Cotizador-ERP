@@ -141,7 +141,10 @@ export default function HotelList({ user }) {
             <div style={{ position: 'relative' }}>
               <button
                 className="btn-secondary"
-                onClick={() => setShowDescuentoMenu(!showDescuentoMenu)}
+                onClick={() => {
+                  setShowDescuentoMenu(!showDescuentoMenu);
+                  setActiveMenuHotelId(null); // Close row menus
+                }}
                 style={{ padding: '8px 14px', borderRadius: '9999px' }}
               >
                 Descuento ▾
@@ -292,7 +295,10 @@ export default function HotelList({ user }) {
                           {/* 3 dots action menu trigger */}
                           <div style={{ position: 'relative' }}>
                             <button
-                              onClick={() => setActiveMenuHotelId(isMenuOpen ? null : hotel.id)}
+                              onClick={() => {
+                                setActiveMenuHotelId(isMenuOpen ? null : hotel.id);
+                                setShowDescuentoMenu(false); // Close filter menu if open
+                              }}
                               style={{
                                 background: 'none',
                                 border: 'none',
@@ -350,9 +356,13 @@ export default function HotelList({ user }) {
                           </div>
 
                           {/* Accordion expand button (Page 18-19) */}
-                          <button
-                            onClick={() => setExpandedHotelId(isExpanded ? null : hotel.id)}
-                            style={{
+                            <button
+                              onClick={() => {
+                                setExpandedHotelId(isExpanded ? null : hotel.id);
+                                setActiveMenuHotelId(null);
+                                setShowDescuentoMenu(false);
+                              }}
+                              style={{
                               background: isExpanded ? '#E87217' : 'rgba(255,255,255,0.08)',
                               border: 'none',
                               color: '#FFFFFF',

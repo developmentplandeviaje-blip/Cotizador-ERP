@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TarifaModal from './TarifaModal';
+import HotelModal from './HotelModal';
 
 export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }) {
   const [habitaciones, setHabitaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedRoomId, setExpandedRoomId] = useState(null);
   const [isTarifaModalOpen, setIsTarifaModalOpen] = useState(false);
+  const [isHotelModalOpen, setIsHotelModalOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [search, setSearch] = useState('');
 
@@ -119,6 +121,14 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
               🔍
             </span>
           </div>
+
+          <button
+            className="btn-primary"
+            onClick={() => setIsHotelModalOpen(true)}
+            style={{ padding: '8px 18px', borderRadius: '9999px', whiteSpace: 'nowrap' }}
+          >
+            + Agregar Habitación y Tarifa
+          </button>
 
           <button className="btn-secondary" onClick={onBack}>
             Volver
@@ -294,6 +304,18 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
         onSave={handleSaveTarifa}
         isFreelancer={isFreelancer}
         showAdolescentes={showAdolescentes}
+      />
+
+      <HotelModal
+        isOpen={isHotelModalOpen}
+        onClose={() => setIsHotelModalOpen(false)}
+        onSaveSuccess={() => {
+          setIsHotelModalOpen(false);
+          fetchHabitaciones();
+        }}
+        hotelToEdit={{ ...hotel, habitaciones }}
+        isFreelancer={isFreelancer}
+        initialStep={2}
       />
     </div>
   );

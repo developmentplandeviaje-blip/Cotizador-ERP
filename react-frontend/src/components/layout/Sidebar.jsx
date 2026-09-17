@@ -29,10 +29,24 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
   });
 
   const toggleMenu = (menuKey) => {
-    setOpenMenus(prev => ({
-      ...prev,
-      [menuKey]: !prev[menuKey]
-    }));
+    setOpenMenus(prev => {
+      const isCurrentlyOpen = prev[menuKey];
+      if (!isCurrentlyOpen) {
+        // Close all others and open the requested one
+        return {
+          ventas: menuKey === 'ventas',
+          reportes: menuKey === 'reportes',
+          servicios: menuKey === 'servicios',
+          usuarios: menuKey === 'usuarios',
+        };
+      } else {
+        // Just close the current one
+        return {
+          ...prev,
+          [menuKey]: false
+        };
+      }
+    });
   };
 
   // Helper to test if a route is active
