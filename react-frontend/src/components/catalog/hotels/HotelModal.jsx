@@ -3,7 +3,7 @@ import Modal from '../../common/Modal';
 import TarifaModal from './TarifaModal';
 import axios from 'axios';
 
-export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit = null, isFreelancer = false }) {
+export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit = null, isFreelancer = false, initialStep = 1 }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [isTarifaModalOpen, setIsTarifaModalOpen] = useState(false);
@@ -41,28 +41,46 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
     }
   ]);
 
+  const showAdolescentes = !(hotelInfo.edad_adolescentes_desde === '0' && hotelInfo.edad_adolescentes_hasta === '0');
+
   useEffect(() => {
     if (isOpen) {
-      setCurrentStep(1);
+      setCurrentStep(initialStep);
       fetchUbicaciones();
 
       if (hotelToEdit) {
+        const parseAgeRange = (str, defDesde, defHasta) => {
+          if (!str) return { desde: defDesde, hasta: defHasta };
+          const match = str.match(/(\d+)\s*-\s*(\d+)/);
+          if (match) return { desde: match[1], hasta: match[2] };
+          return { desde: defDesde, hasta: defHasta };
+        };
+
+        const ad = parseAgeRange(hotelToEdit.edad_adolescentes, '12', '17');
+        const ni = parseAgeRange(hotelToEdit.edad_ninos, '5', '11');
+        const inf = parseAgeRange(hotelToEdit.edad_infantes, '0', '4');
+
+        const reglas = hotelToEdit.reglas_comerciales || hotelToEdit.reglasComerciales;
+        const regla = (reglas && reglas.length > 0)
+          ? reglas[0]
+          : null;
+
         setHotelInfo({
           nombre: hotelToEdit.nombre || '',
           tipo: hotelToEdit.tipo || 'Todo Incluido',
           id_ubicacion: hotelToEdit.id_ubicacion || '',
-          edad_adolescentes_desde: '12',
-          edad_adolescentes_hasta: '17',
-          edad_ninos_desde: '5',
-          edad_ninos_hasta: '11',
-          edad_infantes_desde: '0',
-          edad_infantes_hasta: '4',
+          edad_adolescentes_desde: ad.desde,
+          edad_adolescentes_hasta: ad.hasta,
+          edad_ninos_desde: ni.desde,
+          edad_ninos_hasta: ni.hasta,
+          edad_infantes_desde: inf.desde,
+          edad_infantes_hasta: inf.hasta,
           nota: hotelToEdit.nota || '',
-          incluye_descuento: false,
-          desc_contado_status: false,
-          desc_contado_monto: '',
-          desc_divisas_status: false,
-          desc_divisas_monto: '',
+          incluye_descuento: !!regla,
+          desc_contado_status: regla ? regla.descuento_status : false,
+          desc_contado_monto: regla ? regla.descuento_monto : '',
+          desc_divisas_status: regla ? regla.aumento_bolivares : false,
+          desc_divisas_monto: regla ? regla.aumento_bolivares_porcentaje : '',
         });
         setHabitaciones(hotelToEdit.habitaciones || [
           {
@@ -512,10 +530,10 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   <tr style={{ background: 'rgba(0, 18, 49, 0.4)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', textAlign: 'left' }}>
                     <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Desde - Hasta</th>
                     <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Precio Adulto</th>
-                    <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Precio Adolesc.</th>
+                    {showAdolescentes && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Precio Adolesc.</th>}
                     <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Precio Niño</th>
                     {!isFreelancer && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Costo Adulto</th>}
-                    {!isFreelancer && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Costo Adolesc.</th>}
+                    {!isFreelancer && showAdolescentes && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Costo Adolesc.</th>}
                     {!isFreelancer && <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Costo Niño</th>}
                     <th style={{ padding: '8px 10px', color: '#b9c8ddff' }}>Acciones</th>
                   </tr>
@@ -530,9 +548,11 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                         <td style={{ padding: '8px 10px', color: '#E87217', fontWeight: '600' }}>
                           {tarifa.precio_noche_adulto} {tarifa.moneda}
                         </td>
-                        <td style={{ padding: '8px 10px', color: '#F8FAFC' }}>
-                          {tarifa.precio_noche_adolescente || '0.00'} {tarifa.moneda}
-                        </td>
+                        {showAdolescentes && (
+                          <td style={{ padding: '8px 10px', color: '#F8FAFC' }}>
+                            {tarifa.precio_noche_adolescente || '0.00'} {tarifa.moneda}
+                          </td>
+                        )}
                         <td style={{ padding: '8px 10px', color: '#F8FAFC' }}>
                           {tarifa.precio_noche_nino || '0.00'} {tarifa.moneda}
                         </td>
@@ -541,7 +561,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                             {tarifa.costo_noche_adulto || '0.00'} {tarifa.moneda}
                           </td>
                         )}
-                        {!isFreelancer && (
+                        {!isFreelancer && showAdolescentes && (
                           <td style={{ padding: '8px 10px', color: '#94A3B8' }}>
                             {tarifa.costo_noche_adolescente || '0.00'} {tarifa.moneda}
                           </td>
@@ -573,7 +593,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={isFreelancer ? 5 : 8} style={{ padding: '16px', textAlign: 'center', color: '#64748B' }}>
+                      <td colSpan={4 + (showAdolescentes ? 1 : 0) + (!isFreelancer ? 2 + (showAdolescentes ? 1 : 0) : 0)} style={{ padding: '16px', textAlign: 'center', color: '#64748B' }}>
                         No hay tarifas registradas para esta habitación.
                       </td>
                     </tr>
@@ -599,8 +619,8 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
               <button type="button" className="btn-form-prv" onClick={() => setCurrentStep(1)}>
                 Anterior
               </button>
-              <button type="button" className="btn-form-nxt" onClick={handleSaveHotel}>
-                Guardar Hotel
+              <button type="button" className="btn-form-nxt" onClick={handleSaveHotel} disabled={isSubmitting}>
+                {isSubmitting ? 'Guardando...' : 'Guardar Hotel'}
               </button>
             </div>
           </div>
@@ -613,6 +633,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
         onClose={() => setIsTarifaModalOpen(false)}
         onSave={handleAddTarifaToActiveRoom}
         isFreelancer={isFreelancer}
+        showAdolescentes={showAdolescentes}
       />
     </>
   );
