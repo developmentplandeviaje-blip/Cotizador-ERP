@@ -274,22 +274,58 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
 
         {/* Toggles (Suplemento & Fecha de Venta) */}
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '16px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.8125rem' }}>
+          <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            fontSize: '0.8125rem',
+            fontWeight: '500',
+            color: formData.suplemento ? '#E87217' : '#94A3B8',
+            padding: '10px 16px',
+            borderRadius: '12px',
+            background: 'rgb(30, 41, 59)',
+            transition: 'all 0.2s ease',
+            boxShadow: formData.suplemento
+              ? 'inset 3px 3px 6px rgba(0, 0, 0, 0.4), inset -3px -3px 6px rgba(255, 255, 255, 0.05)'
+              : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+            border: formData.suplemento ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+            userSelect: 'none'
+          }}>
             <input
               type="checkbox"
               checked={formData.suplemento}
               onChange={(e) => handleChange('suplemento', e.target.checked)}
+              style={{ display: 'none' }}
             />
             <span>Tarifa de Suplemento</span>
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.8125rem' }}>
+          <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            fontSize: '0.8125rem',
+            fontWeight: '500',
+            color: formData.has_fecha_venta ? '#E87217' : '#94A3B8',
+            padding: '10px 16px',
+            borderRadius: '12px',
+            background: 'rgb(30, 41, 59)',
+            transition: 'all 0.2s ease',
+            boxShadow: formData.has_fecha_venta
+              ? 'inset 3px 3px 6px rgba(0, 0, 0, 0.4), inset -3px -3px 6px rgba(255, 255, 255, 0.05)'
+              : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+            border: formData.has_fecha_venta ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+            userSelect: 'none'
+          }}>
             <input
               type="checkbox"
               checked={formData.has_fecha_venta}
               onChange={(e) => handleChange('has_fecha_venta', e.target.checked)}
+              style={{ display: 'none' }}
             />
-            <span>Definir Fecha de Venta (Promoción)</span>
+            <span>Fecha de Venta (Promoción)</span>
           </label>
         </div>
 
