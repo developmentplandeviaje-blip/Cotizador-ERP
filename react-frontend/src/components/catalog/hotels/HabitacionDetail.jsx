@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TarifaModal from './TarifaModal';
 import Imgvolver from '../../../assets/Volver.svg';
+import imgAgregar from '../../../assets/Agregar.svg';
+import HotelModal from './HotelModal';
+
 
 export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }) {
   const [habitaciones, setHabitaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedRoomId, setExpandedRoomId] = useState(null);
   const [isTarifaModalOpen, setIsTarifaModalOpen] = useState(false);
+  const [isHotelModalOpen, setIsHotelModalOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [search, setSearch] = useState('');
 
@@ -125,6 +129,16 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>
               🔍
             </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+            <button className="btn-secondary" onClick={() => setIsHotelModalOpen(true)}>
+              <img
+                src={imgAgregar}
+                style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+              />
+            </button>
+            <span className='title-input'>Agregar habitación</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
@@ -308,6 +322,18 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
         onSave={handleSaveTarifa}
         isFreelancer={isFreelancer}
         showAdolescentes={showAdolescentes}
+      />
+
+      <HotelModal
+        isOpen={isHotelModalOpen}
+        onClose={() => setIsHotelModalOpen(false)}
+        onSaveSuccess={() => {
+          setIsHotelModalOpen(false);
+          fetchHabitaciones();
+        }}
+        hotelToEdit={{ ...hotel, habitaciones }}
+        isFreelancer={isFreelancer}
+        initialStep={2}
       />
     </div>
   );

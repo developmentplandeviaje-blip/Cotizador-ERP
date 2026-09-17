@@ -3,7 +3,7 @@ import Modal from '../../common/Modal';
 import TarifaModal from './TarifaModal';
 import axios from 'axios';
 
-export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit = null, isFreelancer = false }) {
+export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit = null, isFreelancer = false, initialStep = 1 }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [isTarifaModalOpen, setIsTarifaModalOpen] = useState(false);
@@ -45,7 +45,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
 
   useEffect(() => {
     if (isOpen) {
-      setCurrentStep(1);
+      setCurrentStep(initialStep);
       fetchUbicaciones();
 
       if (hotelToEdit) {
@@ -60,6 +60,11 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
         const ni = parseAgeRange(hotelToEdit.edad_ninos, '5', '11');
         const inf = parseAgeRange(hotelToEdit.edad_infantes, '0', '4');
 
+        const reglas = hotelToEdit.reglas_comerciales || hotelToEdit.reglasComerciales;
+        const regla = (reglas && reglas.length > 0)
+          ? reglas[0]
+          : null;
+
         setHotelInfo({
           nombre: hotelToEdit.nombre || '',
           tipo: hotelToEdit.tipo || 'Todo Incluido',
@@ -71,11 +76,11 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
           edad_infantes_desde: inf.desde,
           edad_infantes_hasta: inf.hasta,
           nota: hotelToEdit.nota || '',
-          incluye_descuento: false,
-          desc_contado_status: false,
-          desc_contado_monto: '',
-          desc_divisas_status: false,
-          desc_divisas_monto: '',
+          incluye_descuento: !!regla,
+          desc_contado_status: regla ? regla.descuento_status : false,
+          desc_contado_monto: regla ? regla.descuento_monto : '',
+          desc_divisas_status: regla ? regla.aumento_bolivares : false,
+          desc_divisas_monto: regla ? regla.aumento_bolivares_porcentaje : '',
         });
         setHabitaciones(hotelToEdit.habitaciones || [
           {

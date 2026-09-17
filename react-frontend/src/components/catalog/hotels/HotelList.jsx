@@ -312,7 +312,10 @@ export default function HotelList({ user }) {
                           {/* 3 dots action menu trigger */}
                           <div style={{ position: 'relative' }}>
                             <button
-                              onClick={() => setActiveMenuHotelId(isMenuOpen ? null : hotel.id)}
+                              onClick={() => {
+                                setActiveMenuHotelId(isMenuOpen ? null : hotel.id);
+                                setShowDescuentoMenu(false); // Close filter menu if open
+                              }}
                               style={{
                                 background: 'none',
                                 border: 'none',
@@ -371,7 +374,11 @@ export default function HotelList({ user }) {
 
                           {/* Accordion expand button (Page 18-19) */}
                           <button
-                            onClick={() => setExpandedHotelId(isExpanded ? null : hotel.id)}
+                            onClick={() => {
+                              setExpandedHotelId(isExpanded ? null : hotel.id);
+                              setActiveMenuHotelId(null);
+                              setShowDescuentoMenu(false);
+                            }}
                             style={{
                               background: isExpanded ? '#E87217' : 'rgba(255, 255, 255, 0.18)',
                               border: 'none',
@@ -379,7 +386,6 @@ export default function HotelList({ user }) {
                               width: '28px',
                               height: '28px',
                               borderRadius: '50%',
-                              boxShadow: isExpanded ? 'none' : 'var(--shadow-dropdown)',
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
