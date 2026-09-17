@@ -93,8 +93,8 @@ export default function HotelList({ user }) {
   }
 
   const getSortIndicator = (key) => {
-    if (sortConfig.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}>↕</span>;
-    return <span style={{ marginLeft: '4px' }}>{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>;
+    if (sortConfig.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}></span>;
+    return <span style={{ marginLeft: '4px' }}>{sortConfig.direction === 'asc' ? '' : ''}</span>;
   };
 
   return (

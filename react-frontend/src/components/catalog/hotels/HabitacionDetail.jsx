@@ -98,8 +98,8 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
 
   const getSortIndicator = (key, isTarifa = false) => {
     const config = isTarifa ? tarifaSortConfig : sortConfig;
-    if (config.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}>↕</span>;
-    return <span style={{ marginLeft: '4px' }}>{config.direction === 'asc' ? '▲' : '▼'}</span>;
+    if (config.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}></span>;
+    return <span style={{ marginLeft: '4px' }}>{config.direction === 'asc' ? '' : ''}</span>;
   };
 
   return (
