@@ -21,7 +21,16 @@ class TarifaController extends Controller
 
     public function store(StoreTarifaRequest $request): JsonResponse
     {
-        $tarifa = TarifaHabitacion::create($request->validated());
+        $data = $request->validated();
+
+        if (empty($data['desde_venta'])) {
+            $data['desde_venta'] = $data['desde'] ?? null;
+        }
+        if (empty($data['hasta_venta'])) {
+            $data['hasta_venta'] = $data['hasta'] ?? null;
+        }
+
+        $tarifa = TarifaHabitacion::create($data);
 
         return (new TarifaHabitacionResource($tarifa))
             ->response()

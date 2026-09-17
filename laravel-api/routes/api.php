@@ -25,7 +25,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/catalog/ubicaciones', [UbicacionController::class, 'index']);
 
     // Catalog: Hoteles
-    Route::apiResource('/v1/catalog/hoteles', HotelController::class);
+    Route::apiResource('/v1/catalog/hoteles', HotelController::class)->parameters([
+        'hoteles' => 'hotel'
+    ]);
     Route::patch('/v1/catalog/hoteles/{hotel}/toggle-status', [HotelController::class, 'toggleStatus']);
 
     // Catalog: Habitaciones

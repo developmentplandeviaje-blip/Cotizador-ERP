@@ -18,16 +18,31 @@ class HotelService
     public function getHotels(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
         $query = Hotel::with(['ubicacion', 'habitaciones.tarifas', 'reglasComerciales'])
-            ->orderBy('nombre', 'asc');
+            ->select('hotel.*');
+
+        $sortBy = $filters['sort_by'] ?? 'nombre';
+        $sortDir = ($filters['sort_dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+
+        if ($sortBy === 'ubicacion') {
+            $query->leftJoin('ubicacion', 'hotel.id_ubicacion', '=', 'ubicacion.id')
+                ->orderBy('ubicacion.ubicacion', $sortDir);
+        } else {
+            $allowedSorts = ['id', 'nombre', 'tipo', 'status'];
+            if (in_array($sortBy, $allowedSorts)) {
+                $query->orderBy('hotel.' . $sortBy, $sortDir);
+            } else {
+                $query->orderBy('hotel.nombre', 'asc');
+            }
+        }
 
         if (!empty($filters['search'])) {
             $search = '%' . $filters['search'] . '%';
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'like', $search)
-                  ->orWhere('tipo', 'like', $search)
-                  ->orWhereHas('ubicacion', function ($uq) use ($search) {
-                      $uq->where('ubicacion', 'like', $search);
-                  });
+                    ->orWhere('tipo', 'like', $search)
+                    ->orWhereHas('ubicacion', function ($uq) use ($search) {
+                        $uq->where('ubicacion', 'like', $search);
+                    });
             });
         }
 
@@ -94,6 +109,21 @@ class HotelService
 
                     if (!empty($habData['tarifas'])) {
                         foreach ($habData['tarifas'] as $tarifaData) {
+                            if (isset($tarifaData['desde_venta']) && $tarifaData['desde_venta'] === '') {
+                                $tarifaData['desde_venta'] = null;
+                            }
+                            if (isset($tarifaData['hasta_venta']) && $tarifaData['hasta_venta'] === '') {
+                                $tarifaData['hasta_venta'] = null;
+                            }
+
+                            // If they are strictly required in the DB, default to the validity dates
+                            if (empty($tarifaData['desde_venta'])) {
+                                $tarifaData['desde_venta'] = $tarifaData['desde'] ?? null;
+                            }
+                            if (empty($tarifaData['hasta_venta'])) {
+                                $tarifaData['hasta_venta'] = $tarifaData['hasta'] ?? null;
+                            }
+
                             $habitacion->tarifas()->create($tarifaData);
                         }
                     }
@@ -140,6 +170,17 @@ class HotelService
      */
     public function deleteHotel(Hotel $hotel): bool
     {
-        return DB::transaction(fn() => $hotel->delete());
+        return DB::transaction(function () use ($hotel) {
+            // Eliminar tarifas de las habitaciones
+            foreach ($hotel->habitaciones as $habitacion) {
+                $habitacion->tarifas()->delete();
+                $habitacion->delete();
+            }
+
+            // Eliminar reglas comerciales
+            $hotel->reglasComerciales()->delete();
+
+            return $hotel->delete();
+        });
     }
 }
