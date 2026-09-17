@@ -1,0 +1,1 @@
+﻿<?php try { App\Models\Catalog\HotelReglaComercial::create(["id_hotel" => 1, "descuento_status" => true, "descuento_monto" => 5]); echo "Exito\n"; } catch(Exception $e) { echo $e->getMessage()."\n"; }

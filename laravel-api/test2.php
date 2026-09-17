@@ -1,0 +1,1 @@
+﻿<?php try { require __DIR__."/vendor/autoload.php"; $app = require_once __DIR__."/bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); $svc = app(App\Services\Catalog\HotelService::class); $svc->aplicarDescuentoMasivo("contado", 10, "ALL"); echo "Exito\n"; } catch(Exception $e) { echo "ERROR: " . $e->getMessage()."\n"; }

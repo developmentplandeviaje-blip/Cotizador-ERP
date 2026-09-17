@@ -66,4 +66,27 @@ class HotelController extends Controller
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
+
+    public function descuentoMasivo(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'tipo_descuento' => 'required|in:contado,divisas',
+            'porcentaje' => 'required|numeric|min:0|max:100',
+            'ubicacion_id' => 'required',
+        ]);
+
+        try {
+            $count = $this->hotelService->aplicarDescuentoMasivo(
+                $validated['tipo_descuento'],
+                $validated['porcentaje'],
+                $validated['ubicacion_id']
+            );
+
+            return response()->json([
+                'message' => "Se han actualizado $count hoteles exitosamente."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error aplicando el descuento masivo', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

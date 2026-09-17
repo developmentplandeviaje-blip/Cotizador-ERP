@@ -183,4 +183,42 @@ class HotelService
             return $hotel->delete();
         });
     }
+
+    public function aplicarDescuentoMasivo(string $tipoDescuento, float $porcentaje, $ubicacionId): int
+    {
+        return DB::transaction(function () use ($tipoDescuento, $porcentaje, $ubicacionId) {
+            $query = Hotel::where('status', true);
+
+            if ($ubicacionId !== 'ALL') {
+                $query->where('id_ubicacion', $ubicacionId);
+            }
+
+            $hoteles = $query->get();
+            $count = 0;
+
+            foreach ($hoteles as $hotel) {
+                $reglas = $hotel->reglasComerciales;
+                if ($reglas->isEmpty()) {
+                    $reglas->push(new HotelReglaComercial([
+                        'id_hotel' => $hotel->id,
+                        'id_freelancer' => auth()->user() && auth()->user()->id_freelancer ? auth()->user()->id_freelancer : 4
+                    ]));
+                }
+
+                foreach ($reglas as $regla) {
+                    if ($tipoDescuento === 'contado') {
+                        $regla->descuento_status = true;
+                        $regla->descuento_monto = $porcentaje;
+                    } else {
+                        $regla->aumento_bolivares = true;
+                        $regla->aumento_bolivares_porcentaje = $porcentaje;
+                    }
+                    $regla->save();
+                }
+                $count++;
+            }
+
+            return $count;
+        });
+    }
 }
