@@ -36,6 +36,7 @@ class HotelResource extends JsonResource
             'estado_label' => $this->status ? 'Habilitado' : 'Deshabilitado',
             'desc_contado' => $descContado,
             'desc_divisas' => $descDivisas,
+            'fechas_sin_disponibilidad' => $this->fechas_sin_disponibilidad ?? [],
             'habitaciones_count' => $this->habitaciones ? $this->habitaciones->count() : 0,
             'habitaciones' => HabitacionResource::collection($this->whenLoaded('habitaciones')),
             'reglas_comerciales' => $this->whenLoaded('reglasComerciales'),
