@@ -22,6 +22,8 @@ class UpdateHotelRequest extends FormRequest
             'edad_infantes' => ['nullable', 'string', 'max:50'],
             'nota' => ['nullable', 'string'],
             'status' => ['nullable', 'boolean'],
+            'reglas' => ['nullable', 'array'],
+            'habitaciones' => ['nullable', 'array'],
         ];
     }
 }

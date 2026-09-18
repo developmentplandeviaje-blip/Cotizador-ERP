@@ -138,7 +138,7 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
                 style={{ width: '20px', height: '20px', objectFit: 'contain' }}
               />
             </button>
-            <span className='title-input'>Agregar habitación</span>
+            <span className='title-input'>Agregar</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>

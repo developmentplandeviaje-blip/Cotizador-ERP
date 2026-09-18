@@ -90,15 +90,18 @@ export default function HotelList({ user }) {
     return (
       <HabitacionDetail
         hotel={selectedHotelForRooms}
-        onBack={() => setSelectedHotelForRooms(null)}
+        onBack={() => {
+          setSelectedHotelForRooms(null);
+          fetchHotels();
+        }}
         isFreelancer={isFreelancer}
       />
     );
   }
 
   const getSortIndicator = (key) => {
-    if (sortConfig.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}>↕</span>;
-    return <span style={{ marginLeft: '4px' }}>{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>;
+    if (sortConfig.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}></span>;
+    return <span style={{ marginLeft: '4px' }}>{sortConfig.direction === 'asc' ? '' : ''}</span>;
   };
 
   return (
@@ -147,7 +150,7 @@ export default function HotelList({ user }) {
                 style={{ width: '20px', height: '20px', objectFit: 'contain' }}
               />
             </button>
-            <span className='title-input'>Imprimir</span>
+            <span className='title-input'>Tarifas</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
