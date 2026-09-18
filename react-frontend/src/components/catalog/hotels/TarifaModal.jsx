@@ -281,13 +281,13 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             cursor: 'pointer',
             fontSize: '0.8125rem',
             fontWeight: '500',
-            color: formData.suplemento ? '#E87217' : '#94A3B8',
+            color: formData.suplemento ? '#E87217' : '#b9c8ddff',
             padding: '10px 16px',
             borderRadius: '12px',
             background: 'rgb(30, 41, 59)',
             transition: 'all 0.2s ease',
             boxShadow: formData.suplemento
-              ? 'inset 3px 3px 6px rgba(0, 0, 0, 0.4), inset -3px -3px 6px rgba(255, 255, 255, 0.05)'
+              ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
               : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
             border: formData.suplemento ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
             userSelect: 'none'
@@ -308,13 +308,13 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             cursor: 'pointer',
             fontSize: '0.8125rem',
             fontWeight: '500',
-            color: formData.has_fecha_venta ? '#E87217' : '#94A3B8',
+            color: formData.has_fecha_venta ? '#E87217' : '#b9c8ddff',
             padding: '10px 16px',
             borderRadius: '12px',
             background: 'rgb(30, 41, 59)',
             transition: 'all 0.2s ease',
             boxShadow: formData.has_fecha_venta
-              ? 'inset 3px 3px 6px rgba(0, 0, 0, 0.4), inset -3px -3px 6px rgba(255, 255, 255, 0.05)'
+              ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
               : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
             border: formData.has_fecha_venta ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
             userSelect: 'none'

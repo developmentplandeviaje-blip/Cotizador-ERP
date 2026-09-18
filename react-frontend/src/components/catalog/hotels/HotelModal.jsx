@@ -161,7 +161,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
     setHabitaciones(prev => {
       const updated = [...prev];
       if (!updated[activeHabitacionIndex]) return updated;
-      
+
       const currentTarifas = updated[activeHabitacionIndex].tarifas || [];
       updated[activeHabitacionIndex] = {
         ...updated[activeHabitacionIndex],

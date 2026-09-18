@@ -155,7 +155,7 @@ class HotelService
             if (isset($data['reglas'])) {
                 // Delete existing ones
                 $hotel->reglasComerciales()->delete();
-                
+
                 foreach ($data['reglas'] as $regla) {
                     $hotel->reglasComerciales()->create([
                         'id_freelancer' => $regla['id_freelancer'] ?? (auth()->user() && auth()->user()->id_freelancer ? auth()->user()->id_freelancer : 4),
@@ -215,7 +215,7 @@ class HotelService
                     if (isset($habData['tarifas'])) {
                         $existingTariffIds = $habitacion->tarifas()->pluck('id')->toArray();
                         $incomingTariffIds = array_filter(array_column($habData['tarifas'], 'id' ?? null));
-                        
+
                         $tariffsToDelete = array_diff($existingTariffIds, $incomingTariffIds);
                         if (!empty($tariffsToDelete)) {
                             $habitacion->tarifas()->whereIn('id', $tariffsToDelete)->delete();
@@ -307,7 +307,7 @@ class HotelService
 
                 foreach ($reglas as $regla) {
                     $isActivating = $porcentaje > 0;
-                    
+
                     if ($tipoDescuento === 'contado') {
                         $regla->descuento_status = $isActivating;
                         $regla->descuento_monto = $porcentaje;
