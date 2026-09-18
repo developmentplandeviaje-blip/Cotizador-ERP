@@ -38,6 +38,7 @@ class HotelResource extends JsonResource
             'desc_divisas' => $descDivisas,
             'habitaciones_count' => $this->habitaciones ? $this->habitaciones->count() : 0,
             'habitaciones' => HabitacionResource::collection($this->whenLoaded('habitaciones')),
+            'reglas_comerciales' => $this->whenLoaded('reglasComerciales'),
             'date_creation' => $this->date_creation ? $this->date_creation->format('Y-m-d H:i') : null,
         ];
     }
