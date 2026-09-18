@@ -21,6 +21,21 @@ import cerrarsesion from '../../assets/Cerrarsesion.svg';
 
 export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
   // Track open state of submenus. Defaults to 'servicios' open.
+
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return localStorage.getItem("sidebar_collapsed") === "true";
+  });
+
+  const toggleSidebar = () => {
+    setIsCollapsed(prev => {
+      const newVal = !prev;
+      localStorage.setItem("sidebar_collapsed", newVal);
+      return newVal;
+    });
+  };
+
+  const sidebarWidth = isCollapsed ? "80px" : "240px";
+
   const [openMenus, setOpenMenus] = useState({
     ventas: activeRoute?.startsWith('ventas'),
     reportes: activeRoute?.startsWith('reportes'),
@@ -55,9 +70,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
   return (
     <aside
-      className="sidebar-container"
+      className={`sidebar-container ${isCollapsed ? 'collapsed' : ''}`}
       style={{
-        width: '240px',
+        width: sidebarWidth,
+        transition: 'width 0.3s ease, padding 0.3s ease',
         minHeight: '100vh',
         background: 'linear-gradient(260deg, rgb(17 46 139 / 55%) 0%, rgb(28 39 85 / 55%) 100%)',
         //background: 'linear-gradient(45deg, rgba(220deg, 3, 65, 232, 0.2) 0%, rgb(28 39 85 / 55%) 100%)',
@@ -76,24 +92,33 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         overflowY: 'auto',
         maxHeight: '100vh',
       }}>
-      {/* Top Logo */}
+
       <div
         style={{
-          padding: '0 24px',
+          padding: isCollapsed ? '0' : '0 24px',
           marginBottom: '5px',
-          cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: isCollapsed ? 'center' : 'space-between',
+          flexDirection: isCollapsed ? 'column' : 'row',
+          gap: isCollapsed ? '10px' : '0',
         }}
-        onClick={() => onNavigate('dashboard')}
       >
-        <img
-          src={logoinicio}
-          alt="Plan de Viaje"
-          style={{ width: '80px', height: 'auto', objectFit: 'contain' }}
-        />
+        <div style={{ display: isCollapsed ? 'none' : 'block', cursor: 'pointer' }} title={isCollapsed ? 'Dashboard' : undefined} onClick={() => onNavigate('dashboard')}>
+          <img
+            src={logoinicio}
+            alt="Plan de Viaje"
+            style={{ width: '80px', height: 'auto', objectFit: 'contain' }}
+          />
+        </div>
+        <button onClick={toggleSidebar} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center' }} title="Alternar Menú">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
       </div>
-
       {/* Navigation List */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '0 16px', flex: 1 }}>
 
@@ -109,12 +134,12 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
-          <span style={{ fontWeight: isRouteActive('dashboard') ? '700' : '500' }}>Dashboard</span>
+          <span className="nav-text" style={{ fontWeight: isRouteActive('dashboard') ? '700' : '500' }}>Dashboard</span>
         </button>
 
         {/* 2. Nueva Cotización */}
         <button
-          onClick={() => onNavigate('nueva_cotizacion')}
+          title={isCollapsed ? 'Nueva Cotización' : undefined} onClick={() => onNavigate('nueva_cotizacion')}
           style={{
             ...navButtonStyle,
             color: isRouteActive('nueva_cotizacion') ? '#E87217' : '#FFFFFF',
@@ -124,13 +149,13 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             src={nuevacotizacion}
             style={{ width: '25px', height: '25px', objectFit: 'contain' }}
           />
-          <span style={{ fontWeight: isRouteActive('nueva_cotizacion') ? '700' : '500' }}>Nueva Cotización</span>
+          <span className="nav-text" style={{ fontWeight: isRouteActive('nueva_cotizacion') ? '700' : '500' }}>Nueva Cotización</span>
         </button>
 
         {/* 3. Ventas (Desplegable) */}
         <div>
           <button
-            onClick={() => toggleMenu('ventas')}
+            title={isCollapsed ? 'Ventas' : undefined} onClick={() => toggleMenu('ventas')}
             style={{
               ...navButtonStyle,
               color: isParentActive('ventas') ? '#E87217' : '#FFFFFF',
@@ -140,13 +165,13 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               src={ventas}
               style={{ width: '25px', height: '25px', objectFit: 'contain' }}
             />
-            <span style={{ fontWeight: isParentActive('ventas') ? '700' : '500' }}>Ventas</span>
+            <span className="nav-text" style={{ fontWeight: isParentActive('ventas') ? '700' : '500' }}>Ventas</span>
           </button>
 
           {openMenus.ventas && (
-            <div style={submenuContainerStyle}>
+            <div className="submenu-container" style={submenuContainerStyle}>
               <button
-                onClick={() => onNavigate('ventas_agencia')}
+                title={isCollapsed ? 'Ventas Agencia' : undefined} onClick={() => onNavigate('ventas_agencia')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('ventas_agencia') ? '#E87217' : '#FFFFFF',
@@ -156,11 +181,11 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={ventasagencia}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Agencia</span>
+                <span className="nav-text">Agencia</span>
               </button>
 
               <button
-                onClick={() => onNavigate('ventas_freelancer')}
+                title={isCollapsed ? 'Ventas Freelancer' : undefined} onClick={() => onNavigate('ventas_freelancer')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('ventas_freelancer') ? '#E87217' : '#FFFFFF',
@@ -170,7 +195,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={ventasfreelancer}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Freelancer</span>
+                <span className="nav-text">Freelancer</span>
               </button>
             </div>
           )}
@@ -179,7 +204,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         {/* 4. Reportes (Desplegable) */}
         <div>
           <button
-            onClick={() => toggleMenu('reportes')}
+            title={isCollapsed ? 'Reportes' : undefined} onClick={() => toggleMenu('reportes')}
             style={{
               ...navButtonStyle,
               color: isParentActive('reportes') ? '#E87217' : '#FFFFFF',
@@ -189,11 +214,11 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               src={reportes}
               style={{ width: '25px', height: '25px', objectFit: 'contain' }}
             />
-            <span style={{ fontWeight: isParentActive('reportes') ? '700' : '500' }}>Reportes</span>
+            <span className="nav-text" style={{ fontWeight: isParentActive('reportes') ? '700' : '500' }}>Reportes</span>
           </button>
 
           {openMenus.reportes && (
-            <div style={submenuContainerStyle}>
+            <div className="submenu-container" style={submenuContainerStyle}>
               {[
                 { id: 'reportes_operativo', label: 'Operativo' },
                 { id: 'reportes_comisiones', label: 'Comisiones' },
@@ -207,7 +232,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               ].map(sub => (
                 <button
                   key={sub.id}
-                  onClick={() => onNavigate(sub.id)}
+                  title={isCollapsed ? sub.label : undefined} onClick={() => onNavigate(sub.id)}
                   style={{
                     ...subnavButtonStyle,
                     color: isRouteActive(sub.id) ? '#E87217' : '#FFFFFF',
@@ -217,7 +242,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                     src={reportes}
                     style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                   />
-                  <span>{sub.label}</span>
+                  <span className="nav-text">{sub.label}</span>
                 </button>
               ))}
             </div>
@@ -227,7 +252,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         {/* 5. Servicios (Desplegable) */}
         <div>
           <button
-            onClick={() => toggleMenu('servicios')}
+            title={isCollapsed ? 'Servicios' : undefined} onClick={() => toggleMenu('servicios')}
             style={{
               ...navButtonStyle,
               color: isParentActive('servicios') ? '#E87217' : '#FFFFFF',
@@ -237,14 +262,14 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               src={servicios}
               style={{ width: '25px', height: '25px', objectFit: 'contain' }}
             />
-            <span style={{ fontWeight: isParentActive('servicios') ? '700' : '500' }}>Servicios</span>
+            <span className="nav-text" style={{ fontWeight: isParentActive('servicios') ? '700' : '500' }}>Servicios</span>
           </button>
 
           {openMenus.servicios && (
-            <div style={submenuContainerStyle}>
+            <div className="submenu-container" style={submenuContainerStyle}>
               {/* Hoteles */}
               <button
-                onClick={() => onNavigate('servicios_hoteles')}
+                title={isCollapsed ? 'Hoteles' : undefined} onClick={() => onNavigate('servicios_hoteles')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('servicios_hoteles') ? '#E87217' : '#FFFFFF',
@@ -254,12 +279,12 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={hoteles}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Hoteles</span>
+                <span className="nav-text">Hoteles</span>
               </button>
 
               {/* Excursiones */}
               <button
-                onClick={() => onNavigate('servicios_excursiones')}
+                title={isCollapsed ? 'Excursiones' : undefined} onClick={() => onNavigate('servicios_excursiones')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('servicios_excursiones') ? '#E87217' : '#FFFFFF',
@@ -269,12 +294,12 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={excursiones}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Excursiones</span>
+                <span className="nav-text">Excursiones</span>
               </button>
 
               {/* Paquetes */}
               <button
-                onClick={() => onNavigate('servicios_paquetes')}
+                title={isCollapsed ? 'Paquetes' : undefined} onClick={() => onNavigate('servicios_paquetes')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('servicios_paquetes') ? '#E87217' : '#FFFFFF',
@@ -284,12 +309,12 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={paquetes}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Paquetes</span>
+                <span className="nav-text">Paquetes</span>
               </button>
 
               {/* Traslados */}
               <button
-                onClick={() => onNavigate('servicios_traslados')}
+                title={isCollapsed ? 'Traslados' : undefined} onClick={() => onNavigate('servicios_traslados')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('servicios_traslados') ? '#E87217' : '#FFFFFF',
@@ -299,12 +324,12 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={traslado}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Traslados</span>
+                <span className="nav-text">Traslados</span>
               </button>
 
               {/* Vehículos */}
               <button
-                onClick={() => onNavigate('servicios_vehiculos')}
+                title={isCollapsed ? 'Vehículos' : undefined} onClick={() => onNavigate('servicios_vehiculos')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('servicios_vehiculos') ? '#E87217' : '#FFFFFF',
@@ -314,12 +339,12 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={vehiculos}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Vehículos</span>
+                <span className="nav-text">Vehículos</span>
               </button>
 
               {/* Aerolíneas */}
               <button
-                onClick={() => onNavigate('servicios_aerolineas')}
+                title={isCollapsed ? 'Aerolíneas' : undefined} onClick={() => onNavigate('servicios_aerolineas')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('servicios_aerolineas') ? '#E87217' : '#FFFFFF',
@@ -329,12 +354,12 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={aerolinea}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Aerolíneas</span>
+                <span className="nav-text">Aerolíneas</span>
               </button>
 
               {/* Ubicaciones */}
               <button
-                onClick={() => onNavigate('servicios_ubicaciones')}
+                title={isCollapsed ? 'Ubicaciones' : undefined} onClick={() => onNavigate('servicios_ubicaciones')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('servicios_ubicaciones') ? '#E87217' : '#FFFFFF',
@@ -344,7 +369,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={ubicacion}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Ubicaciones</span>
+                <span className="nav-text">Ubicaciones</span>
               </button>
             </div>
           )}
@@ -352,7 +377,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
         {/* 6. Gastos */}
         <button
-          onClick={() => onNavigate('gastos')}
+          title={isCollapsed ? 'Gastos' : undefined} onClick={() => onNavigate('gastos')}
           style={{
             ...navButtonStyle,
             color: isRouteActive('gastos') ? '#E87217' : '#FFFFFF',
@@ -362,12 +387,12 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             src={gastos}
             style={{ width: '25px', height: '25px', objectFit: 'contain' }}
           />
-          <span style={{ fontWeight: isRouteActive('gastos') ? '700' : '500' }}>Gastos</span>
+          <span className="nav-text" style={{ fontWeight: isRouteActive('gastos') ? '700' : '500' }}>Gastos</span>
         </button>
 
         {/* 7. Métodos de pago */}
         <button
-          onClick={() => onNavigate('metodos_pago')}
+          title={isCollapsed ? 'Métodos de pago' : undefined} onClick={() => onNavigate('metodos_pago')}
           style={{
             ...navButtonStyle,
             color: isRouteActive('metodos_pago') ? '#E87217' : '#FFFFFF',
@@ -377,13 +402,13 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             src={Metodosdepago}
             style={{ width: '25px', height: '25px', objectFit: 'contain' }}
           />
-          <span style={{ fontWeight: isRouteActive('metodos_pago') ? '700' : '500' }}>Métodos de pago</span>
+          <span className="nav-text" style={{ fontWeight: isRouteActive('metodos_pago') ? '700' : '500' }}>Métodos de pago</span>
         </button>
 
         {/* 8. Usuarios (Desplegable) */}
         <div>
           <button
-            onClick={() => toggleMenu('usuarios')}
+            title={isCollapsed ? 'Usuarios' : undefined} onClick={() => toggleMenu('usuarios')}
             style={{
               ...navButtonStyle,
               color: isParentActive('usuarios') ? '#E87217' : '#FFFFFF',
@@ -393,13 +418,13 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               src={usuarios}
               style={{ width: '25px', height: '25px', objectFit: 'contain' }}
             />
-            <span style={{ fontWeight: isParentActive('usuarios') ? '700' : '500' }}>Usuarios</span>
+            <span className="nav-text" style={{ fontWeight: isParentActive('usuarios') ? '700' : '500' }}>Usuarios</span>
           </button>
 
           {openMenus.usuarios && (
-            <div style={submenuContainerStyle}>
+            <div className="submenu-container" style={submenuContainerStyle}>
               <button
-                onClick={() => onNavigate('usuarios_agencia')}
+                title={isCollapsed ? 'Usuarios Agencia' : undefined} onClick={() => onNavigate('usuarios_agencia')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('usuarios_agencia') ? '#E87217' : '#FFFFFF',
@@ -409,11 +434,11 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={usuarios}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Agencia</span>
+                <span className="nav-text">Agencia</span>
               </button>
 
               <button
-                onClick={() => onNavigate('usuarios_freelancer')}
+                title={isCollapsed ? 'Usuarios Freelancer' : undefined} onClick={() => onNavigate('usuarios_freelancer')}
                 style={{
                   ...subnavButtonStyle,
                   color: isRouteActive('usuarios_freelancer') ? '#E87217' : '#FFFFFF',
@@ -423,7 +448,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   src={usuarios}
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
-                <span>Freelancer</span>
+                <span className="nav-text">Freelancer</span>
               </button>
             </div>
           )}
@@ -434,7 +459,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
       {/* Bottom Logout */}
       <div style={{ padding: '0 16px', marginTop: 'auto', paddingTop: '20px' }}>
         <button
-          onClick={onLogout}
+          title={isCollapsed ? 'Cerrar Sesión' : undefined} onClick={onLogout}
           style={{
             ...navButtonStyle,
             color: '#FFFFFF',
@@ -445,10 +470,32 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             src={cerrarsesion}
             style={{ width: '25px', height: '25px', objectFit: 'contain' }}
           />
-          <span style={{ fontWeight: '500' }}>Cerrar Sesión</span>
+          <span className="nav-text" style={{ fontWeight: '500' }}>Cerrar Sesión</span>
         </button>
       </div>
+
+      <style>{`
+        .sidebar-container.collapsed .nav-text {
+          display: none;
+        }
+        .sidebar-container.collapsed > nav > button,
+        .sidebar-container.collapsed > nav > div > button {
+          justify-content: center !important;
+          padding: 10px 0 !important;
+        }
+        /* For submenus in collapsed mode */
+        .sidebar-container.collapsed .submenu-container {
+          /* Keep the line, but adjust padding to center the icon */
+          margin-left: 20px !important;
+          padding-left: 10px !important;
+        }
+        .sidebar-container.collapsed .submenu-container button {
+          justify-content: center !important;
+          padding: 6px 0 !important;
+        }
+      `}</style>
     </aside>
+
   );
 }
 
