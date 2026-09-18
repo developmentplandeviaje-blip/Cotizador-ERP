@@ -1,0 +1,1 @@
+﻿<?php require 'vendor/autoload.php'; \ = require_once 'bootstrap/app.php'; \->make('Illuminate\Contracts\Console\Kernel')->bootstrap(); \ = ['habitaciones' => [['habitacion' => 'Test Room', 'tarifas' => [['desde' => '2026-10-01', 'hasta' => '2026-10-10']]]]]; \ = App\Models\Catalog\Hotel::first(); app('App\Services\Catalog\HotelService')->updateHotel(\, \); echo 'Done';

@@ -67,6 +67,37 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
     }
   };
 
+  const handleDeactivate = async () => {
+    if (!ubicacionId) {
+      alert('Seleccione una ubicación válida');
+      return;
+    }
+
+    if (!window.confirm('¿Está seguro que desea desactivar todos los descuentos para esta ubicación?')) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        tipo_descuento: tipoDescuento,
+        porcentaje: 0,
+        ubicacion_id: ubicacionId,
+      };
+
+      const res = await axios.post('/v1/catalog/hoteles/descuento-masivo', payload);
+      alert(`Éxito: ${res.data.message || 'Descuentos desactivados correctamente'}`);
+      onSuccess();
+      onClose();
+    } catch (err) {
+      console.error('Error desactivando descuento masivo', err);
+      const errMsg = err.response?.data?.message || err.response?.data?.error || err.message;
+      alert('Error desactivando el descuento masivo: ' + errMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const title = tipoDescuento === 'contado' ? 'Descuento al Contado' : 'Descuento en Divisas';
 
   return (
@@ -109,23 +140,56 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
           </select>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button
             type="button"
-            className="btn-secondary"
-            onClick={onClose}
+            onClick={handleDeactivate}
             disabled={isSubmitting}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              background: 'rgba(239, 68, 68, 0.1)',
+              color: '#FCA5A5',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              fontWeight: '600',
+              opacity: isSubmitting ? 0.5 : 1,
+              transition: 'all 0.2s ease',
+            }}
+            onMouseOver={(e) => {
+              if (!isSubmitting) {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (!isSubmitting) {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+              }
+            }}
           >
-            Cancelar
+            Desactivar
           </button>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={handleApply}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Aplicando...' : 'Aplicar'}
-          </button>
+          
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={handleApply}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Aplicando...' : 'Aplicar'}
+            </button>
+          </div>
         </div>
       </div>
     </Modal>

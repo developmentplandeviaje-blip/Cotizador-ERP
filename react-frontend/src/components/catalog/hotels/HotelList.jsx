@@ -90,7 +90,10 @@ export default function HotelList({ user }) {
     return (
       <HabitacionDetail
         hotel={selectedHotelForRooms}
-        onBack={() => setSelectedHotelForRooms(null)}
+        onBack={() => {
+          setSelectedHotelForRooms(null);
+          fetchHotels();
+        }}
         isFreelancer={isFreelancer}
       />
     );
