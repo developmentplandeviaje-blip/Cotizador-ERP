@@ -17,6 +17,10 @@ class Ubicacion extends Model
         'ubicacion',
     ];
 
+    protected $casts = [
+        'date_creation' => 'datetime',
+    ];
+
     public function hoteles(): HasMany
     {
         return $this->hasMany(Hotel::class, 'id_ubicacion');
