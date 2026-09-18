@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Modal from '../../common/Modal';
 
-export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = false, showAdolescentes = true }) {
+export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = false, showAdolescentes = true, tarifaToEdit = null }) {
   const initialFormState = {
     desde: '',
     hasta: '',
@@ -28,10 +28,27 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
 
   React.useEffect(() => {
     if (isOpen) {
-      setFormData(initialFormState);
+      if (tarifaToEdit) {
+        // Formatear fechas para el input type="date" (YYYY-MM-DD)
+        const formatForDateInput = (val) => {
+          if (!val) return '';
+          return val.substring(0, 10);
+        };
+        setFormData({
+          ...initialFormState,
+          ...tarifaToEdit,
+          desde: formatForDateInput(tarifaToEdit.desde),
+          hasta: formatForDateInput(tarifaToEdit.hasta),
+          desde_venta: formatForDateInput(tarifaToEdit.desde_venta),
+          hasta_venta: formatForDateInput(tarifaToEdit.hasta_venta),
+          has_fecha_venta: !!tarifaToEdit.desde_venta || !!tarifaToEdit.hasta_venta,
+        });
+      } else {
+        setFormData(initialFormState);
+      }
       setIsSubmitting(false);
     }
-  }, [isOpen]);
+  }, [isOpen, tarifaToEdit]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));

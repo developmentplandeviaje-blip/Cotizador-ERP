@@ -23,11 +23,13 @@ class Hotel extends Model
         'edad_infantes',
         'nota',
         'status',
+        'fechas_sin_disponibilidad',
     ];
 
     protected $casts = [
         'status' => 'boolean',
         'date_creation' => 'datetime',
+        'fechas_sin_disponibilidad' => 'array',
     ];
 
     public function ubicacion(): BelongsTo
