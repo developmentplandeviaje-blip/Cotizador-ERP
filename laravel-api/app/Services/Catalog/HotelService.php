@@ -79,6 +79,7 @@ class HotelService
                 'edad_ninos' => $data['edad_ninos'] ?? '5-11',
                 'edad_infantes' => $data['edad_infantes'] ?? '0-4',
                 'nota' => $data['nota'] ?? null,
+                'fechas_sin_disponibilidad' => $data['fechas_sin_disponibilidad'] ?? [],
                 'status' => $data['status'] ?? true,
             ]);
 
@@ -148,6 +149,7 @@ class HotelService
                 'edad_ninos' => $data['edad_ninos'] ?? $hotel->edad_ninos,
                 'edad_infantes' => $data['edad_infantes'] ?? $hotel->edad_infantes,
                 'nota' => array_key_exists('nota', $data) ? $data['nota'] : $hotel->nota,
+                'fechas_sin_disponibilidad' => array_key_exists('fechas_sin_disponibilidad', $data) ? $data['fechas_sin_disponibilidad'] : $hotel->fechas_sin_disponibilidad,
                 'status' => array_key_exists('status', $data) ? (bool) $data['status'] : $hotel->status,
             ], fn($val) => $val !== null));
 
