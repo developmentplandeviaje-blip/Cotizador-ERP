@@ -54,26 +54,28 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
   const isParentActive = (parentKey) => activeRoute?.startsWith(parentKey);
 
   return (
-    <aside style={{
-      width: '240px',
-      minHeight: '100vh',
-      background: 'linear-gradient(260deg, rgb(17 46 139 / 55%) 0%, rgb(28 39 85 / 55%) 100%)',
-      //background: 'linear-gradient(45deg, rgba(220deg, 3, 65, 232, 0.2) 0%, rgb(28 39 85 / 55%) 100%)',
-      borderTopRightRadius: '45px',
-      borderBottomRightRadius: '45px',
-      borderRight: '1.5px solid rgba(255, 255, 255, 0.35)',
-      borderTop: '1.5px solid rgba(255, 255, 255, 0.35)',
-      borderBottom: '1.5px solid rgba(255, 255, 255, 0.35)',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '24px 0',
-      boxSizing: 'border-box',
-      flexShrink: 0,
-      zIndex: 100,
-      boxShadow: '4px 0 25px rgba(0, 0, 0, 0.5)',
-      overflowY: 'auto',
-      maxHeight: '100vh',
-    }}>
+    <aside
+      className="sidebar-container"
+      style={{
+        width: '240px',
+        minHeight: '100vh',
+        background: 'linear-gradient(260deg, rgb(17 46 139 / 55%) 0%, rgb(28 39 85 / 55%) 100%)',
+        //background: 'linear-gradient(45deg, rgba(220deg, 3, 65, 232, 0.2) 0%, rgb(28 39 85 / 55%) 100%)',
+        borderTopRightRadius: '45px',
+        borderBottomRightRadius: '45px',
+        borderRight: '1.5px solid rgba(255, 255, 255, 0.35)',
+        borderTop: '1.5px solid rgba(255, 255, 255, 0.35)',
+        borderBottom: '1.5px solid rgba(255, 255, 255, 0.35)',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '24px 0',
+        boxSizing: 'border-box',
+        flexShrink: 0,
+        zIndex: 100,
+        boxShadow: '4px 0 25px rgba(0, 0, 0, 0.5)',
+        overflowY: 'auto',
+        maxHeight: '100vh',
+      }}>
       {/* Top Logo */}
       <div
         style={{

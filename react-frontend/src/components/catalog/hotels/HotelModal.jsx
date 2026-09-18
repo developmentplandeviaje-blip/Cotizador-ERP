@@ -76,13 +76,16 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
           edad_infantes_desde: inf.desde,
           edad_infantes_hasta: inf.hasta,
           nota: hotelToEdit.nota || '',
-          incluye_descuento: !!regla,
+          incluye_descuento: regla ? (regla.descuento_status || regla.aumento_bolivares) : false,
           desc_contado_status: regla ? regla.descuento_status : false,
           desc_contado_monto: regla ? regla.descuento_monto : '',
           desc_divisas_status: regla ? regla.aumento_bolivares : false,
           desc_divisas_monto: regla ? regla.aumento_bolivares_porcentaje : '',
         });
-        setHabitaciones(hotelToEdit.habitaciones || [
+        setHabitaciones((hotelToEdit.habitaciones && hotelToEdit.habitaciones.length > 0) ? hotelToEdit.habitaciones.map(h => ({
+          ...h,
+          tarifas: h.tarifas || []
+        })) : [
           {
             habitacion: 'Doble',
             cantidad_personas: 2,
@@ -130,37 +133,39 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
     try {
       const res = await axios.get('/v1/catalog/ubicaciones');
       setUbicaciones(res.data.data || []);
-      if (!hotelInfo.id_ubicacion && res.data.data && res.data.data.length > 0) {
-        setHotelInfo(prev => ({ ...prev, id_ubicacion: res.data.data[0].id }));
-      }
     } catch (err) {
       console.error('Error cargando ubicaciones', err);
     }
   };
 
   const handleAddRoom = () => {
-    const newIndex = habitaciones.length + 1;
-    setHabitaciones(prev => [
-      ...prev,
-      {
-        habitacion: `Habitación ${newIndex}`,
-        cantidad_personas: 2,
-        minimo_noches: 1,
-        posicion: newIndex,
-        por_defecto: false,
-        nota: '',
-        tarifas: []
-      }
-    ]);
-    setActiveHabitacionIndex(habitaciones.length);
+    setHabitaciones(prev => {
+      const newIndex = prev.length + 1;
+      setTimeout(() => setActiveHabitacionIndex(prev.length), 0);
+      return [
+        ...prev,
+        {
+          habitacion: `Habitación ${newIndex}`,
+          cantidad_personas: 2,
+          minimo_noches: 1,
+          posicion: newIndex,
+          por_defecto: false,
+          nota: '',
+          tarifas: []
+        }
+      ];
+    });
   };
 
   const handleAddTarifaToActiveRoom = (newTarifa) => {
     setHabitaciones(prev => {
       const updated = [...prev];
+      if (!updated[activeHabitacionIndex]) return updated;
+
+      const currentTarifas = updated[activeHabitacionIndex].tarifas || [];
       updated[activeHabitacionIndex] = {
         ...updated[activeHabitacionIndex],
-        tarifas: [...updated[activeHabitacionIndex].tarifas, newTarifa]
+        tarifas: [...currentTarifas, newTarifa]
       };
       return updated;
     });
@@ -182,12 +187,16 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
         nota: hotelInfo.nota,
         status: true,
         habitaciones: habitaciones.map(h => ({
+          id: h.id,
           habitacion: h.habitacion,
           cantidad_personas: h.cantidad_personas,
           minimo_noches: h.minimo_noches,
           posicion: h.posicion,
           por_defecto: h.por_defecto,
-          tarifas: h.tarifas
+          tarifas: h.tarifas.map(t => ({
+            id: t.id,
+            ...t
+          }))
         })),
         reglas: hotelInfo.incluye_descuento ? [
           {

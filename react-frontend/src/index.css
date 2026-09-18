@@ -25,6 +25,19 @@ body {
 }
 
 /* Glassmorphism Login View */
+.sidebar-container {
+  overflow-y: auto;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE y Edge */
+}
+
+.sidebar-container::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari y Opera */
+}
+
 .login-container {
   min-height: 100vh;
   width: 100%;
