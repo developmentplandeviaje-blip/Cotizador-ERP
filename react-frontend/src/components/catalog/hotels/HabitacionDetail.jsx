@@ -98,8 +98,8 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
 
   const getSortIndicator = (key, isTarifa = false) => {
     const config = isTarifa ? tarifaSortConfig : sortConfig;
-    if (config.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}>↕</span>;
-    return <span style={{ marginLeft: '4px' }}>{config.direction === 'asc' ? '▲' : '▼'}</span>;
+    if (config.key !== key) return <span style={{ opacity: 0.3, marginLeft: '4px' }}></span>;
+    return <span style={{ marginLeft: '4px' }}>{config.direction === 'asc' ? '' : ''}</span>;
   };
 
   return (
@@ -138,7 +138,7 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
                 style={{ width: '20px', height: '20px', objectFit: 'contain' }}
               />
             </button>
-            <span className='title-input'>Agregar habitación</span>
+            <span className='title-input'>Agregar</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>

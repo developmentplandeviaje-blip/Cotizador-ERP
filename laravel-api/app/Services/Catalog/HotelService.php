@@ -151,6 +151,106 @@ class HotelService
                 'status' => array_key_exists('status', $data) ? (bool) $data['status'] : $hotel->status,
             ], fn($val) => $val !== null));
 
+            // Update discount rules
+            if (isset($data['reglas'])) {
+                // Delete existing ones
+                $hotel->reglasComerciales()->delete();
+
+                foreach ($data['reglas'] as $regla) {
+                    $hotel->reglasComerciales()->create([
+                        'id_freelancer' => $regla['id_freelancer'] ?? (auth()->user() && auth()->user()->id_freelancer ? auth()->user()->id_freelancer : 4),
+                        'descuento_monto' => $regla['descuento_monto'] ?? 0,
+                        'descuento_status' => $regla['descuento_status'] ?? false,
+                        'aumento_bolivares' => $regla['aumento_bolivares'] ?? false,
+                        'aumento_bolivares_porcentaje' => $regla['aumento_bolivares_porcentaje'] ?? 0,
+                    ]);
+                }
+            }
+
+            // Update habitaciones
+            if (isset($data['habitaciones'])) {
+                $existingRoomIds = $hotel->habitaciones()->pluck('id')->toArray();
+                $incomingRoomIds = array_filter(array_column($data['habitaciones'], 'id' ?? null));
+
+                // Delete rooms that are not in the incoming payload
+                $roomsToDelete = array_diff($existingRoomIds, $incomingRoomIds);
+                if (!empty($roomsToDelete)) {
+                    $hotel->habitaciones()->whereIn('id', $roomsToDelete)->delete();
+                }
+
+                foreach ($data['habitaciones'] as $habData) {
+                    if (!empty($habData['id'])) {
+                        $habitacion = $hotel->habitaciones()->find($habData['id']);
+                        if ($habitacion) {
+                            $habitacion->update([
+                                'habitacion' => $habData['habitacion'],
+                                'cantidad_personas' => $habData['cantidad_personas'] ?? 2,
+                                'minimo_noches' => $habData['minimo_noches'] ?? 1,
+                                'posicion' => $habData['posicion'] ?? 0,
+                                'por_defecto' => $habData['por_defecto'] ?? false,
+                                'nota' => $habData['nota'] ?? null,
+                            ]);
+                        } else {
+                            $habitacion = $hotel->habitaciones()->create([
+                                'habitacion' => $habData['habitacion'],
+                                'cantidad_personas' => $habData['cantidad_personas'] ?? 2,
+                                'minimo_noches' => $habData['minimo_noches'] ?? 1,
+                                'posicion' => $habData['posicion'] ?? 0,
+                                'por_defecto' => $habData['por_defecto'] ?? false,
+                                'nota' => $habData['nota'] ?? null,
+                            ]);
+                        }
+                    } else {
+                        $habitacion = $hotel->habitaciones()->create([
+                            'habitacion' => $habData['habitacion'],
+                            'cantidad_personas' => $habData['cantidad_personas'] ?? 2,
+                            'minimo_noches' => $habData['minimo_noches'] ?? 1,
+                            'posicion' => $habData['posicion'] ?? 0,
+                            'por_defecto' => $habData['por_defecto'] ?? false,
+                            'nota' => $habData['nota'] ?? null,
+                        ]);
+                    }
+
+                    // Sync tarifas
+                    if (isset($habData['tarifas'])) {
+                        $existingTariffIds = $habitacion->tarifas()->pluck('id')->toArray();
+                        $incomingTariffIds = array_filter(array_column($habData['tarifas'], 'id' ?? null));
+
+                        $tariffsToDelete = array_diff($existingTariffIds, $incomingTariffIds);
+                        if (!empty($tariffsToDelete)) {
+                            $habitacion->tarifas()->whereIn('id', $tariffsToDelete)->delete();
+                        }
+
+                        foreach ($habData['tarifas'] as $tarifaData) {
+                            if (isset($tarifaData['desde_venta']) && $tarifaData['desde_venta'] === '') {
+                                $tarifaData['desde_venta'] = null;
+                            }
+                            if (isset($tarifaData['hasta_venta']) && $tarifaData['hasta_venta'] === '') {
+                                $tarifaData['hasta_venta'] = null;
+                            }
+
+                            if (empty($tarifaData['desde_venta'])) {
+                                $tarifaData['desde_venta'] = $tarifaData['desde'] ?? null;
+                            }
+                            if (empty($tarifaData['hasta_venta'])) {
+                                $tarifaData['hasta_venta'] = $tarifaData['hasta'] ?? null;
+                            }
+
+                            if (!empty($tarifaData['id'])) {
+                                $tarifa = $habitacion->tarifas()->find($tarifaData['id']);
+                                if ($tarifa) {
+                                    $tarifa->update($tarifaData);
+                                } else {
+                                    $habitacion->tarifas()->create($tarifaData);
+                                }
+                            } else {
+                                $habitacion->tarifas()->create($tarifaData);
+                            }
+                        }
+                    }
+                }
+            }
+
             return $hotel->fresh(['ubicacion', 'habitaciones.tarifas', 'reglasComerciales']);
         });
     }
@@ -181,6 +281,46 @@ class HotelService
             $hotel->reglasComerciales()->delete();
 
             return $hotel->delete();
+        });
+    }
+
+    public function aplicarDescuentoMasivo(string $tipoDescuento, float $porcentaje, $ubicacionId): int
+    {
+        return DB::transaction(function () use ($tipoDescuento, $porcentaje, $ubicacionId) {
+            $query = Hotel::where('status', true);
+
+            if ($ubicacionId !== 'ALL') {
+                $query->where('id_ubicacion', $ubicacionId);
+            }
+
+            $hoteles = $query->get();
+            $count = 0;
+
+            foreach ($hoteles as $hotel) {
+                $reglas = $hotel->reglasComerciales;
+                if ($reglas->isEmpty()) {
+                    $reglas->push(new HotelReglaComercial([
+                        'id_hotel' => $hotel->id,
+                        'id_freelancer' => auth()->user() && auth()->user()->id_freelancer ? auth()->user()->id_freelancer : 4
+                    ]));
+                }
+
+                foreach ($reglas as $regla) {
+                    $isActivating = $porcentaje > 0;
+
+                    if ($tipoDescuento === 'contado') {
+                        $regla->descuento_status = $isActivating;
+                        $regla->descuento_monto = $porcentaje;
+                    } else {
+                        $regla->aumento_bolivares = $isActivating;
+                        $regla->aumento_bolivares_porcentaje = $porcentaje;
+                    }
+                    $regla->save();
+                }
+                $count++;
+            }
+
+            return $count;
         });
     }
 }
