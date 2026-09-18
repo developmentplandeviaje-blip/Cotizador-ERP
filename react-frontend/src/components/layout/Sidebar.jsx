@@ -21,7 +21,7 @@ import cerrarsesion from '../../assets/Cerrarsesion.svg';
 
 export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
   // Track open state of submenus. Defaults to 'servicios' open.
-  
+
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem("sidebar_collapsed") === "true";
   });
@@ -92,7 +92,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         overflowY: 'auto',
         maxHeight: '100vh',
       }}>
-      
+
       <div
         style={{
           padding: isCollapsed ? '0' : '0 24px',
@@ -119,7 +119,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
           </svg>
         </button>
       </div>
-{/* Navigation List */}
+      {/* Navigation List */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '0 16px', flex: 1 }}>
 
         {/* 1. Dashboard */}
@@ -473,7 +473,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
           <span className="nav-text" style={{ fontWeight: '500' }}>Cerrar Sesión</span>
         </button>
       </div>
-    
+
       <style>{`
         .sidebar-container.collapsed .nav-text {
           display: none;

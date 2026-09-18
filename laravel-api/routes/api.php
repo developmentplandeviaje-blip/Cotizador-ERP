@@ -22,7 +22,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/auth/logout', [AuthController::class, 'logout']);
 
     // Catalog: Ubicaciones
-    Route::get('/v1/catalog/ubicaciones', [UbicacionController::class, 'index']);
+    Route::apiResource('/v1/catalog/ubicaciones', UbicacionController::class)->parameters([
+        'ubicaciones' => 'ubicacion'
+    ]);
 
     // Catalog: Hoteles
     Route::apiResource('/v1/catalog/hoteles', HotelController::class)->parameters([

@@ -24,6 +24,7 @@ class StoreHotelRequest extends FormRequest
             'status' => ['nullable', 'boolean'],
             'reglas' => ['nullable', 'array'],
             'habitaciones' => ['nullable', 'array'],
+            'fechas_sin_disponibilidad' => ['nullable', 'array'],
         ];
     }
 }
