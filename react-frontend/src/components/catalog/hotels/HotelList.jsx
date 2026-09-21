@@ -8,6 +8,7 @@ import HabitacionDetail from './HabitacionDetail';
 import imgImprimir from '../../../assets/Imprimir.svg';
 import imgDescuento from '../../../assets/Descuentos.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
+import Pagination from '../../common/Pagination';
 
 export default function HotelList({ user }) {
   const [hotels, setHotels] = useState([]);
@@ -454,71 +455,18 @@ export default function HotelList({ user }) {
         </table>
 
         {/* Pagination Footer */}
-        <div style={{
-          padding: '16px 20px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          fontSize: '0.8125rem',
-        }}>
-          <button
-            onClick={() => setPage(1)}
-            disabled={page === 1}
-            style={{ background: 'none', border: 'none', color: page === 1 ? '#ffffff' : '#E87217', cursor: page === 1 ? 'default' : 'pointer', fontSize: '24px' }}
-          >
-            «
-          </button>
-          <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            style={{ background: 'none', border: 'none', color: page === 1 ? '#ffffff' : '#E87217', cursor: page === 1 ? 'default' : 'pointer', fontSize: '24px' }}
-          >
-            ‹
-          </button>
-
-          {[...Array(lastPage)].map((_, i) => {
-            const pageNum = i + 1;
-            const isCurrent = page === pageNum;
-            return (
-              <button
-                key={pageNum}
-                onClick={() => setPage(pageNum)}
-                style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '6px',
-                  border: isCurrent ? '1px solid #919191a1' : 'none',
-                  background: isCurrent ? 'linear-gradient(45deg, rgb(68 78 109 / 20%) 0%, rgb(178 193 239 / 55%) 100%)' : 'transparent',
-                  color: isCurrent ? '#FFFFFF' : '#94A3B8',
-                  fontWeight: isCurrent ? '700' : '400',
-                  cursor: 'pointer',
-                }}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
-
-          <button
-            onClick={() => setPage(p => Math.min(lastPage, p + 1))}
-            disabled={page === lastPage}
-            style={{ background: 'none', border: 'none', color: page === lastPage ? '#ffffff' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer', fontSize: '24px' }}
-          >
-            ›
-          </button>
-          <button
-            onClick={() => setPage(lastPage)}
-            disabled={page === lastPage}
-            style={{ background: 'none', border: 'none', color: page === lastPage ? '#ffffff' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer', fontSize: '24px' }}
-          >
-            »
-          </button>
+          <div style={{
+            padding: '16px 20px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+             <Pagination page={page} lastPage={lastPage} setPage={setPage} />
+          </div>
         </div>
-      </div>
 
-      {/* Hotel Create / Edit Wizard Modal */}
+        {/* Hotel Create / Edit Wizard Modal */}
       <HotelModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
