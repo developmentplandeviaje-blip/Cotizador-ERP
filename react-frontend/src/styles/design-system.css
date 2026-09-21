@@ -120,8 +120,9 @@ body {
 }
 
 .btn-secondary {
-  background: linear-gradient(327deg, rgba(106, 109, 119, 0.808) 10%, rgb(157 157 157 / 8%) 100%);
+  background: linear-gradient(151deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 88%) 108%);
   border: 1px solid var(--color-border-btn);
+  box-shadow: rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px;
   padding: 8px 16px;
   width: 36px;
   height: 36px;
@@ -236,6 +237,12 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
   width: 100%;
+}
+
+.erp-input::placeholder {
+  color: var(--color-text-secondary);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .erp-input:focus,

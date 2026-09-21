@@ -63,11 +63,11 @@ export default function UbicacionList({ user }) {
 
   const getSortIndicator = (key) => {
     if (sortConfig.key !== key) {
-      return <span style={{ opacity: 0.35, marginLeft: '6px' }}>↕</span>;
+      return <span style={{ opacity: 0.35, marginLeft: '6px' }}></span>;
     }
     return (
       <span style={{ marginLeft: '6px', color: '#E87217', fontWeight: 'bold' }}>
-        {sortConfig.direction === 'asc' ? '▲' : '▼'}
+        {sortConfig.direction === 'asc' ? '' : ''}
       </span>
     );
   };
@@ -125,8 +125,8 @@ export default function UbicacionList({ user }) {
   return (
     <div style={{ width: '100%' }}>
       {/* Breadcrumb & Title */}
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem', color: '#94A3B8', marginBottom: '6px' }}>
+      <div style={{ marginBottom: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem', color: '#b9c8ddff', marginBottom: '6px' }}>
           <span>Servicios</span>
           <span>›</span>
           <span style={{ color: '#E87217', fontWeight: '600' }}>Ubicaciones</span>
@@ -134,9 +134,6 @@ export default function UbicacionList({ user }) {
         <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#FFFFFF' }}>
           Ubicaciones
         </h1>
-        <p style={{ margin: '4px 0 0 0', color: '#94A3B8', fontSize: '0.875rem' }}>
-          Catálogo maestro de destinos y ubicaciones geográficas asignadas a hoteles, traslados y servicios.
-        </p>
       </div>
 
       {/* Success Notification */}
@@ -179,22 +176,21 @@ export default function UbicacionList({ user }) {
             left: '14px',
             top: '50%',
             transform: 'translateY(-50%)',
-            color: '#94A3B8',
+            color: '#b9c8ddff',
             fontSize: '1rem',
           }}>
             🔍
           </span>
           <input
             type="text"
-            className="input-search"
+            className="erp-input"
             style={{
-              width: '100%',
-              paddingLeft: '40px',
-              paddingRight: '14px',
-              paddingTop: '10px',
-              paddingBottom: '10px',
-              boxSizing: 'border-box',
-              fontSize: '0.875rem',
+              paddingLeft: '36px',
+              borderRadius: '9999px',
+              background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
+              height: '38px',
+              boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
+              border: '1px solid rgb(255 255 255 / 56%)',
             }}
             placeholder="Buscar por nombre de ubicación..."
             value={search}
@@ -207,37 +203,40 @@ export default function UbicacionList({ user }) {
 
         {/* Buttons Action Group */}
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button
-            className="btn-print"
-            onClick={handlePrint}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-          >
-            <img src={imgImprimir} alt="Imprimir" style={{ width: '16px', height: '16px' }} />
-            <span>Imprimir</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+            <button
+              className="btn-secondary"
+              onClick={handlePrint}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+            >
+              <img src={imgImprimir} alt="Imprimir" style={{ width: '20px', height: '20px' }} />
+            </button>
+            <span className='title-input'>Imprimir</span>
+          </div>
 
-          <button
-            className="btn-primary"
-            onClick={handleOpenCreate}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-          >
-            <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-            <span>+ Agregar Ubicación</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+            <button
+              className="btn-secondary"
+              onClick={handleOpenCreate}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
+            </button>
+            <span className='title-input'>Agregar</span>
+          </div>
         </div>
       </div>
 
       {/* Data Table */}
       <div style={{
-        background: 'rgba(30, 41, 59, 0.72)',
+        background: 'rgba(188, 192, 215, 0.09)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: '16px',
         overflow: 'hidden',
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
           <thead>
-            <tr style={{ background: '#e8721726', borderBottom: '1px solid rgba(255, 255, 255, 0.2)', userSelect: 'none' }}>
+            <tr style={{ background: '#e8721726', borderBottom: '1px solid rgba(255, 255, 255, 0.84)', userSelect: 'none' }}>
               <th
                 onClick={() => handleSort('id')}
                 style={{ padding: '14px 18px', color: '#FFFFFF', fontWeight: '600', cursor: 'pointer', width: '80px' }}
