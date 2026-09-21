@@ -21,7 +21,7 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
   const [precioNino, setPrecioNino] = useState('');
 
   // Flags & states
-  const [aplicaDescuentoReferidos, setAplicaDescuentoReferidos] = useState(true);
+  const [aplicaDescuentoReferidos, setAplicaDescuentoReferidos] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -57,7 +57,7 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
         setPorcentajeNino(excursionToEdit.porcentaje_nino !== undefined && excursionToEdit.porcentaje_nino !== null ? excursionToEdit.porcentaje_nino : '');
         setPrecioNino(excursionToEdit.precio_nino !== undefined ? excursionToEdit.precio_nino : '');
 
-        setAplicaDescuentoReferidos(excursionToEdit.aplica_descuento_referidos !== false);
+        setAplicaDescuentoReferidos(Boolean(excursionToEdit.aplica_descuento_referidos));
       } else {
         setTipoExcursion('');
         setIdUbicacion('');
@@ -67,7 +67,7 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
         setCostoNino('');
         setPorcentajeNino('');
         setPrecioNino('');
-        setAplicaDescuentoReferidos(true);
+        setAplicaDescuentoReferidos(false);
       }
     }
   }, [isOpen, excursionToEdit]);
@@ -367,30 +367,34 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
           </div>
         </div>
 
-        {/* Reglas Comerciales: Descuento Referidos */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          background: 'rgba(30, 41, 59, 0.5)',
-          padding: '12px 16px',
-          borderRadius: '10px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          marginBottom: '20px',
-        }}>
-          <input
-            type="checkbox"
-            id="aplicaDescuentoReferidos"
-            checked={aplicaDescuentoReferidos}
-            onChange={(e) => setAplicaDescuentoReferidos(e.target.checked)}
-            disabled={isSubmitting}
-            style={{ width: '18px', height: '18px', accentColor: '#E87217', cursor: 'pointer' }}
-          />
-          <label htmlFor="aplicaDescuentoReferidos" style={{ color: '#F8FAFC', fontSize: '0.875rem', cursor: 'pointer', userSelect: 'none' }}>
-            <strong>Aplica Descuento de Referidos (5%)</strong>
-            <span style={{ display: 'block', color: '#94A3B8', fontSize: '0.75rem', marginTop: '2px' }}>
-              Permite aplicar automáticamente el 5% de descuento en cotizaciones cuando el cliente sea referido elegible.
-            </span>
+        {/* Toggle Descuento de Referidos (Estilo Tarifa de Suplemento) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+          <label style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+            fontSize: '0.8125rem',
+            fontWeight: '500',
+            color: aplicaDescuentoReferidos ? '#E87217' : '#b9c8ddff',
+            padding: '10px 16px',
+            borderRadius: '12px',
+            background: 'rgb(30, 41, 59)',
+            transition: 'all 0.2s ease',
+            boxShadow: aplicaDescuentoReferidos
+              ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
+              : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+            border: aplicaDescuentoReferidos ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+            userSelect: 'none'
+          }}>
+            <input
+              type="checkbox"
+              checked={aplicaDescuentoReferidos}
+              onChange={(e) => setAplicaDescuentoReferidos(e.target.checked)}
+              style={{ display: 'none' }}
+              disabled={isSubmitting}
+            />
+            <span>Descuento de Referidos (5%)</span>
           </label>
         </div>
 
