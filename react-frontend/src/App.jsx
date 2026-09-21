@@ -4,6 +4,7 @@ import Login from './components/Login';
 import MainLayout from './components/layout/MainLayout';
 import HotelList from './components/catalog/hotels/HotelList';
 import UbicacionList from './components/catalog/ubicaciones/UbicacionList';
+import ExcursionList from './components/catalog/excursiones/ExcursionList';
 
 // Configure default base URL for Axios
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -157,9 +158,10 @@ function App() {
     >
       {activeRoute === 'servicios_hoteles' && <HotelList user={user} />}
       {activeRoute === 'servicios_ubicaciones' && <UbicacionList user={user} />}
+      {activeRoute === 'servicios_excursiones' && <ExcursionList user={user} />}
       {activeRoute === 'dashboard' && renderDashboard()}
       
-      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'dashboard' && (
+      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'dashboard' && (
         <div style={{
           background: 'rgba(30, 41, 59, 0.72)',
           border: '1px solid rgba(255, 255, 255, 0.12)',

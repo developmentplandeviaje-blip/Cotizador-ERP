@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\v1\Catalog\HotelController;
 use App\Http\Controllers\Api\v1\Catalog\HabitacionController;
 use App\Http\Controllers\Api\v1\Catalog\TarifaController;
 use App\Http\Controllers\Api\v1\Catalog\UbicacionController;
+use App\Http\Controllers\Api\v1\Catalog\ExcursionController;
 
 // Public routes
 Route::post('/v1/auth/login', [AuthController::class, 'login']);
@@ -24,6 +25,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Catalog: Ubicaciones
     Route::apiResource('/v1/catalog/ubicaciones', UbicacionController::class)->parameters([
         'ubicaciones' => 'ubicacion'
+    ]);
+
+    // Catalog: Excursiones
+    Route::apiResource('/v1/catalog/excursiones', ExcursionController::class)->parameters([
+        'excursiones' => 'excursion'
     ]);
 
     // Catalog: Hoteles
