@@ -67,4 +67,32 @@ class PricingEngine
 
         return $rateData;
     }
+
+    /**
+     * Sanitize and format an excursion object according to user permissions (US-03).
+     */
+    public function formatExcursionForUser(array $excursionData, ?User $user): array
+    {
+        $hideCosts = $this->shouldHideNetCosts($user);
+
+        if ($hideCosts) {
+            // Apply markup to base selling prices
+            $excursionData['precio_adulto'] = $this->calculateSellingPrice(
+                (float) ($excursionData['precio_adulto'] ?? 0)
+            );
+            $excursionData['precio_nino'] = $this->calculateSellingPrice(
+                (float) ($excursionData['precio_nino'] ?? 0)
+            );
+
+            // Strip net costs strictly per US-03
+            unset(
+                $excursionData['costo_adulto'],
+                $excursionData['costo_nino'],
+                $excursionData['porcentaje_adulto'],
+                $excursionData['porcentaje_nino']
+            );
+        }
+
+        return $excursionData;
+    }
 }
