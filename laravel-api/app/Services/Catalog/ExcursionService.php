@@ -66,7 +66,7 @@ class ExcursionService
                 'porcentaje_nino' => isset($data['porcentaje_nino']) ? (float) $data['porcentaje_nino'] : null,
                 'aplica_descuento_referidos' => isset($data['aplica_descuento_referidos'])
                     ? (bool) $data['aplica_descuento_referidos']
-                    : true,
+                    : false,
             ]);
 
             return $excursion->load('ubicacion');
