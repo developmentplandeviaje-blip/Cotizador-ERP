@@ -7,6 +7,7 @@ use App\Models\Catalog\HabitacionHotel;
 use App\Models\Catalog\TarifaHabitacion;
 use App\Models\Catalog\HotelReglaComercial;
 use App\Models\Catalog\Ubicacion;
+use App\Models\Catalog\Excursion;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -163,6 +164,71 @@ class CatalogSeeder extends Seeder
                 'edad_infantes' => '0 - 4 Años',
                 'nota' => 'En remodelación de áreas comunes.',
                 'status' => false, // Deshabilitado
+            ]
+        );
+
+        // 5. Seed Excursiones iniciales
+        Excursion::firstOrCreate(
+            [
+                'tipo_excursion' => 'Full Day Coche Catamarán con Almuerzo',
+                'id_ubicacion' => $margarita->id,
+            ],
+            [
+                'costo_adulto' => 35.00,
+                'costo_nino' => 20.00,
+                'precio_adulto' => 50.00,
+                'precio_nino' => 30.00,
+                'porcentaje_adulto' => 42.86,
+                'porcentaje_nino' => 50.00,
+                'aplica_descuento_referidos' => true,
+            ]
+        );
+
+        Excursion::firstOrCreate(
+            [
+                'tipo_excursion' => 'Jeep Safari 4x4 Península de Macanao',
+                'id_ubicacion' => $margarita->id,
+            ],
+            [
+                'costo_adulto' => 40.00,
+                'costo_nino' => 25.00,
+                'precio_adulto' => 60.00,
+                'precio_nino' => 35.00,
+                'porcentaje_adulto' => 50.00,
+                'porcentaje_nino' => 40.00,
+                'aplica_descuento_referidos' => true,
+            ]
+        );
+
+        Excursion::firstOrCreate(
+            [
+                'tipo_excursion' => 'Tour Cayo de Agua y Snorkeling',
+                'id_ubicacion' => $losRoques->id,
+            ],
+            [
+                'costo_adulto' => 65.00,
+                'costo_nino' => 45.00,
+                'precio_adulto' => 90.00,
+                'precio_nino' => 60.00,
+                'porcentaje_adulto' => 38.46,
+                'porcentaje_nino' => 33.33,
+                'aplica_descuento_referidos' => false,
+            ]
+        );
+
+        Excursion::firstOrCreate(
+            [
+                'tipo_excursion' => 'Sobrevuelo y Navegación Salto Ángel',
+                'id_ubicacion' => $canaima->id,
+            ],
+            [
+                'costo_adulto' => 120.00,
+                'costo_nino' => 80.00,
+                'precio_adulto' => 160.00,
+                'precio_nino' => 110.00,
+                'porcentaje_adulto' => 33.33,
+                'porcentaje_nino' => 37.50,
+                'aplica_descuento_referidos' => true,
             ]
         );
     }

@@ -25,4 +25,9 @@ class Ubicacion extends Model
     {
         return $this->hasMany(Hotel::class, 'id_ubicacion');
     }
+
+    public function excursiones(): HasMany
+    {
+        return $this->hasMany(Excursion::class, 'id_ubicacion');
+    }
 }
