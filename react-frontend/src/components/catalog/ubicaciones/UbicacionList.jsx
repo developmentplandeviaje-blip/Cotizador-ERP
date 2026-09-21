@@ -4,6 +4,7 @@ import UbicacionModal from './UbicacionModal';
 import Badge from '../../common/Badge';
 import imgImprimir from '../../../assets/Imprimir.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
+import Pagination from '../../common/Pagination';
 
 export default function UbicacionList({ user }) {
   const [ubicaciones, setUbicaciones] = useState([]);
@@ -362,39 +363,7 @@ export default function UbicacionList({ user }) {
           <div>
             Mostrando {ubicaciones.length} de {total} ubicaciones registradas
           </div>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: page <= 1 ? '#64748B' : '#FFFFFF',
-                borderRadius: '6px',
-                padding: '6px 12px',
-                cursor: page <= 1 ? 'not-allowed' : 'pointer',
-              }}
-            >
-              ‹ Anterior
-            </button>
-            <span style={{ display: 'flex', alignItems: 'center', padding: '0 8px', color: '#F8FAFC' }}>
-              Página {page} de {lastPage || 1}
-            </span>
-            <button
-              onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
-              disabled={page >= lastPage}
-              style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: page >= lastPage ? '#64748B' : '#FFFFFF',
-                borderRadius: '6px',
-                padding: '6px 12px',
-                cursor: page >= lastPage ? 'not-allowed' : 'pointer',
-              }}
-            >
-              Siguiente ›
-            </button>
-          </div>
+          <Pagination page={page} lastPage={lastPage} setPage={setPage} />
         </div>
       </div>
 
