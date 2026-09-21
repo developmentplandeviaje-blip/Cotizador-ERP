@@ -299,7 +299,7 @@ export default function UbicacionList({ user }) {
                     {item.ubicacion}
                   </td>
                   <td style={{ padding: '14px 18px', textAlign: 'center' }}>
-                    <Badge variant={item.hoteles_count > 0 ? 'success' : 'neutral'}>
+                    <Badge variant={item.hoteles_count > 0 ? 'success' : 'neutral'} style={{ minWidth: '85px' }}>
                       {item.hoteles_count} {item.hoteles_count === 1 ? 'hotel' : 'hoteles'}
                     </Badge>
                   </td>

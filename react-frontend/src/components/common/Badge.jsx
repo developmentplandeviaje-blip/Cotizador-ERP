@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 
-export default function Badge({ children, variant = 'neutral', className = '' }) {
+export default function Badge({ children, variant = 'neutral', className = '', style = {} }) {
   const variantClass = {
     success: 'badge-success',
     error: 'badge-error',
@@ -9,7 +9,7 @@ export default function Badge({ children, variant = 'neutral', className = '' })
   }[variant] || 'badge-neutral';
 
   return (
-    <span className={`badge-pill ${variantClass} ${className}`}>
+    <span className={`badge-pill ${variantClass} ${className}`} style={style}>
       {children}
     </span>
   );
