@@ -360,9 +360,6 @@ export default function UbicacionList({ user }) {
           fontSize: '0.8125rem',
           color: '#94A3B8',
         }}>
-          <div>
-            Mostrando {ubicaciones.length} de {total} ubicaciones registradas
-          </div>
           <Pagination page={page} lastPage={lastPage} setPage={setPage} />
         </div>
       </div>
