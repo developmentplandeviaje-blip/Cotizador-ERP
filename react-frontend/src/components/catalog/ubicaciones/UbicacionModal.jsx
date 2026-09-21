@@ -76,25 +76,13 @@ export default function UbicacionModal({ isOpen, onClose, onSaveSuccess, ubicaci
           </div>
         )}
 
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{
-            display: 'block',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            color: '#F8FAFC',
-            marginBottom: '8px',
-          }}>
-            Nombre de la Ubicación <span style={{ color: '#E87217' }}>*</span>
+        <div className="form-row">
+          <label className="erp-label">
+            Nombre de la Ubicación <span className="req">*</span>
           </label>
           <input
             type="text"
-            className="input-search"
-            style={{
-              width: '100%',
-              boxSizing: 'border-box',
-              fontSize: '0.9375rem',
-              padding: '10px 14px',
-            }}
+            className="erp-input"
             placeholder="Ej: Isla de Margarita, Los Roques, Canaima..."
             value={nombre}
             onChange={(e) => {
