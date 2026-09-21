@@ -285,27 +285,27 @@ export default function UbicacionList({ user }) {
                 <tr
                   key={item.id}
                   style={{
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.51)',
                     transition: 'background-color 0.15s ease',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(232, 114, 23, 0.08)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
-                  <td style={{ padding: '14px 18px', color: '#94A3B8', fontWeight: '500' }}>
+                  <td style={{ padding: '14px 16px', color: '#b9c8ddff', fontWeight: '500' }}>
                     {(page - 1) * 10 + index + 1}
                   </td>
-                  <td style={{ padding: '14px 18px', color: '#F8FAFC', fontWeight: '600' }}>
+                  <td style={{ padding: '14px 16px', color: '#F8FAFC', fontWeight: '500' }}>
                     {item.ubicacion}
                   </td>
-                  <td style={{ padding: '14px 18px', textAlign: 'center' }}>
+                  <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     <Badge variant={item.hoteles_count > 0 ? 'success' : 'neutral'} style={{ minWidth: '85px' }}>
                       {item.hoteles_count} {item.hoteles_count === 1 ? 'hotel' : 'hoteles'}
                     </Badge>
                   </td>
-                  <td style={{ padding: '14px 18px', color: '#b9c8dd' }}>
+                  <td style={{ padding: '14px 16px', color: '#b9c8ddff' }}>
                     {item.date_creation || '—'}
                   </td>
-                  <td style={{ padding: '14px 18px', textAlign: 'right' }}>
+                  <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: '8px' }}>
                       <button
                         onClick={() => handleOpenEdit(item)}
