@@ -8,6 +8,7 @@ import HabitacionDetail from './HabitacionDetail';
 import imgImprimir from '../../../assets/Imprimir.svg';
 import imgDescuento from '../../../assets/Descuentos.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
+import Pagination from '../../common/Pagination';
 
 export default function HotelList({ user }) {
   const [hotels, setHotels] = useState([]);
@@ -106,38 +107,61 @@ export default function HotelList({ user }) {
 
   return (
     <div style={{ width: '100%' }}>
+
       {/* Top Header & Action Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div style={{ marginBottom: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem', color: '#b9c8ddff', marginBottom: '6px' }}>
+          <span>Servicios</span>
+          <span>›</span>
+          <span style={{ color: '#E87217', fontWeight: '600' }}>Hospedaje</span>
+        </div>
         <h1 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0, color: '#F8FAFC' }}>
-          Hoteles
+          Hospedaje
         </h1>
+      </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          {/* Search bar with magnifying glass (Page 3) */}
-          <div style={{ position: 'relative', width: '280px' }}>
-            <input
-              type="text"
-              className="erp-input"
-              placeholder="Buscar..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              style={{
-                paddingLeft: '36px',
-                borderRadius: '9999px',
-                background: 'linear-gradient(355deg, rgb(106 109 119 / 69%) 8%, rgb(157 157 157 / 8%) 30%)',
-                height: '38px',
-                border: '1px solid var(--color-border-btn)',
-              }}
-            />
-            <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, fontSize: '0.875rem' }}>
-              🔍
-            </span>
-          </div>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px',
+        marginBottom: '20px',
+      }}>
+        {/* Search bar with magnifying glass (Page 3) */}
+        <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
+          <input
+            type="text"
+            className="erp-input"
+            placeholder="Buscar..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            style={{
+              paddingLeft: '36px',
+              borderRadius: '9999px',
+              background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
+              height: '38px',
+              boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
+              border: '1px solid rgb(255 255 255 / 56%)',
+            }}
+          />
+          <span style={{
+            position: 'absolute',
+            left: '14px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#b9c8dd',
+            fontSize: '1rem',
+          }}>
+            🔍
+          </span>
+        </div>
 
-          {/* Action Buttons: Imprimir, Descuento, Agregar (Page 3 & 16) */}
+        {/* Action Buttons: Imprimir, Descuento, Agregar (Page 3 & 16) */}
+        <div style={{ display: 'flex', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
               className="btn-secondary"
@@ -460,61 +484,8 @@ export default function HotelList({ user }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '8px',
-          fontSize: '0.8125rem',
         }}>
-          <button
-            onClick={() => setPage(1)}
-            disabled={page === 1}
-            style={{ background: 'none', border: 'none', color: page === 1 ? '#ffffff' : '#E87217', cursor: page === 1 ? 'default' : 'pointer', fontSize: '24px' }}
-          >
-            «
-          </button>
-          <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            style={{ background: 'none', border: 'none', color: page === 1 ? '#ffffff' : '#E87217', cursor: page === 1 ? 'default' : 'pointer', fontSize: '24px' }}
-          >
-            ‹
-          </button>
-
-          {[...Array(lastPage)].map((_, i) => {
-            const pageNum = i + 1;
-            const isCurrent = page === pageNum;
-            return (
-              <button
-                key={pageNum}
-                onClick={() => setPage(pageNum)}
-                style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '6px',
-                  border: isCurrent ? '1px solid #919191a1' : 'none',
-                  background: isCurrent ? 'linear-gradient(45deg, rgb(68 78 109 / 20%) 0%, rgb(178 193 239 / 55%) 100%)' : 'transparent',
-                  color: isCurrent ? '#FFFFFF' : '#94A3B8',
-                  fontWeight: isCurrent ? '700' : '400',
-                  cursor: 'pointer',
-                }}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
-
-          <button
-            onClick={() => setPage(p => Math.min(lastPage, p + 1))}
-            disabled={page === lastPage}
-            style={{ background: 'none', border: 'none', color: page === lastPage ? '#ffffff' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer', fontSize: '24px' }}
-          >
-            ›
-          </button>
-          <button
-            onClick={() => setPage(lastPage)}
-            disabled={page === lastPage}
-            style={{ background: 'none', border: 'none', color: page === lastPage ? '#ffffff' : '#E87217', cursor: page === lastPage ? 'default' : 'pointer', fontSize: '24px' }}
-          >
-            »
-          </button>
+          <Pagination page={page} lastPage={lastPage} setPage={setPage} />
         </div>
       </div>
 
