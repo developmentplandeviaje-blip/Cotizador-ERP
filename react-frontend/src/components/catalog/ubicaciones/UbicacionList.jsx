@@ -169,6 +169,7 @@ export default function UbicacionList({ user }) {
         flexWrap: 'wrap',
         gap: '16px',
         marginBottom: '20px',
+        padding: '0px 20px',
       }}>
         {/* Search Input */}
         <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
@@ -203,7 +204,7 @@ export default function UbicacionList({ user }) {
         </div>
 
         {/* Buttons Action Group */}
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
               className="btn-secondary"

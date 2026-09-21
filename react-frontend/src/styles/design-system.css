@@ -254,7 +254,7 @@ body {
 .erp-label {
   display: block;
   color: var(--color-text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 500;
   margin-bottom: 4px;
 }

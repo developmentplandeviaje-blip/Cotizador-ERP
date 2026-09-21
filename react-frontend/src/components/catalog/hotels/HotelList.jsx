@@ -127,6 +127,7 @@ export default function HotelList({ user }) {
         flexWrap: 'wrap',
         gap: '16px',
         marginBottom: '20px',
+        padding: '0px 20px',
       }}>
         {/* Search bar with magnifying glass (Page 3) */}
         <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
@@ -161,7 +162,7 @@ export default function HotelList({ user }) {
         </div>
 
         {/* Action Buttons: Imprimir, Descuento, Agregar (Page 3 & 16) */}
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
               className="btn-secondary"
