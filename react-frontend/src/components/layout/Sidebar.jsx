@@ -17,6 +17,7 @@ import gastos from '../../assets/Gastos.svg';
 import Metodosdepago from '../../assets/Metodosdepago.svg';
 import usuarios from '../../assets/Usuario.svg';
 import cerrarsesion from '../../assets/Cerrarsesion.svg';
+import dashboard from '../../assets/home.svg';
 
 
 export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
@@ -130,10 +131,10 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             color: isRouteActive('dashboard') ? '#E87217' : '#FFFFFF',
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
+          <img
+            src={dashboard}
+            style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+          />
           <span className="nav-text" style={{ fontWeight: isRouteActive('dashboard') ? '700' : '500' }}>Dashboard</span>
         </button>
 
