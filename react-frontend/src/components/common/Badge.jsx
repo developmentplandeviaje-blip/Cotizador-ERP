@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 export default function Badge({ children, variant = 'neutral', className = '', style = {} }) {
   const variantClass = {

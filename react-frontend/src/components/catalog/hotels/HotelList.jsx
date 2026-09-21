@@ -107,38 +107,61 @@ export default function HotelList({ user }) {
 
   return (
     <div style={{ width: '100%' }}>
+
       {/* Top Header & Action Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div style={{ marginBottom: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem', color: '#b9c8ddff', marginBottom: '6px' }}>
+          <span>Servicios</span>
+          <span>›</span>
+          <span style={{ color: '#E87217', fontWeight: '600' }}>Hospedaje</span>
+        </div>
         <h1 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0, color: '#F8FAFC' }}>
-          Hoteles
+          Hospedaje
         </h1>
+      </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          {/* Search bar with magnifying glass (Page 3) */}
-          <div style={{ position: 'relative', width: '280px' }}>
-            <input
-              type="text"
-              className="erp-input"
-              placeholder="Buscar..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              style={{
-                paddingLeft: '36px',
-                borderRadius: '9999px',
-                background: 'linear-gradient(355deg, rgb(106 109 119 / 69%) 8%, rgb(157 157 157 / 8%) 30%)',
-                height: '38px',
-                border: '1px solid var(--color-border-btn)',
-              }}
-            />
-            <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, fontSize: '0.875rem' }}>
-              🔍
-            </span>
-          </div>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px',
+        marginBottom: '20px',
+      }}>
+        {/* Search bar with magnifying glass (Page 3) */}
+        <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
+          <input
+            type="text"
+            className="erp-input"
+            placeholder="Buscar..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            style={{
+              paddingLeft: '36px',
+              borderRadius: '9999px',
+              background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
+              height: '38px',
+              boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
+              border: '1px solid rgb(255 255 255 / 56%)',
+            }}
+          />
+          <span style={{
+            position: 'absolute',
+            left: '14px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#b9c8dd',
+            fontSize: '1rem',
+          }}>
+            🔍
+          </span>
+        </div>
 
-          {/* Action Buttons: Imprimir, Descuento, Agregar (Page 3 & 16) */}
+        {/* Action Buttons: Imprimir, Descuento, Agregar (Page 3 & 16) */}
+        <div style={{ display: 'flex', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
               className="btn-secondary"
@@ -455,18 +478,18 @@ export default function HotelList({ user }) {
         </table>
 
         {/* Pagination Footer */}
-          <div style={{
-            padding: '16px 20px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-             <Pagination page={page} lastPage={lastPage} setPage={setPage} />
-          </div>
+        <div style={{
+          padding: '16px 20px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Pagination page={page} lastPage={lastPage} setPage={setPage} />
         </div>
+      </div>
 
-        {/* Hotel Create / Edit Wizard Modal */}
+      {/* Hotel Create / Edit Wizard Modal */}
       <HotelModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
