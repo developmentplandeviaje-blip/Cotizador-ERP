@@ -67,6 +67,12 @@ class ExcursionService
                 'aplica_descuento_referidos' => isset($data['aplica_descuento_referidos'])
                     ? (bool) $data['aplica_descuento_referidos']
                     : false,
+                'tasa_portuaria_status' => isset($data['tasa_portuaria_status'])
+                    ? (bool) $data['tasa_portuaria_status']
+                    : false,
+                'tasa_portuaria_monto' => isset($data['tasa_portuaria_monto'])
+                    ? (float) $data['tasa_portuaria_monto']
+                    : null,
             ]);
 
             return $excursion->load('ubicacion');
@@ -97,6 +103,12 @@ class ExcursionService
                 'aplica_descuento_referidos' => array_key_exists('aplica_descuento_referidos', $data)
                     ? (bool) $data['aplica_descuento_referidos']
                     : $excursion->aplica_descuento_referidos,
+                'tasa_portuaria_status' => array_key_exists('tasa_portuaria_status', $data)
+                    ? (bool) $data['tasa_portuaria_status']
+                    : $excursion->tasa_portuaria_status,
+                'tasa_portuaria_monto' => array_key_exists('tasa_portuaria_monto', $data)
+                    ? ($data['tasa_portuaria_monto'] !== null ? (float) $data['tasa_portuaria_monto'] : null)
+                    : $excursion->tasa_portuaria_monto,
             ]);
 
             return $excursion->fresh(['ubicacion']);

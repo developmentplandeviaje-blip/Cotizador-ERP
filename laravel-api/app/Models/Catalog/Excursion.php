@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models\Catalog;
 
@@ -25,6 +25,8 @@ class Excursion extends Model
         'porcentaje_adulto',
         'porcentaje_nino',
         'aplica_descuento_referidos',
+        'tasa_portuaria_status',
+        'tasa_portuaria_monto',
     ];
 
     protected $casts = [
@@ -36,6 +38,8 @@ class Excursion extends Model
         'porcentaje_adulto' => 'decimal:2',
         'porcentaje_nino' => 'decimal:2',
         'aplica_descuento_referidos' => 'boolean',
+        'tasa_portuaria_status' => 'boolean',
+        'tasa_portuaria_monto' => 'decimal:2',
         'date_creation' => 'datetime',
         'fecha_actualizacion' => 'datetime',
     ];
