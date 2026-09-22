@@ -29,6 +29,8 @@ class ExcursionResource extends JsonResource
             'nombre_ubicacion' => $this->ubicacion?->ubicacion,
             'tipo_excursion' => $this->tipo_excursion,
             'aplica_descuento_referidos' => (bool) $this->aplica_descuento_referidos,
+            'tasa_portuaria_status' => (bool) $this->tasa_portuaria_status,
+            'tasa_portuaria_monto' => $this->tasa_portuaria_monto !== null ? (float) $this->tasa_portuaria_monto : null,
             'date_creation' => $this->date_creation
                 ? (is_string($this->date_creation) ? $this->date_creation : $this->date_creation->format('Y-m-d H:i:s'))
                 : null,
