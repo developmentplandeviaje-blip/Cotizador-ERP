@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\v1\Catalog\TarifaController;
 use App\Http\Controllers\Api\v1\Catalog\UbicacionController;
 use App\Http\Controllers\Api\v1\Catalog\ExcursionController;
 use App\Http\Controllers\Api\v1\Catalog\PaqueteController;
+use App\Http\Controllers\Api\v1\Catalog\VehiculoController;
+use App\Http\Controllers\Api\v1\Catalog\VehiculoAgenciaController;
+use App\Http\Controllers\Api\v1\Catalog\VehiculoTarifaController;
 
 // Public routes
 Route::post('/v1/auth/login', [AuthController::class, 'login']);
@@ -37,6 +40,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/v1/catalog/paquetes', PaqueteController::class)->parameters([
         'paquetes' => 'paquete'
     ]);
+
+    // Catalog: Vehículos & Agencias
+    Route::apiResource('/v1/catalog/vehiculos', VehiculoController::class)->parameters([
+        'vehiculos' => 'vehiculo'
+    ]);
+    Route::apiResource('/v1/catalog/vehiculo-agencias', VehiculoAgenciaController::class)->parameters([
+        'vehiculo-agencias' => 'agencia'
+    ]);
+    Route::get('/v1/catalog/vehiculos/{vehiculo}/tarifas', [VehiculoTarifaController::class, 'index']);
+    Route::post('/v1/catalog/vehiculos/{vehiculo}/tarifas', [VehiculoTarifaController::class, 'store']);
+    Route::delete('/v1/catalog/tarifas-vehiculo/{tarifa}', [VehiculoTarifaController::class, 'destroy']);
 
     // Catalog: Hoteles
     Route::apiResource('/v1/catalog/hoteles', HotelController::class)->parameters([
