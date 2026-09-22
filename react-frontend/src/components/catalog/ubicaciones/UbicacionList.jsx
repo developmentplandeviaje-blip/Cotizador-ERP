@@ -69,7 +69,7 @@ export default function UbicacionList({ user }) {
     }
     return (
       <span style={{ marginLeft: '6px', color: '#E87217', fontWeight: 'bold' }}>
-        {sortConfig.direction === 'asc' ? '' : ''}
+        {sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}
       </span>
     );
   };
