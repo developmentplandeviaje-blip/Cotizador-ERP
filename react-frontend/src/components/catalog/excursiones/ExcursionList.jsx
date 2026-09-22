@@ -383,7 +383,24 @@ export default function ExcursionList({ user }) {
                     {(page - 1) * 10 + index + 1}
                   </td>
                   <td style={{ padding: '14px 16px', color: '#F8FAFC', fontWeight: '600' }}>
-                    {item.tipo_excursion}
+                    <div style={{ marginBottom: (item.tasa_portuaria_status && item.tasa_portuaria_monto !== null) ? '6px' : '0' }}>{item.tipo_excursion}</div>
+                    {item.tasa_portuaria_status && item.tasa_portuaria_monto !== null && (
+                      <div>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '2px 8px',
+                          borderRadius: '9999px',
+                          border: '1px solid #10B981',
+                          color: '#10B981',
+                          fontSize: '0.65rem',
+                          fontWeight: '600',
+                          backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                        }}>
+                          Valor Tasa portuaria: {parseFloat(item.tasa_portuaria_monto)} $
+                        </span>
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <Badge variant="primary" style={{ fontSize: '0.75rem' }}>
