@@ -341,11 +341,11 @@ export default function PaqueteList({ user }) {
               >
                 {isFreelancer ? 'Tarifa Venta (Ad / Niñ)' : 'Precio Venta'}{getSortIndicator('precio_adulto')}
               </th>
-
+              {/*
               <th style={{ padding: '14px 16px', color: '#FFFFFF', fontWeight: '600', textAlign: 'center', width: '130px' }}>
                 Desc. Referidos
               </th>
-
+              */}
               {!isFreelancer && (
                 <th style={{ padding: '14px 16px', color: '#FFFFFF', fontWeight: '600', textAlign: 'right', width: '150px' }}>
                   Acciones
@@ -415,11 +415,13 @@ export default function PaqueteList({ user }) {
                     </div>
                   </td>
 
+                  {/*
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     <Badge variant={item.aplica_descuento_referidos ? 'success' : 'neutral'} style={{ minWidth: '70px' }}>
                       {item.aplica_descuento_referidos ? 'Aplica (5%)' : 'No Aplica'}
                     </Badge>
                   </td>
+                  */}
 
                   {!isFreelancer && (
                     <td style={{ padding: '14px 16px', textAlign: 'right' }}>
