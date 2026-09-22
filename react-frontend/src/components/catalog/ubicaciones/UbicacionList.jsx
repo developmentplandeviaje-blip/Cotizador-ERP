@@ -5,6 +5,7 @@ import Badge from '../../common/Badge';
 import imgImprimir from '../../../assets/Imprimir.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import Pagination from '../../common/Pagination';
+import imgSearch from '../../../assets/lupa.svg';
 
 export default function UbicacionList({ user }) {
   const [ubicaciones, setUbicaciones] = useState([]);
@@ -177,11 +178,11 @@ export default function UbicacionList({ user }) {
             position: 'absolute',
             left: '14px',
             top: '50%',
-            transform: 'translateY(-50%)',
+            transform: 'translateY(-40%)',
             color: '#b9c8ddff',
             fontSize: '1rem',
           }}>
-            🔍
+            <img src={imgSearch} alt="" style={{ width: '20px', height: '20px' }} />
           </span>
           <input
             type="text"

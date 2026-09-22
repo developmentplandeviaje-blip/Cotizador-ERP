@@ -9,6 +9,7 @@ import imgImprimir from '../../../assets/Imprimir.svg';
 import imgDescuento from '../../../assets/Descuentos.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import Pagination from '../../common/Pagination';
+import imgSearch from '../../../assets/lupa.svg';
 
 export default function HotelList({ user }) {
   const [hotels, setHotels] = useState([]);
@@ -153,11 +154,11 @@ export default function HotelList({ user }) {
             position: 'absolute',
             left: '14px',
             top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#b9c8dd',
+            transform: 'translateY(-40%)',
+            color: '#b9c8ddff',
             fontSize: '1rem',
           }}>
-            🔍
+            <img src={imgSearch} alt="" style={{ width: '20px', height: '20px' }} />
           </span>
         </div>
 

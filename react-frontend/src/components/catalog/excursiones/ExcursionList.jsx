@@ -5,6 +5,7 @@ import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
 import imgImprimir from '../../../assets/Imprimir.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
+import imgSearch from '../../../assets/lupa.svg';
 
 export default function ExcursionList({ user }) {
   const isFreelancer = user?.level === 'Freelancer';
@@ -83,11 +84,11 @@ export default function ExcursionList({ user }) {
 
   const getSortIndicator = (key) => {
     if (sortConfig.key !== key) {
-      return <span style={{ opacity: 0.35, marginLeft: '6px' }}>↕</span>;
+      return <span style={{ opacity: 0.35, marginLeft: '6px' }}></span>;
     }
     return (
       <span style={{ marginLeft: '6px', color: '#E87217', fontWeight: 'bold' }}>
-        {sortConfig.direction === 'asc' ? '▲' : '▼'}
+        {sortConfig.direction === 'asc' ? '' : ''}
       </span>
     );
   };
@@ -198,11 +199,11 @@ export default function ExcursionList({ user }) {
               position: 'absolute',
               left: '14px',
               top: '50%',
-              transform: 'translateY(-50%)',
+              transform: 'translateY(-40%)',
               color: '#b9c8ddff',
               fontSize: '1rem',
             }}>
-              🔍
+              <img src={imgSearch} alt="" style={{ width: '20px', height: '20px' }} />
             </span>
             <input
               type="text"
@@ -236,13 +237,13 @@ export default function ExcursionList({ user }) {
                 border: '1px solid rgb(255 255 255 / 56%)',
                 cursor: 'pointer',
                 color: selectedUbicacion ? '#FFFFFF' : '#b9c8ddff',
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  MozAppearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c8dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'calc(100% - 20px) center',
-                  backgroundSize: '16px',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c8dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'calc(100% - 10px) center',
+                backgroundSize: '16px',
               }}
               value={selectedUbicacion}
               onChange={(e) => {
@@ -321,7 +322,7 @@ export default function ExcursionList({ user }) {
               >
                 Ubicación{getSortIndicator('id_ubicacion')}
               </th>
-              
+
               {/* Costos Netos: Ocultos estrictamente para Freelancers per US-03 */}
               {!isFreelancer && (
                 <>
@@ -355,13 +356,13 @@ export default function ExcursionList({ user }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={isFreelancer ? 5 : 7} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                <td colSpan={isFreelancer ? 5 : 7} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   Cargando catálogo de excursiones...
                 </td>
               </tr>
             ) : excursiones.length === 0 ? (
               <tr>
-                <td colSpan={isFreelancer ? 5 : 7} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                <td colSpan={isFreelancer ? 5 : 7} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   {search || selectedUbicacion
                     ? 'No se encontraron excursiones que coincidan con los filtros aplicados.'
                     : 'No hay excursiones registradas en el catálogo.'}
@@ -393,9 +394,9 @@ export default function ExcursionList({ user }) {
                   {/* Columnas protegidas US-03 */}
                   {!isFreelancer && (
                     <>
-                      <td style={{ padding: '14px 16px', color: '#b9c8ddff' }}>
-                        <div><strong style={{ color: '#94A3B8' }}>Ad:</strong> ${parseFloat(item.costo_adulto || 0).toFixed(2)}</div>
-                        <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Niñ: ${parseFloat(item.costo_nino || 0).toFixed(2)}</div>
+                      <td style={{ padding: '14px 16px', color: '#F8FAFC' }}>
+                        <div><strong style={{ color: '#F8FAFC' }}>Ad:</strong> ${parseFloat(item.costo_adulto || 0).toFixed(2)}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#b9c8ddff' }}>Niñ: ${parseFloat(item.costo_nino || 0).toFixed(2)}</div>
                       </td>
                       <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                         <span style={{ color: '#10B981', fontWeight: '600', fontSize: '0.85rem' }}>
@@ -533,7 +534,7 @@ export default function ExcursionList({ user }) {
               <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5' }}>
                 ¿Estás seguro de que deseas eliminar la excursión <strong style={{ color: '#E87217' }}>{deleteTarget.tipo_excursion}</strong>?
               </p>
-              <p style={{ color: '#94A3B8', fontSize: '0.8125rem', marginTop: '8px' }}>
+              <p style={{ color: '#b9c8ddff', fontSize: '0.8125rem', marginTop: '8px' }}>
                 Esta acción eliminará el registro del catálogo de forma permanente.
               </p>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
