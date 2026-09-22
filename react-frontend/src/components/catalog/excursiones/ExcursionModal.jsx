@@ -22,6 +22,8 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
 
   // Flags & states
   const [aplicaDescuentoReferidos, setAplicaDescuentoReferidos] = useState(false);
+  const [tasaPortuariaStatus, setTasaPortuariaStatus] = useState(false);
+  const [tasaPortuariaMonto, setTasaPortuariaMonto] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -58,6 +60,8 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
         setPrecioNino(excursionToEdit.precio_nino !== undefined ? excursionToEdit.precio_nino : '');
 
         setAplicaDescuentoReferidos(Boolean(excursionToEdit.aplica_descuento_referidos));
+        setTasaPortuariaStatus(Boolean(excursionToEdit.tasa_portuaria_status));
+        setTasaPortuariaMonto(excursionToEdit.tasa_portuaria_monto !== undefined && excursionToEdit.tasa_portuaria_monto !== null ? excursionToEdit.tasa_portuaria_monto : '');
       } else {
         setTipoExcursion('');
         setIdUbicacion('');
@@ -160,6 +164,8 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
       precio_nino: parseFloat(precioNino) || 0,
       porcentaje_nino: porcentajeNino !== '' ? parseFloat(porcentajeNino) : null,
       aplica_descuento_referidos: Boolean(aplicaDescuentoReferidos),
+      tasa_portuaria_status: Boolean(tasaPortuariaStatus),
+      tasa_portuaria_monto: tasaPortuariaStatus ? (parseFloat(tasaPortuariaMonto) || 0) : null,
     };
 
     try {
@@ -396,6 +402,52 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
             />
             <span>Descuento de Referidos (5%)</span>
           </label>
+        </div>
+
+        {/* Tasa Portuaria Block */}
+        <div style={{ background: 'rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span style={{ fontSize: '0.875rem', color: '#F8FAFC' }}>¿Incluye Tasa Portuaria?</span>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#F8FAFC', fontSize: '0.875rem', cursor: 'pointer' }}>
+              <input
+                type="radio"
+                name="tasa_portuaria_status"
+                checked={tasaPortuariaStatus === true}
+                onChange={() => setTasaPortuariaStatus(true)}
+                disabled={isSubmitting}
+              />
+              Si
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#F8FAFC', fontSize: '0.875rem', cursor: 'pointer' }}>
+              <input
+                type="radio"
+                name="tasa_portuaria_status"
+                checked={tasaPortuariaStatus === false}
+                onChange={() => {
+                  setTasaPortuariaStatus(false);
+                  setTasaPortuariaMonto('');
+                }}
+                disabled={isSubmitting}
+              />
+              No
+            </label>
+          </div>
+
+          {tasaPortuariaStatus && (
+            <div style={{ marginTop: '16px', maxWidth: '200px' }}>
+              <label className="erp-label" style={{ fontSize: '0.8125rem' }}>Valor de la Tasa:</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                className="erp-input"
+                placeholder="0.00"
+                value={tasaPortuariaMonto}
+                onChange={(e) => setTasaPortuariaMonto(e.target.value)}
+                disabled={isSubmitting}
+              />
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
