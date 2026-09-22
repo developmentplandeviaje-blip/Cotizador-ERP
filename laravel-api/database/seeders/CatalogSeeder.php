@@ -8,6 +8,9 @@ use App\Models\Catalog\TarifaHabitacion;
 use App\Models\Catalog\HotelReglaComercial;
 use App\Models\Catalog\Ubicacion;
 use App\Models\Catalog\Excursion;
+use App\Models\Catalog\Vehiculo;
+use App\Models\Catalog\VehiculoAgencia;
+use App\Models\Catalog\VehiculoTarifa;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -229,6 +232,127 @@ class CatalogSeeder extends Seeder
                 'porcentaje_adulto' => 33.33,
                 'porcentaje_nino' => 37.50,
                 'aplica_descuento_referidos' => true,
+            ]
+        );
+
+        // 6. Seed Agencias de Vehículos y Vehículos (5 Registros)
+        $avisMargarita = VehiculoAgencia::firstOrCreate(
+            ['agencia' => 'Avis Rent a Car Margarita', 'id_ubicacion' => $margarita->id],
+            ['nota' => 'Flota moderna ubicada en Aeropuerto Internacional del Caribe y Porlamar.']
+        );
+
+        $hertzCaracas = VehiculoAgencia::firstOrCreate(
+            ['agencia' => 'Hertz Venezuela - Caracas', 'id_ubicacion' => $caracas->id],
+            ['nota' => 'Oficina principal Aeropuerto Internacional de Maiquetía y Las Mercedes.']
+        );
+
+        $margarita4x4 = VehiculoAgencia::firstOrCreate(
+            ['agencia' => 'Margarita RentaCar & 4x4', 'id_ubicacion' => $margarita->id],
+            ['nota' => 'Especialistas en vehículos rústicos y familiares.']
+        );
+
+        // 1. Toyota Corolla XEi 2024
+        $v1 = Vehiculo::firstOrCreate(
+            ['id_vehiculo_agencia' => $avisMargarita->id, 'marca' => 'Toyota', 'vehiculo' => 'Corolla XEi', 'ano' => '2024'],
+            [
+                'tipo_vehiculo' => 'Sedán',
+                'tipo_transmision' => 'Automática',
+                'nota' => 'Capacidad 5 pasajeros, aire acondicionado, maletero amplio, incluye seguro básico.',
+            ]
+        );
+        VehiculoTarifa::firstOrCreate(
+            ['id_vehiculo' => $v1->id, 'desde' => '2026-09-01 00:00:00', 'hasta' => '2026-12-31 23:59:59'],
+            [
+                'desde_venta' => '2026-08-01 00:00:00',
+                'hasta_venta' => '2026-12-15 23:59:59',
+                'costo' => 45.00,
+                'precio' => 60.00,
+                'porcentaje' => 33.33,
+                'promocion' => false,
+            ]
+        );
+
+        // 2. Toyota Fortuner 4x4 2023
+        $v2 = Vehiculo::firstOrCreate(
+            ['id_vehiculo_agencia' => $margarita4x4->id, 'marca' => 'Toyota', 'vehiculo' => 'Fortuner 4x4', 'ano' => '2023'],
+            [
+                'tipo_vehiculo' => 'SUV / Rústico',
+                'tipo_transmision' => 'Automática',
+                'nota' => 'Capacidad 7 pasajeros, tracción 4x4 ideal para recorridos en playa y montaña.',
+            ]
+        );
+        VehiculoTarifa::firstOrCreate(
+            ['id_vehiculo' => $v2->id, 'desde' => '2026-09-01 00:00:00', 'hasta' => '2026-11-30 23:59:59'],
+            [
+                'desde_venta' => '2026-08-15 00:00:00',
+                'hasta_venta' => '2026-11-15 23:59:59',
+                'costo' => 90.00,
+                'precio' => 120.00,
+                'porcentaje' => 33.33,
+                'promocion' => true,
+            ]
+        );
+
+        // 3. Hyundai Tucson GL 2024
+        $v3 = Vehiculo::firstOrCreate(
+            ['id_vehiculo_agencia' => $hertzCaracas->id, 'marca' => 'Hyundai', 'vehiculo' => 'Tucson GL', 'ano' => '2024'],
+            [
+                'tipo_vehiculo' => 'SUV',
+                'tipo_transmision' => 'Automática',
+                'nota' => 'Capacidad 5 pasajeros, pantalla táctil con CarPlay/Android Auto, cámara de retroceso.',
+            ]
+        );
+        VehiculoTarifa::firstOrCreate(
+            ['id_vehiculo' => $v3->id, 'desde' => '2026-09-01 00:00:00', 'hasta' => '2026-12-31 23:59:59'],
+            [
+                'desde_venta' => '2026-08-01 00:00:00',
+                'hasta_venta' => '2026-12-20 23:59:59',
+                'costo' => 65.00,
+                'precio' => 85.00,
+                'porcentaje' => 30.77,
+                'promocion' => false,
+            ]
+        );
+
+        // 4. Chevrolet Spark GT 2022
+        $v4 = Vehiculo::firstOrCreate(
+            ['id_vehiculo_agencia' => $avisMargarita->id, 'marca' => 'Chevrolet', 'vehiculo' => 'Spark GT', 'ano' => '2022'],
+            [
+                'tipo_vehiculo' => 'Hatchback',
+                'tipo_transmision' => 'Sincrónica',
+                'nota' => 'Económico en combustible, ideal para movilidad urbana y parejas, 4 pasajeros.',
+            ]
+        );
+        VehiculoTarifa::firstOrCreate(
+            ['id_vehiculo' => $v4->id, 'desde' => '2026-09-01 00:00:00', 'hasta' => '2026-10-31 23:59:59'],
+            [
+                'desde_venta' => '2026-08-01 00:00:00',
+                'hasta_venta' => '2026-10-25 23:59:59',
+                'costo' => 30.00,
+                'precio' => 40.00,
+                'porcentaje' => 33.33,
+                'promocion' => true,
+            ]
+        );
+
+        // 5. Ford Explorer Limited 2023
+        $v5 = Vehiculo::firstOrCreate(
+            ['id_vehiculo_agencia' => $hertzCaracas->id, 'marca' => 'Ford', 'vehiculo' => 'Explorer Limited', 'ano' => '2023'],
+            [
+                'tipo_vehiculo' => 'Camioneta VIP',
+                'tipo_transmision' => 'Automática',
+                'nota' => 'Gama alta, asientos de cuero, techo panorámico, capacidad 7 puestos, servicio de chofer opcional.',
+            ]
+        );
+        VehiculoTarifa::firstOrCreate(
+            ['id_vehiculo' => $v5->id, 'desde' => '2026-09-15 00:00:00', 'hasta' => '2026-12-31 23:59:59'],
+            [
+                'desde_venta' => '2026-09-01 00:00:00',
+                'hasta_venta' => '2026-12-10 23:59:59',
+                'costo' => 110.00,
+                'precio' => 150.00,
+                'porcentaje' => 36.36,
+                'promocion' => false,
             ]
         );
     }
