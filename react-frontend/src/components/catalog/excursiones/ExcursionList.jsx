@@ -236,6 +236,13 @@ export default function ExcursionList({ user }) {
                 border: '1px solid rgb(255 255 255 / 56%)',
                 cursor: 'pointer',
                 color: selectedUbicacion ? '#FFFFFF' : '#b9c8ddff',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c8dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'calc(100% - 20px) center',
+                backgroundSize: '16px',
               }}
               value={selectedUbicacion}
               onChange={(e) => {
@@ -314,7 +321,7 @@ export default function ExcursionList({ user }) {
               >
                 Ubicación{getSortIndicator('id_ubicacion')}
               </th>
-              
+
               {/* Costos Netos: Ocultos estrictamente para Freelancers per US-03 */}
               {!isFreelancer && (
                 <>
