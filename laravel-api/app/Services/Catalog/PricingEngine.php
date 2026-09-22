@@ -123,4 +123,27 @@ class PricingEngine
 
         return $paqueteData;
     }
+
+    /**
+     * Sanitize and format a vehiculo tarifa object according to user permissions (US-03).
+     */
+    public function formatVehiculoTarifaForUser(array $tarifaData, ?User $user): array
+    {
+        $hideCosts = $this->shouldHideNetCosts($user);
+
+        if ($hideCosts) {
+            // Apply markup to base selling price
+            $tarifaData['precio'] = $this->calculateSellingPrice(
+                (float) ($tarifaData['precio'] ?? 0)
+            );
+
+            // Strip net costs strictly per US-03
+            unset(
+                $tarifaData['costo'],
+                $tarifaData['porcentaje']
+            );
+        }
+
+        return $tarifaData;
+    }
 }
