@@ -23,6 +23,8 @@ class UpdateExcursionRequest extends FormRequest
             'porcentaje_adulto' => ['nullable', 'numeric'],
             'porcentaje_nino' => ['nullable', 'numeric'],
             'aplica_descuento_referidos' => ['nullable', 'boolean'],
+            'tasa_portuaria_status' => ['nullable', 'boolean'],
+            'tasa_portuaria_monto' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 
