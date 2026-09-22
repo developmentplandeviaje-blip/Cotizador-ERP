@@ -392,9 +392,9 @@ export default function ExcursionList({ user }) {
                           padding: '2px 8px',
                           borderRadius: '9999px',
                           border: '1px solid #10B981',
-                          color: '#10B981',
+                          color: '#2bc592ff',
                           fontSize: '0.65rem',
-                          fontWeight: '600',
+                          fontWeight: '500',
                           backgroundColor: 'rgba(16, 185, 129, 0.05)',
                         }}>
                           Valor Tasa portuaria: {parseFloat(item.tasa_portuaria_monto)} $

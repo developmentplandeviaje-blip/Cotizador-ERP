@@ -373,36 +373,37 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
           </div>
         </div>
 
-        {/* Toggle Descuento de Referidos (Estilo Tarifa de Suplemento) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-          <label style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: isSubmitting ? 'not-allowed' : 'pointer',
-            fontSize: '0.8125rem',
-            fontWeight: '500',
-            color: aplicaDescuentoReferidos ? '#E87217' : '#b9c8ddff',
-            padding: '10px 16px',
-            borderRadius: '12px',
-            background: 'rgb(30, 41, 59)',
-            transition: 'all 0.2s ease',
-            boxShadow: aplicaDescuentoReferidos
-              ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
-              : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
-            border: aplicaDescuentoReferidos ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
-            userSelect: 'none'
-          }}>
-            <input
-              type="checkbox"
-              checked={aplicaDescuentoReferidos}
-              onChange={(e) => setAplicaDescuentoReferidos(e.target.checked)}
-              style={{ display: 'none' }}
-              disabled={isSubmitting}
-            />
-            <span>Descuento de Referidos (5%)</span>
-          </label>
-        </div>
+        {/* Toggle Descuento de Referidos (Estilo Tarifa de Suplemento) 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+            <label style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              fontSize: '0.8125rem',
+              fontWeight: '500',
+              color: aplicaDescuentoReferidos ? '#E87217' : '#b9c8ddff',
+              padding: '10px 16px',
+              borderRadius: '12px',
+              background: 'rgb(30, 41, 59)',
+              transition: 'all 0.2s ease',
+              boxShadow: aplicaDescuentoReferidos
+                ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
+                : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+              border: aplicaDescuentoReferidos ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+              userSelect: 'none'
+            }}>
+              <input
+                type="checkbox"
+                checked={aplicaDescuentoReferidos}
+                onChange={(e) => setAplicaDescuentoReferidos(e.target.checked)}
+                style={{ display: 'none' }}
+                disabled={isSubmitting}
+              />
+              <span>Descuento de Referidos (5%)</span>
+            </label>
+          </div>
+        */}
 
         {/* Tasa Portuaria Block */}
         <div style={{ background: 'rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
