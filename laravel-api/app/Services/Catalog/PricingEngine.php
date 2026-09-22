@@ -95,4 +95,32 @@ class PricingEngine
 
         return $excursionData;
     }
+
+    /**
+     * Sanitize and format a paquete object according to user permissions (US-03).
+     */
+    public function formatPaqueteForUser(array $paqueteData, ?User $user): array
+    {
+        $hideCosts = $this->shouldHideNetCosts($user);
+
+        if ($hideCosts) {
+            // Apply markup to base selling prices
+            $paqueteData['precio_adulto'] = $this->calculateSellingPrice(
+                (float) ($paqueteData['precio_adulto'] ?? 0)
+            );
+            $paqueteData['precio_nino'] = $this->calculateSellingPrice(
+                (float) ($paqueteData['precio_nino'] ?? 0)
+            );
+
+            // Strip net costs strictly per US-03
+            unset(
+                $paqueteData['costo_adulto'],
+                $paqueteData['costo_nino'],
+                $paqueteData['porcentaje_adulto'],
+                $paqueteData['porcentaje_nino']
+            );
+        }
+
+        return $paqueteData;
+    }
 }
