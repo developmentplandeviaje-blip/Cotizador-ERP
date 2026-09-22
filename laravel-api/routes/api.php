@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\v1\Catalog\HabitacionController;
 use App\Http\Controllers\Api\v1\Catalog\TarifaController;
 use App\Http\Controllers\Api\v1\Catalog\UbicacionController;
 use App\Http\Controllers\Api\v1\Catalog\ExcursionController;
+use App\Http\Controllers\Api\v1\Catalog\PaqueteController;
 
 // Public routes
 Route::post('/v1/auth/login', [AuthController::class, 'login']);
@@ -30,6 +31,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Catalog: Excursiones
     Route::apiResource('/v1/catalog/excursiones', ExcursionController::class)->parameters([
         'excursiones' => 'excursion'
+    ]);
+
+    // Catalog: Paquetes
+    Route::apiResource('/v1/catalog/paquetes', PaqueteController::class)->parameters([
+        'paquetes' => 'paquete'
     ]);
 
     // Catalog: Hoteles
