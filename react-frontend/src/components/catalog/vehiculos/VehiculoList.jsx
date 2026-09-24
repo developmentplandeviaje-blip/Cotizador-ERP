@@ -327,27 +327,6 @@ export default function VehiculoList({ user }) {
 
           {!isFreelancer && (
             <>
-              <button
-                className="btn-secondary"
-                onClick={() => setIsAgenciaModalOpen(true)}
-                style={{
-                  height: '38px',
-                  borderRadius: '9999px',
-                  padding: '0 16px',
-                  fontSize: '0.8125rem',
-                  fontWeight: '600',
-                  color: '#FFFFFF',
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                🏢 Agencias
-              </button>
-
               <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
                 <button
                   className="btn-secondary"
@@ -438,7 +417,7 @@ export default function VehiculoList({ user }) {
                   </td>
                   <td style={{ padding: '14px 16px', color: '#F8FAFC', fontWeight: '600' }}>
                     <div>{item.marca} {item.vehiculo}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: '400' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#b9c8ddff', fontWeight: '400' }}>
                       Año: {item.ano} {item.nota ? `• ${item.nota}` : ''}
                     </div>
                   </td>
@@ -452,7 +431,7 @@ export default function VehiculoList({ user }) {
                   </td>
                   <td style={{ padding: '14px 16px', color: '#b9c8ddff', fontSize: '0.8125rem' }}>
                     <div>{item.tipo_vehiculo}</div>
-                    <div style={{ color: '#94A3B8', fontSize: '0.75rem' }}>{item.tipo_transmision}</div>
+                    <div style={{ color: '#b9c8ddff', fontSize: '0.75rem' }}>{item.tipo_transmision}</div>
                   </td>
 
                   {/* Pricing Column (Protected for US-03) */}
@@ -460,7 +439,7 @@ export default function VehiculoList({ user }) {
                     {item.tarifa_activa ? (
                       <div>
                         {!isFreelancer && (
-                          <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                          <div style={{ fontSize: '0.75rem', color: '#b9c8ddff' }}>
                             Costo: ${parseFloat(item.tarifa_activa.costo || 0).toFixed(2)}
                             {item.tarifa_activa.porcentaje !== undefined && (
                               <span style={{ color: '#10B981', marginLeft: '6px' }}>
@@ -474,7 +453,7 @@ export default function VehiculoList({ user }) {
                         </div>
                       </div>
                     ) : (
-                      <span style={{ color: '#94A3B8', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                      <span style={{ color: '#b9c8ddff', fontSize: '0.8rem', fontStyle: 'italic' }}>
                         Sin tarifa activa
                       </span>
                     )}
@@ -561,7 +540,7 @@ export default function VehiculoList({ user }) {
           alignItems: 'center',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
           fontSize: '0.8125rem',
-          color: '#94A3B8',
+          color: '#b9c8ddff',
         }}>
           <div>
             Mostrando {vehiculos.length > 0 ? (page - 1) * 10 + 1 : 0} a {Math.min(page * 10, total)} de {total} registros
@@ -646,7 +625,7 @@ export default function VehiculoList({ user }) {
             <h3 style={{ margin: '0 0 12px 0', fontSize: '1.25rem', color: '#FFFFFF' }}>
               Confirmar Eliminación
             </h3>
-            <p style={{ margin: '0 0 16px 0', color: '#94A3B8', fontSize: '0.875rem', lineHeight: '1.5' }}>
+            <p style={{ margin: '0 0 16px 0', color: '#b9c8ddff', fontSize: '0.875rem', lineHeight: '1.5' }}>
               ¿Está seguro de que desea eliminar el vehículo <strong style={{ color: '#FFFFFF' }}>{deleteTarget.marca} {deleteTarget.vehiculo} ({deleteTarget.ano})</strong>? Esta acción no se puede deshacer.
             </p>
 
