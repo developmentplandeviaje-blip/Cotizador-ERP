@@ -8,9 +8,13 @@ export default function VehiculoModal({
   onSaveSuccess,
   vehiculoToEdit = null,
   onOpenAgenciaModal,
+  agencias: propAgencias = [],
+  lastCreatedAgenciaId = null,
 }) {
-  const [agencias, setAgencias] = useState([]);
+  const [internalAgencias, setInternalAgencias] = useState([]);
   const [loadingAgencias, setLoadingAgencias] = useState(false);
+
+  const agencias = propAgencias.length > 0 ? propAgencias : internalAgencias;
 
   // Form fields
   const [idVehiculoAgencia, setIdVehiculoAgencia] = useState('');
@@ -31,11 +35,11 @@ export default function VehiculoModal({
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && propAgencias.length === 0) {
       setLoadingAgencias(true);
       axios.get('/v1/catalog/vehiculo-agencias')
         .then((res) => {
-          setAgencias(res.data.data || []);
+          setInternalAgencias(res.data.data || []);
         })
         .catch((err) => {
           console.error('Error cargando agencias:', err);
@@ -44,7 +48,7 @@ export default function VehiculoModal({
           setLoadingAgencias(false);
         });
     }
-  }, [isOpen]);
+  }, [isOpen, propAgencias.length]);
 
   useEffect(() => {
     if (isOpen) {
@@ -62,20 +66,37 @@ export default function VehiculoModal({
         setPrecio('');
         setPromocion(false);
       } else {
-        setIdVehiculoAgencia(agencias.length > 0 ? agencias[0].id : '');
-        setMarca('');
-        setVehiculo('');
-        setAno(new Date().getFullYear().toString());
-        setTipoVehiculo('Sedán');
-        setTipoTransmision('Automático');
-        setNota('');
-        setCosto('');
-        setPorcentaje('');
-        setPrecio('');
-        setPromocion(false);
+        setAno((prev) => prev || new Date().getFullYear().toString());
+        setTipoVehiculo((prev) => prev || 'Sedán');
+        setTipoTransmision((prev) => prev || 'Automático');
       }
+    } else {
+      setIdVehiculoAgencia('');
+      setMarca('');
+      setVehiculo('');
+      setAno('');
+      setTipoVehiculo('Sedán');
+      setTipoTransmision('Automático');
+      setNota('');
+      setCosto('');
+      setPorcentaje('');
+      setPrecio('');
+      setPromocion(false);
+      setErrorMessage('');
     }
-  }, [isOpen, vehiculoToEdit, agencias.length]);
+  }, [isOpen, vehiculoToEdit]);
+
+  useEffect(() => {
+    if (lastCreatedAgenciaId) {
+      setIdVehiculoAgencia(lastCreatedAgenciaId);
+    }
+  }, [lastCreatedAgenciaId]);
+
+  useEffect(() => {
+    if (!idVehiculoAgencia && agencias.length > 0 && !vehiculoToEdit) {
+      setIdVehiculoAgencia(agencias[0].id);
+    }
+  }, [agencias, idVehiculoAgencia, vehiculoToEdit]);
 
   const handleCostoChange = (val) => {
     setCosto(val);

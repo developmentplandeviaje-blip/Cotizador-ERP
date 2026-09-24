@@ -33,6 +33,7 @@ export default function VehiculoList({ user }) {
   const [vehiculoToEdit, setVehiculoToEdit] = useState(null);
   const [isAgenciaModalOpen, setIsAgenciaModalOpen] = useState(false);
   const [selectedVehiculoForTarifas, setSelectedVehiculoForTarifas] = useState(null);
+  const [lastCreatedAgenciaId, setLastCreatedAgenciaId] = useState(null);
 
   // Delete modal state
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -580,24 +581,30 @@ export default function VehiculoList({ user }) {
         onClose={() => {
           setIsModalOpen(false);
           setVehiculoToEdit(null);
+          setLastCreatedAgenciaId(null);
         }}
         onSaveSuccess={handleSaveSuccess}
         vehiculoToEdit={vehiculoToEdit}
         onOpenAgenciaModal={() => {
-          setIsModalOpen(false);
           setIsAgenciaModalOpen(true);
         }}
+        agencias={agencias}
+        lastCreatedAgenciaId={lastCreatedAgenciaId}
       />
 
       {/* Agencia Modal */}
       <VehiculoAgenciaModal
         isOpen={isAgenciaModalOpen}
+        zIndex={1100}
         onClose={() => {
           setIsAgenciaModalOpen(false);
           loadFiltersData();
         }}
-        onSaveSuccess={() => {
-          loadFiltersData();
+        onSaveSuccess={async (newAgencia) => {
+          await loadFiltersData();
+          if (newAgencia?.id) {
+            setLastCreatedAgenciaId(newAgencia.id);
+          }
         }}
       />
 
