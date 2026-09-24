@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
 import axios from 'axios';
 
-export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess }) {
+export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, zIndex = 1100 }) {
   const [ubicaciones, setUbicaciones] = useState([]);
   const [agencias, setAgencias] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -51,7 +51,7 @@ export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess })
     setErrorMessage('');
 
     try {
-      await axios.post('/v1/catalog/vehiculo-agencias', {
+      const res = await axios.post('/v1/catalog/vehiculo-agencias', {
         agencia: nombreAgencia.trim(),
         id_ubicacion: parseInt(idUbicacion, 10),
         nota: nota.trim() || null,
@@ -60,7 +60,7 @@ export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess })
       setIdUbicacion('');
       setNota('');
       fetchData();
-      if (onSaveSuccess) onSaveSuccess();
+      if (onSaveSuccess) onSaveSuccess(res.data?.data);
     } catch (err) {
       console.error('Error guardando agencia:', err);
       setErrorMessage(err.response?.data?.message || 'Error al guardar la agencia de alquiler.');
@@ -87,6 +87,7 @@ export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess })
       onClose={onClose}
       title="Gestión de Agencias de Alquiler"
       size="md"
+      zIndex={zIndex}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Form to add agency */}
