@@ -30,4 +30,9 @@ class Ubicacion extends Model
     {
         return $this->hasMany(Excursion::class, 'id_ubicacion');
     }
+
+    public function traslados(): HasMany
+    {
+        return $this->hasMany(Traslado::class, 'id_ubicacion');
+    }
 }

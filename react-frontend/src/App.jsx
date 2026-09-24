@@ -7,6 +7,7 @@ import UbicacionList from './components/catalog/ubicaciones/UbicacionList';
 import ExcursionList from './components/catalog/excursiones/ExcursionList';
 import PaqueteList from './components/catalog/paquetes/PaqueteList';
 import VehiculoList from './components/catalog/vehiculos/VehiculoList';
+import TrasladoList from './components/catalog/traslados/TrasladoList';
 
 // Configure default base URL for Axios
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -163,9 +164,10 @@ function App() {
       {activeRoute === 'servicios_excursiones' && <ExcursionList user={user} />}
       {activeRoute === 'servicios_paquetes' && <PaqueteList user={user} />}
       {activeRoute === 'servicios_vehiculos' && <VehiculoList user={user} />}
+      {activeRoute === 'servicios_traslados' && <TrasladoList user={user} />}
       {activeRoute === 'dashboard' && renderDashboard()}
       
-      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'dashboard' && (
+      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'dashboard' && (
         <div style={{
           background: 'rgba(30, 41, 59, 0.72)',
           border: '1px solid rgba(255, 255, 255, 0.12)',
