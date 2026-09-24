@@ -17,7 +17,6 @@ class Traslado extends Model
     protected $fillable = [
         'id_ubicacion',
         'ruta_origen',
-        'ruta_destino',
         'costo',
         'precio_publico',
         'tipo_servicio',
