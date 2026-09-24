@@ -54,39 +54,37 @@ class TrasladoTest extends TestCase
 
         Traslado::create([
             'id_ubicacion' => $this->ubicacionMargarita->id,
-            'ruta_origen' => 'Aeropuerto PMV',
-            'ruta_destino' => 'Hotel Playa El Agua',
+            'ruta_origen' => 'Aeropuerto PMV - Hotel Playa El Agua',
             'costo' => 20.00,
             'precio_publico' => 30.00,
-            'tipo_servicio' => 'privado',
+            'tipo_servicio' => 'Solo Ida',
         ]);
 
         Traslado::create([
             'id_ubicacion' => $this->ubicacionCaracas->id,
-            'ruta_origen' => 'Aeropuerto Maiquetía',
-            'ruta_destino' => 'Hotel Eurobuilding',
+            'ruta_origen' => 'Aeropuerto Maiquetía - Hotel Eurobuilding',
             'costo' => 35.00,
             'precio_publico' => 50.00,
-            'tipo_servicio' => 'compartido',
+            'tipo_servicio' => 'Ida y Vuelta',
         ]);
 
         // Search query filter
         $res1 = $this->getJson('/api/v1/catalog/traslados?search=Maiquetía');
         $res1->assertStatus(200)
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.ruta_origen', 'Aeropuerto Maiquetía');
+            ->assertJsonPath('data.0.ruta_origen', 'Aeropuerto Maiquetía - Hotel Eurobuilding');
 
         // Location filter
         $res2 = $this->getJson('/api/v1/catalog/traslados?id_ubicacion=' . $this->ubicacionMargarita->id);
         $res2->assertStatus(200)
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.ruta_destino', 'Hotel Playa El Agua');
+            ->assertJsonPath('data.0.ruta_origen', 'Aeropuerto PMV - Hotel Playa El Agua');
 
         // Service type filter
-        $res3 = $this->getJson('/api/v1/catalog/traslados?tipo_servicio=compartido');
+        $res3 = $this->getJson('/api/v1/catalog/traslados?tipo_servicio=' . urlencode('Ida y Vuelta'));
         $res3->assertStatus(200)
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.tipo_servicio', 'compartido');
+            ->assertJsonPath('data.0.tipo_servicio', 'Ida y Vuelta');
     }
 
     public function test_can_create_traslado_successfully(): void
@@ -95,26 +93,23 @@ class TrasladoTest extends TestCase
 
         $payload = [
             'id_ubicacion' => $this->ubicacionMargarita->id,
-            'ruta_origen' => 'Aeropuerto PMV',
-            'ruta_destino' => 'Pampatar Centro',
+            'ruta_origen' => 'Aeropuerto PMV - Pampatar Centro',
             'costo' => 22.00,
             'precio_publico' => 32.00,
-            'tipo_servicio' => 'privado',
+            'tipo_servicio' => 'Solo Ida',
         ];
 
         $response = $this->postJson('/api/v1/catalog/traslados', $payload);
 
         $response->assertStatus(201)
-            ->assertJsonPath('data.ruta_origen', 'Aeropuerto PMV')
-            ->assertJsonPath('data.ruta_destino', 'Pampatar Centro')
+            ->assertJsonPath('data.ruta_origen', 'Aeropuerto PMV - Pampatar Centro')
             ->assertJsonPath('data.costo', 22)
             ->assertJsonPath('data.precio_publico', 32)
-            ->assertJsonPath('data.tipo_servicio', 'privado');
+            ->assertJsonPath('data.tipo_servicio', 'Solo Ida');
 
         $this->assertDatabaseHas('traslado', [
             'id_ubicacion' => $this->ubicacionMargarita->id,
-            'ruta_origen' => 'Aeropuerto PMV',
-            'ruta_destino' => 'Pampatar Centro',
+            'ruta_origen' => 'Aeropuerto PMV - Pampatar Centro',
         ]);
     }
 
@@ -125,11 +120,11 @@ class TrasladoTest extends TestCase
         $response = $this->postJson('/api/v1/catalog/traslados', [
             'id_ubicacion' => 999999, // non-existent
             'costo' => -5, // invalid
-            'tipo_servicio' => 'invalido',
+            'tipo_servicio' => '',
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['id_ubicacion', 'ruta_origen', 'ruta_destino', 'costo', 'precio_publico', 'tipo_servicio']);
+            ->assertJsonValidationErrors(['id_ubicacion', 'ruta_origen', 'costo', 'precio_publico', 'tipo_servicio']);
     }
 
     public function test_can_update_traslado_successfully(): void
@@ -138,25 +133,24 @@ class TrasladoTest extends TestCase
 
         $traslado = Traslado::create([
             'id_ubicacion' => $this->ubicacionMargarita->id,
-            'ruta_origen' => 'Aeropuerto PMV',
-            'ruta_destino' => 'Hotel Sunsol',
+            'ruta_origen' => 'Aeropuerto PMV - Hotel Sunsol',
             'costo' => 25.00,
             'precio_publico' => 35.00,
-            'tipo_servicio' => 'privado',
+            'tipo_servicio' => 'Solo Ida',
         ]);
 
         $response = $this->putJson("/api/v1/catalog/traslados/{$traslado->id}", [
-            'ruta_destino' => 'Hotel Sunsol Isla Caribe',
+            'ruta_origen' => 'Aeropuerto PMV - Hotel Sunsol Isla Caribe',
             'precio_publico' => 40.00,
         ]);
 
         $response->assertStatus(200)
-            ->assertJsonPath('data.ruta_destino', 'Hotel Sunsol Isla Caribe')
+            ->assertJsonPath('data.ruta_origen', 'Aeropuerto PMV - Hotel Sunsol Isla Caribe')
             ->assertJsonPath('data.precio_publico', 40);
 
         $this->assertDatabaseHas('traslado', [
             'id' => $traslado->id,
-            'ruta_destino' => 'Hotel Sunsol Isla Caribe',
+            'ruta_origen' => 'Aeropuerto PMV - Hotel Sunsol Isla Caribe',
             'precio_publico' => 40.00,
         ]);
     }
@@ -167,11 +161,10 @@ class TrasladoTest extends TestCase
 
         $traslado = Traslado::create([
             'id_ubicacion' => $this->ubicacionMargarita->id,
-            'ruta_origen' => 'Origen Test',
-            'ruta_destino' => 'Destino Test',
+            'ruta_origen' => 'Ruta Temporal',
             'costo' => 10.00,
             'precio_publico' => 15.00,
-            'tipo_servicio' => 'privado',
+            'tipo_servicio' => 'Solo Ida',
         ]);
 
         $response = $this->deleteJson("/api/v1/catalog/traslados/{$traslado->id}");
@@ -190,11 +183,10 @@ class TrasladoTest extends TestCase
 
         $traslado = Traslado::create([
             'id_ubicacion' => $this->ubicacionMargarita->id,
-            'ruta_origen' => 'Origen con Ventas',
-            'ruta_destino' => 'Destino con Ventas',
+            'ruta_origen' => 'Ruta con Ventas',
             'costo' => 20.00,
             'precio_publico' => 30.00,
-            'tipo_servicio' => 'privado',
+            'tipo_servicio' => 'Solo Ida',
         ]);
 
         $ventaId = DB::table('ventas')->insertGetId([
@@ -233,11 +225,10 @@ class TrasladoTest extends TestCase
     {
         $traslado = Traslado::create([
             'id_ubicacion' => $this->ubicacionMargarita->id,
-            'ruta_origen' => 'Aeropuerto PMV',
-            'ruta_destino' => 'Playa El Yaque',
+            'ruta_origen' => 'Aeropuerto PMV - Playa El Yaque',
             'costo' => 20.00,
             'precio_publico' => 100.00,
-            'tipo_servicio' => 'privado',
+            'tipo_servicio' => 'Solo Ida',
         ]);
 
         // Freelancer request
