@@ -11,6 +11,7 @@ use App\Models\Catalog\Excursion;
 use App\Models\Catalog\Vehiculo;
 use App\Models\Catalog\VehiculoAgencia;
 use App\Models\Catalog\VehiculoTarifa;
+use App\Models\Catalog\Traslado;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -353,6 +354,77 @@ class CatalogSeeder extends Seeder
                 'precio' => 150.00,
                 'porcentaje' => 36.36,
                 'promocion' => false,
+            ]
+        );
+
+        // 7. Seed Traslados (5 Registros realistas)
+        // 1. Aeropuerto PMV -> Playa El Agua / Porlamar (Margarita)
+        Traslado::firstOrCreate(
+            [
+                'id_ubicacion' => $margarita->id,
+                'ruta_origen' => 'Aeropuerto Internacional Santiago Mariño (PMV)',
+                'ruta_destino' => 'Zona Hotelera Playa El Agua / Porlamar',
+            ],
+            [
+                'costo' => 25.00,
+                'precio_publico' => 35.00,
+                'tipo_servicio' => 'privado',
+            ]
+        );
+
+        // 2. Aeropuerto CCS -> Hoteles Caracas (Caracas)
+        Traslado::firstOrCreate(
+            [
+                'id_ubicacion' => $caracas->id,
+                'ruta_origen' => 'Aeropuerto Internacional Simón Bolívar Maiquetía (CCS)',
+                'ruta_destino' => 'Hoteles Caracas / Las Mercedes / Chacao',
+            ],
+            [
+                'costo' => 30.00,
+                'precio_publico' => 45.00,
+                'tipo_servicio' => 'privado',
+            ]
+        );
+
+        // 3. Pista Gran Roque -> Posadas (Los Roques)
+        Traslado::firstOrCreate(
+            [
+                'id_ubicacion' => $losRoques->id,
+                'ruta_origen' => 'Pista de Aterrizaje Gran Roque',
+                'ruta_destino' => 'Muelle Principal y Posadas Gran Roque',
+            ],
+            [
+                'costo' => 10.00,
+                'precio_publico' => 15.00,
+                'tipo_servicio' => 'compartido',
+            ]
+        );
+
+        // 4. Pista Canaima -> Campamentos (Canaima)
+        Traslado::firstOrCreate(
+            [
+                'id_ubicacion' => $canaima->id,
+                'ruta_origen' => 'Pista de Aterrizaje Canaima',
+                'ruta_destino' => 'Campamentos Laguna de Canaima',
+            ],
+            [
+                'costo' => 15.00,
+                'precio_publico' => 25.00,
+                'tipo_servicio' => 'compartido',
+            ]
+        );
+
+        // 5. Hoteles Porlamar -> Terminal de Ferry Punta de Piedras (Margarita)
+        Traslado::firstOrCreate(
+            [
+                'id_ubicacion' => $margarita->id,
+                'ruta_origen' => 'Hoteles Porlamar / Pampatar',
+                'ruta_destino' => 'Terminal de Ferry Punta de Piedras',
+            ],
+            [
+                'costo' => 20.00,
+                'precio_publico' => 30.00,
+                'tipo_servicio' => 'privado',
             ]
         );
     }

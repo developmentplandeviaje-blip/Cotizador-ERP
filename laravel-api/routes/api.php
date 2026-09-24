@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\v1\Catalog\PaqueteController;
 use App\Http\Controllers\Api\v1\Catalog\VehiculoController;
 use App\Http\Controllers\Api\v1\Catalog\VehiculoAgenciaController;
 use App\Http\Controllers\Api\v1\Catalog\VehiculoTarifaController;
+use App\Http\Controllers\Api\v1\Catalog\TrasladoController;
 
 // Public routes
 Route::post('/v1/auth/login', [AuthController::class, 'login']);
@@ -51,6 +52,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/catalog/vehiculos/{vehiculo}/tarifas', [VehiculoTarifaController::class, 'index']);
     Route::post('/v1/catalog/vehiculos/{vehiculo}/tarifas', [VehiculoTarifaController::class, 'store']);
     Route::delete('/v1/catalog/tarifas-vehiculo/{tarifa}', [VehiculoTarifaController::class, 'destroy']);
+
+    // Catalog: Traslados
+    Route::apiResource('/v1/catalog/traslados', TrasladoController::class)->parameters([
+        'traslados' => 'traslado'
+    ]);
 
     // Catalog: Hoteles
     Route::apiResource('/v1/catalog/hoteles', HotelController::class)->parameters([
