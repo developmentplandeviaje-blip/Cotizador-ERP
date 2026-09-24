@@ -9,6 +9,7 @@ import PaqueteList from './components/catalog/paquetes/PaqueteList';
 import VehiculoList from './components/catalog/vehiculos/VehiculoList';
 import TrasladoList from './components/catalog/traslados/TrasladoList';
 import AerolineaList from './components/catalog/aerolineas/AerolineaList';
+import UserAgenciaList from './components/users/agencia/UserAgenciaList';
 
 // Configure default base URL for Axios
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -57,7 +58,7 @@ const routeTitles = {
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeRoute, setActiveRoute] = useState('servicios_hoteles');
+  const [activeRoute, setActiveRoute] = useState('dashboard');
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -65,7 +66,7 @@ function App() {
 
     if (token && storedUser) {
       setUser(JSON.parse(storedUser));
-      
+
       // Verify token validity by fetching profile
       axios.get('/v1/auth/profile')
         .then(response => {
@@ -87,7 +88,7 @@ function App() {
 
   const handleLoginSuccess = (userProfile) => {
     setUser(userProfile);
-    setActiveRoute('servicios_hoteles');
+    setActiveRoute('dashboard');
   };
 
   const handleLogout = async () => {
@@ -167,9 +168,10 @@ function App() {
       {activeRoute === 'servicios_vehiculos' && <VehiculoList user={user} />}
       {activeRoute === 'servicios_traslados' && <TrasladoList user={user} />}
       {activeRoute === 'servicios_aerolineas' && <AerolineaList user={user} />}
+      {activeRoute === 'usuarios_agencia' && <UserAgenciaList user={user} />}
       {activeRoute === 'dashboard' && renderDashboard()}
-      
-      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'servicios_aerolineas' && activeRoute !== 'dashboard' && (
+
+      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'servicios_aerolineas' && activeRoute !== 'usuarios_agencia' && activeRoute !== 'dashboard' && (
         <div style={{
           background: 'rgba(30, 41, 59, 0.72)',
           border: '1px solid rgba(255, 255, 255, 0.12)',

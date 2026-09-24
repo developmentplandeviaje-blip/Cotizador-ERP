@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\v1\Catalog\VehiculoAgenciaController;
 use App\Http\Controllers\Api\v1\Catalog\VehiculoTarifaController;
 use App\Http\Controllers\Api\v1\Catalog\TrasladoController;
 use App\Http\Controllers\Api\v1\Catalog\AerolineaController;
+use App\Http\Controllers\Api\v1\User\UserAgenciaController;
 
 // Public routes
 Route::post('/v1/auth/login', [AuthController::class, 'login']);
@@ -82,4 +83,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/catalog/tarifas', [TarifaController::class, 'store']);
     Route::get('/v1/catalog/tarifas/{tarifa}', [TarifaController::class, 'show']);
     Route::delete('/v1/catalog/tarifas/{tarifa}', [TarifaController::class, 'destroy']);
+
+    // Users: Agencia
+    Route::apiResource('/v1/users/agencia', UserAgenciaController::class)->parameters([
+        'agencia' => 'user'
+    ]);
+    Route::patch('/v1/users/agencia/{user}/toggle-status', [UserAgenciaController::class, 'toggleStatus']);
 });
