@@ -22,7 +22,7 @@ class TrasladoService
             $search = '%' . trim($filters['search']) . '%';
             $query->where(function ($q) use ($search) {
                 $q->where('ruta_origen', 'like', $search)
-                  ->orWhere('ruta_destino', 'like', $search)
+                  
                   ->orWhereHas('ubicacion', function ($uq) use ($search) {
                       $uq->where('ubicacion', 'like', $search);
                   });
@@ -43,11 +43,11 @@ class TrasladoService
         $sortBy = $filters['sort_by'] ?? 'ruta_origen';
         $sortDir = strtolower($filters['sort_dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
-        $allowedSorts = ['id', 'ruta_origen', 'ruta_destino', 'id_ubicacion', 'tipo_servicio', 'costo', 'precio_publico'];
+        $allowedSorts = ['id', 'ruta_origen', 'id_ubicacion', 'tipo_servicio', 'costo', 'precio_publico'];
         if (in_array($sortBy, $allowedSorts, true)) {
             $query->orderBy($sortBy, $sortDir);
         } else {
-            $query->orderBy('ruta_origen', 'asc')->orderBy('ruta_destino', 'asc');
+            $query->orderBy('ruta_origen', 'asc');
         }
 
         // Unpaginated if perPage is null or <= 0
@@ -67,10 +67,10 @@ class TrasladoService
             $traslado = Traslado::create([
                 'id_ubicacion' => (int) $data['id_ubicacion'],
                 'ruta_origen' => trim($data['ruta_origen']),
-                'ruta_destino' => trim($data['ruta_destino']),
+                
                 'costo' => (float) $data['costo'],
                 'precio_publico' => (float) $data['precio_publico'],
-                'tipo_servicio' => trim($data['tipo_servicio'] ?? 'privado'),
+                'tipo_servicio' => trim($data['tipo_servicio'] ?? 'Solo Ida'),
             ]);
 
             return $traslado->load('ubicacion');
@@ -86,7 +86,7 @@ class TrasladoService
             $traslado->update([
                 'id_ubicacion' => isset($data['id_ubicacion']) ? (int) $data['id_ubicacion'] : $traslado->id_ubicacion,
                 'ruta_origen' => isset($data['ruta_origen']) ? trim($data['ruta_origen']) : $traslado->ruta_origen,
-                'ruta_destino' => isset($data['ruta_destino']) ? trim($data['ruta_destino']) : $traslado->ruta_destino,
+                
                 'costo' => isset($data['costo']) ? (float) $data['costo'] : $traslado->costo,
                 'precio_publico' => isset($data['precio_publico']) ? (float) $data['precio_publico'] : $traslado->precio_publico,
                 'tipo_servicio' => isset($data['tipo_servicio']) ? trim($data['tipo_servicio']) : $traslado->tipo_servicio,
@@ -106,7 +106,7 @@ class TrasladoService
         $salesCount = $traslado->ventasCount();
         if ($salesCount > 0) {
             throw ValidationException::withMessages([
-                'traslado' => ["No es posible eliminar el traslado '{$traslado->ruta_origen} - {$traslado->ruta_destino}' porque tiene {$salesCount} venta(s) asociada(s)."]
+                'traslado' => ["No es posible eliminar el traslado '{$traslado->ruta_origen}' porque tiene {$salesCount} venta(s) asociada(s)."]
             ]);
         }
 

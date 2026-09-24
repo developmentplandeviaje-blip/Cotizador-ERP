@@ -16,10 +16,9 @@ class StoreTrasladoRequest extends FormRequest
         return [
             'id_ubicacion' => ['required', 'integer', 'exists:ubicacion,id'],
             'ruta_origen' => ['required', 'string', 'max:255'],
-            'ruta_destino' => ['required', 'string', 'max:255'],
-            'costo' => ['required', 'numeric', 'min:0'],
+                        'costo' => ['required', 'numeric', 'min:0'],
             'precio_publico' => ['required', 'numeric', 'min:0'],
-            'tipo_servicio' => ['required', 'string', 'in:privado,compartido'],
+            'tipo_servicio' => ['required', 'string', 'string', 'max:50'],
         ];
     }
 
@@ -28,11 +27,9 @@ class StoreTrasladoRequest extends FormRequest
         return [
             'id_ubicacion.required' => 'Debe seleccionar una ubicación válida.',
             'id_ubicacion.exists' => 'La ubicación seleccionada no existe en el catálogo.',
-            'ruta_origen.required' => 'El origen del traslado es obligatorio.',
+            'ruta_origen.required' => 'La descripci\u00f3n del traslado es obligatoria.',
             'ruta_origen.max' => 'El origen no debe superar los 255 caracteres.',
-            'ruta_destino.required' => 'El destino del traslado es obligatorio.',
-            'ruta_destino.max' => 'El destino no debe superar los 255 caracteres.',
-            'costo.required' => 'El costo del traslado es obligatorio.',
+                                    'costo.required' => 'El costo del traslado es obligatorio.',
             'costo.min' => 'El costo no puede ser menor a 0.',
             'precio_publico.required' => 'El precio público del traslado es obligatorio.',
             'precio_publico.min' => 'El precio público no puede ser menor a 0.',
