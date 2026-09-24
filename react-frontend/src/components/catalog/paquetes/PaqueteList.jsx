@@ -233,6 +233,8 @@ export default function PaqueteList({ user }) {
                 borderRadius: '9999px',
                 background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
                 height: '38px',
+                paddingLeft: '14px',
+                paddingRight: '36px',
                 boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
                 border: '1px solid rgb(255 255 255 / 56%)',
                 cursor: 'pointer',
@@ -242,8 +244,10 @@ export default function PaqueteList({ user }) {
                 MozAppearance: 'none',
                 backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c8dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
                 backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'calc(100% - 10px) center',
+                backgroundPosition: 'calc(100% - 12px) center',
                 backgroundSize: '16px',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
               value={selectedUbicacion}
               onChange={(e) => {
