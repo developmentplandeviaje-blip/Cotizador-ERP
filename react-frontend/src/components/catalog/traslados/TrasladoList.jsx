@@ -126,7 +126,7 @@ export default function TrasladoList({ user }) {
     try {
       await axios.delete(`/v1/catalog/traslados/${deleteTarget.id}`);
       setDeleteTarget(null);
-      setSuccessBanner(`Traslado '${deleteTarget.ruta_origen}' eliminado correctamente.`);
+      setSuccessBanner(`Traslado '${deleteTarget.ruta_origen} - ${deleteTarget.ruta_destino}' eliminado correctamente.`);
       setTimeout(() => setSuccessBanner(''), 4000);
       fetchTraslados();
     } catch (err) {
@@ -218,7 +218,7 @@ export default function TrasladoList({ user }) {
                 boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
                 border: '1px solid rgb(255 255 255 / 56%)',
               }}
-              placeholder="Buscar traslado..."
+              placeholder="Buscar origen o destino..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -301,11 +301,11 @@ export default function TrasladoList({ user }) {
               <option value="" style={{ background: '#101c44', color: '#b9c8ddff' }}>
                 Todos los Servicios
               </option>
-              <option value="Solo Ida" style={{ background: '#101c44', color: '#FFFFFF' }}>
-                Solo Ida
+              <option value="privado" style={{ background: '#101c44', color: '#FFFFFF' }}>
+                Privado
               </option>
-              <option value="Ida y Vuelta" style={{ background: '#101c44', color: '#FFFFFF' }}>
-                Ida y Vuelta
+              <option value="compartido" style={{ background: '#101c44', color: '#FFFFFF' }}>
+                Compartido
               </option>
             </select>
           </div>
@@ -362,7 +362,7 @@ export default function TrasladoList({ user }) {
                 onClick={() => handleSort('ruta_origen')}
                 style={{ padding: '14px 16px', color: '#FFFFFF', fontWeight: '600', cursor: 'pointer' }}
               >
-                Traslado (Ruta){getSortIndicator('ruta_origen')}
+                Ruta (Origen → Destino){getSortIndicator('ruta_origen')}
               </th>
               <th
                 onClick={() => handleSort('id_ubicacion')}
@@ -436,7 +436,11 @@ export default function TrasladoList({ user }) {
                     {(page - 1) * 10 + index + 1}
                   </td>
                   <td style={{ padding: '14px 16px', color: '#F8FAFC', fontWeight: '600' }}>
-                    <span>{item.ruta_origen}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>{item.ruta_origen}</span>
+                      <span style={{ color: '#E87217', fontWeight: 'bold' }}>→</span>
+                      <span>{item.ruta_destino}</span>
+                    </div>
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <Badge variant="primary" style={{ fontSize: '0.75rem' }}>
@@ -445,7 +449,7 @@ export default function TrasladoList({ user }) {
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     <Badge
-                      variant={item.tipo_servicio === 'Solo Ida' ? 'success' : 'neutral'}
+                      variant={item.tipo_servicio === 'privado' ? 'success' : 'neutral'}
                       style={{ textTransform: 'capitalize', fontSize: '0.75rem' }}
                     >
                       {item.tipo_servicio}
@@ -585,7 +589,7 @@ export default function TrasladoList({ user }) {
 
             <div>
               <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5' }}>
-                ¿Estás seguro de que deseas eliminar el traslado <strong style={{ color: '#E87217' }}>{deleteTarget.ruta_origen}</strong>?
+                ¿Estás seguro de que deseas eliminar el traslado <strong style={{ color: '#E87217' }}>{deleteTarget.ruta_origen} → {deleteTarget.ruta_destino}</strong>?
               </p>
               <p style={{ color: '#b9c8ddff', fontSize: '0.8125rem', marginTop: '8px' }}>
                 Esta acción eliminará el registro del catálogo de forma permanente.
