@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\v1\Catalog\VehiculoController;
 use App\Http\Controllers\Api\v1\Catalog\VehiculoAgenciaController;
 use App\Http\Controllers\Api\v1\Catalog\VehiculoTarifaController;
 use App\Http\Controllers\Api\v1\Catalog\TrasladoController;
+use App\Http\Controllers\Api\v1\Catalog\AerolineaController;
 
 // Public routes
 Route::post('/v1/auth/login', [AuthController::class, 'login']);
@@ -56,6 +57,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Catalog: Traslados
     Route::apiResource('/v1/catalog/traslados', TrasladoController::class)->parameters([
         'traslados' => 'traslado'
+    ]);
+
+    // Catalog: Aerolíneas
+    Route::apiResource('/v1/catalog/aerolineas', AerolineaController::class)->parameters([
+        'aerolineas' => 'aerolinea'
     ]);
 
     // Catalog: Hoteles
