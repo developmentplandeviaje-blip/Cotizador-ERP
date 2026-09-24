@@ -169,4 +169,13 @@ class PricingEngine
 
         return $trasladoData;
     }
+
+    /**
+     * Sanitize and format an aerolinea object according to user permissions (US-03).
+     */
+    public function formatAerolineaForUser(array $aerolineaData, ?User $user): array
+    {
+        // Aerolineas are catalog entities without direct cost columns.
+        return $aerolineaData;
+    }
 }
