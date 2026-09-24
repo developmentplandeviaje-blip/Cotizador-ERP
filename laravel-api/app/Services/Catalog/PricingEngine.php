@@ -146,4 +146,27 @@ class PricingEngine
 
         return $tarifaData;
     }
+
+    /**
+     * Sanitize and format a traslado object according to user permissions (US-03).
+     */
+    public function formatTrasladoForUser(array $trasladoData, ?User $user): array
+    {
+        $hideCosts = $this->shouldHideNetCosts($user);
+
+        if ($hideCosts) {
+            // Apply markup to base selling price
+            $trasladoData['precio_publico'] = $this->calculateSellingPrice(
+                (float) ($trasladoData['precio_publico'] ?? 0)
+            );
+
+            // Strip net costs strictly per US-03
+            unset(
+                $trasladoData['costo'],
+                $trasladoData['porcentaje']
+            );
+        }
+
+        return $trasladoData;
+    }
 }
