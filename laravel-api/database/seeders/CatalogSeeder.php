@@ -12,6 +12,7 @@ use App\Models\Catalog\Vehiculo;
 use App\Models\Catalog\VehiculoAgencia;
 use App\Models\Catalog\VehiculoTarifa;
 use App\Models\Catalog\Traslado;
+use App\Models\Catalog\Aerolinea;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -427,5 +428,12 @@ class CatalogSeeder extends Seeder
                 'tipo_servicio' => 'privado',
             ]
         );
+
+        // 8. Seed Aerolíneas (5 Registros realistas)
+        Aerolinea::firstOrCreate(['nombre' => 'Laser Airlines']);
+        Aerolinea::firstOrCreate(['nombre' => 'Rutaca Airlines']);
+        Aerolinea::firstOrCreate(['nombre' => 'Avior Airlines']);
+        Aerolinea::firstOrCreate(['nombre' => 'Conviasa']);
+        Aerolinea::firstOrCreate(['nombre' => 'Venezolana (RAVSA)']);
     }
 }
