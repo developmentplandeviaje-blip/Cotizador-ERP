@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Modal({ isOpen, onClose, title, steps, currentStep, children, width = '600px' }) {
+export default function Modal({ isOpen, onClose, title, steps, currentStep, children, width = '600px', zIndex = 1000 }) {
   if (!isOpen) return null;
 
   return (
@@ -12,7 +12,7 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, chil
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 1000,
+      zIndex,
       padding: '20px',
       boxSizing: 'border-box',
     }}>
