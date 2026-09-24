@@ -22,10 +22,10 @@ class TrasladoService
             $search = '%' . trim($filters['search']) . '%';
             $query->where(function ($q) use ($search) {
                 $q->where('ruta_origen', 'like', $search)
-                  
-                  ->orWhereHas('ubicacion', function ($uq) use ($search) {
-                      $uq->where('ubicacion', 'like', $search);
-                  });
+
+                    ->orWhereHas('ubicacion', function ($uq) use ($search) {
+                        $uq->where('ubicacion', 'like', $search);
+                    });
             });
         }
 
@@ -67,7 +67,7 @@ class TrasladoService
             $traslado = Traslado::create([
                 'id_ubicacion' => (int) $data['id_ubicacion'],
                 'ruta_origen' => trim($data['ruta_origen']),
-                
+
                 'costo' => (float) $data['costo'],
                 'precio_publico' => (float) $data['precio_publico'],
                 'tipo_servicio' => trim($data['tipo_servicio'] ?? 'Solo Ida'),
@@ -86,7 +86,7 @@ class TrasladoService
             $traslado->update([
                 'id_ubicacion' => isset($data['id_ubicacion']) ? (int) $data['id_ubicacion'] : $traslado->id_ubicacion,
                 'ruta_origen' => isset($data['ruta_origen']) ? trim($data['ruta_origen']) : $traslado->ruta_origen,
-                
+
                 'costo' => isset($data['costo']) ? (float) $data['costo'] : $traslado->costo,
                 'precio_publico' => isset($data['precio_publico']) ? (float) $data['precio_publico'] : $traslado->precio_publico,
                 'tipo_servicio' => isset($data['tipo_servicio']) ? trim($data['tipo_servicio']) : $traslado->tipo_servicio,
