@@ -248,6 +248,8 @@ export default function VehiculoList({ user }) {
                 borderRadius: '9999px',
                 background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
                 height: '38px',
+                paddingLeft: '14px',
+                paddingRight: '36px',
                 boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
                 border: '1px solid rgb(255 255 255 / 56%)',
                 cursor: 'pointer',
@@ -257,8 +259,10 @@ export default function VehiculoList({ user }) {
                 MozAppearance: 'none',
                 backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c8dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
                 backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'calc(100% - 10px) center',
+                backgroundPosition: 'calc(100% - 12px) center',
                 backgroundSize: '16px',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
               value={selectedUbicacion}
               onChange={(e) => {
@@ -276,13 +280,15 @@ export default function VehiculoList({ user }) {
           </div>
 
           {/* Agency Dropdown Filter */}
-          <div style={{ width: '190px' }}>
+          <div style={{ width: '220px' }}>
             <select
               className="erp-input"
               style={{
                 borderRadius: '9999px',
                 background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
                 height: '38px',
+                paddingLeft: '14px',
+                paddingRight: '36px',
                 boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
                 border: '1px solid rgb(255 255 255 / 56%)',
                 cursor: 'pointer',
@@ -292,10 +298,13 @@ export default function VehiculoList({ user }) {
                 MozAppearance: 'none',
                 backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c8dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
                 backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'calc(100% - 10px) center',
+                backgroundPosition: 'calc(100% - 12px) center',
                 backgroundSize: '16px',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
               value={selectedAgencia}
+              title={selectedAgencia ? agencias.find(a => String(a.id) === String(selectedAgencia))?.agencia : 'Todas las Agencias'}
               onChange={(e) => {
                 setSelectedAgencia(e.target.value);
                 setPage(1);
@@ -327,6 +336,27 @@ export default function VehiculoList({ user }) {
 
           {!isFreelancer && (
             <>
+              <button
+                className="btn-secondary"
+                onClick={() => setIsAgenciaModalOpen(true)}
+                style={{
+                  height: '38px',
+                  borderRadius: '9999px',
+                  padding: '0 16px',
+                  fontSize: '0.8125rem',
+                  fontWeight: '600',
+                  color: '#FFFFFF',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                🏢 Agencias
+              </button>
+
               <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
                 <button
                   className="btn-secondary"
@@ -417,7 +447,7 @@ export default function VehiculoList({ user }) {
                   </td>
                   <td style={{ padding: '14px 16px', color: '#F8FAFC', fontWeight: '600' }}>
                     <div>{item.marca} {item.vehiculo}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#b9c8ddff', fontWeight: '400' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: '400' }}>
                       Año: {item.ano} {item.nota ? `• ${item.nota}` : ''}
                     </div>
                   </td>
@@ -431,7 +461,7 @@ export default function VehiculoList({ user }) {
                   </td>
                   <td style={{ padding: '14px 16px', color: '#b9c8ddff', fontSize: '0.8125rem' }}>
                     <div>{item.tipo_vehiculo}</div>
-                    <div style={{ color: '#b9c8ddff', fontSize: '0.75rem' }}>{item.tipo_transmision}</div>
+                    <div style={{ color: '#94A3B8', fontSize: '0.75rem' }}>{item.tipo_transmision}</div>
                   </td>
 
                   {/* Pricing Column (Protected for US-03) */}
@@ -439,7 +469,7 @@ export default function VehiculoList({ user }) {
                     {item.tarifa_activa ? (
                       <div>
                         {!isFreelancer && (
-                          <div style={{ fontSize: '0.75rem', color: '#b9c8ddff' }}>
+                          <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
                             Costo: ${parseFloat(item.tarifa_activa.costo || 0).toFixed(2)}
                             {item.tarifa_activa.porcentaje !== undefined && (
                               <span style={{ color: '#10B981', marginLeft: '6px' }}>
@@ -453,7 +483,7 @@ export default function VehiculoList({ user }) {
                         </div>
                       </div>
                     ) : (
-                      <span style={{ color: '#b9c8ddff', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                      <span style={{ color: '#94A3B8', fontSize: '0.8rem', fontStyle: 'italic' }}>
                         Sin tarifa activa
                       </span>
                     )}
@@ -540,7 +570,7 @@ export default function VehiculoList({ user }) {
           alignItems: 'center',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
           fontSize: '0.8125rem',
-          color: '#b9c8ddff',
+          color: '#94A3B8',
         }}>
           <div>
             Mostrando {vehiculos.length > 0 ? (page - 1) * 10 + 1 : 0} a {Math.min(page * 10, total)} de {total} registros
@@ -625,7 +655,7 @@ export default function VehiculoList({ user }) {
             <h3 style={{ margin: '0 0 12px 0', fontSize: '1.25rem', color: '#FFFFFF' }}>
               Confirmar Eliminación
             </h3>
-            <p style={{ margin: '0 0 16px 0', color: '#b9c8ddff', fontSize: '0.875rem', lineHeight: '1.5' }}>
+            <p style={{ margin: '0 0 16px 0', color: '#94A3B8', fontSize: '0.875rem', lineHeight: '1.5' }}>
               ¿Está seguro de que desea eliminar el vehículo <strong style={{ color: '#FFFFFF' }}>{deleteTarget.marca} {deleteTarget.vehiculo} ({deleteTarget.ano})</strong>? Esta acción no se puede deshacer.
             </p>
 
