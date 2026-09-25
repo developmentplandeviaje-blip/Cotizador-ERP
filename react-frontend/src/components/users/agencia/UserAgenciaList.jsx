@@ -337,17 +337,6 @@ export default function UserAgenciaList({ user: currentUser }) {
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
               className="btn-secondary"
-              onClick={() => window.print()}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              title="Imprimir listado">
-              <img src={imgImprimir} alt="Imprimir" style={{ width: '20px', height: '20px' }} />
-            </button>
-            <span className='title-input'>Imprimir</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
-            <button
-              className="btn-secondary"
               onClick={handleOpenCreate}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               title="Agregar nuevo usuario">
@@ -495,8 +484,8 @@ export default function UserAgenciaList({ user: currentUser }) {
                           position: 'absolute',
                           left: '16px',
                           top: '40px',
-                          backgroundColor: '#0F172A',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          backgroundColor: '#001231eb',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
                           borderRadius: '10px',
                           padding: '12px',
                           zIndex: 100,

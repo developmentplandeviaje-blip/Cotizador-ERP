@@ -471,7 +471,7 @@ export default function VehiculoList({ user }) {
                   {/* Promotion Badge */}
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     {item.has_promocion ? (
-                      <Badge variant="warning">Promo Activa</Badge>
+                      <Badge variant="success">Promo Activa</Badge>
                     ) : (
                       <Badge variant="neutral">Estándar</Badge>
                     )}
