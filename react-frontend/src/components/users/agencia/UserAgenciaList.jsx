@@ -7,7 +7,7 @@ import imgImprimir from '../../../assets/Imprimir.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
 
-const NIVELES = ['Administrador', 'Sub Gerente', 'Lider', 'Asesor'];
+const NIVELES = ['Admin', 'Sub Gerente', 'Lider', 'Asesor'];
 
 export default function UserAgenciaList({ user: currentUser }) {
   const [users, setUsers] = useState([]);
@@ -77,7 +77,7 @@ export default function UserAgenciaList({ user: currentUser }) {
 
   const getSortIndicator = (key) => {
     if (sortConfig.key !== key) {
-      return <span style={{ opacity: 0.3, marginLeft: '6px' }}>↕</span>;
+      return <span style={{ opacity: 0.3, marginLeft: '6px' }}></span>;
     }
     return (
       <span style={{ marginLeft: '6px', color: '#E87217', fontWeight: 'bold' }}>
@@ -150,14 +150,14 @@ export default function UserAgenciaList({ user: currentUser }) {
     switch (lvl) {
       case 'Administrador':
       case 'Admin':
-        return <Badge variant="purple">{lvl}</Badge>;
+        return <Badge variant="neutral" style={{ minWidth: '60px' }}>{lvl}</Badge>;
       case 'Sub Gerente':
-        return <Badge variant="info">{lvl}</Badge>;
+        return <Badge variant="neutral" style={{ minWidth: '60px' }}>{lvl}</Badge>;
       case 'Lider':
-        return <Badge variant="warning">{lvl}</Badge>;
+        return <Badge variant="neutral" style={{ minWidth: '60px' }}>{lvl}</Badge>;
       case 'Asesor':
       default:
-        return <Badge variant="success">{lvl}</Badge>;
+        return <Badge variant="neutral" style={{ minWidth: '60px' }}>{lvl}</Badge>;
     }
   };
 
@@ -217,13 +217,12 @@ export default function UserAgenciaList({ user: currentUser }) {
         {/* Search & Dropdown Filters */}
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Search Input */}
-          <div style={{ position: 'relative', width: '300px', maxWidth: '100%' }}>
+          <div style={{ position: 'relative', width: '300px' }}>
             <span style={{
               position: 'absolute',
               left: '14px',
               top: '50%',
               transform: 'translateY(-40%)',
-              color: '#b9c8ddff',
               fontSize: '1rem',
             }}>
               <img src={imgSearch} alt="" style={{ width: '20px', height: '20px' }} />
@@ -232,12 +231,14 @@ export default function UserAgenciaList({ user: currentUser }) {
               type="text"
               className="erp-input"
               style={{
-                paddingLeft: '36px',
+                width: '100%',
                 borderRadius: '9999px',
                 background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
                 height: '38px',
+                paddingLeft: '40px',
                 boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
                 border: '1px solid rgb(255 255 255 / 56%)',
+                color: '#FFFFFF'
               }}
               placeholder="Buscar por nombre o correo..."
               value={search}
@@ -260,8 +261,8 @@ export default function UserAgenciaList({ user: currentUser }) {
                 paddingRight: '36px',
                 boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
                 border: '1px solid rgb(255 255 255 / 56%)',
+                color: selectedLevel ? '#FFFFFF' : '#b9c8ddff',
                 cursor: 'pointer',
-                color: selectedUbicacion ? '#FFFFFF' : '#b9c8ddff',
                 appearance: 'none',
                 WebkitAppearance: 'none',
                 MozAppearance: 'none',
@@ -301,8 +302,8 @@ export default function UserAgenciaList({ user: currentUser }) {
                 paddingRight: '36px',
                 boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
                 border: '1px solid rgb(255 255 255 / 56%)',
+                color: selectedStatus ? '#FFFFFF' : '#b9c8ddff',
                 cursor: 'pointer',
-                color: selectedUbicacion ? '#FFFFFF' : '#b9c8ddff',
                 appearance: 'none',
                 WebkitAppearance: 'none',
                 MozAppearance: 'none',
@@ -332,27 +333,27 @@ export default function UserAgenciaList({ user: currentUser }) {
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
-              type="button"
-              className="btn-toolbar"
+              className="btn-secondary"
               onClick={() => window.print()}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               title="Imprimir listado">
-              <img src={imgImprimir} alt="Imprimir" style={{ width: '18px', height: '18px' }} />
-              <span>Imprimir</span>
+              <img src={imgImprimir} alt="Imprimir" style={{ width: '20px', height: '20px' }} />
             </button>
+            <span className='title-input'>Imprimir</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
-              type="button"
-              className="btn-primary"
+              className="btn-secondary"
               onClick={handleOpenCreate}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img src={imgAgregar} alt="Agregar" style={{ width: '18px', height: '18px' }} />
-              <span>Agregar Usuario</span>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              title="Agregar nuevo usuario">
+              <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
             </button>
+            <span className='title-input'>Agregar</span>
           </div>
         </div>
       </div>
@@ -368,83 +369,33 @@ export default function UserAgenciaList({ user: currentUser }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
           <thead>
             <tr style={{ background: '#e8721726', borderBottom: '1px solid rgba(255, 255, 255, 0.84)' }}>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+              <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
                 Usuario
               </th>
-              <th
-                onClick={() => handleSort('first_name')}
-                style={{
-                  padding: '14px 16px',
-                  color: '#94A3B8',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                }}
-              >
+              <th onClick={() => handleSort('first_name')}
+                style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
                 Nombre {getSortIndicator('first_name')}
               </th>
-              <th
-                onClick={() => handleSort('email')}
-                style={{
-                  padding: '14px 16px',
-                  color: '#94A3B8',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                }}
-              >
+              <th onClick={() => handleSort('email')}
+                style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
                 Email {getSortIndicator('email')}
               </th>
-              <th
-                onClick={() => handleSort('level')}
-                style={{
-                  padding: '14px 16px',
-                  color: '#94A3B8',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                }}
-              >
+              <th onClick={() => handleSort('level')}
+                style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
                 Nivel / Rol {getSortIndicator('level')}
               </th>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+              <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
                 Comisiones
               </th>
-              <th
-                onClick={() => handleSort('status')}
-                style={{
-                  padding: '14px 16px',
-                  color: '#94A3B8',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                }}
-              >
+              <th onClick={() => handleSort('status')}
+                style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
                 Estado {getSortIndicator('status')}
               </th>
-              <th
-                onClick={() => handleSort('date_creation')}
-                style={{
-                  padding: '14px 16px',
-                  color: '#94A3B8',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                }}
-              >
+              <th onClick={() => handleSort('date_creation')}
+                style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
                 Registro {getSortIndicator('date_creation')}
               </th>
-              <th style={{ padding: '14px 16px', color: '#94A3B8', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', textAlign: 'center' }}>
+              <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', textAlign: 'center' }}>
                 Acciones
               </th>
             </tr>
@@ -452,14 +403,14 @@ export default function UserAgenciaList({ user: currentUser }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   <div className="spinner-border" style={{ margin: '0 auto 12px auto' }} />
                   <p style={{ margin: 0, fontSize: '0.875rem' }}>Cargando usuarios de agencia...</p>
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   <span style={{ fontSize: '2rem', display: 'block', marginBottom: '8px' }}>👤</span>
                   <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: '#E2E8F0' }}>
                     No se encontraron usuarios
@@ -507,7 +458,7 @@ export default function UserAgenciaList({ user: currentUser }) {
                   </td>
 
                   {/* Email */}
-                  <td style={{ padding: '12px 16px', color: '#94A3B8', fontSize: '0.875rem' }}>
+                  <td style={{ padding: '12px 16px', color: '#b9c8ddff', fontSize: '0.875rem' }}>
                     {item.email}
                   </td>
 
@@ -559,7 +510,7 @@ export default function UserAgenciaList({ user: currentUser }) {
                       >
                         {Object.entries(item.comisiones || {}).map(([key, val]) => (
                           <div key={key} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                            <span style={{ color: '#94A3B8', textTransform: 'capitalize' }}>{key}:</span>
+                            <span style={{ color: '#b9c8ddff', textTransform: 'capitalize' }}>{key}:</span>
                             <span style={{ color: '#E87217', fontWeight: 600 }}>{val}%</span>
                           </div>
                         ))}
@@ -585,13 +536,13 @@ export default function UserAgenciaList({ user: currentUser }) {
                       {item.status ? (
                         <Badge variant="success">Habilitado</Badge>
                       ) : (
-                        <Badge variant="danger">Deshabilitado</Badge>
+                        <Badge variant="error">Deshabilitado</Badge>
                       )}
                     </button>
                   </td>
 
                   {/* Date Creation */}
-                  <td style={{ padding: '12px 16px', color: '#94A3B8', fontSize: '0.8125rem' }}>
+                  <td style={{ padding: '12px 16px', color: '#b9c8ddff', fontSize: '0.8125rem' }}>
                     {item.date_creation ? item.date_creation.split(' ')[0] : '—'}
                   </td>
 
@@ -608,13 +559,13 @@ export default function UserAgenciaList({ user: currentUser }) {
                           border: '1px solid rgba(255, 255, 255, 0.15)',
                           borderRadius: '8px',
                           padding: '6px 10px',
-                          color: '#E2E8F0',
+                          color: '#F8FAFC',
                           fontSize: '0.8125rem',
                           cursor: 'pointer',
                           transition: 'all 0.2s',
                         }}
                       >
-                        ✎ Editar
+                        Editar
                       </button>
 
                       {/* Delete Button */}
@@ -633,7 +584,7 @@ export default function UserAgenciaList({ user: currentUser }) {
                           transition: 'all 0.2s',
                         }}
                       >
-                        🗑️
+                        Eliminar
                       </button>
                     </div>
                   </td>
@@ -652,12 +603,8 @@ export default function UserAgenciaList({ user: currentUser }) {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              backgroundColor: 'rgba(15, 23, 42, 0.4)',
             }}
           >
-            <span style={{ fontSize: '0.8125rem', color: '#94A3B8' }}>
-              Mostrando {users.length} de {total} usuarios
-            </span>
             <Pagination
               currentPage={page}
               lastPage={lastPage}
@@ -710,7 +657,7 @@ export default function UserAgenciaList({ user: currentUser }) {
                 <h3 style={{ margin: 0, fontSize: '1.125rem', color: '#FFFFFF', fontWeight: 600 }}>
                   Confirmar Eliminación
                 </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: '#94A3B8' }}>
+                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: '#b9c8ddff' }}>
                   Esta acción intentará remover el usuario de la agencia
                 </p>
               </div>

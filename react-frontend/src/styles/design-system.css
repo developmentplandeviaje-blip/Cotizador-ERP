@@ -94,6 +94,30 @@ body {
   color: var(--color-text-primary);
 }
 
+.badge-purple {
+  border: 1px solid var(--color-border-btn);
+  background-color: #5f1a8f;
+  color: var(--color-text-primary);
+}
+
+.badge-info {
+  border: 1px solid var(--color-border-btn);
+  background-color: #0f6f77;
+  color: var(--color-text-primary);
+}
+
+.badge-warning {
+  border: 1px solid var(--color-border-btn);
+  background-color: #c06010;
+  color: var(--color-text-primary);
+}
+
+.badge-blue {
+  border: 1px solid var(--color-border-btn);
+  background-color: #0f47c3;
+  color: var(--color-text-primary);
+}
+
 /* Botones UI */
 .btn-primary {
   background-color: var(--color-primary-main);
