@@ -9,8 +9,8 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
   // Form fields
   const [idUbicacion, setIdUbicacion] = useState('');
   const [rutaOrigen, setRutaOrigen] = useState('');
-  const [rutaDestino, setRutaDestino] = useState('');
-  const [tipoServicio, setTipoServicio] = useState('privado');
+
+  const [tipoServicio, setTipoServicio] = useState('Solo Ida');
 
   // Pricing & margins
   const [costo, setCosto] = useState('');
@@ -45,16 +45,14 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
       if (trasladoToEdit) {
         setIdUbicacion(trasladoToEdit.id_ubicacion || '');
         setRutaOrigen(trasladoToEdit.ruta_origen || '');
-        setRutaDestino(trasladoToEdit.ruta_destino || '');
-        setTipoServicio(trasladoToEdit.tipo_servicio || 'privado');
+        setTipoServicio(trasladoToEdit.tipo_servicio || 'Solo Ida');
         setCosto(trasladoToEdit.costo !== undefined && trasladoToEdit.costo !== null ? trasladoToEdit.costo : '');
         setPorcentaje(trasladoToEdit.porcentaje !== undefined && trasladoToEdit.porcentaje !== null ? trasladoToEdit.porcentaje : '');
         setPrecioPublico(trasladoToEdit.precio_publico !== undefined && trasladoToEdit.precio_publico !== null ? trasladoToEdit.precio_publico : '');
       } else {
         setIdUbicacion('');
         setRutaOrigen('');
-        setRutaDestino('');
-        setTipoServicio('privado');
+        setTipoServicio('Solo Ida');
         setCosto('');
         setPorcentaje('');
         setPrecioPublico('');
@@ -104,10 +102,6 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
       setErrorMessage('La ruta o punto de origen es obligatorio.');
       return;
     }
-    if (!rutaDestino.trim()) {
-      setErrorMessage('La ruta o punto de destino es obligatorio.');
-      return;
-    }
 
     setIsSubmitting(true);
     setErrorMessage('');
@@ -115,7 +109,6 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
     const payload = {
       id_ubicacion: parseInt(idUbicacion, 10),
       ruta_origen: rutaOrigen.trim(),
-      ruta_destino: rutaDestino.trim(),
       tipo_servicio: tipoServicio,
       costo: parseFloat(costo) || 0,
       precio_publico: parseFloat(precioPublico) || 0,
@@ -215,12 +208,12 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
                 <input
                   type="radio"
                   name="tipo_servicio"
-                  value="privado"
-                  checked={tipoServicio === 'privado'}
+                  value="Solo Ida"
+                  checked={tipoServicio === 'Solo Ida'}
                   onChange={(e) => setTipoServicio(e.target.value)}
                   disabled={isSubmitting}
                 />
-                Privado
+                Solo Ida
               </label>
 
               <label style={{
@@ -234,27 +227,27 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
                 <input
                   type="radio"
                   name="tipo_servicio"
-                  value="compartido"
-                  checked={tipoServicio === 'compartido'}
+                  value="Ida y Vuelta"
+                  checked={tipoServicio === 'Ida y Vuelta'}
                   onChange={(e) => setTipoServicio(e.target.value)}
                   disabled={isSubmitting}
                 />
-                Compartido
+                Ida y Vuelta
               </label>
             </div>
           </div>
         </div>
 
         {/* Origin & Destination */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+        <div style={{ marginBottom: '16px' }}>
           <div>
             <label className="erp-label">
-              Ruta / Punto de Origen <span className="req">*</span>
+              Descripción del Traslado (Ruta) <span className="req">*</span>
             </label>
             <input
               type="text"
               className="erp-input"
-              placeholder="Ej: Aeropuerto Internacional PMV..."
+              placeholder="Ej: Aeropuerto / Hotel 15- 20 Pax-- Hotel / Aeropuerto"
               value={rutaOrigen}
               onChange={(e) => {
                 setRutaOrigen(e.target.value);
@@ -266,24 +259,7 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
             />
           </div>
 
-          <div>
-            <label className="erp-label">
-              Ruta / Punto de Destino <span className="req">*</span>
-            </label>
-            <input
-              type="text"
-              className="erp-input"
-              placeholder="Ej: Zona Hotelera Playa El Agua..."
-              value={rutaDestino}
-              onChange={(e) => {
-                setRutaDestino(e.target.value);
-                if (errorMessage) setErrorMessage('');
-              }}
-              required
-              maxLength={255}
-              disabled={isSubmitting}
-            />
-          </div>
+
         </div>
 
         {/* Tarifa y Margen Card */}
@@ -345,7 +321,7 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
           <button
             type="button"
-            className="btn-form-prv"
+            className="btn-form-cancel"
             onClick={onClose}
             disabled={isSubmitting}
           >
@@ -354,7 +330,7 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
           <button
             type="submit"
             className="btn-form-nxt"
-            disabled={isSubmitting || !rutaOrigen.trim() || !rutaDestino.trim() || !idUbicacion}
+            disabled={isSubmitting || !rutaOrigen.trim() || !idUbicacion}
           >
             {isSubmitting ? 'Guardando...' : (trasladoToEdit ? 'Actualizar Traslado' : 'Crear Traslado')}
           </button>
