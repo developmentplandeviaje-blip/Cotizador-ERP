@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Modal from '../../common/Modal';
 
 const LOGOS = [
   { value: '', label: 'Sin logo / Genérico' },
@@ -13,7 +14,7 @@ const LOGOS = [
 ];
 
 export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit = null }) {
-  const [activeTab, setActiveTab] = useState('general'); // 'general' | 'asesores'
+  const [currentStep, setCurrentStep] = useState(1); // 'general' | 'asesores'
   const [nombre, setNombre] = useState('');
   const [nombrePublico, setNombrePublico] = useState('');
   const [tipo, setTipo] = useState('banco');
@@ -48,7 +49,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
     if (isOpen) {
       setErrorMessage('');
       setErrors({});
-      setActiveTab('general');
+      setCurrentStep(1);
 
       // Load agency users for advisor assignment
       setLoadingAsesores(true);
@@ -177,115 +178,15 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-        padding: '16px',
-      }}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={metodoToEdit ? 'Editar MǸtodo de Pago' : 'Nuevo MǸtodo de Pago'}
+      steps={['Datos y Cuenta', 'Asesores Asignados']}
+      currentStep={currentStep}
+      width="720px"
     >
-      <div
-        style={{
-          backgroundColor: '#1E293B',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '16px',
-          width: '100%',
-          maxWidth: '720px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: '92vh',
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            padding: '20px 24px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-          }}
-        >
-          <div>
-            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: '#FFFFFF' }}>
-              {metodoToEdit ? 'Editar Método de Pago' : 'Nuevo Método de Pago'}
-            </h2>
-            <p style={{ margin: '4px 0 0', fontSize: '0.8125rem', color: '#94A3B8' }}>
-              Configure cuentas bancarias, billeteras digitales o receptores en efectivo
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#94A3B8',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              padding: '4px 8px',
-            }}
-          >
-            &times;
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div
-          style={{
-            display: 'flex',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            backgroundColor: 'rgba(15, 23, 42, 0.3)',
-            padding: '0 24px',
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => setActiveTab('general')}
-            style={{
-              padding: '12px 18px',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'general' ? '2px solid #E87217' : '2px solid transparent',
-              color: activeTab === 'general' ? '#E87217' : '#94A3B8',
-              fontWeight: activeTab === 'general' ? 600 : 500,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-            }}
-          >
-            💳 Datos y Cuenta
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('asesores')}
-            style={{
-              padding: '12px 18px',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'asesores' ? '2px solid #E87217' : '2px solid transparent',
-              color: activeTab === 'asesores' ? '#E87217' : '#94A3B8',
-              fontWeight: activeTab === 'asesores' ? 600 : 500,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-            }}
-          >
-            👥 Asesores Asignados ({selectedAsesores.length})
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
             {errorMessage && (
               <div
@@ -302,7 +203,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
               </div>
             )}
 
-            {activeTab === 'general' && (
+            {currentStep === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {/* Tipo de Método Selector */}
                 <div>
@@ -650,7 +551,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
             )}
 
             {/* Tab: Asesores */}
-            {activeTab === 'asesores' && (
+            {currentStep === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <p style={{ margin: 0, fontSize: '0.8125rem', color: '#94A3B8' }}>
                   Seleccione los asesores y personal de la agencia autorizados para visualizar y emplear este método de pago:
@@ -715,44 +616,62 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
             )}
           </div>
 
-          {/* Footer */}
-          <div
-            style={{
-              padding: '16px 24px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-              backgroundColor: 'rgba(15, 23, 42, 0.6)',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '12px',
-            }}
-          >
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={saving}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#E2E8F0',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-              }}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="btn-primary"
-              style={{ padding: '8px 22px', fontSize: '0.875rem' }}
-            >
-              {saving ? 'Guardando...' : metodoToEdit ? 'Actualizar Método' : 'Crear Método'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          {/* Footer Actions */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '12px',
+            marginTop: '16px'
+          }}
+        >
+          {currentStep === 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="btn-form-cancel"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn-form-nxt"
+                onClick={() => setCurrentStep(2)}
+              >
+                Siguiente
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="btn-form-cancel"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn-form-prv"
+                onClick={() => setCurrentStep(1)}
+                disabled={saving}
+              >
+                Anterior
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="btn-form-nxt"
+              >
+                {saving ? 'Guardando...' : (metodoToEdit ? 'Actualizar MǸtodo' : 'Crear MǸtodo')}
+              </button>
+            </>
+          )}
+        </div>
+      </form>
+    </Modal>
   );
 }

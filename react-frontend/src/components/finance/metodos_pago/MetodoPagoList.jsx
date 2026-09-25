@@ -186,160 +186,170 @@ export default function MetodoPagoList({ user }) {
         </div>
       )}
 
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-        }}
-      >
-        <div>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.8125rem',
-              color: '#94A3B8',
-              marginBottom: '4px',
-            }}
-          >
-            <span>Finanzas</span>
-            <span>›</span>
-            <span style={{ color: '#E87217', fontWeight: 600 }}>Métodos de pago</span>
+      {/* Top Toolbar Controls */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px',
+        marginBottom: '20px',
+        padding: '0px 20px',
+      }}>
+        {/* Search & Dropdown Filters */}
+        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Search */}
+          <div style={{ position: 'relative', width: '300px' }}>
+            <span style={{
+              position: 'absolute',
+              left: '14px',
+              top: '50%',
+              transform: 'translateY(-40%)',
+              fontSize: '1rem',
+            }}>
+              <img src={imgSearch} alt="" style={{ width: '20px', height: '20px' }} />
+            </span>
+            <input
+              type="text"
+              placeholder="Buscar por nombre, titular o correo..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="erp-input"
+              style={{
+                width: '100%',
+                borderRadius: '9999px',
+                background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
+                height: '38px',
+                paddingLeft: '40px',
+                boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
+                border: '1px solid rgb(255 255 255 / 56%)',
+                color: '#FFFFFF'
+              }}
+            />
           </div>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#FFFFFF' }}>
-            Métodos de Pago
-          </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '0.875rem', color: '#94A3B8' }}>
-            Gestión de cuentas receptoras, billeteras digitales y pasarelas de cobro ({total} registrados)
-          </p>
+
+          {/* Tipo Filter */}
+          <div style={{ width: '210px' }}>
+            <select
+              value={selectedTipo}
+              onChange={(e) => {
+                setSelectedTipo(e.target.value);
+                setPage(1);
+              }}
+              className="erp-input"
+              style={{
+                borderRadius: '9999px',
+                background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
+                height: '38px',
+                paddingLeft: '14px',
+                paddingRight: '36px',
+                boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
+                border: '1px solid rgb(255 255 255 / 56%)',
+                color: selectedTipo ? '#FFFFFF' : '#b9c8ddff',
+                cursor: 'pointer',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c8dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'calc(100% - 12px) center',
+                backgroundSize: '16px',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <option value="" style={{ backgroundColor: '#101c44', color: '#FFF' }}>Todos los tipos</option>
+              <option value="banco" style={{ backgroundColor: '#101c44', color: '#FFF' }}>🏦 Cuentas Bancarias</option>
+              <option value="digital" style={{ backgroundColor: '#101c44', color: '#FFF' }}>💳 Digital / Gateway</option>
+              <option value="efectivo" style={{ backgroundColor: '#101c44', color: '#FFF' }}>💵 Efectivo</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div style={{ width: '180px' }}>
+            <select
+              value={selectedStatus}
+              onChange={(e) => {
+                setSelectedStatus(e.target.value);
+                setPage(1);
+              }}
+              className="erp-input"
+              style={{
+                borderRadius: '9999px',
+                background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
+                height: '38px',
+                paddingLeft: '14px',
+                paddingRight: '36px',
+                boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
+                border: '1px solid rgb(255 255 255 / 56%)',
+                color: selectedStatus !== '' ? '#FFFFFF' : '#b9c8ddff',
+                cursor: 'pointer',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c8dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'calc(100% - 12px) center',
+                backgroundSize: '16px',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <option value="" style={{ backgroundColor: '#101c44', color: '#FFF' }}>Todos los estados</option>
+              <option value="1" style={{ backgroundColor: '#101c44', color: '#FFF' }}>Habilitados</option>
+              <option value="0" style={{ backgroundColor: '#101c44', color: '#FFF' }}>Deshabilitados</option>
+            </select>
+          </div>
         </div>
 
-        {/* Action Toolbar */}
+        {/* Action Buttons */}
         {!isFreelancer && (
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              type="button"
-              className="btn-toolbar"
-              onClick={() => window.print()}
-              title="Imprimir catálogo"
-            >
-              <img src={imgImprimir} alt="Imprimir" style={{ width: '18px', height: '18px' }} />
-              <span>Imprimir</span>
-            </button>
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={handleOpenCreate}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
-              <img src={imgAgregar} alt="Agregar" style={{ width: '18px', height: '18px' }} />
-              <span>Agregar Método</span>
-            </button>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => window.print()}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                title="Imprimir listado">
+                <img src={imgImprimir} alt="Imprimir" style={{ width: '20px', height: '20px' }} />
+              </button>
+              <span className='title-input'>Imprimir</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+              <button
+                className="btn-secondary"
+                onClick={handleOpenCreate}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                title="Agregar nuevo mǸtodo">
+                <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
+              </button>
+              <span className='title-input'>Agregar</span>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Filters Toolbar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          flexWrap: 'wrap',
-          background: 'rgba(30, 41, 59, 0.5)',
-          padding: '12px 16px',
-          borderRadius: '12px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-        }}
-      >
-        {/* Search */}
-        <div style={{ position: 'relative', flex: '1', minWidth: '220px' }}>
-          <input
-            type="text"
-            placeholder="Buscar por nombre, titular o correo..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="erp-input"
-            style={{ width: '100%', paddingLeft: '36px' }}
-          />
-          <img
-            src={imgSearch}
-            alt="Buscar"
-            style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '16px',
-              height: '16px',
-              opacity: 0.5,
-            }}
-          />
-        </div>
-
-        {/* Tipo Filter */}
-        <div style={{ minWidth: '180px' }}>
-          <select
-            value={selectedTipo}
-            onChange={(e) => {
-              setSelectedTipo(e.target.value);
-              setPage(1);
-            }}
-            className="erp-input"
-            style={{ width: '100%' }}
-          >
-            <option value="" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Todos los tipos</option>
-            <option value="banco" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>🏦 Cuentas Bancarias</option>
-            <option value="digital" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>💳 Digitales / Gateway</option>
-            <option value="efectivo" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>💵 Efectivo</option>
-          </select>
-        </div>
-
-        {/* Status Filter */}
-        <div style={{ minWidth: '160px' }}>
-          <select
-            value={selectedStatus}
-            onChange={(e) => {
-              setSelectedStatus(e.target.value);
-              setPage(1);
-            }}
-            className="erp-input"
-            style={{ width: '100%' }}
-          >
-            <option value="" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Todos los estados</option>
-            <option value="1" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Habilitados</option>
-            <option value="0" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Deshabilitados</option>
-          </select>
-        </div>
-      </div>
-
       {/* Main Table */}
-      <div
-        style={{
-          background: 'rgba(30, 41, 59, 0.7)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
-        }}
-      >
+      <div style={{
+        background: 'rgba(188, 192, 215, 0.09)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+      }}>
         <div style={{ overflowX: 'auto' }}>
           <table className="erp-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: 'rgba(15, 23, 42, 0.75)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <tr style={{ background: '#e8721726', borderBottom: '1px solid rgba(255, 255, 255, 0.84)' }}>
                 <th
                   onClick={() => handleSort('nombre')}
                   style={{
                     padding: '14px 16px',
-                    color: '#94A3B8',
+                    color: '#FFFFFF',
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     textTransform: 'uppercase',
@@ -353,7 +363,7 @@ export default function MetodoPagoList({ user }) {
                   onClick={() => handleSort('tipo')}
                   style={{
                     padding: '14px 16px',
-                    color: '#94A3B8',
+                    color: '#FFFFFF',
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     textTransform: 'uppercase',
@@ -363,17 +373,17 @@ export default function MetodoPagoList({ user }) {
                 >
                   Tipo {getSortIndicator('tipo')}
                 </th>
-                <th style={{ padding: '14px 16px', color: '#94A3B8', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
                   Detalles de la Cuenta
                 </th>
-                <th style={{ padding: '14px 16px', color: '#94A3B8', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
                   Asesores
                 </th>
                 <th
                   onClick={() => handleSort('status')}
                   style={{
                     padding: '14px 16px',
-                    color: '#94A3B8',
+                    color: '#FFFFFF',
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     textTransform: 'uppercase',
@@ -384,7 +394,7 @@ export default function MetodoPagoList({ user }) {
                   Estado {getSortIndicator('status')}
                 </th>
                 {!isFreelancer && (
-                  <th style={{ padding: '14px 16px', color: '#94A3B8', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', textAlign: 'center' }}>
+                  <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', textAlign: 'center' }}>
                     Acciones
                   </th>
                 )}
@@ -393,14 +403,14 @@ export default function MetodoPagoList({ user }) {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                  <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#FFFFFF' }}>
                     <div className="spinner-border" style={{ margin: '0 auto 12px auto' }} />
                     <p style={{ margin: 0, fontSize: '0.875rem' }}>Cargando métodos de pago...</p>
                   </td>
                 </tr>
               ) : metodos.length === 0 ? (
                 <tr>
-                  <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                  <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#FFFFFF' }}>
                     <span style={{ fontSize: '2rem', display: 'block', marginBottom: '8px' }}>💳</span>
                     <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: '#E2E8F0' }}>
                       No se encontraron métodos de pago
@@ -426,7 +436,7 @@ export default function MetodoPagoList({ user }) {
                       <div style={{ fontWeight: 600, color: '#FFFFFF', fontSize: '0.875rem' }}>
                         {item.nombre}
                       </div>
-                      <div style={{ color: '#94A3B8', fontSize: '0.8125rem', marginTop: '2px' }}>
+                      <div style={{ color: '#FFFFFF', fontSize: '0.8125rem', marginTop: '2px' }}>
                         {item.nombre_publico}
                       </div>
                     </td>
@@ -449,7 +459,7 @@ export default function MetodoPagoList({ user }) {
                             </span>
                           )}
                           {item.banco.pago_movil_telefono && (
-                            <span style={{ color: '#94A3B8' }}>
+                            <span style={{ color: '#FFFFFF' }}>
                               Pago Móvil: {item.banco.pago_movil_telefono}
                             </span>
                           )}
@@ -468,7 +478,7 @@ export default function MetodoPagoList({ user }) {
                       )}
 
                       {item.tipo === 'efectivo' && (
-                        <span style={{ color: '#94A3B8' }}>
+                        <span style={{ color: '#FFFFFF' }}>
                           Recepción en taquilla / sede comercial
                         </span>
                       )}
@@ -523,7 +533,7 @@ export default function MetodoPagoList({ user }) {
                               </div>
                             ))
                           ) : (
-                            <span style={{ color: '#94A3B8' }}>Sin asesores asignados.</span>
+                            <span style={{ color: '#FFFFFF' }}>Sin asesores asignados.</span>
                           )}
                         </div>
                       )}
@@ -613,7 +623,7 @@ export default function MetodoPagoList({ user }) {
               backgroundColor: 'rgba(15, 23, 42, 0.4)',
             }}
           >
-            <span style={{ fontSize: '0.8125rem', color: '#94A3B8' }}>
+            <span style={{ fontSize: '0.8125rem', color: '#FFFFFF' }}>
               Mostrando {metodos.length} de {total} métodos
             </span>
             <Pagination
@@ -668,7 +678,7 @@ export default function MetodoPagoList({ user }) {
                 <h3 style={{ margin: 0, fontSize: '1.125rem', color: '#FFFFFF', fontWeight: 600 }}>
                   Confirmar Eliminación
                 </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: '#94A3B8' }}>
+                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: '#FFFFFF' }}>
                   Esta acción intentará remover el método de pago del sistema
                 </p>
               </div>
