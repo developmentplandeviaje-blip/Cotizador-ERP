@@ -187,436 +187,436 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
       width="720px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            {errorMessage && (
-              <div
-                style={{
-                  padding: '12px 16px',
-                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                  borderRadius: '8px',
-                  color: '#FCA5A5',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {errorMessage}
-              </div>
-            )}
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          {errorMessage && (
+            <div
+              style={{
+                padding: '12px 16px',
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                borderRadius: '8px',
+                color: '#FCA5A5',
+                fontSize: '0.875rem',
+              }}
+            >
+              {errorMessage}
+            </div>
+          )}
 
-            {currentStep === 1 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* Tipo de Método Selector */}
+          {currentStep === 1 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Tipo de Método Selector */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '8px' }}>
+                  Categoría del Método <span style={{ color: '#EF4444' }}>*</span>
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                  {[
+                    { id: 'banco', label: '🏦 Cuenta Bancaria' },
+                    { id: 'digital', label: '💳 Pasarela / Digital' },
+                    { id: 'efectivo', label: '💵 Efectivo' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setTipo(opt.id)}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: tipo === opt.id ? '2px solid #E87217' : '1px solid rgba(255,255,255,0.12)',
+                        backgroundColor: tipo === opt.id ? 'rgba(232, 114, 23, 0.15)' : 'rgba(15, 23, 42, 0.4)',
+                        color: tipo === opt.id ? '#FFFFFF' : '#94A3B8',
+                        fontWeight: tipo === opt.id ? 600 : 500,
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Nombre & Nombre Público */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '8px' }}>
-                    Categoría del Método <span style={{ color: '#EF4444' }}>*</span>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                    Nombre Interno <span style={{ color: '#EF4444' }}>*</span>
                   </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                    {[
-                      { id: 'banco', label: '🏦 Cuenta Bancaria' },
-                      { id: 'digital', label: '💳 Pasarela / Digital' },
-                      { id: 'efectivo', label: '💵 Efectivo' },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setTipo(opt.id)}
+                  <input
+                    type="text"
+                    required
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    placeholder="Ej. Banesco Cuenta Corriente"
+                    className="erp-input"
+                    style={{ width: '100%' }}
+                  />
+                  {errors.nombre && (
+                    <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                      {errors.nombre[0]}
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                    Nombre Público (Visible en Cotización) <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={nombrePublico}
+                    onChange={(e) => setNombrePublico(e.target.value)}
+                    placeholder="Ej. Banesco Banco Universal (Bs.)"
+                    className="erp-input"
+                    style={{ width: '100%' }}
+                  />
+                  {errors.nombre_publico && (
+                    <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                      {errors.nombre_publico[0]}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Logo & Status */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                    Logo Identificador
+                  </label>
+                  <select
+                    value={logo}
+                    onChange={(e) => setLogo(e.target.value)}
+                    className="erp-input"
+                    style={{ width: '100%' }}
+                  >
+                    {LOGOS.map((lg) => (
+                      <option key={lg.value} value={lg.value} style={{ backgroundColor: '#1E293B', color: '#FFF' }}>
+                        {lg.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                    Estado Operativo
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', height: '42px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={status}
+                        onChange={(e) => setStatus(e.target.checked)}
+                        style={{ width: '18px', height: '18px', accentColor: '#E87217', cursor: 'pointer' }}
+                      />
+                      <span>{status ? 'Habilitado para cobros' : 'Deshabilitado'}</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Conditional Section: BANCO */}
+              {tipo === 'banco' && (
+                <div
+                  style={{
+                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                  }}
+                >
+                  <h4 style={{ margin: 0, fontSize: '0.875rem', color: '#E87217', fontWeight: 600 }}>
+                    🏦 Datos Bancarios y Pago Móvil
+                  </h4>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Titular de la Cuenta <span style={{ color: '#EF4444' }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={titular}
+                        onChange={(e) => setTitular(e.target.value)}
+                        placeholder="Viajes Plan de Viaje C.A."
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Tipo Doc. <span style={{ color: '#EF4444' }}>*</span>
+                      </label>
+                      <select
+                        value={tipoDocumento}
+                        onChange={(e) => setTipoDocumento(e.target.value)}
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      >
+                        {['J', 'V', 'E', 'G', 'Rif'].map((td) => (
+                          <option key={td} value={td} style={{ backgroundColor: '#1E293B', color: '#FFF' }}>
+                            {td}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Documento / RIF <span style={{ color: '#EF4444' }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={documento}
+                        onChange={(e) => setDocumento(e.target.value)}
+                        placeholder="501234567"
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Número de Cuenta (20 dígitos)
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={20}
+                        value={numeroCuenta}
+                        onChange={(e) => setNumeroCuenta(e.target.value)}
+                        placeholder="01340001000000123456"
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Tipo de Cuenta
+                      </label>
+                      <select
+                        value={tipoCuenta}
+                        onChange={(e) => setTipoCuenta(e.target.value)}
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      >
+                        <option value="Corriente" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Corriente</option>
+                        <option value="Ahorros" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Ahorros</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Teléfono Pago Móvil
+                      </label>
+                      <input
+                        type="text"
+                        value={pagoMovilTelefono}
+                        onChange={(e) => setPagoMovilTelefono(e.target.value)}
+                        placeholder="0414-1234567"
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Conditional Section: DIGITAL */}
+              {tipo === 'digital' && (
+                <div
+                  style={{
+                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                  }}
+                >
+                  <h4 style={{ margin: 0, fontSize: '0.875rem', color: '#E87217', fontWeight: 600 }}>
+                    💳 Configuración de Pasarela / Billetera Digital
+                  </h4>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Correo Electrónico Asociado <span style={{ color: '#EF4444' }}>*</span>
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={correoCuenta}
+                        onChange={(e) => setCorreoCuenta(e.target.value)}
+                        placeholder="pagos@plandeviaje.com"
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Tipo de Comisión
+                      </label>
+                      <select
+                        value={tipoComision}
+                        onChange={(e) => setTipoComision(e.target.value)}
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      >
+                        <option value="porcentaje" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Porcentaje (%)</option>
+                        <option value="fijo" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Fijo ($)</option>
+                        <option value="mixto" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Mixto</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Valor Comisión
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        value={comisionValor}
+                        onChange={(e) => setComisionValor(e.target.value)}
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Código Postal (ZIP)
+                      </label>
+                      <input
+                        type="text"
+                        value={codigoPostal}
+                        onChange={(e) => setCodigoPostal(e.target.value)}
+                        placeholder="33101"
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
+                        Dirección de Facturación
+                      </label>
+                      <input
+                        type="text"
+                        value={direccionFacturacion}
+                        onChange={(e) => setDireccionFacturacion(e.target.value)}
+                        placeholder="Miami, FL, USA"
+                        className="erp-input"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Conditional Section: EFECTIVO */}
+              {tipo === 'efectivo' && (
+                <div
+                  style={{
+                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    color: '#94A3B8',
+                    fontSize: '0.8125rem',
+                  }}
+                >
+                  💵 <strong>Recepción en Efectivo:</strong> Este método no requiere número de cuenta bancaria ni correo de pasarela digital. Se emplea para pagos presenciales en taquilla u oficina comercial.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tab: Asesores */}
+          {currentStep === 2 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <p style={{ margin: 0, fontSize: '0.8125rem', color: '#94A3B8' }}>
+                Seleccione los asesores y personal de la agencia autorizados para visualizar y emplear este método de pago:
+              </p>
+
+              {loadingAsesores ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#94A3B8' }}>
+                  Cargando lista de asesores...
+                </div>
+              ) : availableAsesores.length === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#94A3B8' }}>
+                  No hay asesores registrados en la agencia.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                    gap: '10px',
+                    maxHeight: '280px',
+                    overflowY: 'auto',
+                    padding: '4px',
+                  }}
+                >
+                  {availableAsesores.map((asesor) => {
+                    const isChecked = selectedAsesores.includes(asesor.id);
+                    return (
+                      <label
+                        key={asesor.id}
                         style={{
-                          padding: '10px 14px',
-                          borderRadius: '10px',
-                          border: tipo === opt.id ? '2px solid #E87217' : '1px solid rgba(255,255,255,0.12)',
-                          backgroundColor: tipo === opt.id ? 'rgba(232, 114, 23, 0.15)' : 'rgba(15, 23, 42, 0.4)',
-                          color: tipo === opt.id ? '#FFFFFF' : '#94A3B8',
-                          fontWeight: tipo === opt.id ? 600 : 500,
-                          fontSize: '0.875rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          backgroundColor: isChecked ? 'rgba(232, 114, 23, 0.12)' : 'rgba(15, 23, 42, 0.4)',
+                          border: isChecked ? '1px solid rgba(232, 114, 23, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
                           cursor: 'pointer',
-                          transition: 'all 0.2s',
+                          transition: 'all 0.15s',
                         }}
                       >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Nombre & Nombre Público */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
-                      Nombre Interno <span style={{ color: '#EF4444' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={nombre}
-                      onChange={(e) => setNombre(e.target.value)}
-                      placeholder="Ej. Banesco Cuenta Corriente"
-                      className="erp-input"
-                      style={{ width: '100%' }}
-                    />
-                    {errors.nombre && (
-                      <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
-                        {errors.nombre[0]}
-                      </span>
-                    )}
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
-                      Nombre Público (Visible en Cotización) <span style={{ color: '#EF4444' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={nombrePublico}
-                      onChange={(e) => setNombrePublico(e.target.value)}
-                      placeholder="Ej. Banesco Banco Universal (Bs.)"
-                      className="erp-input"
-                      style={{ width: '100%' }}
-                    />
-                    {errors.nombre_publico && (
-                      <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
-                        {errors.nombre_publico[0]}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Logo & Status */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
-                      Logo Identificador
-                    </label>
-                    <select
-                      value={logo}
-                      onChange={(e) => setLogo(e.target.value)}
-                      className="erp-input"
-                      style={{ width: '100%' }}
-                    >
-                      {LOGOS.map((lg) => (
-                        <option key={lg.value} value={lg.value} style={{ backgroundColor: '#1E293B', color: '#FFF' }}>
-                          {lg.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
-                      Estado Operativo
-                    </label>
-                    <div style={{ display: 'flex', alignItems: 'center', height: '42px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
                         <input
                           type="checkbox"
-                          checked={status}
-                          onChange={(e) => setStatus(e.target.checked)}
-                          style={{ width: '18px', height: '18px', accentColor: '#E87217', cursor: 'pointer' }}
+                          checked={isChecked}
+                          onChange={() => handleToggleAsesor(asesor.id)}
+                          style={{ width: '16px', height: '16px', accentColor: '#E87217', cursor: 'pointer' }}
                         />
-                        <span>{status ? 'Habilitado para cobros' : 'Deshabilitado'}</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Conditional Section: BANCO */}
-                {tipo === 'banco' && (
-                  <div
-                    style={{
-                      backgroundColor: 'rgba(15, 23, 42, 0.4)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '14px',
-                    }}
-                  >
-                    <h4 style={{ margin: 0, fontSize: '0.875rem', color: '#E87217', fontWeight: 600 }}>
-                      🏦 Datos Bancarios y Pago Móvil
-                    </h4>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Titular de la Cuenta <span style={{ color: '#EF4444' }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={titular}
-                          onChange={(e) => setTitular(e.target.value)}
-                          placeholder="Viajes Plan de Viaje C.A."
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Tipo Doc. <span style={{ color: '#EF4444' }}>*</span>
-                        </label>
-                        <select
-                          value={tipoDocumento}
-                          onChange={(e) => setTipoDocumento(e.target.value)}
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        >
-                          {['J', 'V', 'E', 'G', 'Rif'].map((td) => (
-                            <option key={td} value={td} style={{ backgroundColor: '#1E293B', color: '#FFF' }}>
-                              {td}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Documento / RIF <span style={{ color: '#EF4444' }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={documento}
-                          onChange={(e) => setDocumento(e.target.value)}
-                          placeholder="501234567"
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Número de Cuenta (20 dígitos)
-                        </label>
-                        <input
-                          type="text"
-                          maxLength={20}
-                          value={numeroCuenta}
-                          onChange={(e) => setNumeroCuenta(e.target.value)}
-                          placeholder="01340001000000123456"
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Tipo de Cuenta
-                        </label>
-                        <select
-                          value={tipoCuenta}
-                          onChange={(e) => setTipoCuenta(e.target.value)}
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        >
-                          <option value="Corriente" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Corriente</option>
-                          <option value="Ahorros" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Ahorros</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Teléfono Pago Móvil
-                        </label>
-                        <input
-                          type="text"
-                          value={pagoMovilTelefono}
-                          onChange={(e) => setPagoMovilTelefono(e.target.value)}
-                          placeholder="0414-1234567"
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Conditional Section: DIGITAL */}
-                {tipo === 'digital' && (
-                  <div
-                    style={{
-                      backgroundColor: 'rgba(15, 23, 42, 0.4)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '14px',
-                    }}
-                  >
-                    <h4 style={{ margin: 0, fontSize: '0.875rem', color: '#E87217', fontWeight: 600 }}>
-                      💳 Configuración de Pasarela / Billetera Digital
-                    </h4>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Correo Electrónico Asociado <span style={{ color: '#EF4444' }}>*</span>
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          value={correoCuenta}
-                          onChange={(e) => setCorreoCuenta(e.target.value)}
-                          placeholder="pagos@plandeviaje.com"
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Tipo de Comisión
-                        </label>
-                        <select
-                          value={tipoComision}
-                          onChange={(e) => setTipoComision(e.target.value)}
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        >
-                          <option value="porcentaje" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Porcentaje (%)</option>
-                          <option value="fijo" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Fijo ($)</option>
-                          <option value="mixto" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Mixto</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Valor Comisión
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          max="100"
-                          value={comisionValor}
-                          onChange={(e) => setComisionValor(e.target.value)}
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Código Postal (ZIP)
-                        </label>
-                        <input
-                          type="text"
-                          value={codigoPostal}
-                          onChange={(e) => setCodigoPostal(e.target.value)}
-                          placeholder="33101"
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                          Dirección de Facturación
-                        </label>
-                        <input
-                          type="text"
-                          value={direccionFacturacion}
-                          onChange={(e) => setDireccionFacturacion(e.target.value)}
-                          placeholder="Miami, FL, USA"
-                          className="erp-input"
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Conditional Section: EFECTIVO */}
-                {tipo === 'efectivo' && (
-                  <div
-                    style={{
-                      backgroundColor: 'rgba(15, 23, 42, 0.4)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      color: '#94A3B8',
-                      fontSize: '0.8125rem',
-                    }}
-                  >
-                    💵 <strong>Recepción en Efectivo:</strong> Este método no requiere número de cuenta bancaria ni correo de pasarela digital. Se emplea para pagos presenciales en taquilla u oficina comercial.
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Tab: Asesores */}
-            {currentStep === 2 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <p style={{ margin: 0, fontSize: '0.8125rem', color: '#94A3B8' }}>
-                  Seleccione los asesores y personal de la agencia autorizados para visualizar y emplear este método de pago:
-                </p>
-
-                {loadingAsesores ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#94A3B8' }}>
-                    Cargando lista de asesores...
-                  </div>
-                ) : availableAsesores.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: '#94A3B8' }}>
-                    No hay asesores registrados en la agencia.
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                      gap: '10px',
-                      maxHeight: '280px',
-                      overflowY: 'auto',
-                      padding: '4px',
-                    }}
-                  >
-                    {availableAsesores.map((asesor) => {
-                      const isChecked = selectedAsesores.includes(asesor.id);
-                      return (
-                        <label
-                          key={asesor.id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            padding: '10px 12px',
-                            borderRadius: '8px',
-                            backgroundColor: isChecked ? 'rgba(232, 114, 23, 0.12)' : 'rgba(15, 23, 42, 0.4)',
-                            border: isChecked ? '1px solid rgba(232, 114, 23, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s',
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => handleToggleAsesor(asesor.id)}
-                            style={{ width: '16px', height: '16px', accentColor: '#E87217', cursor: 'pointer' }}
-                          />
-                          <div style={{ overflow: 'hidden' }}>
-                            <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#FFFFFF', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                              {asesor.full_name}
-                            </div>
-                            <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>
-                              {asesor.level}
-                            </div>
+                        <div style={{ overflow: 'hidden' }}>
+                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#FFFFFF', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                            {asesor.full_name}
                           </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                          <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>
+                            {asesor.level}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
-          {/* Footer Actions */}
+        {/* Footer Actions */}
         <div
           style={{
             display: 'flex',
@@ -666,7 +666,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                 disabled={saving}
                 className="btn-form-nxt"
               >
-                {saving ? 'Guardando...' : (metodoToEdit ? 'Actualizar MǸtodo' : 'Crear MǸtodo')}
+                {saving ? 'Guardando...' : (metodoToEdit ? 'Actualizar Método' : 'Crear Método')}
               </button>
             </>
           )}

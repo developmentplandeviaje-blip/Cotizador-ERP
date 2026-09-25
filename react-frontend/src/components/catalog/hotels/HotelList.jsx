@@ -299,10 +299,12 @@ export default function HotelList({ user }) {
                 return (
                   <React.Fragment key={hotel.id}>
                     <tr style={{
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.51)',
-                      background: isExpanded ? 'rgba(112, 133, 255, 0.23)' : 'transparent',
-                      transition: 'background-color 0.15s',
-                    }}>
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.51)', background: isExpanded ? 'rgba(112, 133, 255, 0.23)' : 'transparent',
+                      transition: 'background-color 0.2s',
+                    }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(157, 175, 206, 0.17)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
                       <td style={{ padding: '14px 16px', color: '#b9c8ddff' }}>{index + 1}</td>
                       <td style={{ padding: '14px 16px', fontWeight: '600', color: '#FFFFFF' }}>{hotel.nombre}</td>
                       <td style={{ padding: '14px 16px', color: '#F8FAFC' }}>{hotel.tipo}</td>

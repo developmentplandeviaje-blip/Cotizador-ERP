@@ -150,17 +150,36 @@ export default function MetodoPagoList({ user }) {
   const getTipoBadge = (tipo) => {
     switch (tipo) {
       case 'banco':
-        return <Badge variant="info">🏦 Banco</Badge>;
+        return <Badge variant="success" style={{ minWidth: '70px' }}>🏦 Banco</Badge>;
       case 'digital':
-        return <Badge variant="purple">💳 Digital / Gateway</Badge>;
+        return <Badge variant="success" style={{ minWidth: '70px' }}>💳 Digital</Badge>;
       case 'efectivo':
       default:
-        return <Badge variant="success">💵 Efectivo</Badge>;
+        return <Badge variant="success" style={{ minWidth: '70px' }}>💵 Efectivo</Badge>;
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '0.8125rem',
+            color: '#94A3B8',
+            marginBottom: '4px',
+          }}>
+          <span>Finanzas</span>
+          <span>›</span>
+          <span style={{ color: '#E87217', fontWeight: 600 }}>Métodos de pago</span>
+        </div>
+        <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#FFFFFF' }}>
+          Métodos de Pago
+        </h1>
+      </div>
+
       {/* Success Alert */}
       {successBanner && (
         <div
@@ -425,10 +444,10 @@ export default function MetodoPagoList({ user }) {
                   <tr
                     key={item.id}
                     style={{
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.51)',
                       transition: 'background 0.2s',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)')}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(157, 175, 206, 0.17)')}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     {/* Name & Public Name */}
@@ -436,7 +455,7 @@ export default function MetodoPagoList({ user }) {
                       <div style={{ fontWeight: 600, color: '#FFFFFF', fontSize: '0.875rem' }}>
                         {item.nombre}
                       </div>
-                      <div style={{ color: '#FFFFFF', fontSize: '0.8125rem', marginTop: '2px' }}>
+                      <div style={{ color: '#b9c8ddff', fontSize: '0.8125rem', marginTop: '2px' }}>
                         {item.nombre_publico}
                       </div>
                     </td>
@@ -450,16 +469,16 @@ export default function MetodoPagoList({ user }) {
                     <td style={{ padding: '12px 16px', fontSize: '0.8125rem' }}>
                       {item.tipo === 'banco' && item.banco && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <span style={{ color: '#E2E8F0', fontWeight: 500 }}>
+                          <span style={{ color: '#FFFFFF', fontWeight: 500 }}>
                             {item.banco.titular} ({item.banco.tipo_documento}-{item.banco.documento})
                           </span>
                           {item.banco.numero_cuenta && (
-                            <span style={{ color: '#E87217', fontFamily: 'monospace', fontSize: '0.8125rem' }}>
+                            <span style={{ color: '#b9c8ddff', fontFamily: 'monospace', fontSize: '0.9rem' }}>
                               {item.banco.numero_cuenta}
                             </span>
                           )}
                           {item.banco.pago_movil_telefono && (
-                            <span style={{ color: '#FFFFFF' }}>
+                            <span style={{ color: '#b9c8ddff' }}>
                               Pago Móvil: {item.banco.pago_movil_telefono}
                             </span>
                           )}
@@ -471,7 +490,7 @@ export default function MetodoPagoList({ user }) {
                           <span style={{ color: '#E2E8F0', fontWeight: 500 }}>
                             {item.digital.correo_cuenta}
                           </span>
-                          <span style={{ color: '#A855F7' }}>
+                          <span style={{ color: '#1dcd3d' }}>
                             Comisión: {item.digital.comision_valor}% ({item.digital.tipo_comision})
                           </span>
                         </div>
@@ -502,7 +521,7 @@ export default function MetodoPagoList({ user }) {
                           gap: '6px',
                         }}
                       >
-                        <span>👥 {item.asesores?.length || 0} asesores</span>
+                        <span>{item.asesores?.length || 0} asesores</span>
                       </button>
 
                       {hoveredAsesores === item.id && (
@@ -557,7 +576,7 @@ export default function MetodoPagoList({ user }) {
                         {item.status ? (
                           <Badge variant="success">Habilitado</Badge>
                         ) : (
-                          <Badge variant="danger">Deshabilitado</Badge>
+                          <Badge variant="error">Deshabilitado</Badge>
                         )}
                       </button>
                     </td>
@@ -581,7 +600,7 @@ export default function MetodoPagoList({ user }) {
                               transition: 'all 0.2s',
                             }}
                           >
-                            ✎ Editar
+                            Editar
                           </button>
 
                           <button
@@ -599,7 +618,7 @@ export default function MetodoPagoList({ user }) {
                               transition: 'all 0.2s',
                             }}
                           >
-                            🗑️
+                            Eliminar
                           </button>
                         </div>
                       </td>
@@ -616,16 +635,14 @@ export default function MetodoPagoList({ user }) {
           <div
             style={{
               padding: '16px 20px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              backgroundColor: 'rgba(15, 23, 42, 0.4)',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              fontSize: '0.8125rem',
+              color: '#94A3B8',
             }}
           >
-            <span style={{ fontSize: '0.8125rem', color: '#FFFFFF' }}>
-              Mostrando {metodos.length} de {total} métodos
-            </span>
             <Pagination
               currentPage={page}
               lastPage={lastPage}

@@ -148,238 +148,238 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
       width="680px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            {errorMessage && (
-              <div
-                style={{
-                  padding: '12px 16px',
-                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                  borderRadius: '8px',
-                  color: '#FCA5A5',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {errorMessage}
-              </div>
-            )}
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          {errorMessage && (
+            <div
+              style={{
+                padding: '12px 16px',
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                borderRadius: '8px',
+                color: '#FCA5A5',
+                fontSize: '0.875rem',
+              }}
+            >
+              {errorMessage}
+            </div>
+          )}
 
-            {/* Tab: General */}
-            {currentStep === 1 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  {/* First Name */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
-                      Nombre <span style={{ color: '#EF4444' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Ej. Carlos"
-                      className="erp-input"
-                      style={{
-                        width: '100%',
-                        borderColor: errors.first_name ? '#EF4444' : undefined,
-                      }}
-                    />
-                    {errors.first_name && (
-                      <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
-                        {errors.first_name[0]}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Last Name */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
-                      Apellido <span style={{ color: '#EF4444' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Ej. Pérez"
-                      className="erp-input"
-                      style={{
-                        width: '100%',
-                        borderColor: errors.last_name ? '#EF4444' : undefined,
-                      }}
-                    />
-                    {errors.last_name && (
-                      <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
-                        {errors.last_name[0]}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Email */}
+          {/* Tab: General */}
+          {currentStep === 1 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                {/* First Name */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
-                    Correo Electrónico <span style={{ color: '#EF4444' }}>*</span>
+                    Nombre <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="asesor@plandeviaje.com"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Ej. Carlos"
                     className="erp-input"
                     style={{
                       width: '100%',
-                      borderColor: errors.email ? '#EF4444' : undefined,
+                      borderColor: errors.first_name ? '#EF4444' : undefined,
                     }}
                   />
-                  {errors.email && (
+                  {errors.first_name && (
                     <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
-                      {errors.email[0]}
+                      {errors.first_name[0]}
                     </span>
                   )}
                 </div>
 
-                {/* Level & Status */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  {/* Level */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
-                      Nivel / Rol <span style={{ color: '#EF4444' }}>*</span>
-                    </label>
-                    <select
-                      value={level}
-                      onChange={(e) => setLevel(e.target.value)}
-                      className="erp-input"
-                      style={{ width: '100%' }}
-                    >
-                      {NIVELES.map((lvl) => (
-                        <option key={lvl} value={lvl} style={{ backgroundColor: '#1E293B', color: '#FFF' }}>
-                          {lvl}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.level && (
-                      <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
-                        {errors.level[0]}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Status */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
-                      Estado de Acceso
-                    </label>
-                    <div style={{ display: 'flex', alignItems: 'center', height: '42px', gap: '12px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
-                        <input
-                          type="checkbox"
-                          checked={status}
-                          onChange={(e) => setStatus(e.target.checked)}
-                          style={{
-                            width: '18px',
-                            height: '18px',
-                            accentColor: '#E87217',
-                            cursor: 'pointer',
-                          }}
-                        />
-                        <span>{status ? 'Habilitado (Activo)' : 'Deshabilitado (Bloqueado)'}</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Password */}
+                {/* Last Name */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
-                    Contraseña {userToEdit ? <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>(dejar en blanco para conservar actual)</span> : <span style={{ color: '#EF4444' }}>*</span>}
+                    Apellido <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={userToEdit ? '••••••••' : 'Mínimo 6 caracteres'}
+                    type="text"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Ej. Pérez"
                     className="erp-input"
                     style={{
                       width: '100%',
-                      borderColor: errors.password ? '#EF4444' : undefined,
+                      borderColor: errors.last_name ? '#EF4444' : undefined,
                     }}
                   />
-                  {errors.password && (
+                  {errors.last_name && (
                     <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
-                      {errors.password[0]}
+                      {errors.last_name[0]}
                     </span>
                   )}
                 </div>
               </div>
-            )}
 
-            {/* Tab: Comisiones */}
-            {currentStep === 2 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <p style={{ margin: 0, fontSize: '0.8125rem', color: '#94A3B8' }}>
-                  Indique el porcentaje de comisión (%) que recibe el usuario por cada rubro cotizado y vendido:
-                </p>
+              {/* Email */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                  Correo Electrónico <span style={{ color: '#EF4444' }}>*</span>
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="asesor@plandeviaje.com"
+                  className="erp-input"
+                  style={{
+                    width: '100%',
+                    borderColor: errors.email ? '#EF4444' : undefined,
+                  }}
+                />
+                {errors.email && (
+                  <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                    {errors.email[0]}
+                  </span>
+                )}
+              </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
-                  {SERVICIOS.map((srv) => (
-                    <div
-                      key={srv.id}
-                      style={{
-                        background: 'rgba(15, 23, 42, 0.4)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: '10px',
-                        padding: '12px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '6px',
-                      }}
-                    >
-                      <span style={{ fontSize: '0.8125rem', color: '#E2E8F0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{srv.icon}</span>
-                        <span>{srv.label}</span>
-                      </span>
-                      <div style={{ position: 'relative' }}>
-                        <input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="100"
-                          value={comisiones[srv.id] !== undefined ? comisiones[srv.id] : 0}
-                          onChange={(e) => handleComisionChange(srv.id, e.target.value)}
-                          className="erp-input"
-                          style={{
-                            width: '100%',
-                            paddingRight: '28px',
-                            textAlign: 'right',
-                            fontWeight: 600,
-                            color: '#E87217',
-                          }}
-                        />
-                        <span
-                          style={{
-                            position: 'absolute',
-                            right: '10px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            color: '#94A3B8',
-                            fontSize: '0.8125rem',
-                            fontWeight: 600,
-                          }}
-                        >
-                          %
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+              {/* Level & Status */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                {/* Level */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                    Nivel / Rol <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <select
+                    value={level}
+                    onChange={(e) => setLevel(e.target.value)}
+                    className="erp-input"
+                    style={{ width: '100%' }}
+                  >
+                    {NIVELES.map((lvl) => (
+                      <option key={lvl} value={lvl} style={{ backgroundColor: '#1E293B', color: '#FFF' }}>
+                        {lvl}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.level && (
+                    <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                      {errors.level[0]}
+                    </span>
+                  )}
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                    Estado de Acceso
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', height: '42px', gap: '12px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={status}
+                        onChange={(e) => setStatus(e.target.checked)}
+                        style={{
+                          width: '18px',
+                          height: '18px',
+                          accentColor: '#E87217',
+                          cursor: 'pointer',
+                        }}
+                      />
+                      <span>{status ? 'Habilitado (Activo)' : 'Deshabilitado (Bloqueado)'}</span>
+                    </label>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Footer Actions */}
+              {/* Password */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                  Contraseña {userToEdit ? <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>(dejar en blanco para conservar actual)</span> : <span style={{ color: '#EF4444' }}>*</span>}
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={userToEdit ? '••••••••' : 'Mínimo 6 caracteres'}
+                  className="erp-input"
+                  style={{
+                    width: '100%',
+                    borderColor: errors.password ? '#EF4444' : undefined,
+                  }}
+                />
+                {errors.password && (
+                  <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                    {errors.password[0]}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tab: Comisiones */}
+          {currentStep === 2 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <p style={{ margin: 0, fontSize: '0.8125rem', color: '#94A3B8' }}>
+                Indique el porcentaje de comisión (%) que recibe el usuario por cada rubro cotizado y vendido:
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                {SERVICIOS.map((srv) => (
+                  <div
+                    key={srv.id}
+                    style={{
+                      background: 'rgba(15, 23, 42, 0.4)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: '10px',
+                      padding: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                    }}
+                  >
+                    <span style={{ fontSize: '0.8125rem', color: '#E2E8F0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>{srv.icon}</span>
+                      <span>{srv.label}</span>
+                    </span>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={comisiones[srv.id] !== undefined ? comisiones[srv.id] : 0}
+                        onChange={(e) => handleComisionChange(srv.id, e.target.value)}
+                        className="erp-input"
+                        style={{
+                          width: '100%',
+                          paddingRight: '28px',
+                          textAlign: 'right',
+                          fontWeight: 600,
+                          color: '#E87217',
+                        }}
+                      />
+                      <span
+                        style={{
+                          position: 'absolute',
+                          right: '10px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          color: '#94A3B8',
+                          fontSize: '0.8125rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        %
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Actions */}
         <div
           style={{
             display: 'flex',
