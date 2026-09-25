@@ -418,7 +418,7 @@ export default function VehiculoList({ user }) {
                     borderBottom: '1px solid rgba(255, 255, 255, 0.51)',
                     transition: 'background-color 0.15s ease',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(232, 114, 23, 0.08)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(157, 175, 206, 0.17)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <td style={{ padding: '14px 16px', color: '#b9c8ddff', fontWeight: '500' }}>
@@ -471,7 +471,7 @@ export default function VehiculoList({ user }) {
                   {/* Promotion Badge */}
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     {item.has_promocion ? (
-                      <Badge variant="warning">Promo Activa</Badge>
+                      <Badge variant="success">Promo Activa</Badge>
                     ) : (
                       <Badge variant="neutral">Estándar</Badge>
                     )}
