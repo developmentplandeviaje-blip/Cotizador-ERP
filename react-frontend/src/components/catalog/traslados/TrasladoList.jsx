@@ -176,8 +176,7 @@ export default function TrasladoList({ user }) {
           <span>{successBanner}</span>
           <button
             onClick={() => setSuccessBanner('')}
-            style={{ background: 'none', border: 'none', color: '#86efac', cursor: 'pointer', fontSize: '1.1rem' }}
-          >
+            style={{ background: 'none', border: 'none', color: '#86efac', cursor: 'pointer', fontSize: '1.1rem' }}>
             ✕
           </button>
         </div>
