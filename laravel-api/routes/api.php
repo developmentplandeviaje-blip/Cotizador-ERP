@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\v1\Catalog\VehiculoTarifaController;
 use App\Http\Controllers\Api\v1\Catalog\TrasladoController;
 use App\Http\Controllers\Api\v1\Catalog\AerolineaController;
 use App\Http\Controllers\Api\v1\User\UserAgenciaController;
+use App\Http\Controllers\Api\v1\Finance\MetodoPagoController;
 
 // Public routes
 Route::post('/v1/auth/login', [AuthController::class, 'login']);
@@ -89,4 +90,11 @@ Route::middleware('auth:sanctum')->group(function () {
         'agencia' => 'user'
     ]);
     Route::patch('/v1/users/agencia/{user}/toggle-status', [UserAgenciaController::class, 'toggleStatus']);
+
+    // Finance: Métodos de Pago
+    Route::apiResource('/v1/finance/metodos-pago', MetodoPagoController::class)->parameters([
+        'metodos-pago' => 'metodoPago'
+    ]);
+    Route::patch('/v1/finance/metodos-pago/{metodoPago}/toggle-status', [MetodoPagoController::class, 'toggleStatus']);
+    Route::post('/v1/finance/metodos-pago/{metodoPago}/asesores', [MetodoPagoController::class, 'assignAsesores']);
 });

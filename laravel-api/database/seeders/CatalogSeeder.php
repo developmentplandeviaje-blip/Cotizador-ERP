@@ -13,6 +13,10 @@ use App\Models\Catalog\VehiculoAgencia;
 use App\Models\Catalog\VehiculoTarifa;
 use App\Models\Catalog\Traslado;
 use App\Models\Catalog\Aerolinea;
+use App\Models\Finance\MetodoPago;
+use App\Models\Finance\MetodoPagoBanco;
+use App\Models\Finance\MetodoPagoDigital;
+use App\Models\Finance\MetodoPagoAsesor;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -435,5 +439,98 @@ class CatalogSeeder extends Seeder
         Aerolinea::firstOrCreate(['nombre' => 'Avior Airlines']);
         Aerolinea::firstOrCreate(['nombre' => 'Conviasa']);
         Aerolinea::firstOrCreate(['nombre' => 'Venezolana (RAVSA)']);
+
+        // 9. Seed Métodos de Pago (5 Registros realistas)
+        $banesco = MetodoPago::firstOrCreate(
+            ['nombre' => 'Banesco Cuenta Corriente'],
+            [
+                'nombre_publico' => 'Banesco Banco Universal (Bs.)',
+                'tipo' => 'banco',
+                'logo' => 'LOGO-BANESCO.png',
+                'status' => true,
+            ]
+        );
+        MetodoPagoBanco::updateOrCreate(
+            ['id_metodo' => $banesco->id],
+            [
+                'titular' => 'Viajes Plan de Viaje C.A.',
+                'tipo_documento' => 'J',
+                'documento' => '501234567',
+                'numero_cuenta' => '01340001000000123456',
+                'tipo_cuenta' => 'Corriente',
+                'pago_movil_telefono' => '0414-1234567',
+            ]
+        );
+
+        $bnc = MetodoPago::firstOrCreate(
+            ['nombre' => 'BNC Cuenta Corriente'],
+            [
+                'nombre_publico' => 'Banco Nacional de Crédito - BNC (Bs.)',
+                'tipo' => 'banco',
+                'logo' => 'LOGO-BNC.png',
+                'status' => true,
+            ]
+        );
+        MetodoPagoBanco::updateOrCreate(
+            ['id_metodo' => $bnc->id],
+            [
+                'titular' => 'Viajes Plan de Viaje C.A.',
+                'tipo_documento' => 'J',
+                'documento' => '501234567',
+                'numero_cuenta' => '01910001000000654321',
+                'tipo_cuenta' => 'Corriente',
+                'pago_movil_telefono' => '0412-9876543',
+            ]
+        );
+
+        $zelle = MetodoPago::firstOrCreate(
+            ['nombre' => 'Zelle Corporativo'],
+            [
+                'nombre_publico' => 'Zelle Pagos Internacionales (USD)',
+                'tipo' => 'digital',
+                'logo' => 'LOGO-ZELLE.png',
+                'status' => true,
+            ]
+        );
+        MetodoPagoDigital::updateOrCreate(
+            ['id_metodo' => $zelle->id],
+            [
+                'correo_cuenta' => 'pagos@plandeviaje.com',
+                'tipo_comision' => 'porcentaje',
+                'comision_valor' => 0.00,
+                'codigo_postal' => '33101',
+                'direccion_facturacion' => 'Miami, FL, USA',
+            ]
+        );
+
+        $paypal = MetodoPago::firstOrCreate(
+            ['nombre' => 'PayPal / Pasarela USD'],
+            [
+                'nombre_publico' => 'PayPal / Tarjeta Internacional (3% comisión)',
+                'tipo' => 'digital',
+                'logo' => null,
+                'status' => true,
+            ]
+        );
+        MetodoPagoDigital::updateOrCreate(
+            ['id_metodo' => $paypal->id],
+            [
+                'correo_cuenta' => 'billing@plandeviaje.com',
+                'tipo_comision' => 'porcentaje',
+                'comision_valor' => 3.00,
+                'codigo_postal' => '33101',
+                'direccion_facturacion' => 'Miami, FL, USA',
+            ]
+        );
+
+        MetodoPago::firstOrCreate(
+            ['nombre' => 'Efectivo Divisas (Oficina)'],
+            [
+                'nombre_publico' => 'Efectivo USD / EUR en Sede Comercial',
+                'tipo' => 'efectivo',
+                'logo' => null,
+                'status' => true,
+            ]
+        );
     }
 }
