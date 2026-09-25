@@ -6,6 +6,10 @@ export default function Badge({ children, variant = 'neutral', className = '', s
     error: 'badge-error',
     status: 'badge-status',
     neutral: 'badge-neutral',
+    purple: 'badge-purple',
+    info: 'badge-info',
+    warning: 'badge-warning',
+    blue: 'badge-blue',
   }[variant] || 'badge-neutral';
 
   return (
