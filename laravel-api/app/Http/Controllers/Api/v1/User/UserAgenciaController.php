@@ -56,6 +56,35 @@ class UserAgenciaController extends Controller
         return new UserAgenciaResource($toggled);
     }
 
+    
+    public function assignMetodosPago(Request $request, User $user): JsonResponse
+    {
+        $this->ensureAuthorized($request, true);
+        $this->ensureIsAgencyUser($user);
+
+        $validated = $request->validate([
+            'metodos' => 'array',
+            'metodos.*' => 'integer|exists:metodos_pago,id'
+        ]);
+
+        \App\Models\Finance\MetodoPagoAsesor::where('id_asesor', $user->id)->delete();
+
+        if (!empty($validated['metodos'])) {
+            $insertData = array_map(function ($id_metodo) use ($user) {
+                return [
+                    'id_metodo' => $id_metodo,
+                    'id_asesor' => $user->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }, $validated['metodos']);
+            
+            \App\Models\Finance\MetodoPagoAsesor::insert($insertData);
+        }
+
+        return response()->json(['message' => 'Métodos de pago asignados correctamente.']);
+    }
+
     public function destroy(Request $request, User $user): JsonResponse
     {
         $this->ensureAuthorized($request, true);
