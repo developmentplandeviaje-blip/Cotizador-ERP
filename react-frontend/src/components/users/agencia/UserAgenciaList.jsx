@@ -414,10 +414,10 @@ export default function UserAgenciaList({ user: currentUser }) {
                 <tr
                   key={item.id}
                   style={{
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.51)',
                     transition: 'background 0.2s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(157, 175, 206, 0.17)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   {/* Avatar Initials */}
@@ -588,10 +588,12 @@ export default function UserAgenciaList({ user: currentUser }) {
           <div
             style={{
               padding: '16px 20px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              fontSize: '0.8125rem',
+              color: '#94A3B8',
             }}
           >
             <Pagination
