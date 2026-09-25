@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Modal from '../../common/Modal';
 
 const SERVICIOS = [
   { id: 'hotel', label: 'Hotel', icon: '🏨' },
@@ -15,7 +16,7 @@ const SERVICIOS = [
 const NIVELES = ['Administrador', 'Sub Gerente', 'Lider', 'Asesor'];
 
 export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit = null }) {
-  const [activeTab, setActiveTab] = useState('general'); // 'general' | 'comisiones'
+  const [currentStep, setCurrentStep] = useState(1); // 'general' | 'comisiones'
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -43,7 +44,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
     if (isOpen) {
       setErrorMessage('');
       setErrors({});
-      setActiveTab('general');
+      setCurrentStep(1);
 
       if (userToEdit) {
         setFirstName(userToEdit.first_name || '');
@@ -138,119 +139,15 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-        padding: '16px',
-      }}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={userToEdit ? 'Editar Usuario de Agencia' : 'Nuevo Usuario de Agencia'}
+      steps={['Datos Generales', 'Comisiones por Servicio (%)']}
+      currentStep={currentStep}
+      width="680px"
     >
-      <div
-        style={{
-          backgroundColor: '#1E293B',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '16px',
-          width: '100%',
-          maxWidth: '680px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: '90vh',
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            padding: '20px 24px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-          }}
-        >
-          <div>
-            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: '#FFFFFF' }}>
-              {userToEdit ? 'Editar Usuario de Agencia' : 'Nuevo Usuario de Agencia'}
-            </h2>
-            <p style={{ margin: '4px 0 0', fontSize: '0.8125rem', color: '#94A3B8' }}>
-              {userToEdit ? `Modificando credenciales y comisiones de ${userToEdit.first_name}` : 'Registre un asesor, líder o administrador para la agencia'}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#94A3B8',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: '6px',
-            }}
-          >
-            &times;
-          </button>
-        </div>
-
-        {/* Tab Selector */}
-        <div
-          style={{
-            display: 'flex',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            backgroundColor: 'rgba(15, 23, 42, 0.3)',
-            padding: '0 24px',
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => setActiveTab('general')}
-            style={{
-              padding: '12px 18px',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'general' ? '2px solid #E87217' : '2px solid transparent',
-              color: activeTab === 'general' ? '#E87217' : '#94A3B8',
-              fontWeight: activeTab === 'general' ? 600 : 500,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-          >
-            👤 Datos Generales
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('comisiones')}
-            style={{
-              padding: '12px 18px',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'comisiones' ? '2px solid #E87217' : '2px solid transparent',
-              color: activeTab === 'comisiones' ? '#E87217' : '#94A3B8',
-              fontWeight: activeTab === 'comisiones' ? 600 : 500,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-          >
-            💰 Comisiones por Servicio (%)
-          </button>
-        </div>
-
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
             {errorMessage && (
               <div
@@ -268,7 +165,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
             )}
 
             {/* Tab: General */}
-            {activeTab === 'general' && (
+            {currentStep === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   {/* First Name */}
@@ -420,7 +317,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
             )}
 
             {/* Tab: Comisiones */}
-            {activeTab === 'comisiones' && (
+            {currentStep === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <p style={{ margin: 0, fontSize: '0.8125rem', color: '#94A3B8' }}>
                   Indique el porcentaje de comisión (%) que recibe el usuario por cada rubro cotizado y vendido:
@@ -483,56 +380,61 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
           </div>
 
           {/* Footer Actions */}
-          <div
-            style={{
-              padding: '16px 24px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-              backgroundColor: 'rgba(15, 23, 42, 0.6)',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '12px',
-            }}
-          >
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={saving}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#E2E8F0',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-              }}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="btn-primary"
-              style={{
-                padding: '8px 22px',
-                fontSize: '0.875rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              {saving ? (
-                <>
-                  <span className="spinner-border" />
-                  <span>Guardando...</span>
-                </>
-              ) : (
-                <span>{userToEdit ? 'Actualizar Usuario' : 'Crear Usuario'}</span>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '12px',
+            marginTop: '16px'
+          }}
+        >
+          {currentStep === 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="btn-form-cancel"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn-form-nxt"
+                onClick={() => setCurrentStep(2)}
+              >
+                Siguiente
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="btn-form-cancel"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn-form-prv"
+                onClick={() => setCurrentStep(1)}
+                disabled={saving}
+              >
+                Anterior
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="btn-form-nxt"
+              >
+                {saving ? 'Guardando...' : (userToEdit ? 'Actualizar Usuario' : 'Crear Usuario')}
+              </button>
+            </>
+          )}
+        </div>
+      </form>
+    </Modal>
   );
 }
