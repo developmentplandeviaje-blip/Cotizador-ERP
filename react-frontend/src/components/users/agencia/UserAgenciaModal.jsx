@@ -145,6 +145,8 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
       title={userToEdit ? 'Editar Usuario de Agencia' : 'Nuevo Usuario de Agencia'}
       steps={['Datos Generales', 'Comisiones por Servicio (%)']}
       currentStep={currentStep}
+      stepStyle="tabs"
+      onStepChange={(step) => setCurrentStep(step)}
       width="680px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -399,11 +401,11 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                 Cancelar
               </button>
               <button
-                type="button"
+                type="submit"
+                disabled={saving}
                 className="btn-form-nxt"
-                onClick={() => setCurrentStep(2)}
               >
-                Siguiente
+                {saving ? 'Guardando...' : (userToEdit ? 'Actualizar Usuario' : 'Crear Usuario')}
               </button>
             </>
           ) : (
@@ -415,14 +417,6 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                 className="btn-form-cancel"
               >
                 Cancelar
-              </button>
-              <button
-                type="button"
-                className="btn-form-prv"
-                onClick={() => setCurrentStep(1)}
-                disabled={saving}
-              >
-                Anterior
               </button>
               <button
                 type="submit"

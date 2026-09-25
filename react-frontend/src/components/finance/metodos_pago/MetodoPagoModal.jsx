@@ -181,9 +181,11 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={metodoToEdit ? 'Editar MǸtodo de Pago' : 'Nuevo MǸtodo de Pago'}
+      title={metodoToEdit ? 'Editar Método de Pago' : 'Nuevo Método de Pago'}
       steps={['Datos y Cuenta', 'Asesores Asignados']}
       currentStep={currentStep}
+      stepStyle="tabs"
+      onStepChange={(step) => setCurrentStep(step)}
       width="720px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -636,11 +638,11 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                 Cancelar
               </button>
               <button
-                type="button"
+                type="submit"
+                disabled={saving}
                 className="btn-form-nxt"
-                onClick={() => setCurrentStep(2)}
               >
-                Siguiente
+                {saving ? 'Guardando...' : (metodoToEdit ? 'Actualizar Método' : 'Crear Método')}
               </button>
             </>
           ) : (
@@ -652,14 +654,6 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                 className="btn-form-cancel"
               >
                 Cancelar
-              </button>
-              <button
-                type="button"
-                className="btn-form-prv"
-                onClick={() => setCurrentStep(1)}
-                disabled={saving}
-              >
-                Anterior
               </button>
               <button
                 type="submit"
