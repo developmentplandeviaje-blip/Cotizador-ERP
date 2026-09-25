@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import MetodoPagoModal from './MetodoPagoModal';
+import AssignMetodosModal from './AssignMetodosModal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
 import imgImprimir from '../../../assets/Imprimir.svg';
@@ -24,6 +25,7 @@ export default function MetodoPagoList({ user }) {
 
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [metodoToEdit, setMetodoToEdit] = useState(null);
 
   // Delete modal
@@ -330,12 +332,12 @@ export default function MetodoPagoList({ user }) {
             <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
               <button
                 className="btn-secondary"
-                onClick={() => window.print()}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-                title="Imprimir listado">
-                <img src={imgImprimir} alt="Imprimir" style={{ width: '20px', height: '20px' }} />
+                onClick={() => setIsAssignModalOpen(true)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#CBD5E1', fontSize: '1.2rem' }}
+                title="Asignar métodos de pago a asesor">
+                👥
               </button>
-              <span className='title-input'>Imprimir</span>
+              <span className='title-input'>Asignar</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
@@ -658,6 +660,16 @@ export default function MetodoPagoList({ user }) {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveSuccess}
         metodoToEdit={metodoToEdit}
+      />
+      <AssignMetodosModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        onSaveSuccess={() => {
+          setIsAssignModalOpen(false);
+          setSuccessBanner('Asignación guardada exitosamente.');
+          setTimeout(() => setSuccessBanner(''), 4000);
+          fetchMetodos();
+        }}
       />
 
       {/* Delete Confirmation Modal */}
