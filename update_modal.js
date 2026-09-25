@@ -1,34 +1,21 @@
-import React from 'react';
+﻿const fs = require('fs');
 
-export default function Modal({ isOpen, onClose, title, steps, currentStep, stepStyle = 'pills', onStepChange, children, width = '600px', zIndex = 1000 }) {
-  if (!isOpen) return null;
+const file = 'react-frontend/src/components/common/Modal.jsx';
+let code = fs.readFileSync(file, 'utf8');
 
-  return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: 'rgba(5, 10, 20, 0.75)',
-      backdropFilter: 'blur(6px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex,
-      padding: '20px',
-      boxSizing: 'border-box',
-    }}>
-      <div style={{
-        background: 'linear-gradient(180deg, #101c44 15%, #061251 24%)',
-        border: '1px solid rgba(255, 255, 255, 0.18)',
-        borderRadius: '16px',
-        width: '100%',
-        maxWidth: width,
-        boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
-        display: 'flex',
-        flexDirection: 'column',
-        maxHeight: '90vh',
-        overflow: 'hidden',
-      }}>
-        {/* Modal Header */}
+// 1. Add stepStyle prop
+code = code.replace(/export default function Modal\(\{([\s\S]*?)\}\) \{/, (match, props) => {
+  if (!props.includes('stepStyle')) {
+    return `export default function Modal({${props.replace('steps, currentStep', 'steps, currentStep, stepStyle = \'pills\'')}}) {`;
+  }
+  return match;
+});
+
+// 2. Change how steps are rendered
+// We want to completely replace the Modal Header block.
+const headerRegex = /\{\/\* Modal Header \*\/\}([\s\S]*?)<button\s*onClick=\{onClose\}/;
+
+const newHeader = `{/* Modal Header */}
         <div style={{
           padding: stepStyle === 'tabs' ? '20px 24px 0 24px' : '20px 24px',
           borderBottom: '1px solid rgba(255, 255, 255, 0.16)',
@@ -53,9 +40,7 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, step
                   return (
                     <div
                       key={idx}
-                      onClick={() => onStepChange && onStepChange(idx + 1)}
                       style={{
-                        cursor: onStepChange ? 'pointer' : 'default',
                         flex: 1,
                         display: 'flex',
                         alignItems: 'center',
@@ -91,6 +76,14 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, step
             )}
 
             <button
+              onClick={onClose}`;
+
+code = code.replace(headerRegex, newHeader);
+
+// 3. Add tabs below title in header if stepStyle === 'tabs'
+const closeButtonRegex = /<button\s*onClick=\{onClose\}[\s\S]*?<\/button>\s*<\/div>/;
+
+const updatedCloseButtonAndTabs = `<button
               onClick={onClose}
               style={{
                 background: 'none',
@@ -101,7 +94,7 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, step
                 marginLeft: '12px',
               }}
             >
-              ✕
+              o 
             </button>
           </div>
 
@@ -112,9 +105,7 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, step
                 return (
                   <div
                     key={idx}
-                    onClick={() => onStepChange && onStepChange(idx + 1)}
                     style={{
-                      cursor: onStepChange ? 'pointer' : 'default',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
@@ -141,17 +132,9 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, step
               })}
             </div>
           )}
-        </div>
+        </div>`;
 
-        {/* Modal Body */}
-        <div style={{
-          padding: '24px',
-          overflowY: 'auto',
-          flex: 1,
-        }}>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-}
+code = code.replace(closeButtonRegex, updatedCloseButtonAndTabs);
+
+fs.writeFileSync(file, code, 'utf8');
+console.log("Updated Modal.jsx");

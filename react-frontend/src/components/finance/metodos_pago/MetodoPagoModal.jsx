@@ -184,6 +184,8 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
       title={metodoToEdit ? 'Editar MǸtodo de Pago' : 'Nuevo MǸtodo de Pago'}
       steps={['Datos y Cuenta', 'Asesores Asignados']}
       currentStep={currentStep}
+      stepStyle="tabs"
+      onStepChange={(step) => setCurrentStep(step)}
       width="720px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

@@ -145,6 +145,8 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
       title={userToEdit ? 'Editar Usuario de Agencia' : 'Nuevo Usuario de Agencia'}
       steps={['Datos Generales', 'Comisiones por Servicio (%)']}
       currentStep={currentStep}
+      stepStyle="tabs"
+      onStepChange={(step) => setCurrentStep(step)}
       width="680px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
