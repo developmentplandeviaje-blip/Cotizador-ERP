@@ -181,7 +181,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={metodoToEdit ? 'Editar MǸtodo de Pago' : 'Nuevo MǸtodo de Pago'}
+      title={metodoToEdit ? 'Editar Método de Pago' : 'Nuevo Método de Pago'}
       width="720px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -321,7 +321,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
               {tipo === 'banco' && (
                 <div
                   style={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
                     borderRadius: '12px',
                     padding: '16px',
@@ -436,7 +436,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
               {tipo === 'digital' && (
                 <div
                   style={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
                     borderRadius: '12px',
                     padding: '16px',
@@ -534,7 +534,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
               {tipo === 'efectivo' && (
                 <div
                   style={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
                     borderRadius: '12px',
                     padding: '16px',
@@ -636,7 +636,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
             disabled={saving}
             className="btn-form-nxt"
           >
-            {saving ? 'Guardando...' : (metodoToEdit ? 'Actualizar MǸtodo' : 'Crear MǸtodo')}
+            {saving ? 'Guardando...' : (metodoToEdit ? 'Actualizar Método' : 'Crear Método')}
           </button>
         </div>
       </form>

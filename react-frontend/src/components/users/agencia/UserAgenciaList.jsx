@@ -633,7 +633,7 @@ export default function UserAgenciaList({ user: currentUser }) {
         >
           <div
             style={{
-              backgroundColor: '#1E293B',
+              backgroundColor: 'rgb(67 37 37)',
               border: '1px solid rgba(239, 68, 68, 0.3)',
               borderRadius: '16px',
               maxWidth: '480px',
@@ -685,7 +685,7 @@ export default function UserAgenciaList({ user: currentUser }) {
                 style={{
                   padding: '8px 18px',
                   borderRadius: '8px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  backgroundColor: 'rgb(37 33 33 / 70%)',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                   color: '#E2E8F0',
                   fontSize: '0.875rem',
