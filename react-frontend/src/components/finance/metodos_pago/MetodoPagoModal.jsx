@@ -181,9 +181,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={metodoToEdit ? 'Editar MǸtodo de Pago' : 'Nuevo MǸtodo de Pago'}
-      steps={['Datos y Cuenta', 'Asesores Asignados']}
-      currentStep={currentStep}
+      title={metodoToEdit ? 'Editar Método de Pago' : 'Nuevo Método de Pago'}
       width="720px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -323,7 +321,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
               {tipo === 'banco' && (
                 <div
                   style={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
                     borderRadius: '12px',
                     padding: '16px',
@@ -438,7 +436,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
               {tipo === 'digital' && (
                 <div
                   style={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
                     borderRadius: '12px',
                     padding: '16px',
@@ -536,7 +534,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
               {tipo === 'efectivo' && (
                 <div
                   style={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
                     borderRadius: '12px',
                     padding: '16px',
@@ -625,51 +623,21 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
             marginTop: '16px'
           }}
         >
-          {currentStep === 1 ? (
-            <>
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={saving}
-                className="btn-form-cancel"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="btn-form-nxt"
-                onClick={() => setCurrentStep(2)}
-              >
-                Siguiente
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={saving}
-                className="btn-form-cancel"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="btn-form-prv"
-                onClick={() => setCurrentStep(1)}
-                disabled={saving}
-              >
-                Anterior
-              </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="btn-form-nxt"
-              >
-                {saving ? 'Guardando...' : (metodoToEdit ? 'Actualizar Método' : 'Crear Método')}
-              </button>
-            </>
-          )}
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="btn-form-cancel"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="btn-form-nxt"
+          >
+            {saving ? 'Guardando...' : (metodoToEdit ? 'Actualizar Método' : 'Crear Método')}
+          </button>
         </div>
       </form>
     </Modal>
