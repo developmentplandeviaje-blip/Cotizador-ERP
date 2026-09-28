@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Modal({ isOpen, onClose, title, steps, currentStep, children, width = '600px', zIndex = 1000 }) {
+export default function Modal({ isOpen, onClose, title, steps, currentStep, stepStyle = 'pills', onStepChange, children, width = '600px', zIndex = 1000 }) {
   if (!isOpen) return null;
 
   return (
@@ -30,44 +30,108 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, chil
       }}>
         {/* Modal Header */}
         <div style={{
-          padding: '20px 24px',
+          padding: stepStyle === 'tabs' ? '20px 24px 0 24px' : '20px 24px',
           borderBottom: '1px solid rgba(255, 255, 255, 0.16)',
           display: 'flex',
-          alignItems: 'center',
+          flexDirection: stepStyle === 'tabs' && title ? 'column' : 'row',
+          alignItems: stepStyle === 'tabs' && title ? 'flex-start' : 'center',
           justifyContent: 'space-between',
+          position: 'relative'
         }}>
-          {steps ? (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+          {/* Top row for title and close button */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: stepStyle === 'tabs' && title ? '20px' : '0' }}>
+            {(!steps || stepStyle === 'tabs' || title) && (
+              <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#FFFFFF', display: (!steps || (title && stepStyle === 'tabs')) ? 'block' : 'none' }}>
+                {title}
+              </h3>
+            )}
+
+            {(steps && stepStyle === 'pills') && (
+              <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                {steps.map((step, idx) => {
+                  const isActive = currentStep === idx + 1;
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => onStepChange && onStepChange(idx + 1)}
+                      style={{
+                        cursor: onStepChange ? 'pointer' : 'default',
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        background: isActive ? 'rgba(37, 99, 235, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+                        border: isActive ? '1px solid #2563EB' : '1px solid rgba(255, 255, 255, 0.08)',
+                        color: isActive ? '#FFFFFF' : '#94A3B8',
+                        fontSize: '0.8125rem',
+                        fontWeight: isActive ? '600' : '400',
+                      }}
+                    >
+                      <span style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        background: isActive ? '#2563EB' : 'rgba(255, 255, 255, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        color: '#FFFFFF'
+                      }}>
+                        {idx + 1}
+                      </span>
+                      <span>{step}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#94A3B8',
+                fontSize: '1.25rem',
+                cursor: 'pointer',
+                marginLeft: '12px',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {(steps && stepStyle === 'tabs') && (
+            <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
               {steps.map((step, idx) => {
                 const isActive = currentStep === idx + 1;
                 return (
                   <div
                     key={idx}
+                    onClick={() => onStepChange && onStepChange(idx + 1)}
                     style={{
-                      flex: 1,
+                      cursor: onStepChange ? 'pointer' : 'default',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      background: isActive ? 'rgba(37, 99, 235, 0.25)' : 'rgba(255, 255, 255, 0.05)',
-                      border: isActive ? '1px solid #2563EB' : '1px solid rgba(255, 255, 255, 0.08)',
-                      color: isActive ? '#FFFFFF' : '#94A3B8',
-                      fontSize: '0.8125rem',
-                      fontWeight: isActive ? '600' : '400',
+                      padding: '0 4px 12px 4px',
+                      borderBottom: isActive ? '2px solid #2563EB' : '2px solid transparent',
+                      color: isActive ? '#2563EB' : '#94A3B8',
+                      fontSize: '0.875rem',
+                      fontWeight: isActive ? '600' : '500',
+                      marginBottom: '-1px'
                     }}
                   >
                     <span style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      background: isActive ? '#2563EB' : 'rgba(255, 255, 255, 0.2)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                      color: '#FFFFFF'
+                      fontSize: '0.875rem',
+                      color: isActive ? '#2563EB' : '#94A3B8'
                     }}>
                       {idx + 1}
                     </span>
@@ -76,25 +140,7 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, chil
                 );
               })}
             </div>
-          ) : (
-            <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#FFFFFF' }}>
-              {title}
-            </h3>
           )}
-
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#94A3B8',
-              fontSize: '1.25rem',
-              cursor: 'pointer',
-              marginLeft: '12px',
-            }}
-          >
-            ✕
-          </button>
         </div>
 
         {/* Modal Body */}

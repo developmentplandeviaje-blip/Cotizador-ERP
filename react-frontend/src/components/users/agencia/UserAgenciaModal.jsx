@@ -145,14 +145,15 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
       title={userToEdit ? 'Editar Usuario de Agencia' : 'Nuevo Usuario de Agencia'}
       steps={['Datos Generales', 'Comisiones por Servicio (%)']}
       currentStep={currentStep}
-      width="680px"
+      stepStyle="tabs"
+      onStepChange={(step) => setCurrentStep(step)}
+      width="580px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        <div style={{ padding: '10px', display: 'flex', flexDirection: 'column' }}>
           {errorMessage && (
             <div
               style={{
-                padding: '12px 16px',
                 backgroundColor: 'rgba(239, 68, 68, 0.15)',
                 border: '1px solid rgba(239, 68, 68, 0.4)',
                 borderRadius: '8px',
@@ -166,11 +167,11 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
 
           {/* Tab: General */}
           {currentStep === 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {/* First Name */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>
                     Nombre <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
@@ -194,7 +195,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
 
                 {/* Last Name */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>
                     Apellido <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
@@ -219,7 +220,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
 
               {/* Email */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
                   Correo Electrónico <span style={{ color: '#EF4444' }}>*</span>
                 </label>
                 <input
@@ -245,7 +246,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {/* Level */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
                     Nivel / Rol <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <select
@@ -269,11 +270,11 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
 
                 {/* Status */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '8px 0px 0px 0px' }}>
                     Estado de Acceso
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', height: '42px', gap: '12px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 'px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
                       <input
                         type="checkbox"
                         checked={status}
@@ -293,7 +294,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
 
               {/* Password */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>
                   Contraseña {userToEdit ? <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>(dejar en blanco para conservar actual)</span> : <span style={{ color: '#EF4444' }}>*</span>}
                 </label>
                 <input
@@ -337,7 +338,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                       gap: '6px',
                     }}
                   >
-                    <span style={{ fontSize: '0.8125rem', color: '#E2E8F0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.8125rem', color: '#E2E8F0', display: 'flex', alignItems: 'center', gap: 'px' }}>
                       <span>{srv.icon}</span>
                       <span>{srv.label}</span>
                     </span>
@@ -399,11 +400,11 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                 Cancelar
               </button>
               <button
-                type="button"
+                type="submit"
+                disabled={saving}
                 className="btn-form-nxt"
-                onClick={() => setCurrentStep(2)}
               >
-                Siguiente
+                {saving ? 'Guardando...' : (userToEdit ? 'Actualizar Usuario' : 'Crear Usuario')}
               </button>
             </>
           ) : (
@@ -415,14 +416,6 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                 className="btn-form-cancel"
               >
                 Cancelar
-              </button>
-              <button
-                type="button"
-                className="btn-form-prv"
-                onClick={() => setCurrentStep(1)}
-                disabled={saving}
-              >
-                Anterior
               </button>
               <button
                 type="submit"

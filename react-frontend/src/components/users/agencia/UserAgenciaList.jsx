@@ -352,39 +352,40 @@ export default function UserAgenciaList({ user: currentUser }) {
         background: 'rgba(188, 192, 215, 0.09)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: '16px',
-        overflow: 'hidden',
+        overflow: 'visible',
+
         boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
       }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left', fontSize: '0.875rem' }}>
           <thead>
-            <tr style={{ background: '#e8721726', borderBottom: '1px solid rgba(255, 255, 255, 0.84)' }}>
-              <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+            <tr style={{ background: '#e8721726' }}>
+              <th style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', borderTopLeftRadius: '16px' }}>
                 Usuario
               </th>
               <th onClick={() => handleSort('first_name')}
-                style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
+                style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
                 Nombre {getSortIndicator('first_name')}
               </th>
               <th onClick={() => handleSort('email')}
-                style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
+                style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
                 Email {getSortIndicator('email')}
               </th>
               <th onClick={() => handleSort('level')}
-                style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
+                style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
                 Nivel / Rol {getSortIndicator('level')}
               </th>
-              <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+              <th style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
                 Comisiones
               </th>
               <th onClick={() => handleSort('status')}
-                style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
+                style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
                 Estado {getSortIndicator('status')}
               </th>
               <th onClick={() => handleSort('date_creation')}
-                style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
+                style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
                 Registro {getSortIndicator('date_creation')}
               </th>
-              <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', textAlign: 'center' }}>
+              <th style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', textAlign: 'center', borderTopRightRadius: '16px' }}>
                 Acciones
               </th>
             </tr>
@@ -414,14 +415,13 @@ export default function UserAgenciaList({ user: currentUser }) {
                 <tr
                   key={item.id}
                   style={{
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.51)',
                     transition: 'background 0.2s',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(157, 175, 206, 0.17)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   {/* Avatar Initials */}
-                  <td style={{ padding: '12px 16px' }}>
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
                     <div
                       style={{
                         width: '36px',
@@ -442,22 +442,22 @@ export default function UserAgenciaList({ user: currentUser }) {
                   </td>
 
                   {/* Name */}
-                  <td style={{ padding: '12px 16px', fontWeight: 600, color: '#FFFFFF', fontSize: '0.875rem' }}>
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', fontWeight: 600, color: '#FFFFFF', fontSize: '0.875rem' }}>
                     {item.full_name}
                   </td>
 
                   {/* Email */}
-                  <td style={{ padding: '12px 16px', color: '#b9c8ddff', fontSize: '0.875rem' }}>
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', color: '#b9c8ddff', fontSize: '0.875rem' }}>
                     {item.email}
                   </td>
 
                   {/* Level */}
-                  <td style={{ padding: '12px 16px' }}>
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
                     {getLevelBadge(item.level)}
                   </td>
 
                   {/* Commissions Preview */}
-                  <td style={{ padding: '12px 16px', position: 'relative' }}>
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', position: 'relative' }}>
                     <button
                       type="button"
                       onClick={() => setHoveredComisiones(hoveredComisiones === item.id ? null : item.id)}
@@ -508,7 +508,7 @@ export default function UserAgenciaList({ user: currentUser }) {
                   </td>
 
                   {/* Status with Toggle */}
-                  <td style={{ padding: '12px 16px' }}>
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
                     <button
                       type="button"
                       onClick={() => handleToggleStatus(item)}
@@ -531,12 +531,12 @@ export default function UserAgenciaList({ user: currentUser }) {
                   </td>
 
                   {/* Date Creation */}
-                  <td style={{ padding: '12px 16px', color: '#b9c8ddff', fontSize: '0.8125rem' }}>
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', color: '#b9c8ddff', fontSize: '0.8125rem' }}>
                     {item.date_creation ? item.date_creation.split(' ')[0] : '—'}
                   </td>
 
                   {/* Actions */}
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', textAlign: 'center' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                       {/* Edit Button */}
                       <button
