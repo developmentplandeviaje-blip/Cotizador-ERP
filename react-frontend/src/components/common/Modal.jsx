@@ -45,7 +45,7 @@ export default function Modal({ isOpen, onClose, title, steps, currentStep, step
                 {title}
               </h3>
             )}
-            
+
             {(steps && stepStyle === 'pills') && (
               <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
                 {steps.map((step, idx) => {

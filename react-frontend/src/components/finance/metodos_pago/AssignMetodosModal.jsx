@@ -79,7 +79,7 @@ export default function AssignMetodosModal({ isOpen, onClose, onSaveSuccess }) {
       isOpen={isOpen}
       onClose={onClose}
       title="Asignar Métodos de Pago"
-      width="600px"
+      width="350px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {errorMessage && (
@@ -115,51 +115,52 @@ export default function AssignMetodosModal({ isOpen, onClose, onSaveSuccess }) {
                 <p style={{ margin: '0 0 12px 0', fontSize: '0.875rem', color: '#94A3B8' }}>
                   Seleccione los métodos de pago disponibles que se asignarán a este asesor:
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
-                  {metodos.map((metodo) => {
-                    const isChecked = selectedMetodos.includes(metodo.id);
-                    return (
-                      <label
-                        key={metodo.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          padding: '12px 16px',
-                          borderRadius: '8px',
-                          backgroundColor: isChecked ? 'rgba(37, 99, 235, 0.1)' : 'rgba(15, 23, 42, 0.4)',
-                          border: isChecked ? '1px solid rgba(37, 99, 235, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleToggleMetodo(metodo.id)}
-                          style={{ width: '18px', height: '18px', accentColor: '#2563EB', cursor: 'pointer' }}
-                        />
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#FFFFFF' }}>
-                            {metodo.nombre}
+                <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <div className="hide-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
+                    {metodos.map((metodo) => {
+                      const isChecked = selectedMetodos.includes(metodo.id);
+                      return (
+                        <label
+                          key={metodo.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '12px 16px',
+                            borderRadius: '8px',
+                            backgroundColor: isChecked ? 'rgba(37, 99, 235, 0.1)' : 'rgba(15, 23, 42, 0.4)',
+                            border: isChecked ? '1px solid rgba(37, 99, 235, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleToggleMetodo(metodo.id)}
+                            style={{ width: '18px', height: '18px', accentColor: '#2563EB', cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none' }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#FFFFFF' }}>
+                              {metodo.nombre}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                              {metodo.tipo.toUpperCase()}
+                            </div>
                           </div>
-                          <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
-                            {metodo.tipo.toUpperCase()}
-                          </div>
-                        </div>
-                      </label>
-                    );
-                  })}
-                  {metodos.length === 0 && (
-                    <div style={{ color: '#94A3B8', fontSize: '0.875rem' }}>No hay métodos de pago registrados.</div>
-                  )}
+                        </label>
+                      );
+                    })}
+                    {metodos.length === 0 && (
+                      <div style={{ color: '#94A3B8', fontSize: '0.875rem' }}>No hay métodos de pago registrados.</div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
           </>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px', justifyContent: 'center' }}>
           <button type="button" onClick={onClose} disabled={saving} className="btn-form-cancel">
             Cancelar
           </button>

@@ -56,7 +56,7 @@ class UserAgenciaController extends Controller
         return new UserAgenciaResource($toggled);
     }
 
-    
+
     public function assignMetodosPago(Request $request, User $user): JsonResponse
     {
         $this->ensureAuthorized($request, true);
@@ -78,7 +78,7 @@ class UserAgenciaController extends Controller
                     'updated_at' => now(),
                 ];
             }, $validated['metodos']);
-            
+
             \App\Models\Finance\MetodoPagoAsesor::insert($insertData);
         }
 
