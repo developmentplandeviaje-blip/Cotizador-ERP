@@ -64,7 +64,7 @@ class UserAgenciaController extends Controller
 
         $validated = $request->validate([
             'metodos' => 'array',
-            'metodos.*' => 'integer|exists:metodos_pago,id'
+            'metodos.*' => 'integer|exists:metodo_pago,id'
         ]);
 
         \App\Models\Finance\MetodoPagoAsesor::where('id_asesor', $user->id)->delete();
@@ -74,8 +74,7 @@ class UserAgenciaController extends Controller
                 return [
                     'id_metodo' => $id_metodo,
                     'id_asesor' => $user->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'asesor' => $user->first_name . ' ' . $user->last_name,
                 ];
             }, $validated['metodos']);
 
