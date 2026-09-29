@@ -1,180 +1,84 @@
 import { useState, useEffect } from 'react';
+import { showToast } from '../../../utils/toast';
 import Modal from '../../common/Modal';
 import axios from 'axios';
 
-export default function VehiculoModal({
-  isOpen,
-  onClose,
-  onSaveSuccess,
-  vehiculoToEdit = null,
-  onOpenAgenciaModal,
-  agencias: propAgencias = [],
-  lastCreatedAgenciaId = null,
-}) {
-  const [internalAgencias, setInternalAgencias] = useState([]);
-  const [loadingAgencias, setLoadingAgencias] = useState(false);
-
-  const agencias = propAgencias.length > 0 ? propAgencias : internalAgencias;
-
-  // Form fields
-  const [idVehiculoAgencia, setIdVehiculoAgencia] = useState('');
-  const [marca, setMarca] = useState('');
-  const [vehiculo, setVehiculo] = useState('');
-  const [ano, setAno] = useState('');
-  const [tipoVehiculo, setTipoVehiculo] = useState('Sedán');
-  const [tipoTransmision, setTipoTransmision] = useState('Automático');
-  const [nota, setNota] = useState('');
-
-  // Initial tariff fields (when creating)
-  const [costo, setCosto] = useState('');
-  const [porcentaje, setPorcentaje] = useState('');
-  const [precio, setPrecio] = useState('');
-  const [promocion, setPromocion] = useState(false);
-
+export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, zIndex = 1100 }) {
+  const [ubicaciones, setUbicaciones] = useState([]);
+  const [agencias, setAgencias] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  useEffect(() => {
-    if (isOpen && propAgencias.length === 0) {
-      setLoadingAgencias(true);
-      axios.get('/v1/catalog/vehiculo-agencias')
-        .then((res) => {
-          setInternalAgencias(res.data.data || []);
-        })
-        .catch((err) => {
-          console.error('Error cargando agencias:', err);
-        })
-        .finally(() => {
-          setLoadingAgencias(false);
-        });
-    }
-  }, [isOpen, propAgencias.length]);
+  // Form states
+  const [nombreAgencia, setNombreAgencia] = useState('');
+  const [idUbicacion, setIdUbicacion] = useState('');
+  const [nota, setNota] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setErrorMessage('');
-      if (vehiculoToEdit) {
-        setIdVehiculoAgencia(vehiculoToEdit.id_vehiculo_agencia || '');
-        setMarca(vehiculoToEdit.marca || '');
-        setVehiculo(vehiculoToEdit.vehiculo || '');
-        setAno(vehiculoToEdit.ano || '');
-        setTipoVehiculo(vehiculoToEdit.tipo_vehiculo || 'Sedán');
-        setTipoTransmision(vehiculoToEdit.tipo_transmision || 'Automático');
-        setNota(vehiculoToEdit.nota || '');
-        setCosto('');
-        setPorcentaje('');
-        setPrecio('');
-        setPromocion(false);
-      } else {
-        setAno((prev) => prev || new Date().getFullYear().toString());
-        setTipoVehiculo((prev) => prev || 'Sedán');
-        setTipoTransmision((prev) => prev || 'Automático');
-      }
-    } else {
-      setIdVehiculoAgencia('');
-      setMarca('');
-      setVehiculo('');
-      setAno('');
-      setTipoVehiculo('Sedán');
-      setTipoTransmision('Automático');
+      setNombreAgencia('');
+      setIdUbicacion('');
       setNota('');
-      setCosto('');
-      setPorcentaje('');
-      setPrecio('');
-      setPromocion(false);
-      setErrorMessage('');
+      fetchData();
     }
-  }, [isOpen, vehiculoToEdit]);
+  }, [isOpen]);
 
-  useEffect(() => {
-    if (lastCreatedAgenciaId) {
-      setIdVehiculoAgencia(lastCreatedAgenciaId);
-    }
-  }, [lastCreatedAgenciaId]);
-
-  useEffect(() => {
-    if (!idVehiculoAgencia && agencias.length > 0 && !vehiculoToEdit) {
-      setIdVehiculoAgencia(agencias[0].id);
-    }
-  }, [agencias, idVehiculoAgencia, vehiculoToEdit]);
-
-  const handleCostoChange = (val) => {
-    setCosto(val);
-    const c = parseFloat(val);
-    const m = parseFloat(porcentaje);
-    if (!isNaN(c) && c > 0 && !isNaN(m)) {
-      setPrecio((c * (1 + m / 100)).toFixed(2));
-    }
-  };
-
-  const handlePorcentajeChange = (val) => {
-    setPorcentaje(val);
-    const c = parseFloat(costo);
-    const m = parseFloat(val);
-    if (!isNaN(c) && c > 0 && !isNaN(m)) {
-      setPrecio((c * (1 + m / 100)).toFixed(2));
-    }
-  };
-
-  const handlePrecioChange = (val) => {
-    setPrecio(val);
-    const c = parseFloat(costo);
-    const p = parseFloat(val);
-    if (!isNaN(c) && c > 0 && !isNaN(p)) {
-      setPorcentaje((((p - c) / c) * 100).toFixed(2));
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [ubiRes, agRes] = await Promise.all([
+        axios.get('/v1/catalog/ubicaciones?all=1'),
+        axios.get('/v1/catalog/vehiculo-agencias'),
+      ]);
+      setUbicaciones(ubiRes.data.data || []);
+      setAgencias(agRes.data.data || []);
+    } catch (err) {
+      console.error('Error cargando agencias/ubicaciones:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!idVehiculoAgencia) {
-      setErrorMessage('Debe seleccionar una agencia de alquiler.');
-      return;
-    }
-
-    if (!marca.trim() || !vehiculo.trim() || !ano.trim()) {
-      setErrorMessage('Marca, modelo y año son campos obligatorios.');
+    if (!nombreAgencia.trim() || !idUbicacion) {
+      setErrorMessage('El nombre de la agencia y la ubicación son requeridos.');
       return;
     }
 
     setIsSubmitting(true);
     setErrorMessage('');
 
-    const payload = {
-      id_vehiculo_agencia: parseInt(idVehiculoAgencia, 10),
-      marca: marca.trim(),
-      vehiculo: vehiculo.trim(),
-      ano: ano.trim(),
-      tipo_vehiculo: tipoVehiculo,
-      tipo_transmision: tipoTransmision,
-      nota: nota.trim() || null,
-    };
-
-    if (!vehiculoToEdit && precio) {
-      payload.costo = parseFloat(costo) || 0;
-      payload.precio = parseFloat(precio) || 0;
-      payload.porcentaje = porcentaje !== '' ? parseFloat(porcentaje) : null;
-      payload.promocion = Boolean(promocion);
-    }
-
     try {
-      if (vehiculoToEdit) {
-        await axios.put(`/v1/catalog/vehiculos/${vehiculoToEdit.id}`, payload);
-      } else {
-        await axios.post('/v1/catalog/vehiculos', payload);
-      }
-      onSaveSuccess();
+      const res = await axios.post('/v1/catalog/vehiculo-agencias', {
+        agencia: nombreAgencia.trim(),
+        id_ubicacion: parseInt(idUbicacion, 10),
+        nota: nota.trim() || null,
+      });
+      setNombreAgencia('');
+      setIdUbicacion('');
+      setNota('');
+      fetchData();
+      if (onSaveSuccess) onSaveSuccess(res.data?.data);
     } catch (err) {
-      console.error('Error guardando vehículo:', err);
-      if (err.response?.data?.errors) {
-        const errorList = Object.values(err.response.data.errors).flat();
-        setErrorMessage(errorList.join(' '));
-      } else {
-        setErrorMessage(err.response?.data?.message || 'Error al procesar la solicitud.');
-      }
+      console.error('Error guardando agencia:', err);
+      setErrorMessage(err.response?.data?.message || 'Error al guardar la agencia de alquiler.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteAgencia = async (id, name) => {
+    if (!window.confirm(`¿Está seguro de eliminar la agencia "${name}"?`)) return;
+    try {
+      await axios.delete(`/v1/catalog/vehiculo-agencias/${id}`);
+      fetchData();
+      if (onSaveSuccess) onSaveSuccess();
+    } catch (err) {
+      console.error('Error eliminando agencia:', err);
+      showToast(err.response?.data?.message || 'No se pudo eliminar la agencia.', 'error');
     }
   };
 
@@ -182,253 +86,143 @@ export default function VehiculoModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={vehiculoToEdit ? 'Editar Vehículo' : 'Nuevo Vehículo'}
+      title="Gestión de Agencias de Alquiler"
       size="md"
+      zIndex={zIndex}
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {errorMessage && (
-          <div style={{
-            background: 'rgba(239, 68, 68, 0.15)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: '#fca5a5',
-            padding: '10px 14px',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-          }}>
-            {errorMessage}
-          </div>
-        )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Form to add agency */}
+        <form onSubmit={handleSubmit} style={{
+          background: 'rgba(255, 255, 255, 0.04)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '12px',
+          padding: '16px',
+        }}>
+          <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#E87217', fontWeight: '600' }}>
+            Registrar Nueva Agencia
+          </h4>
 
-        {/* Agency Selection */}
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <label className="erp-label" style={{ margin: 0 }}>
-              Agencia de Alquiler <span className="req">*</span>
-            </label>
-            {onOpenAgenciaModal && (
-              <button
-                type="button"
-                onClick={onOpenAgenciaModal}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#E87217',
-                  fontSize: '0.75rem',
-                  cursor: 'pointer',
-                  padding: 0,
-                  textDecoration: 'underline',
-                }}
+          {errorMessage && (
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: '#fca5a5',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              fontSize: '0.8125rem',
+              marginBottom: '12px',
+            }}>
+              {errorMessage}
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+            <div>
+              <label className="erp-label">Nombre de Agencia <span className="req">*</span></label>
+              <input
+                type="text"
+                className="erp-input"
+                placeholder="Ej: Hertz Margarita"
+                value={nombreAgencia}
+                onChange={(e) => setNombreAgencia(e.target.value)}
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div>
+              <label className="erp-label">Ubicación <span className="req">*</span></label>
+              <select
+                className="erp-input"
+                value={idUbicacion}
+                onChange={(e) => setIdUbicacion(e.target.value)}
+                required
+                disabled={isSubmitting || loading}
+                style={{ cursor: 'pointer', color: idUbicacion ? '#FFFFFF' : '#94A3B8' }}
               >
-                + Nueva Agencia
-              </button>
-            )}
+                <option value="" style={{ background: '#1e293b', color: '#94A3B8' }}>Seleccione ubicación...</option>
+                {ubicaciones.map((u) => (
+                  <option key={u.id} value={u.id} style={{ background: '#1e293b', color: '#FFFFFF' }}>
+                    {u.ubicacion}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <select
-            className="erp-input"
-            value={idVehiculoAgencia}
-            onChange={(e) => setIdVehiculoAgencia(e.target.value)}
-            required
-            disabled={isSubmitting || loadingAgencias}
-            style={{ cursor: 'pointer', color: idVehiculoAgencia ? '#FFFFFF' : '#94A3B8' }}
-          >
-            <option value="" style={{ background: '#1e293b', color: '#94A3B8' }}>
-              {loadingAgencias ? 'Cargando agencias...' : 'Seleccione una agencia...'}
-            </option>
-            {agencias.map((ag) => (
-              <option key={ag.id} value={ag.id} style={{ background: '#1e293b', color: '#FFFFFF' }}>
-                {ag.agencia} {ag.nombre_ubicacion ? `(${ag.nombre_ubicacion})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
 
-        {/* Vehicle Specs: Marca, Modelo, Año */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 0.8fr', gap: '14px' }}>
-          <div>
-            <label className="erp-label">Marca <span className="req">*</span></label>
+          <div style={{ marginBottom: '14px' }}>
+            <label className="erp-label">Nota u Observación (Opcional)</label>
             <input
               type="text"
               className="erp-input"
-              placeholder="Ej: Toyota"
-              value={marca}
-              onChange={(e) => setMarca(e.target.value)}
-              required
+              placeholder="Ej: Entrega en aeropuerto o terminal"
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
               disabled={isSubmitting}
             />
           </div>
 
-          <div>
-            <label className="erp-label">Modelo / Vehículo <span className="req">*</span></label>
-            <input
-              type="text"
-              className="erp-input"
-              placeholder="Ej: Corolla Cross"
-              value={vehiculo}
-              onChange={(e) => setVehiculo(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <button type="submit" className="btn-form-nxt" disabled={isSubmitting}>
+              {isSubmitting ? 'Guardando...' : 'Agregar Agencia'}
+            </button>
           </div>
+        </form>
 
-          <div>
-            <label className="erp-label">Año <span className="req">*</span></label>
-            <input
-              type="text"
-              className="erp-input"
-              placeholder="Ej: 2024"
-              value={ano}
-              onChange={(e) => setAno(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-        </div>
-
-        {/* Vehicle Classification: Tipo & Transmisión */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-          <div>
-            <label className="erp-label">Tipo de Vehículo <span className="req">*</span></label>
-            <select
-              className="erp-input"
-              value={tipoVehiculo}
-              onChange={(e) => setTipoVehiculo(e.target.value)}
-              required
-              disabled={isSubmitting}
-              style={{ cursor: 'pointer', color: '#FFFFFF' }}
-            >
-              <option value="Sedán" style={{ background: '#1e293b' }}>Sedán</option>
-              <option value="SUV / Camioneta" style={{ background: '#1e293b' }}>SUV / Camioneta</option>
-              <option value="Compacto" style={{ background: '#1e293b' }}>Compacto</option>
-              <option value="Rústico / 4x4" style={{ background: '#1e293b' }}>Rústico / 4x4</option>
-              <option value="Van / Minivan" style={{ background: '#1e293b' }}>Van / Minivan</option>
-              <option value="Hatchback" style={{ background: '#1e293b' }}>Hatchback</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="erp-label">Tipo de Transmisión <span className="req">*</span></label>
-            <select
-              className="erp-input"
-              value={tipoTransmision}
-              onChange={(e) => setTipoTransmision(e.target.value)}
-              required
-              disabled={isSubmitting}
-              style={{ cursor: 'pointer', color: '#FFFFFF' }}
-            >
-              <option value="Automático" style={{ background: '#1e293b' }}>Automático</option>
-              <option value="Sincrónico / Manual" style={{ background: '#1e293b' }}>Sincrónico / Manual</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Nota */}
+        {/* Existing agencies list */}
         <div>
-          <label className="erp-label">Observaciones / Notas (Opcional)</label>
-          <input
-            type="text"
-            className="erp-input"
-            placeholder="Ej: Aire acondicionado, 5 plazas, kilometraje ilimitado"
-            value={nota}
-            onChange={(e) => setNota(e.target.value)}
-            disabled={isSubmitting}
-          />
-        </div>
-
-        {/* Initial Tariff Card (Only shown when creating new vehicle) */}
-        {!vehiculoToEdit && (
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '12px',
-            padding: '16px',
-            marginTop: '4px',
-          }}>
-            <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#E87217', fontWeight: '600' }}>
-              Tarifa Base Diaria Inicial (Opcional)
-            </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-              <div>
-                <label className="erp-label">Costo Neto (USD)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="erp-input"
-                  placeholder="0.00"
-                  value={costo}
-                  onChange={(e) => handleCostoChange(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div>
-                <label className="erp-label">% Margen</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="erp-input"
-                  placeholder="0.00%"
-                  value={porcentaje}
-                  onChange={(e) => handlePorcentajeChange(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div>
-                <label className="erp-label">Precio Venta (USD)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="erp-input"
-                  placeholder="0.00"
-                  value={precio}
-                  onChange={(e) => handlePrecioChange(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginTop: '10px' }}>
-              <label style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                fontSize: '0.8125rem',
-                color: promocion ? '#E87217' : '#94A3B8',
-              }}>
-                <input
-                  type="checkbox"
-                  checked={promocion}
-                  onChange={(e) => setPromocion(e.target.checked)}
-                  disabled={isSubmitting}
-                />
-                <span>Marcar como Tarifa Promocional (US-09)</span>
-              </label>
-            </div>
+          <h4 style={{ margin: '0 0 10px 0', fontSize: '0.875rem', color: '#F8FAFC', fontWeight: '600' }}>
+            Agencias Registradas ({agencias.length})
+          </h4>
+          <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+              <thead>
+                <tr style={{ background: 'rgba(255, 255, 255, 0.05)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#94A3B8' }}>
+                  <th style={{ padding: '8px 12px', textAlign: 'left' }}>Agencia</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left' }}>Ubicación</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'right' }}>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {agencias.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} style={{ padding: '16px', textAlign: 'center', color: '#94A3B8' }}>
+                      No hay agencias registradas aún.
+                    </td>
+                  </tr>
+                ) : (
+                  agencias.map((ag) => (
+                    <tr key={ag.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                      <td style={{ padding: '8px 12px', color: '#F8FAFC', fontWeight: '500' }}>{ag.agencia}</td>
+                      <td style={{ padding: '8px 12px', color: '#E87217' }}>{ag.nombre_ubicacion}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                        <button
+                          onClick={() => handleDeleteAgencia(ag.id, ag.agencia)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#f87171',
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                          }}
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
 
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-          <button
-            type="button"
-            className="btn-form-cancel"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="btn-form-nxt"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Guardando...' : vehiculoToEdit ? 'Actualizar Vehículo' : 'Guardar Vehículo'}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+          <button type="button" className="btn-form-cancel" onClick={onClose}>
+            Cerrar
           </button>
         </div>
-      </form>
+      </div>
     </Modal>
   );
 }
