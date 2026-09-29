@@ -1,75 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import Modal from '../../common/Modal';
-import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
-import axios from 'axios';
+﻿const fs = require('fs');
+const file = 'react-frontend/src/components/catalog/hotels/DescuentoMasivoModal.jsx';
+let code = fs.readFileSync(file, 'utf8');
 
-export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, onSuccess }) {
-    const [cantidad, setCantidad] = useState('');
-    const [ubicacionId, setUbicacionId] = useState('ALL');
-    const [ubicaciones, setUbicaciones] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [confirmAction, setConfirmAction] = useState(false);
+// The committed file contains:
+// const handleDeactivate = async () => {
+//     if(confirmAction) return executeDeactivate();
+//     if (!ubicacionId) {
+//         showToast('Seleccione una ubicacin vǭlida', 'warning');
+//         return;
+//     }
+// 
+//     if (!window.confirm('Estǭ seguro que desea desactivar todos los descuentos para esta ubicacin?')) {
+//         return;
+//     }
+// 
+//     setIsSubmitting(true);
+//         isOpen={confirmAction}
+//         onClose={() => setConfirmAction(false)}
+// 
 
-    useEffect(() => {
-        if (isOpen) {
-            setCantidad('');
-            setUbicacionId('ALL');
-            fetchUbicaciones();
-        }
-    }, [isOpen]);
+// Wait, the committed file is extremely mangled around `handleDeactivate`!
+// Let me just fetch the file up to handleDeactivate and after handleDeactivate, and reconstruct it manually.
 
-    const fetchUbicaciones = async () => {
-        try {
-            const res = await axios.get('/v1/catalog/ubicaciones');
-            setUbicaciones(res.data.data || []);
-        } catch (err) {
-            console.error('Error cargando ubicaciones', err);
-        }
-    };
+const lines = code.split('\n');
+let newLines = [];
+let skip = false;
 
-    // Enforce numeric mask 0-100
-    const handleCantidadChange = (e) => {
-        let val = e.target.value.replace(/\D/g, '');
-        if (val !== '') {
-            let num = parseInt(val, 10);
-            if (num > 100) num = 100;
-            val = num.toString();
-        }
-        setCantidad(val);
-    };
-
-    const handleApply = async () => {
-        if (!cantidad || parseInt(cantidad, 10) === 0) {
-            showToast('La cantidad debe ser mayor a 0', 'warning');
-            return;
-        }
-        if (!ubicacionId) {
-            showToast('Seleccione una ubicación válida', 'warning');
-            return;
-        }
-
-        setIsSubmitting(true);
-        try {
-            const payload = {
-                tipo_descuento: tipoDescuento, // 'contado' o 'divisas'
-                porcentaje: parseInt(cantidad, 10),
-                ubicacion_id: ubicacionId,
-            };
-
-            const res = await axios.post('/v1/catalog/hoteles/descuento-masivo', payload);
-            showToast(`Éxito: ${res.data.message || 'Descuentos actualizados correctamente'}`, 'success');
-            onSuccess();
-            onClose();
-        } catch (err) {
-            console.error('Error aplicando descuento masivo', err);
-            const errMsg = err.response?.data?.message || err.response?.data?.error || err.message;
-            showToast('Error aplicando el descuento masivo: ' + errMsg, 'error');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleDeactivate = () => {
+for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.includes('const handleDeactivate = async () => {') || line.includes('const handleDeactivate = () => {')) {
+        skip = true;
+        
+        newLines.push(`    const handleDeactivate = () => {
         if (!ubicacionId) {
             showToast('Seleccione una ubicación válida', 'warning');
             return;
@@ -87,7 +49,7 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
             };
 
             const res = await axios.post('/v1/catalog/hoteles/descuento-masivo', payload);
-            showToast(`Éxito: ${res.data.message || 'Descuentos desactivados correctamente'}`, 'success');
+            showToast(\`Éxito: \${res.data.message || 'Descuentos desactivados correctamente'}\`, 'success');
             onSuccess();
             onClose();
         } catch (err) {
@@ -98,10 +60,28 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
             setIsSubmitting(false);
             setConfirmAction(false);
         }
-    };
-    const title = tipoDescuento === 'contado' ? 'Descuento al Contado' : 'Descuento en Divisas';
+    };`);
+        
+        continue;
+    }
+    
+    if (skip && line.includes("const title = tipoDescuento === 'contado' ? 'Descuento al Contado' : 'Descuento en Divisas';")) {
+        skip = false;
+    }
+    
+    if (!skip) {
+        newLines.push(line);
+    }
+}
 
-    return (
+let newCode = newLines.join('\n');
+
+// The committed file ALSO had a broken return (
+//         isOpen={confirmAction} ...
+// Let's fix that. The return statement should look like this:
+const brokenReturnRegex = /return \([\s\S]*?<\/Modal>\s*\);\s*\}/;
+
+const correctReturn = `return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}
@@ -203,4 +183,10 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
             />
         </Modal>
     );
-}
+}`;
+
+newCode = newCode.replace(brokenReturnRegex, correctReturn);
+
+fs.writeFileSync(file, newCode, 'utf8');
+fs.writeFileSync('C:\\xampp\\htdocs\\Cotizador-ERP\\' + file, newCode, 'utf8');
+console.log("Fixed!");
