@@ -359,278 +359,279 @@ export default function MetodoPagoList({ user }) {
         background: 'rgba(188, 192, 215, 0.09)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: '16px',
-        overflow: 'hidden',
+        overflow: 'visible',
         boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
       }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="erp-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ background: '#e8721726', borderBottom: '1px solid rgba(255, 255, 255, 0.84)' }}>
-                <th
-                  onClick={() => handleSort('nombre')}
-                  style={{
-                    padding: '14px 16px',
-                    color: '#FFFFFF',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                  }}
-                >
-                  Método de Pago {getSortIndicator('nombre')}
+        <table className="erp-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left' }}>
+          <thead>
+            <tr style={{ background: '#e8721726' }}>
+              <th
+                onClick={() => handleSort('nombre')}
+                style={{
+                  borderTopLeftRadius: '16px',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.84)',
+                  padding: '14px 16px',
+                  color: '#FFFFFF',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                Método de Pago {getSortIndicator('nombre')}
+              </th>
+              <th
+                onClick={() => handleSort('tipo')}
+                style={{
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.84)',
+                  padding: '14px 16px',
+                  color: '#FFFFFF',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                Tipo {getSortIndicator('tipo')}
+              </th>
+              <th style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                Detalles de la Cuenta
+              </th>
+              <th style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                Asesores
+              </th>
+              <th
+                onClick={() => handleSort('status')}
+                style={{
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.84)',
+                  padding: '14px 16px',
+                  color: '#FFFFFF',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                Estado {getSortIndicator('status')}
+              </th>
+              {!isFreelancer && (
+                <th style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', textAlign: 'center' }}>
+                  Acciones
                 </th>
-                <th
-                  onClick={() => handleSort('tipo')}
-                  style={{
-                    padding: '14px 16px',
-                    color: '#FFFFFF',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                  }}
-                >
-                  Tipo {getSortIndicator('tipo')}
-                </th>
-                <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                  Detalles de la Cuenta
-                </th>
-                <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                  Asesores
-                </th>
-                <th
-                  onClick={() => handleSort('status')}
-                  style={{
-                    padding: '14px 16px',
-                    color: '#FFFFFF',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                  }}
-                >
-                  Estado {getSortIndicator('status')}
-                </th>
-                {!isFreelancer && (
-                  <th style={{ padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', textAlign: 'center' }}>
-                    Acciones
-                  </th>
-                )}
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#FFFFFF' }}>
+                  <div className="spinner-border" style={{ margin: '0 auto 12px auto' }} />
+                  <p style={{ margin: 0, fontSize: '0.875rem' }}>Cargando métodos de pago...</p>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#FFFFFF' }}>
-                    <div className="spinner-border" style={{ margin: '0 auto 12px auto' }} />
-                    <p style={{ margin: 0, fontSize: '0.875rem' }}>Cargando métodos de pago...</p>
+            ) : metodos.length === 0 ? (
+              <tr>
+                <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#FFFFFF' }}>
+                  <span style={{ fontSize: '2rem', display: 'block', marginBottom: '8px' }}>💳</span>
+                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: '#E2E8F0' }}>
+                    No se encontraron métodos de pago
+                  </p>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.8125rem' }}>
+                    Ajuste los filtros o registre un nuevo método de pago.
+                  </p>
+                </td>
+              </tr>
+            ) : (
+              metodos.map((item) => (
+                <tr
+                  key={item.id}
+                  style={{
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(157, 175, 206, 0.17)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  {/* Name & Public Name */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
+                    <div style={{ fontWeight: 600, color: '#FFFFFF', fontSize: '0.875rem' }}>
+                      {item.nombre}
+                    </div>
+                    <div style={{ color: '#b9c8ddff', fontSize: '0.8125rem', marginTop: '2px' }}>
+                      {item.nombre_publico}
+                    </div>
                   </td>
-                </tr>
-              ) : metodos.length === 0 ? (
-                <tr>
-                  <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#FFFFFF' }}>
-                    <span style={{ fontSize: '2rem', display: 'block', marginBottom: '8px' }}>💳</span>
-                    <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: '#E2E8F0' }}>
-                      No se encontraron métodos de pago
-                    </p>
-                    <p style={{ margin: '4px 0 0', fontSize: '0.8125rem' }}>
-                      Ajuste los filtros o registre un nuevo método de pago.
-                    </p>
+
+                  {/* Tipo */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
+                    {getTipoBadge(item.tipo)}
                   </td>
-                </tr>
-              ) : (
-                metodos.map((item) => (
-                  <tr
-                    key={item.id}
-                    style={{
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.51)',
-                      transition: 'background 0.2s',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(157, 175, 206, 0.17)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  >
-                    {/* Name & Public Name */}
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ fontWeight: 600, color: '#FFFFFF', fontSize: '0.875rem' }}>
-                        {item.nombre}
-                      </div>
-                      <div style={{ color: '#b9c8ddff', fontSize: '0.8125rem', marginTop: '2px' }}>
-                        {item.nombre_publico}
-                      </div>
-                    </td>
 
-                    {/* Tipo */}
-                    <td style={{ padding: '12px 16px' }}>
-                      {getTipoBadge(item.tipo)}
-                    </td>
-
-                    {/* Account Details */}
-                    <td style={{ padding: '12px 16px', fontSize: '0.8125rem' }}>
-                      {item.tipo === 'banco' && item.banco && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <span style={{ color: '#FFFFFF', fontWeight: 500 }}>
-                            {item.banco.titular} ({item.banco.tipo_documento}-{item.banco.documento})
-                          </span>
-                          {item.banco.numero_cuenta && (
-                            <span style={{ color: '#b9c8ddff', fontFamily: 'monospace', fontSize: '0.9rem' }}>
-                              {item.banco.numero_cuenta}
-                            </span>
-                          )}
-                          {item.banco.pago_movil_telefono && (
-                            <span style={{ color: '#b9c8ddff' }}>
-                              Pago Móvil: {item.banco.pago_movil_telefono}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {item.tipo === 'digital' && item.digital && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <span style={{ color: '#E2E8F0', fontWeight: 500 }}>
-                            {item.digital.correo_cuenta}
-                          </span>
-                          <span style={{ color: '#1dcd3d' }}>
-                            Comisión: {item.digital.comision_valor}% ({item.digital.tipo_comision})
-                          </span>
-                        </div>
-                      )}
-
-                      {item.tipo === 'efectivo' && (
-                        <span style={{ color: '#FFFFFF' }}>
-                          Recepción en taquilla / sede comercial
+                  {/* Account Details */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', fontSize: '0.8125rem' }}>
+                    {item.tipo === 'banco' && item.banco && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ color: '#FFFFFF', fontWeight: 500 }}>
+                          {item.banco.titular} ({item.banco.tipo_documento}-{item.banco.documento})
                         </span>
-                      )}
-                    </td>
+                        {item.banco.numero_cuenta && (
+                          <span style={{ color: '#b9c8ddff', fontFamily: 'monospace', fontSize: '0.9rem' }}>
+                            {item.banco.numero_cuenta}
+                          </span>
+                        )}
+                        {item.banco.pago_movil_telefono && (
+                          <span style={{ color: '#b9c8ddff' }}>
+                            Pago Móvil: {item.banco.pago_movil_telefono}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
-                    {/* Assigned Advisors */}
-                    <td style={{ padding: '12px 16px', position: 'relative' }}>
-                      <button
-                        type="button"
-                        onClick={() => setHoveredAsesores(hoveredAsesores === item.id ? null : item.id)}
+                    {item.tipo === 'digital' && item.digital && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ color: '#E2E8F0', fontWeight: 500 }}>
+                          {item.digital.correo_cuenta}
+                        </span>
+                        <span style={{ color: '#1dcd3d' }}>
+                          Comisión: {item.digital.comision_valor}% ({item.digital.tipo_comision})
+                        </span>
+                      </div>
+                    )}
+
+                    {item.tipo === 'efectivo' && (
+                      <span style={{ color: '#FFFFFF' }}>
+                        Recepción en taquilla / sede comercial
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Assigned Advisors */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', position: 'relative' }}>
+                    <button
+                      type="button"
+                      onClick={() => setHoveredAsesores(hoveredAsesores === item.id ? null : item.id)}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: '6px',
+                        padding: '4px 10px',
+                        color: '#E2E8F0',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <span>{item.asesores?.length || 0} asesores</span>
+                    </button>
+
+                    {hoveredAsesores === item.id && (
+                      <div
                         style={{
-                          background: 'rgba(255, 255, 255, 0.05)',
+                          position: 'absolute',
+                          left: '16px',
+                          top: '40px',
+                          backgroundColor: '#001231eb',
                           border: '1px solid rgba(255, 255, 255, 0.15)',
-                          borderRadius: '6px',
-                          padding: '4px 10px',
-                          color: '#E2E8F0',
+                          borderRadius: '10px',
+                          padding: '12px',
+                          zIndex: 100,
+                          boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                          minWidth: '220px',
+                          maxHeight: '180px',
+                          overflowY: 'auto',
                           fontSize: '0.75rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
                         }}
                       >
-                        <span>{item.asesores?.length || 0} asesores</span>
-                      </button>
+                        <div style={{ fontWeight: 600, color: '#E87217', marginBottom: '6px' }}>
+                          Asesores Habilitados:
+                        </div>
+                        {item.asesores && item.asesores.length > 0 ? (
+                          item.asesores.map((a) => (
+                            <div key={a.id} style={{ color: '#E2E8F0', padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                              • {a.asesor}
+                            </div>
+                          ))
+                        ) : (
+                          <span style={{ color: '#FFFFFF' }}>Sin asesores asignados.</span>
+                        )}
+                      </div>
+                    )}
+                  </td>
 
-                      {hoveredAsesores === item.id && (
-                        <div
+                  {/* Status Toggle */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleStatus(item)}
+                      disabled={isFreelancer || togglingId === item.id}
+                      title={isFreelancer ? undefined : 'Click para cambiar estado'}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: isFreelancer ? 'default' : 'pointer',
+                        padding: 0,
+                        opacity: togglingId === item.id ? 0.5 : 1,
+                      }}
+                    >
+                      {item.status ? (
+                        <Badge variant="success">Habilitado</Badge>
+                      ) : (
+                        <Badge variant="error">Deshabilitado</Badge>
+                      )}
+                    </button>
+                  </td>
+
+                  {/* Actions */}
+                  {!isFreelancer && (
+                    <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', textAlign: 'center' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(item)}
+                          title="Editar método"
                           style={{
-                            position: 'absolute',
-                            left: '16px',
-                            top: '40px',
-                            backgroundColor: '#0F172A',
+                            background: 'rgba(255, 255, 255, 0.05)',
                             border: '1px solid rgba(255, 255, 255, 0.15)',
-                            borderRadius: '10px',
-                            padding: '12px',
-                            zIndex: 100,
-                            boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-                            minWidth: '220px',
-                            maxHeight: '180px',
-                            overflowY: 'auto',
-                            fontSize: '0.75rem',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            color: '#E2E8F0',
+                            fontSize: '0.8125rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
                           }}
                         >
-                          <div style={{ fontWeight: 600, color: '#E87217', marginBottom: '6px' }}>
-                            Asesores Habilitados:
-                          </div>
-                          {item.asesores && item.asesores.length > 0 ? (
-                            item.asesores.map((a) => (
-                              <div key={a.id} style={{ color: '#E2E8F0', padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                • {a.asesor}
-                              </div>
-                            ))
-                          ) : (
-                            <span style={{ color: '#FFFFFF' }}>Sin asesores asignados.</span>
-                          )}
-                        </div>
-                      )}
+                          Editar
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handlePromptDelete(item)}
+                          title="Eliminar método"
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            color: '#F87171',
+                            fontSize: '0.8125rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </td>
-
-                    {/* Status Toggle */}
-                    <td style={{ padding: '12px 16px' }}>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleStatus(item)}
-                        disabled={isFreelancer || togglingId === item.id}
-                        title={isFreelancer ? undefined : 'Click para cambiar estado'}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: isFreelancer ? 'default' : 'pointer',
-                          padding: 0,
-                          opacity: togglingId === item.id ? 0.5 : 1,
-                        }}
-                      >
-                        {item.status ? (
-                          <Badge variant="success">Habilitado</Badge>
-                        ) : (
-                          <Badge variant="error">Deshabilitado</Badge>
-                        )}
-                      </button>
-                    </td>
-
-                    {/* Actions */}
-                    {!isFreelancer && (
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEdit(item)}
-                            title="Editar método"
-                            style={{
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              border: '1px solid rgba(255, 255, 255, 0.15)',
-                              borderRadius: '8px',
-                              padding: '6px 10px',
-                              color: '#E2E8F0',
-                              fontSize: '0.8125rem',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s',
-                            }}
-                          >
-                            Editar
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handlePromptDelete(item)}
-                            title="Eliminar método"
-                            style={{
-                              background: 'rgba(239, 68, 68, 0.1)',
-                              border: '1px solid rgba(239, 68, 68, 0.3)',
-                              borderRadius: '8px',
-                              padding: '6px 10px',
-                              color: '#F87171',
-                              fontSize: '0.8125rem',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s',
-                            }}
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
 
         {/* Pagination */}
         {total > 0 && (
