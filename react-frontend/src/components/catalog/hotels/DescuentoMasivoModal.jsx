@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import axios from 'axios';
 
 export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, onSuccess }) {
@@ -68,17 +69,15 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
         }
     };
 
-    const handleDeactivate = async () => {
-        if(confirmAction) return executeDeactivate();
+    const handleDeactivate = () => {
         if (!ubicacionId) {
             showToast('Seleccione una ubicación válida', 'warning');
             return;
         }
+        setConfirmAction(true);
+    };
 
-        if (!window.confirm('¿Está seguro que desea desactivar todos los descuentos para esta ubicación?')) {
-            return;
-        }
-
+    const executeDeactivate = async () => {
         setIsSubmitting(true);
         try {
             const payload = {
@@ -97,49 +96,55 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
             showToast('Error desactivando el descuento masivo: ' + errMsg, 'error');
         } finally {
             setIsSubmitting(false);
+            setConfirmAction(false);
         }
     };
-
     const title = tipoDescuento === 'contado' ? 'Descuento al Contado' : 'Descuento en Divisas';
 
     return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            width="400px"
+            width="500px"
             title={title}
+        /*size="md"*/
         >
-            <div style={{ padding: '10px 0' }}>
-                <div style={{ marginBottom: '16px' }}>
-                    <label className="erp-label">Cantidad: <span className="req">*</span></label>
-                    <div style={{ position: 'relative' }}>
-                        <input
-                            type="text"
-                            className="erp-input"
-                            placeholder="00"
-                            value={cantidad}
-                            onChange={handleCantidadChange}
-                            style={{ paddingRight: '30px' }}
-                        />
-                        <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
-                            %
-                        </span>
-                    </div>
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <p style={{ color: '#94A3B8', fontSize: '0.9rem', margin: 0 }}>
+                    Este proceso afectará a todas las habitaciones y tarifas de los hoteles en la ubicación seleccionada.
+                </p>
 
                 <div style={{ marginBottom: '24px' }}>
-                    <label className="erp-label">Ubicación: <span className="req">*</span></label>
+                    <label className="erp-label">Ubicación: </label>
                     <select
-                        className="erp-select"
                         value={ubicacionId}
                         onChange={(e) => setUbicacionId(e.target.value)}
+                        className="erp-select"
+                        disabled={isSubmitting}
                     >
-                        <option value="ALL">Seleccione la ubicación</option>
-                        <option value="ALL">Todas las ubicaciones</option>
+                        <option value="ALL">Todas las Ubicaciones</option>
                         {ubicaciones.map(ub => (
                             <option key={ub.id} value={ub.id}>{ub.ubicacion}</option>
                         ))}
                     </select>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                    <label className="erp-label">Porcentaje de Descuento (%): </label>
+                    <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="Ejemplo: 10"
+                        value={cantidad}
+                        onChange={(e) => setCantidad(e.target.value)}
+                        className="erp-input"
+                        disabled={isSubmitting}
+                    />
+                    <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
+                        %
+                    </span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -171,45 +176,35 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
                             }
                         }}
                     >
-                        Desactivar
+                        Desactivar Descuento
                     </button>
 
                     <div style={{ display: 'flex', gap: '12px' }}>
-                        <button
-                            type="button"
-                            className="btn-form-cancel"
-                            onClick={onClose}
-                            disabled={isSubmitting}
-                        >
+                        <button type="button" className="btn-form-cancel" onClick={onClose} disabled={isSubmitting}>
                             Cancelar
                         </button>
-                        <button
-                            type="button"
-                            className="btn-form-nxt"
-                            onClick={handleApply}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'Aplicando...' : 'Aplicar'}
+                        <button type="button" className="btn-form-nxt" onClick={handleApply} disabled={isSubmitting}>
+                            {isSubmitting ? 'Procesando...' : 'Aplicar Descuento'}
                         </button>
                     </div>
                 </div>
-            
-        <DeleteConfirmationModal
-            isOpen={confirmAction}
-            onClose={() => setConfirmAction(false)}
-            onCancel={() => setConfirmAction(false)}
-            onConfirm={executeDeactivate}
-            isDeleting={isSubmitting}
-            title="Confirmar Desactivación"
-            subtitle="Esta acción desactivará los descuentos para la ubicación seleccionada."
-            content={
-                <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
-                    ¿Está seguro que desea desactivar todos los descuentos para esta ubicación?
-                </p>
-            }
-            confirmText="Desactivar"
-        />
-        </div>
+            </div>
+
+            <DeleteConfirmationModal
+                isOpen={confirmAction}
+                onClose={() => setConfirmAction(false)}
+                onCancel={() => setConfirmAction(false)}
+                onConfirm={executeDeactivate}
+                isDeleting={isSubmitting}
+                title="Confirmar Desactivación"
+                subtitle="Esta acción desactivará los descuentos para la ubicación seleccionada."
+                content={
+                    <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
+                        ¿Está seguro que desea desactivar todos los descuentos para esta ubicación?
+                    </p>
+                }
+                confirmText="Desactivar"
+            />
         </Modal>
     );
 }

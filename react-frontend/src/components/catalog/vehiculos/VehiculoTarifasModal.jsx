@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import Badge from '../../common/Badge';
 import axios from 'axios';
 
