@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import UserAgenciaModal from './UserAgenciaModal';
+import Modal from '../../common/Modal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
 import imgImprimir from '../../../assets/Imprimir.svg';
@@ -31,6 +32,7 @@ export default function UserAgenciaList({ user: currentUser }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [successBanner, setSuccessBanner] = useState('');
+  const [linksModalUser, setLinksModalUser] = useState(null);
 
   // Toggling status state
   const [togglingId, setTogglingId] = useState(null);
@@ -84,6 +86,18 @@ export default function UserAgenciaList({ user: currentUser }) {
         {sortConfig.direction === 'asc' ? '↑' : '↓'}
       </span>
     );
+  };
+
+
+  const handleCopyLink = (item) => {
+    setLinksModalUser(item);
+  };
+
+  const copySpecificLink = (url) => {
+    navigator.clipboard.writeText(url).then(() => {
+      setSuccessBanner('Enlace copiado al portapapeles.');
+      setTimeout(() => setSuccessBanner(''), 3000);
+    }).catch(err => console.error('Error al copiar: ', err));
   };
 
   const handleOpenCreate = () => {
@@ -539,6 +553,26 @@ export default function UserAgenciaList({ user: currentUser }) {
                   <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', textAlign: 'center' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                       {/* Edit Button */}
+
+                      {/* Copy Link Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleCopyLink(item)}
+                        title="Copiar enlace de métodos de pago"
+                        style={{
+                          background: 'rgba(37, 99, 235, 0.1)',
+                          border: '1px solid rgba(37, 99, 235, 0.3)',
+                          borderRadius: '8px',
+                          padding: '6px 10px',
+                          color: '#60A5FA',
+                          fontSize: '0.8125rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        Enlace
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(item)}
@@ -633,7 +667,7 @@ export default function UserAgenciaList({ user: currentUser }) {
         >
           <div
             style={{
-              backgroundColor: '#1E293B',
+              backgroundColor: 'rgb(73 38 38)',
               border: '1px solid rgba(239, 68, 68, 0.3)',
               borderRadius: '16px',
               maxWidth: '480px',
@@ -685,7 +719,7 @@ export default function UserAgenciaList({ user: currentUser }) {
                 style={{
                   padding: '8px 18px',
                   borderRadius: '8px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  backgroundColor: 'rgb(39 39 39 / 82%)',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                   color: '#E2E8F0',
                   fontSize: '0.875rem',
@@ -717,6 +751,75 @@ export default function UserAgenciaList({ user: currentUser }) {
             </div>
           </div>
         </div>
+      )}
+
+      {linksModalUser && (
+        <Modal
+          isOpen={true}
+          onClose={() => setLinksModalUser(null)}
+          title="Links para los Métodos de Pago"
+          width="600px"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px 0' }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(15, 23, 42, 0.4)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '0.8125rem', color: '#94A3B8', fontWeight: 600 }}>Divisas:</span>
+                <span style={{ fontSize: '0.875rem', color: '#60A5FA', wordBreak: 'break-all' }}>
+                  https://cotizador.plandeviaje.com.ve/metodo-de-pago/{linksModalUser.id}/divisas
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => copySpecificLink(`https://cotizador.plandeviaje.com.ve/metodo-de-pago/${linksModalUser.id}/divisas`)}
+                style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '6px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '16px', color: '#F8FAFC' }}
+                title="Copiar"
+              >
+                📋
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(15, 23, 42, 0.4)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '0.8125rem', color: '#94A3B8', fontWeight: 600 }}>Bolivares:</span>
+                <span style={{ fontSize: '0.875rem', color: '#60A5FA', wordBreak: 'break-all' }}>
+                  https://cotizador.plandeviaje.com.ve/metodo-de-pago/{linksModalUser.id}/bolivares
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => copySpecificLink(`https://cotizador.plandeviaje.com.ve/metodo-de-pago/${linksModalUser.id}/bolivares`)}
+                style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '6px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '16px', color: '#F8FAFC' }}
+                title="Copiar"
+              >
+                📋
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(15, 23, 42, 0.4)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '0.8125rem', color: '#94A3B8', fontWeight: 600 }}>Bolivares Provisional:</span>
+                <span style={{ fontSize: '0.875rem', color: '#60A5FA', wordBreak: 'break-all' }}>
+                  https://cotizador.plandeviaje.com.ve/metodo-de-pago/{linksModalUser.id}/bolivares/provisional
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => copySpecificLink(`https://cotizador.plandeviaje.com.ve/metodo-de-pago/${linksModalUser.id}/bolivares/provisional`)}
+                style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '6px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '16px', color: '#F8FAFC' }}
+                title="Copiar"
+              >
+                📋
+              </button>
+            </div>
+
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+            <button type="button" className="btn-form-cancel" onClick={() => setLinksModalUser(null)}>
+              Cerrar
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );
