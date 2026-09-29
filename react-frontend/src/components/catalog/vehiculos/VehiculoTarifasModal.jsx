@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import { showToast } from '../../../utils/toast';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import Badge from '../../common/Badge';
 import axios from 'axios';
@@ -8,8 +9,8 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
   const [tarifas, setTarifas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-    const [deleteTarget, setDeleteTarget] = useState(null);
-    const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   // New tariff form fields
@@ -332,23 +333,23 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
             Cerrar
           </button>
         </div>
-      
+
         <DeleteConfirmationModal
-            isOpen={!!deleteTarget}
-            onClose={() => setDeleteTarget(null)}
-            onCancel={() => setDeleteTarget(null)}
-            onConfirm={confirmDeleteTarifa}
-            isDeleting={isDeleting}
-            title="Confirmar Eliminación"
-            subtitle="Esta acción intentará remover la tarifa."
-            content={
-                <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
-                    ¿Desea eliminar esta tarifa de forma permanente?
-                </p>
-            }
-            confirmText="Eliminar Tarifa"
+          isOpen={!!deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={handleDeleteTarifa}
+          isDeleting={isDeleting}
+          title="Confirmar Eliminación"
+          subtitle="Esta acción intentará remover la tarifa."
+          content={
+            <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
+              ¿Desea eliminar esta tarifa de forma permanente?
+            </p>
+          }
+          confirmText="Eliminar Tarifa"
         />
-        </div>
+      </div>
     </Modal>
   );
 }

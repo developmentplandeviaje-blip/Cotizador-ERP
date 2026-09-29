@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { showToast } from '../../../utils/toast';
 import Modal from '../../common/Modal';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import axios from 'axios';
 
 export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, zIndex = 1100 }) {
