@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ToastContainer from './components/common/ToastContainer';
 import axios from 'axios';
 import Login from './components/Login';
 import MainLayout from './components/layout/MainLayout';
@@ -225,6 +226,7 @@ function App() {
           </button>
         </div>
       )}
+      <ToastContainer />
     </MainLayout>
   );
 }
