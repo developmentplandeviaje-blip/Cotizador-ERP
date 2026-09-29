@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import TarifaModal from './TarifaModal';
 import HotelModal from './HotelModal';
 import DescuentoMasivoModal from './DescuentoMasivoModal';
