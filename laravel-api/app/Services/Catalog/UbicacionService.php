@@ -15,7 +15,7 @@ class UbicacionService
      */
     public function getUbicaciones(array $filters = [], ?int $perPage = 10): LengthAwarePaginator|Collection
     {
-        $query = Ubicacion::withCount('hoteles');
+        $query = Ubicacion::withCount(['hoteles', 'excursiones', 'traslados', 'paquetes', 'vehiculoAgencias']);
 
         // Search by location name
         if (!empty($filters['search'])) {
@@ -27,11 +27,16 @@ class UbicacionService
         $sortBy = $filters['sort_by'] ?? 'ubicacion';
         $sortDir = strtolower($filters['sort_dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
-        $allowedSorts = ['id', 'ubicacion', 'hoteles_count', 'date_creation'];
-        if (in_array($sortBy, $allowedSorts, true)) {
-            $query->orderBy($sortBy, $sortDir);
+        if ($sortBy === 'hoteles_count' || $sortBy === 'servicios_count') {
+            // Order by the sum of all counts
+            $query->orderByRaw('(hoteles_count + excursiones_count + traslados_count + paquetes_count + vehiculo_agencias_count) ' . $sortDir);
         } else {
-            $query->orderBy('ubicacion', 'asc');
+            $allowedSorts = ['id', 'ubicacion', 'date_creation'];
+            if (in_array($sortBy, $allowedSorts, true)) {
+                $query->orderBy($sortBy, $sortDir);
+            } else {
+                $query->orderBy('ubicacion', 'asc');
+            }
         }
 
         // If perPage is null or 0, return all (for dropdowns)

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { showToast } from '../../../utils/toast';
 import Modal from '../../common/Modal';
 
 export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = false, showAdolescentes = true, tarifaToEdit = null }) {
@@ -68,7 +69,7 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
     if (isSubmitting) return;
 
     if (!formData.desde || !formData.hasta || !formData.precio_noche_adulto) {
-      alert('Por favor complete las fechas y al menos el precio del adulto.');
+      showToast('Por favor complete las fechas y al menos el precio del adulto.', 'warning');
       return;
     }
 

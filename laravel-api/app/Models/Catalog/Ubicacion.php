@@ -35,4 +35,14 @@ class Ubicacion extends Model
     {
         return $this->hasMany(Traslado::class, 'id_ubicacion');
     }
+
+    public function paquetes(): HasMany
+    {
+        return $this->hasMany(Paquete::class, 'id_ubicacion');
+    }
+
+    public function vehiculoAgencias(): HasMany
+    {
+        return $this->hasMany(VehiculoAgencia::class, 'id_ubicacion');
+    }
 }
