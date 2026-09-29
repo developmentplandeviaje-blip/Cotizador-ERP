@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import PaqueteModal from './PaqueteModal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
@@ -508,79 +509,20 @@ export default function PaqueteList({ user }) {
       />
 
       {/* Confirmation Modal for Delete */}
-      {deleteTarget && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'rgba(0, 0, 0, 0.65)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-        }}>
-          <div style={{
-            background: '#1e293b',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            borderRadius: '16px',
-            padding: '24px',
-            maxWidth: '440px',
-            width: '90%',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)',
-          }}>
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '1.25rem', color: '#FFFFFF' }}>
-              Confirmar Eliminación
-            </h3>
-            <p style={{ margin: '0 0 16px 0', color: '#94A3B8', fontSize: '0.875rem', lineHeight: '1.5' }}>
-              ¿Está seguro de que desea eliminar el paquete <strong style={{ color: '#FFFFFF' }}>{deleteTarget.paquete}</strong>? Esta acción no se puede deshacer.
-            </p>
-
-            {deleteError && (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                border: '1px solid #ef4444',
-                color: '#fca5a5',
-                padding: '10px 14px',
-                borderRadius: '8px',
-                fontSize: '0.8125rem',
-                marginBottom: '16px',
-              }}>
-                {deleteError}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button
-                className="btn-secondary"
-                onClick={() => setDeleteTarget(null)}
-                disabled={isDeleting}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                disabled={isDeleting}
-                style={{
-                  background: '#ef4444',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '10px 18px',
-                  fontWeight: '600',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s',
-                }}
-              >
-                {isDeleting ? 'Eliminando...' : 'Sí, Eliminar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        error={deleteError}
+        title="Confirmar Eliminación"
+        subtitle=""
+        content={
+          <>¿Está seguro de que desea eliminar el paquete <strong style={{ color: '#FFFFFF' }}>{deleteTarget?.paquete}</strong>? Esta acción no se puede deshacer.</>
+        }
+        confirmText="Sí, Eliminar"
+      />
     </div>
   );
 }
