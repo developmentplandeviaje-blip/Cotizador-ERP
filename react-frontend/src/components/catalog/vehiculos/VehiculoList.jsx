@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import VehiculoModal from './VehiculoModal';
 import VehiculoAgenciaModal from './VehiculoAgenciaModal';
 import VehiculoTarifasModal from './VehiculoTarifasModal';
@@ -604,7 +605,7 @@ export default function VehiculoList({ user }) {
       />
 
       {/* Delete Confirmation Modal */}
-            <DeleteConfirmationModal
+      <DeleteConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onCancel={() => setDeleteTarget(null)}

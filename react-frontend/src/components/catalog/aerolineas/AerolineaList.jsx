@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import AerolineaModal from './AerolineaModal';
 import Badge from '../../common/Badge';
 import imgImprimir from '../../../assets/Imprimir.svg';
@@ -387,7 +388,7 @@ export default function AerolineaList({ user }) {
       />
 
       {/* Modal de Confirmación de Eliminación Segura */}
-            <DeleteConfirmationModal
+      <DeleteConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onCancel={() => setDeleteTarget(null)}
@@ -397,7 +398,7 @@ export default function AerolineaList({ user }) {
         title={deleteTarget?.vuelos_count > 0 ? 'Acción no permitida' : 'Confirmar Eliminación'}
         subtitle={deleteTarget?.vuelos_count > 0 ? 'Para mantener la integridad histórica de ventas y cotizaciones, no se permite eliminar aerolíneas con registros vinculados.' : 'Esta acción eliminará el registro de forma permanente.'}
         content={
-          deleteTarget?.vuelos_count > 0 
+          deleteTarget?.vuelos_count > 0
             ? <>La aerolínea <strong style={{ color: '#E87217' }}>{deleteTarget.nombre}</strong> no puede ser eliminada porque tiene <strong style={{ color: '#10B981' }}>{deleteTarget.vuelos_count} venta(s) de vuelo asociada(s)</strong>.</>
             : <>¿Estás seguro de que deseas eliminar la aerolínea <strong style={{ color: '#E87217' }}>{deleteTarget?.nombre}</strong>?</>
         }

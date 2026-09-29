@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import MetodoPagoModal from './MetodoPagoModal';
 import AssignMetodosModal from './AssignMetodosModal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
-import imgImprimir from '../../../assets/Imprimir.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
 
@@ -674,7 +674,7 @@ export default function MetodoPagoList({ user }) {
       />
 
       {/* Delete Confirmation Modal */}
-            <DeleteConfirmationModal
+      <DeleteConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onCancel={() => setDeleteTarget(null)}

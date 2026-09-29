@@ -525,7 +525,7 @@ export default function HotelList({ user }) {
         tipoDescuento={tipoDescuentoMasivo}
         onSuccess={fetchHotels}
       />
-    
+
       {/* Modal de Confirmación de Eliminación Segura */}
       <DeleteConfirmationModal
         isOpen={!!deleteTarget}

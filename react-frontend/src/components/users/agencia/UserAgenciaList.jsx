@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import UserAgenciaModal from './UserAgenciaModal';
 import Modal from '../../common/Modal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
-import imgImprimir from '../../../assets/Imprimir.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
 
@@ -648,7 +648,7 @@ export default function UserAgenciaList({ user: currentUser }) {
       />
 
       {/* Delete Confirmation Modal */}
-            {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

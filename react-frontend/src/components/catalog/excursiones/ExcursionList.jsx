@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import ExcursionModal from './ExcursionModal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
@@ -512,7 +513,7 @@ export default function ExcursionList({ user }) {
       />
 
       {/* Modal de Confirmación de Eliminación Segura */}
-            <DeleteConfirmationModal
+      <DeleteConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onCancel={() => setDeleteTarget(null)}

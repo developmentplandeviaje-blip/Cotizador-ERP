@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import TrasladoModal from './TrasladoModal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
@@ -544,7 +545,7 @@ export default function TrasladoList({ user }) {
       />
 
       {/* Modal de Confirmación de Eliminación Segura */}
-            <DeleteConfirmationModal
+      <DeleteConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onCancel={() => setDeleteTarget(null)}

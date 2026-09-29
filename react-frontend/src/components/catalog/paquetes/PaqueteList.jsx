@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import PaqueteModal from './PaqueteModal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
@@ -508,7 +509,7 @@ export default function PaqueteList({ user }) {
       />
 
       {/* Confirmation Modal for Delete */}
-            <DeleteConfirmationModal
+      <DeleteConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onCancel={() => setDeleteTarget(null)}

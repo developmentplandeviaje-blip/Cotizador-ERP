@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import UbicacionModal from './UbicacionModal';
 import Badge from '../../common/Badge';
 import imgImprimir from '../../../assets/Imprimir.svg';
@@ -256,7 +257,7 @@ export default function UbicacionList({ user }) {
                 onClick={() => handleSort('hoteles_count')}
                 style={{ padding: '14px 18px', color: '#FFFFFF', fontWeight: '600', cursor: 'pointer', textAlign: 'center', width: '170px' }}
               >
-                Hoteles Asociados{getSortIndicator('hoteles_count')}
+                Servicios Asociados{getSortIndicator('hoteles_count')}
               </th>
               <th
                 onClick={() => handleSort('date_creation')}
@@ -301,7 +302,7 @@ export default function UbicacionList({ user }) {
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     <Badge variant={item.hoteles_count > 0 ? 'success' : 'neutral'} style={{ minWidth: '85px' }}>
-                      {item.hoteles_count} {item.hoteles_count === 1 ? 'hotel' : 'hoteles'}
+                      {item.hoteles_count} {item.hoteles_count === 1 ? 'Servicio' : 'Servicios'}
                     </Badge>
                   </td>
                   <td style={{ padding: '14px 16px', color: '#b9c8ddff' }}>
@@ -375,7 +376,7 @@ export default function UbicacionList({ user }) {
       />
 
       {/* Modal de Confirmación de Eliminación Segura */}
-            <DeleteConfirmationModal
+      <DeleteConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onCancel={() => setDeleteTarget(null)}
@@ -384,14 +385,14 @@ export default function UbicacionList({ user }) {
         error={deleteError}
         title={deleteTarget?.hoteles_count > 0 ? 'Acción no permitida' : 'Confirmar Eliminación'}
         subtitle={
-          deleteTarget?.hoteles_count > 0 
-            ? 'Para eliminar esta ubicación, primero debes reasignar o eliminar los hoteles que dependen de ella en el catálogo.'
+          deleteTarget?.hoteles_count > 0
+            ? 'Para eliminar esta ubicación, primero debes reasignar o eliminar los servicios que dependen de ella en el catálogo.'
             : 'Esta acción eliminará el registro de forma permanente.'
         }
         content={
           deleteTarget?.hoteles_count > 0 ? (
             <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
-              La ubicación <strong style={{ color: '#E87217' }}>{deleteTarget?.ubicacion}</strong> no puede ser eliminada porque tiene <strong style={{ color: '#10B981' }}>{deleteTarget?.hoteles_count} hotel(es) asociado(s)</strong>.
+              La ubicación <strong style={{ color: '#E87217' }}>{deleteTarget?.ubicacion}</strong> no puede ser eliminada porque tiene <strong style={{ color: '#10B981' }}>{deleteTarget?.hoteles_count} servicios asociados</strong>.
             </p>
           ) : (
             <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
