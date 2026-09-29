@@ -29,6 +29,10 @@ export default function HotelList({ user }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hotelToEdit, setHotelToEdit] = useState(null);
   const [selectedHotelForRooms, setSelectedHotelForRooms] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [successBanner, setSuccessBanner] = useState('');
 
   const isFreelancer = user?.level === 'Freelancer';
 
@@ -76,14 +80,26 @@ export default function HotelList({ user }) {
     }
   };
 
-  const handleDelete = async (hotel) => {
-    if (!window.confirm(`¿Está seguro de eliminar el hotel "${hotel.nombre}"?`)) return;
+  const handleDelete = (hotel) => {
+    setDeleteTarget(hotel);
+    setDeleteError('');
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    setDeleteError('');
     try {
-      await axios.delete(`/v1/catalog/hoteles/${hotel.id}`);
+      await axios.delete(`/v1/catalog/hoteles/${deleteTarget.id}`);
+      setDeleteTarget(null);
+      setSuccessBanner('Hotel eliminado exitosamente.');
+      setTimeout(() => setSuccessBanner(''), 4000);
       fetchHotels();
     } catch (err) {
-      console.error('Error eliminando hotel', err.response?.data || err);
-      alert('No se pudo eliminar el hotel: ' + (err.response?.data?.message || err.message || ''));
+      console.error('Error al eliminar hotel:', err);
+      setDeleteError('No se pudo eliminar el hotel.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -507,6 +523,22 @@ export default function HotelList({ user }) {
         onClose={() => setIsDescuentoMasivoOpen(false)}
         tipoDescuento={tipoDescuentoMasivo}
         onSuccess={fetchHotels}
+      />
+
+      {/* Modal de Confirmación de Eliminación Segura */}
+      <DeleteConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        error={deleteError}
+        title="Confirmar Eliminación"
+        subtitle="Esta acción no se puede deshacer."
+        content={
+          <>¿Está seguro de que desea eliminar el hotel <strong style={{ color: '#E87217' }}>{deleteTarget?.nombre}</strong>?</>
+        }
+        confirmText="Sí, Eliminar"
       />
     </div>
   );
