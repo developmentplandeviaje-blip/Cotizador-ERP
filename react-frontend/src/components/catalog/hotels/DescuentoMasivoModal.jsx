@@ -7,6 +7,7 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
     const [ubicacionId, setUbicacionId] = useState('ALL');
     const [ubicaciones, setUbicaciones] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [confirmAction, setConfirmAction] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -38,11 +39,11 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
 
     const handleApply = async () => {
         if (!cantidad || parseInt(cantidad, 10) === 0) {
-            alert('La cantidad debe ser mayor a 0');
+            showToast('La cantidad debe ser mayor a 0', 'warning');
             return;
         }
         if (!ubicacionId) {
-            alert('Seleccione una ubicación válida');
+            showToast('Seleccione una ubicación válida', 'warning');
             return;
         }
 
@@ -55,21 +56,22 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
             };
 
             const res = await axios.post('/v1/catalog/hoteles/descuento-masivo', payload);
-            alert(`Éxito: ${res.data.message || 'Descuentos actualizados correctamente'}`);
+            showToast(`Éxito: ${res.data.message || 'Descuentos actualizados correctamente'}`, 'success');
             onSuccess();
             onClose();
         } catch (err) {
             console.error('Error aplicando descuento masivo', err);
             const errMsg = err.response?.data?.message || err.response?.data?.error || err.message;
-            alert('Error aplicando el descuento masivo: ' + errMsg);
+            showToast('Error aplicando el descuento masivo: ' + errMsg, 'error');
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeactivate = async () => {
+        if(confirmAction) return executeDeactivate();
         if (!ubicacionId) {
-            alert('Seleccione una ubicación válida');
+            showToast('Seleccione una ubicación válida', 'warning');
             return;
         }
 
@@ -86,13 +88,13 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
             };
 
             const res = await axios.post('/v1/catalog/hoteles/descuento-masivo', payload);
-            alert(`Éxito: ${res.data.message || 'Descuentos desactivados correctamente'}`);
+            showToast(`Éxito: ${res.data.message || 'Descuentos desactivados correctamente'}`, 'success');
             onSuccess();
             onClose();
         } catch (err) {
             console.error('Error desactivando descuento masivo', err);
             const errMsg = err.response?.data?.message || err.response?.data?.error || err.message;
-            alert('Error desactivando el descuento masivo: ' + errMsg);
+            showToast('Error desactivando el descuento masivo: ' + errMsg, 'error');
         } finally {
             setIsSubmitting(false);
         }
@@ -191,7 +193,23 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
                         </button>
                     </div>
                 </div>
-            </div>
+            
+        <DeleteConfirmationModal
+            isOpen={confirmAction}
+            onClose={() => setConfirmAction(false)}
+            onCancel={() => setConfirmAction(false)}
+            onConfirm={executeDeactivate}
+            isDeleting={isSubmitting}
+            title="Confirmar Desactivación"
+            subtitle="Esta acción desactivará los descuentos para la ubicación seleccionada."
+            content={
+                <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
+                    ¿Está seguro que desea desactivar todos los descuentos para esta ubicación?
+                </p>
+            }
+            confirmText="Desactivar"
+        />
+        </div>
         </Modal>
     );
 }

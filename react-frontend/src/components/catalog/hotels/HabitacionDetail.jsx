@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { showToast } from '../../../utils/toast';
 import axios from 'axios';
 import TarifaModal from './TarifaModal';
 import Imgvolver from '../../../assets/Volver.svg';
@@ -52,7 +53,7 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
       fetchHabitaciones();
     } catch (err) {
       console.error('Error creando tarifa', err);
-      alert('Error al guardar tarifa.');
+      showToast('Error al guardar tarifa.', 'error');
     }
   };
 

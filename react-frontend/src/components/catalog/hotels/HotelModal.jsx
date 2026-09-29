@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { showToast } from '../../../utils/toast';
 import Modal from '../../common/Modal';
 import TarifaModal from './TarifaModal';
 import axios from 'axios';
@@ -234,7 +235,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
       if (errors) {
         errorMsg = Object.values(errors).flat().join('\n');
       }
-      alert(errorMsg);
+      showToast(errorMsg, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -508,7 +509,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                 className="btn-form-nxt"
                 onClick={() => {
                   if (!hotelInfo.nombre) {
-                    alert('Por favor ingrese el nombre del hotel.');
+                    showToast('Por favor ingrese el nombre del hotel.', 'warning');
                     return;
                   }
                   setCurrentStep(2);
