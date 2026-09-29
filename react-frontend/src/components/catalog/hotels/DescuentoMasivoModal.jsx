@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import { showToast } from '../../../utils/toast';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import axios from 'axios';
 
@@ -136,7 +137,6 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
                         min="0"
                         max="100"
                         step="0.01"
-                        placeholder="Ejemplo: 10"
                         value={cantidad}
                         onChange={(e) => setCantidad(e.target.value)}
                         className="erp-input"
