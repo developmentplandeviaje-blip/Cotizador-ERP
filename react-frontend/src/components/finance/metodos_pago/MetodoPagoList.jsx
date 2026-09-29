@@ -674,109 +674,22 @@ export default function MetodoPagoList({ user }) {
       />
 
       {/* Delete Confirmation Modal */}
-      {deleteTarget && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '16px',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#1E293B',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: '16px',
-              maxWidth: '480px',
-              width: '100%',
-              padding: '24px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <span style={{ fontSize: '1.75rem' }}>⚠️</span>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1.125rem', color: '#FFFFFF', fontWeight: 600 }}>
-                  Confirmar Eliminación
-                </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: '#FFFFFF' }}>
-                  Esta acción intentará remover el método de pago del sistema
-                </p>
-              </div>
-            </div>
-
-            <p style={{ color: '#E2E8F0', fontSize: '0.875rem', lineHeight: '1.5', margin: '0 0 16px 0' }}>
-              ¿Está seguro de que desea eliminar{' '}
-              <strong style={{ color: '#FFFFFF' }}>{deleteTarget.nombre}</strong>?
-            </p>
-
-            {deleteError && (
-              <div
-                style={{
-                  padding: '12px 14px',
-                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                  borderRadius: '8px',
-                  color: '#FCA5A5',
-                  fontSize: '0.8125rem',
-                  lineHeight: '1.4',
-                  marginBottom: '16px',
-                }}
-              >
-                {deleteError}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button
-                type="button"
-                onClick={() => setDeleteTarget(null)}
-                disabled={isDeleting}
-                style={{
-                  padding: '8px 18px',
-                  borderRadius: '8px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#E2E8F0',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                disabled={isDeleting}
-                style={{
-                  padding: '8px 20px',
-                  borderRadius: '8px',
-                  backgroundColor: '#DC2626',
-                  border: 'none',
-                  color: '#FFFFFF',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                {isDeleting ? 'Eliminando...' : 'Eliminar Método'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            <DeleteConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        error={deleteError}
+        title="Confirmar Eliminación"
+        subtitle="Esta acción intentará remover el método de pago del sistema"
+        content={
+          <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
+            ¿Está seguro de que desea eliminar <strong style={{ color: '#FFFFFF' }}>{deleteTarget?.nombre}</strong>?
+          </p>
+        }
+        confirmText="Eliminar Método"
+      />
     </div>
   );
 }

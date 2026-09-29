@@ -544,83 +544,22 @@ export default function TrasladoList({ user }) {
       />
 
       {/* Modal de Confirmación de Eliminación Segura */}
-      {deleteTarget && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(5, 10, 20, 0.75)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1100,
-          padding: '20px',
-        }}>
-          <div style={{
-            background: '#101c44',
-            border: '1px solid rgba(255, 255, 255, 0.18)',
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '460px',
-            padding: '24px',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
-          }}>
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '1.25rem', color: '#FFFFFF' }}>
-              Confirmar Eliminación
-            </h3>
-
-            {deleteError && (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                border: '1px solid #ef4444',
-                color: '#fca5a5',
-                padding: '10px 14px',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                marginBottom: '14px',
-              }}>
-                {deleteError}
-              </div>
-            )}
-
-            <div>
-              <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5' }}>
-                ¿Estás seguro de que deseas eliminar el traslado <strong style={{ color: '#E87217' }}>{deleteTarget.ruta_origen}</strong>?
-              </p>
-              <p style={{ color: '#b9c8ddff', fontSize: '0.8125rem', marginTop: '8px' }}>
-                Esta acción eliminará el registro del catálogo de forma permanente.
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-                <button
-                  type="button"
-                  className="btn-form-prv"
-                  onClick={() => setDeleteTarget(null)}
-                  disabled={isDeleting}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  style={{
-                    background: '#DC2626',
-                    border: 'none',
-                    color: '#FFFFFF',
-                    borderRadius: '8px',
-                    padding: '8px 16px',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    cursor: isDeleting ? 'not-allowed' : 'pointer',
-                  }}
-                  onClick={handleConfirmDelete}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? 'Eliminando...' : 'Sí, Eliminar'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+            <DeleteConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        error={deleteError}
+        title="Confirmar Eliminación"
+        subtitle="Esta acción eliminará el registro del catálogo de forma permanente."
+        content={
+          <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
+            ¿Estás seguro de que deseas eliminar el traslado <strong style={{ color: '#E87217' }}>{deleteTarget?.ruta_origen}</strong>?
+          </p>
+        }
+        confirmText="Sí, Eliminar"
+      />
     </div>
   );
 }

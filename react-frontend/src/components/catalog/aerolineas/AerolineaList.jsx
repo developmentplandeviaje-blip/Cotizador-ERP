@@ -387,102 +387,22 @@ export default function AerolineaList({ user }) {
       />
 
       {/* Modal de Confirmación de Eliminación Segura */}
-      {deleteTarget && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(5, 10, 20, 0.75)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1100,
-          padding: '20px',
-        }}>
-          <div style={{
-            background: '#101c44',
-            border: '1px solid rgba(255, 255, 255, 0.18)',
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '460px',
-            padding: '24px',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
-          }}>
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '1.25rem', color: '#FFFFFF' }}>
-              {deleteTarget.vuelos_count > 0 ? 'Acción no permitida' : 'Confirmar Eliminación'}
-            </h3>
-
-            {deleteError && (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                border: '1px solid #ef4444',
-                color: '#fca5a5',
-                padding: '10px 14px',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                marginBottom: '14px',
-              }}>
-                {deleteError}
-              </div>
-            )}
-
-            {deleteTarget.vuelos_count > 0 ? (
-              <div>
-                <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5' }}>
-                  La aerolínea <strong style={{ color: '#E87217' }}>{deleteTarget.nombre}</strong> no puede ser eliminada porque tiene <strong style={{ color: '#10B981' }}>{deleteTarget.vuelos_count} venta(s) de vuelo asociada(s)</strong>.
-                </p>
-                <p style={{ color: '#b9c8ddff', fontSize: '0.8125rem', marginTop: '8px' }}>
-                  Para mantener la integridad histórica de ventas y cotizaciones, no se permite eliminar aerolíneas con registros vinculados.
-                </p>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-                  <button
-                    className="btn-primary"
-                    onClick={() => setDeleteTarget(null)}
-                  >
-                    Entendido
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5' }}>
-                  ¿Estás seguro de que deseas eliminar la aerolínea <strong style={{ color: '#E87217' }}>{deleteTarget.nombre}</strong>?
-                </p>
-                <p style={{ color: '#b9c8ddff', fontSize: '0.8125rem', marginTop: '8px' }}>
-                  Esta acción eliminará el registro de forma permanente.
-                </p>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-                  <button
-                    type="button"
-                    className="btn-form-prv"
-                    onClick={() => setDeleteTarget(null)}
-                    disabled={isDeleting}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    style={{
-                      background: '#DC2626',
-                      border: 'none',
-                      color: '#FFFFFF',
-                      borderRadius: '8px',
-                      padding: '8px 16px',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      cursor: isDeleting ? 'not-allowed' : 'pointer',
-                    }}
-                    onClick={handleConfirmDelete}
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? 'Eliminando...' : 'Sí, Eliminar'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+            <DeleteConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={deleteTarget?.vuelos_count > 0 ? () => setDeleteTarget(null) : handleConfirmDelete}
+        isDeleting={isDeleting}
+        error={deleteError}
+        title={deleteTarget?.vuelos_count > 0 ? 'Acción no permitida' : 'Confirmar Eliminación'}
+        subtitle={deleteTarget?.vuelos_count > 0 ? 'Para mantener la integridad histórica de ventas y cotizaciones, no se permite eliminar aerolíneas con registros vinculados.' : 'Esta acción eliminará el registro de forma permanente.'}
+        content={
+          deleteTarget?.vuelos_count > 0 
+            ? <>La aerolínea <strong style={{ color: '#E87217' }}>{deleteTarget.nombre}</strong> no puede ser eliminada porque tiene <strong style={{ color: '#10B981' }}>{deleteTarget.vuelos_count} venta(s) de vuelo asociada(s)</strong>.</>
+            : <>¿Estás seguro de que deseas eliminar la aerolínea <strong style={{ color: '#E87217' }}>{deleteTarget?.nombre}</strong>?</>
+        }
+        confirmText={deleteTarget?.vuelos_count > 0 ? 'Entendido' : 'Sí, Eliminar'}
+      />
     </div>
   );
 }
