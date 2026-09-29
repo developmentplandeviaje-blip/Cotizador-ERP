@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import UbicacionModal from './UbicacionModal';
 import Badge from '../../common/Badge';
 import imgImprimir from '../../../assets/Imprimir.svg';
@@ -375,102 +376,32 @@ export default function UbicacionList({ user }) {
       />
 
       {/* Modal de Confirmación de Eliminación Segura */}
-      {deleteTarget && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(5, 10, 20, 0.75)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1100,
-          padding: '20px',
-        }}>
-          <div style={{
-            background: '#101c44',
-            border: '1px solid rgba(255, 255, 255, 0.18)',
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '460px',
-            padding: '24px',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
-          }}>
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '1.25rem', color: '#FFFFFF' }}>
-              {deleteTarget.hoteles_count > 0 ? 'Acción no permitida' : 'Confirmar Eliminación'}
-            </h3>
-
-            {deleteError && (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                border: '1px solid #ef4444',
-                color: '#fca5a5',
-                padding: '10px 14px',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                marginBottom: '14px',
-              }}>
-                {deleteError}
-              </div>
-            )}
-
-            {deleteTarget.hoteles_count > 0 ? (
-              <div>
-                <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5' }}>
-                  La ubicación <strong style={{ color: '#E87217' }}>{deleteTarget.ubicacion}</strong> no puede ser eliminada porque tiene <strong style={{ color: '#10B981' }}>{deleteTarget.hoteles_count} hotel(es) asociado(s)</strong>.
-                </p>
-                <p style={{ color: '#94A3B8', fontSize: '0.8125rem', marginTop: '8px' }}>
-                  Para eliminar esta ubicación, primero debes reasignar o eliminar los hoteles que dependen de ella en el catálogo.
-                </p>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-                  <button
-                    className="btn-primary"
-                    onClick={() => setDeleteTarget(null)}
-                  >
-                    Entendido
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5' }}>
-                  ¿Estás seguro de que deseas eliminar la ubicación <strong style={{ color: '#E87217' }}>{deleteTarget.ubicacion}</strong>?
-                </p>
-                <p style={{ color: '#94A3B8', fontSize: '0.8125rem', marginTop: '8px' }}>
-                  Esta acción eliminará el registro de forma permanente.
-                </p>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-                  <button
-                    type="button"
-                    className="btn-form-prv"
-                    onClick={() => setDeleteTarget(null)}
-                    disabled={isDeleting}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    style={{
-                      background: '#DC2626',
-                      border: 'none',
-                      color: '#FFFFFF',
-                      borderRadius: '8px',
-                      padding: '8px 16px',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      cursor: isDeleting ? 'not-allowed' : 'pointer',
-                    }}
-                    onClick={handleConfirmDelete}
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? 'Eliminando...' : 'Sí, Eliminar'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={deleteTarget?.hoteles_count > 0 ? () => setDeleteTarget(null) : handleConfirmDelete}
+        isDeleting={isDeleting}
+        error={deleteError}
+        title={deleteTarget?.hoteles_count > 0 ? 'Acción no permitida' : 'Confirmar Eliminación'}
+        subtitle={
+          deleteTarget?.hoteles_count > 0
+            ? 'Para eliminar esta ubicación, primero debes reasignar o eliminar los hoteles que dependen de ella en el catálogo.'
+            : 'Esta acción eliminará el registro de forma permanente.'
+        }
+        content={
+          deleteTarget?.hoteles_count > 0 ? (
+            <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
+              La ubicación <strong style={{ color: '#E87217' }}>{deleteTarget?.ubicacion}</strong> no puede ser eliminada porque tiene <strong style={{ color: '#10B981' }}>{deleteTarget?.hoteles_count} hotel(es) asociado(s)</strong>.
+            </p>
+          ) : (
+            <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
+              ¿Estás seguro de que deseas eliminar la ubicación <strong style={{ color: '#E87217' }}>{deleteTarget?.ubicacion}</strong>?
+            </p>
+          )
+        }
+        confirmText={deleteTarget?.hoteles_count > 0 ? 'Entendido' : 'Sí, Eliminar'}
+      />
     </div>
   );
 }
