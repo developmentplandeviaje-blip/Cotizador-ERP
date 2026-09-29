@@ -105,20 +105,21 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
         <Modal
             isOpen={isOpen}
             onClose={onClose}
+            width="500px"
             title={title}
-            size="md"
+        /*size="md"*/
         >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <p style={{ color: '#94A3B8', fontSize: '0.9rem', margin: 0 }}>
                     Este proceso afectará a todas las habitaciones y tarifas de los hoteles en la ubicación seleccionada.
                 </p>
 
-                <div className="form-group">
-                    <label>Ubicación a afectar</label>
-                    <select 
+                <div style={{ marginBottom: '24px' }}>
+                    <label className="erp-label">Ubicación: </label>
+                    <select
                         value={ubicacionId}
                         onChange={(e) => setUbicacionId(e.target.value)}
-                        className="form-control"
+                        className="erp-select"
                         disabled={isSubmitting}
                     >
                         <option value="ALL">Todas las Ubicaciones</option>
@@ -128,23 +129,26 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
                     </select>
                 </div>
 
-                <div className="form-group">
-                    <label>Porcentaje de Descuento (%)</label>
-                    <input 
-                        type="number" 
+                <div style={{ marginBottom: '16px' }}>
+                    <label className="erp-label">Porcentaje de Descuento (%): </label>
+                    <input
+                        type="number"
                         min="0"
                         max="100"
                         step="0.01"
                         placeholder="Ejemplo: 10"
                         value={cantidad}
                         onChange={(e) => setCantidad(e.target.value)}
-                        className="form-control"
+                        className="erp-input"
                         disabled={isSubmitting}
                     />
+                    <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
+                        %
+                    </span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <button 
+                    <button
                         type="button"
                         onClick={handleDeactivate}
                         disabled={isSubmitting}
@@ -172,20 +176,20 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
                             }
                         }}
                     >
-                        Desactivar en ubicación
+                        Desactivar Descuento
                     </button>
 
                     <div style={{ display: 'flex', gap: '12px' }}>
-                        <button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>
+                        <button type="button" className="btn-form-cancel" onClick={onClose} disabled={isSubmitting}>
                             Cancelar
                         </button>
-                        <button type="button" className="btn-primary" onClick={handleApply} disabled={isSubmitting}>
+                        <button type="button" className="btn-form-nxt" onClick={handleApply} disabled={isSubmitting}>
                             {isSubmitting ? 'Procesando...' : 'Aplicar Descuento'}
                         </button>
                     </div>
                 </div>
             </div>
-            
+
             <DeleteConfirmationModal
                 isOpen={confirmAction}
                 onClose={() => setConfirmAction(false)}
