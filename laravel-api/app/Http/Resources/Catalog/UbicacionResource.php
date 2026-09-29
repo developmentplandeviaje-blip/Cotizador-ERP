@@ -15,7 +15,12 @@ class UbicacionResource extends JsonResource
         return [
             'id' => $this->id,
             'ubicacion' => $this->ubicacion,
-            'hoteles_count' => $this->hoteles_count ?? ($this->relationLoaded('hoteles') ? $this->hoteles->count() : 0),
+            'hoteles_count' => 
+                ($this->hoteles_count ?? 0) + 
+                ($this->excursiones_count ?? 0) + 
+                ($this->traslados_count ?? 0) + 
+                ($this->paquetes_count ?? 0) + 
+                ($this->vehiculo_agencias_count ?? 0),
             'date_creation' => $this->date_creation ? (is_string($this->date_creation) ? $this->date_creation : $this->date_creation->format('Y-m-d H:i:s')) : null,
         ];
     }
