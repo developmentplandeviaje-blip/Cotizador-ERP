@@ -59,7 +59,26 @@ const routeTitles = {
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeRoute, setActiveRoute] = useState('dashboard');
+  const [activeRoute, setActiveRouteState] = useState(() => {
+    return window.location.hash ? window.location.hash.substring(1) : 'dashboard';
+  });
+
+  const setActiveRoute = (route) => {
+    window.location.hash = route;
+  };
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1);
+      if (hash) {
+        setActiveRouteState(hash);
+      } else {
+        setActiveRouteState('dashboard');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
