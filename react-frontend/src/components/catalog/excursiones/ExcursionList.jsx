@@ -494,7 +494,7 @@ export default function ExcursionList({ user }) {
         <div style={{
           padding: '16px 20px',
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           alignItems: 'center',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
           fontSize: '0.8125rem',

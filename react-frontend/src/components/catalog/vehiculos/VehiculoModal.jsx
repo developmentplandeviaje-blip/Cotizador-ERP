@@ -257,7 +257,7 @@ export default function VehiculoModal({
             {onOpenAgenciaModal && (
               <button
                 type="button"
-                className="btn-secondary"
+                className="btn-secondary-form"
                 onClick={onOpenAgenciaModal}
                 style={{ whiteSpace: 'nowrap', padding: '0 14px', fontSize: '0.8125rem' }}
                 title="Gestión de Agencias de Alquiler"
@@ -388,14 +388,31 @@ export default function VehiculoModal({
             padding: '14px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: includeTarifa ? '12px' : '0' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.875rem', color: '#F8FAFC', fontWeight: '500' }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontSize: '0.8125rem',
+                fontWeight: '500',
+                color: includeTarifa ? '#E87217' : '#b9c8ddff',
+                padding: '10px 16px',
+                borderRadius: '12px',
+                background: 'rgb(30, 41, 59)',
+                transition: 'all 0.2s ease',
+                boxShadow: includeTarifa
+                  ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
+                  : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+                border: includeTarifa ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+                userSelect: 'none'
+              }}>
                 <input
                   type="checkbox"
                   checked={includeTarifa}
                   onChange={(e) => setIncludeTarifa(e.target.checked)}
-                  style={{ accentColor: '#E87217', width: '16px', height: '16px', cursor: 'pointer' }}
+                  style={{ display: 'none' }}
                 />
-                Asignar tarifa inicial al registrar vehículo
+                <span>Asignar  Tarifa</span>
               </label>
             </div>
 
@@ -459,15 +476,32 @@ export default function VehiculoModal({
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                  <input
-                    type="checkbox"
-                    id="promocion-check"
-                    checked={promocion}
-                    onChange={(e) => setPromocion(e.target.checked)}
-                    style={{ accentColor: '#E87217', width: '16px', height: '16px', cursor: 'pointer' }}
-                  />
-                  <label htmlFor="promocion-check" style={{ fontSize: '0.8125rem', color: '#F8FAFC', cursor: 'pointer' }}>
-                    Marcar como Tarifa en Promoción
+                  <label htmlFor="promocion-check" style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.8125rem',
+                    fontWeight: '500',
+                    color: promocion ? '#E87217' : '#b9c8ddff',
+                    padding: '10px 16px',
+                    borderRadius: '12px',
+                    background: 'rgb(30, 41, 59)',
+                    transition: 'all 0.2s ease',
+                    boxShadow: promocion
+                      ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
+                      : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+                    border: promocion ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+                    userSelect: 'none'
+                  }}>
+                    <input
+                      type="checkbox"
+                      id="promocion-check"
+                      checked={promocion}
+                      onChange={(e) => setPromocion(e.target.checked)}
+                      style={{ display: 'none' }}
+                    />
+                    Tarifa en Promoción
                   </label>
                 </div>
               </div>
