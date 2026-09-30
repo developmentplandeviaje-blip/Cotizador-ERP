@@ -50,6 +50,7 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
         ...tarifaData,
         id_habitacion: selectedRoomId,
       });
+      showToast('Tarifa guardada exitosamente.', 'success');
       fetchHabitaciones();
     } catch (err) {
       console.error('Error creando tarifa', err);
