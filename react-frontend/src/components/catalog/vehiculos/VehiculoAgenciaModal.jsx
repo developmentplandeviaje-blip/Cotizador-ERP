@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import { showToast } from '../../../utils/toast';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import axios from 'axios';
 
@@ -8,8 +9,8 @@ export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, z
   const [agencias, setAgencias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-    const [deleteTarget, setDeleteTarget] = useState(null);
-    const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   // Form states
@@ -224,23 +225,23 @@ export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, z
             Cerrar
           </button>
         </div>
-      
+
         <DeleteConfirmationModal
-            isOpen={!!deleteTarget}
-            onClose={() => setDeleteTarget(null)}
-            onCancel={() => setDeleteTarget(null)}
-            onConfirm={confirmDeleteAgencia}
-            isDeleting={isDeleting}
-            title="Confirmar Eliminación"
-            subtitle="Esta acción intentará remover la agencia del sistema."
-            content={
-                <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
-                    ¿Está seguro de eliminar la agencia <strong style={{ color: '#FFFFFF' }}>{deleteTarget?.name}</strong>?
-                </p>
-            }
-            confirmText="Eliminar Agencia"
+          isOpen={!!deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={handleDeleteAgencia}
+          isDeleting={isDeleting}
+          title="Confirmar Eliminación"
+          subtitle="Esta acción intentará remover la agencia del sistema."
+          content={
+            <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
+              ¿Está seguro de eliminar la agencia <strong style={{ color: '#FFFFFF' }}>{deleteTarget?.name}</strong>?
+            </p>
+          }
+          confirmText="Eliminar Agencia"
         />
-        </div>
+      </div>
     </Modal>
   );
 }
