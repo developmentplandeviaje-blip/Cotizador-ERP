@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -47,12 +48,29 @@ class User extends Authenticatable
     }
 
     /**
+     * Associated Freelancer business profile.
+     */
+    public function freelancer(): BelongsTo
+    {
+        return $this->belongsTo(Freelancer::class, 'id_freelancer', 'id');
+    }
+
+    /**
      * Scope for internal Agency users (excluding Freelancers).
      */
     public function scopeAgencia(Builder $query): Builder
     {
         return $query->where('level', '!=', 'Freelancer')
                      ->whereNull('id_freelancer');
+    }
+
+    /**
+     * Scope for Freelancer users.
+     */
+    public function scopeFreelancer(Builder $query): Builder
+    {
+        return $query->where('level', 'Freelancer')
+                     ->whereNotNull('id_freelancer');
     }
 
     /**

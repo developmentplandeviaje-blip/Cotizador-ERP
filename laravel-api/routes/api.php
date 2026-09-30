@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\v1\Catalog\VehiculoTarifaController;
 use App\Http\Controllers\Api\v1\Catalog\TrasladoController;
 use App\Http\Controllers\Api\v1\Catalog\AerolineaController;
 use App\Http\Controllers\Api\v1\User\UserAgenciaController;
+use App\Http\Controllers\Api\v1\User\UserFreelancerController;
 use App\Http\Controllers\Api\v1\Finance\MetodoPagoController;
 
 // Public routes
@@ -91,6 +92,13 @@ Route::middleware('auth:sanctum')->group(function () {
     ]);
     Route::patch('/v1/users/agencia/{user}/toggle-status', [UserAgenciaController::class, 'toggleStatus']);
     Route::post('/v1/users/agencia/{user}/metodos-pago', [UserAgenciaController::class, 'assignMetodosPago']);
+
+    // Users: Freelancer
+    Route::apiResource('/v1/users/freelancer', UserFreelancerController::class)->parameters([
+        'freelancer' => 'freelancer'
+    ]);
+    Route::patch('/v1/users/freelancer/{freelancer}/toggle-status', [UserFreelancerController::class, 'toggleStatus']);
+    Route::post('/v1/users/freelancer/{freelancer}/metodos-pago', [UserFreelancerController::class, 'assignMetodosPago']);
 
     // Finance: Métodos de Pago
     Route::apiResource('/v1/finance/metodos-pago', MetodoPagoController::class)->parameters([

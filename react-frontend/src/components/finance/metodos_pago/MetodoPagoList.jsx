@@ -546,8 +546,37 @@ export default function MetodoPagoList({ user }) {
                           fontSize: '0.75rem',
                         }}
                       >
-                        <div style={{ fontWeight: 600, color: '#E87217', marginBottom: '6px' }}>
-                          Asesores Habilitados:
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span style={{ fontWeight: 600, color: '#E87217' }}>
+                            Asesores Habilitados:
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setHoveredAsesores(null);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#94A3B8',
+                              cursor: 'pointer',
+                              fontSize: '0.85rem',
+                              fontWeight: 'bold',
+                              lineHeight: 1,
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'color 0.2s',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
+                            title="Cerrar"
+                          >
+                            ✕
+                          </button>
                         </div>
                         {item.asesores && item.asesores.length > 0 ? (
                           item.asesores.map((a) => (
