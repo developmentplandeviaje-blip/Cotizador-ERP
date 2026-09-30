@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import { showToast } from '../../../utils/toast';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import Badge from '../../common/Badge';
 import axios from 'axios';
@@ -8,8 +9,8 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
   const [tarifas, setTarifas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-    const [deleteTarget, setDeleteTarget] = useState(null);
-    const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   // New tariff form fields
@@ -224,18 +225,29 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
               <label style={{
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                cursor: 'pointer',
                 fontSize: '0.8125rem',
-                color: promocion ? '#E87217' : '#94A3B8',
+                fontWeight: '500',
+                color: promocion ? '#E87217' : '#b9c8ddff',
+                padding: '10px 16px',
+                borderRadius: '12px',
+                background: 'rgb(30, 41, 59)',
+                transition: 'all 0.2s ease',
+                boxShadow: promocion
+                  ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
+                  : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+                border: promocion ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+                userSelect: 'none'
               }}>
                 <input
                   type="checkbox"
                   checked={promocion}
                   onChange={(e) => setPromocion(e.target.checked)}
                   disabled={isSubmitting}
+                  style={{ display: 'none' }}
                 />
                 <span>Tarifa Promocional (Aplica Alerta Preventiva US-09)</span>
               </label>
@@ -332,23 +344,23 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
             Cerrar
           </button>
         </div>
-      
+
         <DeleteConfirmationModal
-            isOpen={!!deleteTarget}
-            onClose={() => setDeleteTarget(null)}
-            onCancel={() => setDeleteTarget(null)}
-            onConfirm={confirmDeleteTarifa}
-            isDeleting={isDeleting}
-            title="Confirmar Eliminación"
-            subtitle="Esta acción intentará remover la tarifa."
-            content={
-                <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
-                    ¿Desea eliminar esta tarifa de forma permanente?
-                </p>
-            }
-            confirmText="Eliminar Tarifa"
+          isOpen={!!deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={handleDeleteTarifa}
+          isDeleting={isDeleting}
+          title="Confirmar Eliminación"
+          subtitle="Esta acción intentará remover la tarifa."
+          content={
+            <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
+              ¿Desea eliminar esta tarifa de forma permanente?
+            </p>
+          }
+          confirmText="Eliminar Tarifa"
         />
-        </div>
+      </div>
     </Modal>
   );
 }

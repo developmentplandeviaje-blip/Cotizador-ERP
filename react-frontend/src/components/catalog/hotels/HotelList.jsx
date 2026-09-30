@@ -11,6 +11,7 @@ import imgDescuento from '../../../assets/Descuentos.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import Pagination from '../../common/Pagination';
 import imgSearch from '../../../assets/lupa.svg';
+import { showToast } from '../../../utils/toast';
 
 export default function HotelList({ user }) {
   const [hotels, setHotels] = useState([]);
@@ -75,9 +76,11 @@ export default function HotelList({ user }) {
   const handleToggleStatus = async (hotel) => {
     try {
       await axios.patch(`/v1/catalog/hoteles/${hotel.id}/toggle-status`);
+      showToast(`Estado del hotel '${hotel.nombre}' actualizado.`, 'success');
       fetchHotels();
     } catch (err) {
       console.error('Error alternando estado', err);
+      showToast('Error al cambiar el estado del hotel.', 'error');
     }
   };
 
@@ -92,13 +95,16 @@ export default function HotelList({ user }) {
     setDeleteError('');
     try {
       await axios.delete(`/v1/catalog/hoteles/${deleteTarget.id}`);
+      showToast(`Hotel '${deleteTarget.nombre}' eliminado exitosamente.`, 'success');
       setDeleteTarget(null);
       setSuccessBanner('Hotel eliminado exitosamente.');
       setTimeout(() => setSuccessBanner(''), 4000);
       fetchHotels();
     } catch (err) {
       console.error('Error al eliminar hotel:', err);
-      setDeleteError('No se pudo eliminar el hotel.');
+      const errMsg = err.response?.data?.message || 'No se pudo eliminar el hotel.';
+      setDeleteError(errMsg);
+      showToast(errMsg, 'error');
     } finally {
       setIsDeleting(false);
     }

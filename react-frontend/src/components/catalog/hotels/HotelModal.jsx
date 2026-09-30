@@ -222,8 +222,10 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
 
       if (hotelToEdit) {
         await axios.put(`/v1/catalog/hoteles/${hotelToEdit.id}`, payload);
+        showToast('Hotel actualizado exitosamente.', 'success');
       } else {
         await axios.post('/v1/catalog/hoteles', payload);
+        showToast('Hotel creado exitosamente.', 'success');
       }
 
       onSaveSuccess();

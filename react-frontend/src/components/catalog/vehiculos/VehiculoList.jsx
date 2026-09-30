@@ -546,17 +546,13 @@ export default function VehiculoList({ user }) {
         <div style={{
           padding: '16px 20px',
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           alignItems: 'center',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
           fontSize: '0.8125rem',
           color: '#b9c8ddff',
         }}>
-          <Pagination
-            currentPage={page}
-            lastPage={lastPage}
-            onPageChange={(newPage) => setPage(newPage)}
-          />
+          <Pagination page={page} lastPage={lastPage} setPage={setPage} />
         </div>
       </div>
 
