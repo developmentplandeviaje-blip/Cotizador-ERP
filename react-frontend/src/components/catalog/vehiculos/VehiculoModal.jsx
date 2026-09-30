@@ -1,50 +1,160 @@
-import { useState, useEffect } from 'react';
-import { showToast } from '../../../utils/toast';
-import Modal from '../../common/Modal';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Modal from '../../common/Modal';
+import { showToast } from '../../../utils/toast';
 
-export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, zIndex = 1100 }) {
-  const [ubicaciones, setUbicaciones] = useState([]);
-  const [agencias, setAgencias] = useState([]);
-  const [loading, setLoading] = useState(false);
+export default function VehiculoModal({
+  isOpen,
+  onClose,
+  onSaveSuccess,
+  vehiculoToEdit = null,
+  onOpenAgenciaModal,
+  agencias = [],
+  lastCreatedAgenciaId = null,
+}) {
+  const [idVehiculoAgencia, setIdVehiculoAgencia] = useState('');
+  const [marca, setMarca] = useState('');
+  const [vehiculo, setVehiculo] = useState('');
+  const [ano, setAno] = useState('');
+  const [tipoVehiculo, setTipoVehiculo] = useState('');
+  const [tipoTransmision, setTipoTransmision] = useState('Automático');
+  const [nota, setNota] = useState('');
+
+  // Initial tariff fields (only for new vehicles)
+  const [includeTarifa, setIncludeTarifa] = useState(false);
+  const [costo, setCosto] = useState('');
+  const [porcentaje, setPorcentaje] = useState('');
+  const [precio, setPrecio] = useState('');
+  const [promocion, setPromocion] = useState(false);
+  const [desde, setDesde] = useState('');
+  const [hasta, setHasta] = useState('');
+  const [desdeVenta, setDesdeVenta] = useState('');
+  const [hastaVenta, setHastaVenta] = useState('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Form states
-  const [nombreAgencia, setNombreAgencia] = useState('');
-  const [idUbicacion, setIdUbicacion] = useState('');
-  const [nota, setNota] = useState('');
+  const tiposVehiculoOptions = [
+    'Sedan',
+    'SUV',
+    'Compacto',
+    'Camioneta',
+    'Van',
+    'Ejecutivo',
+    'Pick-Up',
+    'Hatchback',
+    'Crossover',
+    'Lujo',
+  ];
 
+  const marcasPopulares = [
+    'Toyota',
+    'Hyundai',
+    'Chevrolet',
+    'Ford',
+    'Honda',
+    'Nissan',
+    'Kia',
+    'Jeep',
+    'Mitsubishi',
+    'Volkswagen',
+    'Renault',
+    'Chery',
+    'Suzuki',
+  ];
+
+  // Populate data when editing or reset when creating
   useEffect(() => {
     if (isOpen) {
       setErrorMessage('');
-      setNombreAgencia('');
-      setIdUbicacion('');
-      setNota('');
-      fetchData();
+      if (vehiculoToEdit) {
+        setIdVehiculoAgencia(vehiculoToEdit.id_vehiculo_agencia || '');
+        setMarca(vehiculoToEdit.marca || '');
+        setVehiculo(vehiculoToEdit.vehiculo || '');
+        setAno(vehiculoToEdit.ano || '');
+        setTipoVehiculo(vehiculoToEdit.tipo_vehiculo || '');
+        setTipoTransmision(vehiculoToEdit.tipo_transmision || 'Automático');
+        setNota(vehiculoToEdit.nota || '');
+        setIncludeTarifa(false);
+      } else {
+        setIdVehiculoAgencia(lastCreatedAgenciaId ? String(lastCreatedAgenciaId) : (agencias.length > 0 ? String(agencias[0].id) : ''));
+        setMarca('');
+        setVehiculo('');
+        setAno(new Date().getFullYear().toString());
+        setTipoVehiculo('Sedan');
+        setTipoTransmision('Automático');
+        setNota('');
+        setIncludeTarifa(false);
+        setCosto('');
+        setPorcentaje('');
+        setPrecio('');
+        setPromocion(false);
+        setDesde('');
+        setHasta('');
+        setDesdeVenta('');
+        setHastaVenta('');
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, vehiculoToEdit, lastCreatedAgenciaId, agencias]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [ubiRes, agRes] = await Promise.all([
-        axios.get('/v1/catalog/ubicaciones?all=1'),
-        axios.get('/v1/catalog/vehiculo-agencias'),
-      ]);
-      setUbicaciones(ubiRes.data.data || []);
-      setAgencias(agRes.data.data || []);
-    } catch (err) {
-      console.error('Error cargando agencias/ubicaciones:', err);
-    } finally {
-      setLoading(false);
+  // Update agency selection if lastCreatedAgenciaId changes
+  useEffect(() => {
+    if (lastCreatedAgenciaId && isOpen && !vehiculoToEdit) {
+      setIdVehiculoAgencia(String(lastCreatedAgenciaId));
+    }
+  }, [lastCreatedAgenciaId, isOpen, vehiculoToEdit]);
+
+  // Pricing calculations
+  const handleCostoChange = (val) => {
+    setCosto(val);
+    const costVal = parseFloat(val);
+    const marginVal = parseFloat(porcentaje);
+    if (!isNaN(costVal) && costVal > 0 && !isNaN(marginVal)) {
+      const calculatedPrice = (costVal * (1 + marginVal / 100)).toFixed(2);
+      setPrecio(calculatedPrice);
+    }
+  };
+
+  const handlePorcentajeChange = (val) => {
+    setPorcentaje(val);
+    const costVal = parseFloat(costo);
+    const marginVal = parseFloat(val);
+    if (!isNaN(costVal) && costVal > 0 && !isNaN(marginVal)) {
+      const calculatedPrice = (costVal * (1 + marginVal / 100)).toFixed(2);
+      setPrecio(calculatedPrice);
+    }
+  };
+
+  const handlePrecioChange = (val) => {
+    setPrecio(val);
+    const costVal = parseFloat(costo);
+    const priceVal = parseFloat(val);
+    if (!isNaN(costVal) && costVal > 0 && !isNaN(priceVal)) {
+      const calculatedMargin = (((priceVal - costVal) / costVal) * 100).toFixed(2);
+      setPorcentaje(calculatedMargin);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!nombreAgencia.trim() || !idUbicacion) {
-      setErrorMessage('El nombre de la agencia y la ubicación son requeridos.');
+    if (!idVehiculoAgencia) {
+      setErrorMessage('Debe seleccionar una agencia de alquiler.');
+      return;
+    }
+    if (!marca.trim()) {
+      setErrorMessage('Debe ingresar la marca del vehículo.');
+      return;
+    }
+    if (!vehiculo.trim()) {
+      setErrorMessage('Debe ingresar el modelo / nombre del vehículo.');
+      return;
+    }
+    if (!ano.trim()) {
+      setErrorMessage('Debe ingresar el año del vehículo.');
+      return;
+    }
+    if (!tipoVehiculo.trim()) {
+      setErrorMessage('Debe seleccionar o ingresar el tipo de vehículo.');
       return;
     }
 
@@ -52,33 +162,50 @@ export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, z
     setErrorMessage('');
 
     try {
-      const res = await axios.post('/v1/catalog/vehiculo-agencias', {
-        agencia: nombreAgencia.trim(),
-        id_ubicacion: parseInt(idUbicacion, 10),
+      const payload = {
+        id_vehiculo_agencia: parseInt(idVehiculoAgencia, 10),
+        marca: marca.trim(),
+        vehiculo: vehiculo.trim(),
+        ano: ano.trim(),
+        tipo_vehiculo: tipoVehiculo.trim(),
+        tipo_transmision: tipoTransmision.trim(),
         nota: nota.trim() || null,
-      });
-      setNombreAgencia('');
-      setIdUbicacion('');
-      setNota('');
-      fetchData();
-      if (onSaveSuccess) onSaveSuccess(res.data?.data);
+      };
+
+      if (!vehiculoToEdit && includeTarifa && (costo || precio)) {
+        payload.costo = parseFloat(costo) || 0;
+        payload.precio = parseFloat(precio) || 0;
+        payload.porcentaje = parseFloat(porcentaje) || 0;
+        payload.promocion = promocion;
+        if (desde) payload.desde = desde;
+        if (hasta) payload.hasta = hasta;
+        if (desdeVenta) payload.desde_venta = desdeVenta;
+        if (hastaVenta) payload.hasta_venta = hastaVenta;
+      }
+
+      if (vehiculoToEdit) {
+        await axios.put(`/v1/catalog/vehiculos/${vehiculoToEdit.id}`, payload);
+        showToast('Vehículo actualizado exitosamente.', 'success');
+      } else {
+        await axios.post('/v1/catalog/vehiculos', payload);
+        showToast('Vehículo registrado exitosamente.', 'success');
+      }
+
+      if (onSaveSuccess) onSaveSuccess();
+      onClose();
     } catch (err) {
-      console.error('Error guardando agencia:', err);
-      setErrorMessage(err.response?.data?.message || 'Error al guardar la agencia de alquiler.');
+      console.error('Error guardando vehículo:', err);
+      const errors = err.response?.data?.errors;
+      let errorMsg = 'Error al guardar el vehículo. Verifique los datos ingresados.';
+      if (errors) {
+        errorMsg = Object.values(errors).flat().join('\n');
+      } else if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      }
+      setErrorMessage(errorMsg);
+      showToast(errorMsg, 'error');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteAgencia = async (id, name) => {
-    if (!window.confirm(`¿Está seguro de eliminar la agencia "${name}"?`)) return;
-    try {
-      await axios.delete(`/v1/catalog/vehiculo-agencias/${id}`);
-      fetchData();
-      if (onSaveSuccess) onSaveSuccess();
-    } catch (err) {
-      console.error('Error eliminando agencia:', err);
-      showToast(err.response?.data?.message || 'No se pudo eliminar la agencia.', 'error');
     }
   };
 
@@ -86,143 +213,291 @@ export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, z
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Gestión de Agencias de Alquiler"
-      size="md"
-      zIndex={zIndex}
+      title={vehiculoToEdit ? 'Editar Vehículo' : 'Registrar Nuevo Vehículo'}
+      size="lg"
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {/* Form to add agency */}
-        <form onSubmit={handleSubmit} style={{
-          background: 'rgba(255, 255, 255, 0.04)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '12px',
-          padding: '16px',
-        }}>
-          <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#E87217', fontWeight: '600' }}>
-            Registrar Nueva Agencia
-          </h4>
-
-          {errorMessage && (
-            <div style={{
-              background: 'rgba(239, 68, 68, 0.15)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              color: '#fca5a5',
-              padding: '8px 12px',
-              borderRadius: '8px',
-              fontSize: '0.8125rem',
-              marginBottom: '12px',
-            }}>
-              {errorMessage}
-            </div>
-          )}
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-            <div>
-              <label className="erp-label">Nombre de Agencia <span className="req">*</span></label>
-              <input
-                type="text"
-                className="erp-input"
-                placeholder="Ej: Hertz Margarita"
-                value={nombreAgencia}
-                onChange={(e) => setNombreAgencia(e.target.value)}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div>
-              <label className="erp-label">Ubicación <span className="req">*</span></label>
-              <select
-                className="erp-input"
-                value={idUbicacion}
-                onChange={(e) => setIdUbicacion(e.target.value)}
-                required
-                disabled={isSubmitting || loading}
-                style={{ cursor: 'pointer', color: idUbicacion ? '#FFFFFF' : '#94A3B8' }}
-              >
-                <option value="" style={{ background: '#1e293b', color: '#94A3B8' }}>Seleccione ubicación...</option>
-                {ubicaciones.map((u) => (
-                  <option key={u.id} value={u.id} style={{ background: '#1e293b', color: '#FFFFFF' }}>
-                    {u.ubicacion}
-                  </option>
-                ))}
-              </select>
-            </div>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        {errorMessage && (
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: '#fca5a5',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            whiteSpace: 'pre-line',
+          }}>
+            {errorMessage}
           </div>
+        )}
 
-          <div style={{ marginBottom: '14px' }}>
-            <label className="erp-label">Nota u Observación (Opcional)</label>
+        {/* Agency Selection Row */}
+        <div>
+          <label className="erp-label">
+            Agencia de Alquiler <span className="req">*</span>
+          </label>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <select
+              className="erp-input"
+              value={idVehiculoAgencia}
+              onChange={(e) => setIdVehiculoAgencia(e.target.value)}
+              required
+              disabled={isSubmitting}
+              style={{ flex: 1, cursor: 'pointer', color: idVehiculoAgencia ? '#FFFFFF' : '#94A3B8' }}
+            >
+              <option value="" style={{ background: '#1e293b', color: '#94A3B8' }}>
+                Seleccione una agencia...
+              </option>
+              {agencias.map((ag) => (
+                <option key={ag.id} value={ag.id} style={{ background: '#1e293b', color: '#FFFFFF' }}>
+                  {ag.agencia} {ag.nombre_ubicacion ? `(${ag.nombre_ubicacion})` : ''}
+                </option>
+              ))}
+            </select>
+            {onOpenAgenciaModal && (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={onOpenAgenciaModal}
+                style={{ whiteSpace: 'nowrap', padding: '0 14px', fontSize: '0.8125rem' }}
+                title="Gestión de Agencias de Alquiler"
+              >
+                + Crear Agencia
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Brand & Model Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div>
+            <label className="erp-label">
+              Marca <span className="req">*</span>
+            </label>
             <input
               type="text"
               className="erp-input"
-              placeholder="Ej: Entrega en aeropuerto o terminal"
-              value={nota}
-              onChange={(e) => setNota(e.target.value)}
+              list="marcas-list"
+              placeholder="Ej: Toyota, Hyundai, Chevrolet"
+              value={marca}
+              onChange={(e) => setMarca(e.target.value)}
+              required
+              disabled={isSubmitting}
+            />
+            <datalist id="marcas-list">
+              {marcasPopulares.map((m) => (
+                <option key={m} value={m} />
+              ))}
+            </datalist>
+          </div>
+
+          <div>
+            <label className="erp-label">
+              Modelo / Vehículo <span className="req">*</span>
+            </label>
+            <input
+              type="text"
+              className="erp-input"
+              placeholder="Ej: Yaris, Tucson, Spark"
+              value={vehiculo}
+              onChange={(e) => setVehiculo(e.target.value)}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+        </div>
+
+        {/* Year, Type & Transmission Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+          <div>
+            <label className="erp-label">
+              Año <span className="req">*</span>
+            </label>
+            <input
+              type="text"
+              className="erp-input"
+              placeholder="Ej: 2024"
+              value={ano}
+              onChange={(e) => setAno(e.target.value)}
+              required
               disabled={isSubmitting}
             />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-            <button type="submit" className="btn-form-nxt" disabled={isSubmitting}>
-              {isSubmitting ? 'Guardando...' : 'Agregar Agencia'}
-            </button>
+          <div>
+            <label className="erp-label">
+              Tipo de Vehículo <span className="req">*</span>
+            </label>
+            <select
+              className="erp-input"
+              value={tipoVehiculo}
+              onChange={(e) => setTipoVehiculo(e.target.value)}
+              required
+              disabled={isSubmitting}
+              style={{ cursor: 'pointer', color: tipoVehiculo ? '#FFFFFF' : '#94A3B8' }}
+            >
+              <option value="" style={{ background: '#1e293b', color: '#94A3B8' }}>
+                Seleccione tipo...
+              </option>
+              {tiposVehiculoOptions.map((t) => (
+                <option key={t} value={t} style={{ background: '#1e293b', color: '#FFFFFF' }}>
+                  {t}
+                </option>
+              ))}
+            </select>
           </div>
-        </form>
 
-        {/* Existing agencies list */}
-        <div>
-          <h4 style={{ margin: '0 0 10px 0', fontSize: '0.875rem', color: '#F8FAFC', fontWeight: '600' }}>
-            Agencias Registradas ({agencias.length})
-          </h4>
-          <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
-              <thead>
-                <tr style={{ background: 'rgba(255, 255, 255, 0.05)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: '#94A3B8' }}>
-                  <th style={{ padding: '8px 12px', textAlign: 'left' }}>Agencia</th>
-                  <th style={{ padding: '8px 12px', textAlign: 'left' }}>Ubicación</th>
-                  <th style={{ padding: '8px 12px', textAlign: 'right' }}>Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                {agencias.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} style={{ padding: '16px', textAlign: 'center', color: '#94A3B8' }}>
-                      No hay agencias registradas aún.
-                    </td>
-                  </tr>
-                ) : (
-                  agencias.map((ag) => (
-                    <tr key={ag.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                      <td style={{ padding: '8px 12px', color: '#F8FAFC', fontWeight: '500' }}>{ag.agencia}</td>
-                      <td style={{ padding: '8px 12px', color: '#E87217' }}>{ag.nombre_ubicacion}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => handleDeleteAgencia(ag.id, ag.agencia)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#f87171',
-                            cursor: 'pointer',
-                            fontSize: '0.75rem',
-                          }}
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+          <div>
+            <label className="erp-label">
+              Transmisión <span className="req">*</span>
+            </label>
+            <select
+              className="erp-input"
+              value={tipoTransmision}
+              onChange={(e) => setTipoTransmision(e.target.value)}
+              required
+              disabled={isSubmitting}
+              style={{ cursor: 'pointer', color: '#FFFFFF' }}
+            >
+              <option value="Automático" style={{ background: '#1e293b', color: '#FFFFFF' }}>Automático</option>
+              <option value="Sincrónico" style={{ background: '#1e293b', color: '#FFFFFF' }}>Sincrónico / Manual</option>
+            </select>
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
-          <button type="button" className="btn-form-cancel" onClick={onClose}>
-            Cerrar
+        {/* Notes Row */}
+        <div>
+          <label className="erp-label">Observación / Notas (Opcional)</label>
+          <textarea
+            className="erp-input"
+            rows={2}
+            placeholder="Ej: Aire acondicionado, capacidad 5 pasajeros, sin límite de kilometraje"
+            value={nota}
+            onChange={(e) => setNota(e.target.value)}
+            disabled={isSubmitting}
+            style={{ resize: 'vertical' }}
+          />
+        </div>
+
+        {/* Optional Initial Tariff Section (Only on create) */}
+        {!vehiculoToEdit && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '10px',
+            padding: '14px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: includeTarifa ? '12px' : '0' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.875rem', color: '#F8FAFC', fontWeight: '500' }}>
+                <input
+                  type="checkbox"
+                  checked={includeTarifa}
+                  onChange={(e) => setIncludeTarifa(e.target.checked)}
+                  style={{ accentColor: '#E87217', width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                Asignar tarifa inicial al registrar vehículo
+              </label>
+            </div>
+
+            {includeTarifa && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label className="erp-label">Costo ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="erp-input"
+                      placeholder="0.00"
+                      value={costo}
+                      onChange={(e) => handleCostoChange(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="erp-label">Ganancia (%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="erp-input"
+                      placeholder="%"
+                      value={porcentaje}
+                      onChange={(e) => handlePorcentajeChange(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="erp-label">Precio ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="erp-input"
+                      placeholder="0.00"
+                      value={precio}
+                      onChange={(e) => handlePrecioChange(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label className="erp-label">Válido Desde (Viaje)</label>
+                    <input
+                      type="date"
+                      className="erp-input"
+                      value={desde}
+                      onChange={(e) => setDesde(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="erp-label">Válido Hasta (Viaje)</label>
+                    <input
+                      type="date"
+                      className="erp-input"
+                      value={hasta}
+                      onChange={(e) => setHasta(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                  <input
+                    type="checkbox"
+                    id="promocion-check"
+                    checked={promocion}
+                    onChange={(e) => setPromocion(e.target.checked)}
+                    style={{ accentColor: '#E87217', width: '16px', height: '16px', cursor: 'pointer' }}
+                  />
+                  <label htmlFor="promocion-check" style={{ fontSize: '0.8125rem', color: '#F8FAFC', cursor: 'pointer' }}>
+                    Marcar como Tarifa en Promoción
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Modal Buttons */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
+          <button
+            type="button"
+            className="btn-form-cancel"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="btn-form-nxt"
+            disabled={isSubmitting}
+          >
+            {isSubmitting
+              ? 'Guardando...'
+              : vehiculoToEdit
+                ? 'Actualizar Vehículo'
+                : 'Guardar Vehículo'}
           </button>
         </div>
-      </div>
+      </form>
     </Modal>
   );
 }
