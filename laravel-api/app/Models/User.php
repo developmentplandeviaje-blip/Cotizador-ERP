@@ -67,10 +67,12 @@ class User extends Authenticatable
     /**
      * Scope for Freelancer users.
      */
-    public function scopeFreelancer(Builder $query): Builder
+    public function scopeFreelancers(Builder $query): Builder
     {
-        return $query->where('level', 'Freelancer')
-                     ->whereNotNull('id_freelancer');
+        return $query->where(function ($q) {
+            $q->where('level', 'Freelancer')
+              ->orWhereNotNull('id_freelancer');
+        });
     }
 
     /**

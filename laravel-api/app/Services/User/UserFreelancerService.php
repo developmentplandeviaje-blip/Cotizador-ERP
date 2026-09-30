@@ -31,7 +31,7 @@ class UserFreelancerService
      */
     public function getUsers(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = User::freelancer()->with(['comisiones', 'freelancer']);
+        $query = User::freelancers()->with(['comisiones', 'freelancer']);
 
         if (!empty($filters['search'])) {
             $search = trim($filters['search']);
