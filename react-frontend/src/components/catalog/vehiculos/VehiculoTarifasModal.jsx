@@ -225,18 +225,29 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
               <label style={{
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                cursor: 'pointer',
                 fontSize: '0.8125rem',
-                color: promocion ? '#E87217' : '#94A3B8',
+                fontWeight: '500',
+                color: promocion ? '#E87217' : '#b9c8ddff',
+                padding: '10px 16px',
+                borderRadius: '12px',
+                background: 'rgb(30, 41, 59)',
+                transition: 'all 0.2s ease',
+                boxShadow: promocion
+                  ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
+                  : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+                border: promocion ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+                userSelect: 'none'
               }}>
                 <input
                   type="checkbox"
                   checked={promocion}
                   onChange={(e) => setPromocion(e.target.checked)}
                   disabled={isSubmitting}
+                  style={{ display: 'none' }}
                 />
                 <span>Tarifa Promocional (Aplica Alerta Preventiva US-09)</span>
               </label>
