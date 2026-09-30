@@ -479,21 +479,13 @@ export default function PaqueteList({ user }) {
         <div style={{
           padding: '16px 20px',
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           alignItems: 'center',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
           fontSize: '0.8125rem',
           color: '#94A3B8',
         }}>
-          <div>
-            Mostrando {paquetes.length > 0 ? (page - 1) * 10 + 1 : 0} a {Math.min(page * 10, total)} de {total} registros
-          </div>
-
-          <Pagination
-            currentPage={page}
-            lastPage={lastPage}
-            onPageChange={(newPage) => setPage(newPage)}
-          />
+          <Pagination page={page} lastPage={lastPage} setPage={setPage} />
         </div>
       </div>
 
