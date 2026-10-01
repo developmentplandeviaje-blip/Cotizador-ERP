@@ -100,6 +100,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/v1/users/freelancer/{freelancer}/toggle-status', [UserFreelancerController::class, 'toggleStatus']);
     Route::post('/v1/users/freelancer/{freelancer}/metodos-pago', [UserFreelancerController::class, 'assignMetodosPago']);
 
+    // Users: Aliados
+    Route::apiResource('/v1/users/aliados', \App\Http\Controllers\Api\v1\User\UserAliadoController::class)->parameters([
+        'aliados' => 'aliado'
+    ]);
+    Route::patch('/v1/users/aliados/{aliado}/toggle-status', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'toggleStatus']);
+    
+    // Users: Aliados - Vendedores
+    Route::get('/v1/users/aliados/{aliado}/vendedores', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'indexVendedores']);
+    Route::post('/v1/users/aliados/{aliado}/vendedores', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'storeVendedor']);
+    Route::put('/v1/users/aliados/{aliado}/vendedores/{user}', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'updateVendedor']);
+    Route::delete('/v1/users/aliados/{aliado}/vendedores/{user}', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'destroyVendedor']);
+
     // Finance: Métodos de Pago
     Route::apiResource('/v1/finance/metodos-pago', MetodoPagoController::class)->parameters([
         'metodos-pago' => 'metodoPago'
