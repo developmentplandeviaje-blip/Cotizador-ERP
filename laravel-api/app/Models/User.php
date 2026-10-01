@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['first_name', 'last_name', 'email', 'password', 'id_freelancer', 'level', 'status'])]
+#[Fillable(['first_name', 'last_name', 'email', 'password', 'id_freelancer', 'id_aliado', 'level', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -47,12 +48,48 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope for internal Agency users (excluding Freelancers).
+     * Associated Freelancer business profile.
+     */
+    public function freelancer(): BelongsTo
+    {
+        return $this->belongsTo(Freelancer::class, 'id_freelancer', 'id');
+    }
+
+    /**
+     * Associated Aliado business profile.
+     */
+    public function aliado(): BelongsTo
+    {
+        return $this->belongsTo(Aliado::class, 'id_aliado', 'id');
+    }
+
+    /**
+     * Scope for internal Agency users (excluding Freelancers and Aliados).
      */
     public function scopeAgencia(Builder $query): Builder
     {
         return $query->where('level', '!=', 'Freelancer')
-                     ->whereNull('id_freelancer');
+                     ->whereNull('id_freelancer')
+                     ->whereNull('id_aliado');
+    }
+
+    /**
+     * Scope for Freelancer users.
+     */
+    public function scopeFreelancers(Builder $query): Builder
+    {
+        return $query->where(function ($q) {
+            $q->where('level', 'Freelancer')
+              ->orWhereNotNull('id_freelancer');
+        });
+    }
+
+    /**
+     * Scope for Aliado users.
+     */
+    public function scopeAliados(Builder $query): Builder
+    {
+        return $query->whereNotNull('id_aliado');
     }
 
     /**
