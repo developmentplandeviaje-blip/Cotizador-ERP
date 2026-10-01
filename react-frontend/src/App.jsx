@@ -11,6 +11,8 @@ import VehiculoList from './components/catalog/vehiculos/VehiculoList';
 import TrasladoList from './components/catalog/traslados/TrasladoList';
 import AerolineaList from './components/catalog/aerolineas/AerolineaList';
 import UserAgenciaList from './components/users/agencia/UserAgenciaList';
+import UserFreelancerList from './components/users/freelancer/UserFreelancerList';
+import UserAliadoList from './components/users/aliados/UserAliadoList';
 import MetodoPagoList from './components/finance/metodos_pago/MetodoPagoList';
 
 // Configure default base URL for Axios
@@ -55,6 +57,7 @@ const routeTitles = {
   metodos_pago: { parent: 'Finanzas', title: 'Métodos de pago' },
   usuarios_agencia: { parent: 'Usuarios', title: 'Agencia' },
   usuarios_freelancer: { parent: 'Usuarios', title: 'Freelancer' },
+  usuarios_aliados: { parent: 'Usuarios', title: 'Aliados' },
 };
 
 function App() {
@@ -190,10 +193,12 @@ function App() {
       {activeRoute === 'servicios_traslados' && <TrasladoList user={user} />}
       {activeRoute === 'servicios_aerolineas' && <AerolineaList user={user} />}
       {activeRoute === 'usuarios_agencia' && <UserAgenciaList user={user} />}
+      {activeRoute === 'usuarios_freelancer' && <UserFreelancerList user={user} />}
+      {activeRoute === 'usuarios_aliados' && <UserAliadoList user={user} />}
       {activeRoute === 'metodos_pago' && <MetodoPagoList user={user} />}
       {activeRoute === 'dashboard' && renderDashboard()}
 
-      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'servicios_aerolineas' && activeRoute !== 'usuarios_agencia' && activeRoute !== 'metodos_pago' && activeRoute !== 'dashboard' && (
+      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'servicios_aerolineas' && activeRoute !== 'usuarios_agencia' && activeRoute !== 'usuarios_freelancer' && activeRoute !== 'usuarios_aliados' && activeRoute !== 'metodos_pago' && activeRoute !== 'dashboard' && (
         <div style={{
           background: 'rgba(30, 41, 59, 0.72)',
           border: '1px solid rgba(255, 255, 255, 0.12)',
