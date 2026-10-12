@@ -6,11 +6,11 @@ import Badge from '../../common/Badge';
 export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
   const [vendedores, setVendedores] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Form states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [vendedorToEdit, setVendedorToEdit] = useState(null);
-  
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -18,6 +18,7 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
   const [status, setStatus] = useState(true);
 
   const [saving, setSaving] = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [errors, setErrors] = useState({});
 
@@ -108,10 +109,26 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
     }
   };
 
+  const handleToggleStatus = async (v) => {
+    setTogglingId(v.id);
+    try {
+      const res = await axios.patch(`/v1/users/aliados/${aliado.id}/vendedores/${v.id}/toggle-status`);
+      const newStatus = res.data?.data?.status !== undefined ? res.data.data.status : !v.status;
+      setVendedores((prev) =>
+        prev.map((item) => (item.id === v.id ? { ...item, status: newStatus } : item))
+      );
+    } catch (err) {
+      console.error('Error al cambiar estado del vendedor:', err);
+      alert(err.response?.data?.message || 'Error al cambiar estado del vendedor.');
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Vendedores de: ${aliado?.razon_social}`} width="700px">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px' }}>
-        
+
         {!isFormOpen ? (
           <>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -119,7 +136,7 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
                 + Agregar Vendedor
               </button>
             </div>
-            
+
             <div style={{ background: 'rgba(15, 23, 42, 0.4)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
               <table style={{ width: '100%', textAlign: 'left', fontSize: '0.8125rem' }}>
                 <thead>
@@ -140,9 +157,26 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
                       <tr key={v.id}>
                         <td style={{ padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{v.first_name} {v.last_name}</td>
                         <td style={{ padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{v.email}</td>
+
                         <td style={{ padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          {v.status ? <Badge variant="success">Activo</Badge> : <Badge variant="error">Inactivo</Badge>}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(v)}
+                            disabled={togglingId === v.id}
+                            title="Haz clic para alternar estado"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: 0,
+                              opacity: togglingId === v.id ? 0.5 : 1,
+                              transition: 'opacity 0.2s',
+                            }}
+                          >
+                            {v.status ? <Badge variant="success">Activo</Badge> : <Badge variant="error">Inactivo</Badge>}
+                          </button>
                         </td>
+
                         <td style={{ padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '8px' }}>
                           <button onClick={() => handleOpenEdit(v)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '4px', padding: '4px 8px', color: '#FFF', cursor: 'pointer' }}>Editar</button>
                           <button onClick={() => handleDelete(v)} style={{ background: 'rgba(239,68,68,0.2)', border: 'none', borderRadius: '4px', padding: '4px 8px', color: '#FCA5A5', cursor: 'pointer' }}>Eliminar</button>
@@ -153,7 +187,7 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
                 </tbody>
               </table>
             </div>
-            
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
               <button onClick={onClose} className="btn-form-cancel">Cerrar</button>
             </div>
@@ -163,13 +197,13 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
             <h3 style={{ margin: 0, fontSize: '1rem', color: '#FFF', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
               {vendedorToEdit ? 'Editar Vendedor' : 'Nuevo Vendedor'}
             </h3>
-            
+
             {errorMessage && (
               <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '8px', color: '#FCA5A5', padding: '10px', fontSize: '0.8125rem' }}>
                 {errorMessage}
               </div>
             )}
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '4px' }}>Nombres *</label>
@@ -180,26 +214,43 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
                 <input type="text" required value={lastName} onChange={e => setLastName(e.target.value)} className="erp-input" style={{ width: '100%', borderColor: errors.last_name ? '#EF4444' : undefined }} />
               </div>
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '4px' }}>Correo Electrónico *</label>
               <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="erp-input" style={{ width: '100%', borderColor: errors.email ? '#EF4444' : undefined }} />
               {errors.email && <span style={{ fontSize: '0.75rem', color: '#EF4444' }}>{errors.email[0]}</span>}
             </div>
-            
+
             <div>
               <label style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '4px' }}>Contraseña {vendedorToEdit ? '(en blanco para mantener actual)' : '*'}</label>
               <input type="password" required={!vendedorToEdit} value={password} onChange={e => setPassword(e.target.value)} className="erp-input" style={{ width: '100%', borderColor: errors.password ? '#EF4444' : undefined }} />
               {errors.password && <span style={{ fontSize: '0.75rem', color: '#EF4444' }}>{errors.password[0]}</span>}
             </div>
-            
-            <div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
+
+            <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '16px' }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontSize: '0.8125rem',
+                fontWeight: '500',
+                color: status ? '#E87217' : '#b9c8ddff',
+                padding: '10px 16px',
+                borderRadius: '12px',
+                background: 'rgb(30, 41, 59)',
+                transition: 'all 0.2s ease',
+                boxShadow: status
+                  ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
+                  : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+                border: status ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+                userSelect: 'none'
+              }}>
                 <input type="checkbox" checked={status} onChange={(e) => setStatus(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#E87217' }} />
                 <span>Habilitado (Activo)</span>
               </label>
             </div>
-            
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
               <button type="button" onClick={() => setIsFormOpen(false)} disabled={saving} className="btn-form-cancel">Cancelar</button>
               <button type="submit" disabled={saving} className="btn-form-nxt">{saving ? 'Guardando...' : 'Guardar Vendedor'}</button>
