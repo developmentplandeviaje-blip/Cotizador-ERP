@@ -125,7 +125,7 @@ class UserAliadoController extends Controller
     public function indexVendedores(Request $request, Aliado $aliado): JsonResponse
     {
         $this->ensureAuthorized($request);
-        $query = $aliado->usuarios();
+        $query = $aliado->usuarios()->with('comisiones');
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -136,7 +136,20 @@ class UserAliadoController extends Controller
             });
         }
 
-        $vendedores = $query->get();
+        $vendedores = $query->get()->map(function ($v) {
+            return [
+                'id' => $v->id,
+                'id_aliado' => $v->id_aliado,
+                'first_name' => $v->first_name,
+                'last_name' => $v->last_name,
+                'full_name' => trim("{$v->first_name} {$v->last_name}"),
+                'email' => $v->email,
+                'level' => $v->level,
+                'status' => (bool) $v->status,
+                'comisiones' => $v->getComisionesMap(),
+            ];
+        });
+
         return response()->json(['data' => $vendedores]);
     }
 
@@ -147,7 +160,19 @@ class UserAliadoController extends Controller
     {
         $this->ensureAuthorized($request);
         $vendedor = $this->service->createVendedor($aliado, $request->validated());
-        return response()->json(['data' => $vendedor], 201);
+        return response()->json([
+            'data' => [
+                'id' => $vendedor->id,
+                'id_aliado' => $vendedor->id_aliado,
+                'first_name' => $vendedor->first_name,
+                'last_name' => $vendedor->last_name,
+                'full_name' => trim("{$vendedor->first_name} {$vendedor->last_name}"),
+                'email' => $vendedor->email,
+                'level' => $vendedor->level,
+                'status' => (bool) $vendedor->status,
+                'comisiones' => $vendedor->getComisionesMap(),
+            ]
+        ], 201);
     }
 
     /**
@@ -161,7 +186,19 @@ class UserAliadoController extends Controller
         }
 
         $updated = $this->service->updateVendedor($user, $request->validated());
-        return response()->json(['data' => $updated]);
+        return response()->json([
+            'data' => [
+                'id' => $updated->id,
+                'id_aliado' => $updated->id_aliado,
+                'first_name' => $updated->first_name,
+                'last_name' => $updated->last_name,
+                'full_name' => trim("{$updated->first_name} {$updated->last_name}"),
+                'email' => $updated->email,
+                'level' => $updated->level,
+                'status' => (bool) $updated->status,
+                'comisiones' => $updated->getComisionesMap(),
+            ]
+        ]);
     }
 
     /**
@@ -195,6 +232,18 @@ class UserAliadoController extends Controller
         }
 
         $updated = $this->service->toggleStatusVendedor($user);
-        return response()->json(['data' => $updated]);
+        return response()->json([
+            'data' => [
+                'id' => $updated->id,
+                'id_aliado' => $updated->id_aliado,
+                'first_name' => $updated->first_name,
+                'last_name' => $updated->last_name,
+                'full_name' => trim("{$updated->first_name} {$updated->last_name}"),
+                'email' => $updated->email,
+                'level' => $updated->level,
+                'status' => (bool) $updated->status,
+                'comisiones' => $updated->getComisionesMap(),
+            ]
+        ]);
     }
 }
