@@ -110,6 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/users/aliados/{aliado}/vendedores', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'indexVendedores']);
     Route::post('/v1/users/aliados/{aliado}/vendedores', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'storeVendedor']);
     Route::put('/v1/users/aliados/{aliado}/vendedores/{user}', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'updateVendedor']);
+    Route::patch('/v1/users/aliados/{aliado}/vendedores/{user}/toggle-status', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'toggleStatusVendedor']);
     Route::delete('/v1/users/aliados/{aliado}/vendedores/{user}', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'destroyVendedor']);
 
     // Finance: Métodos de Pago

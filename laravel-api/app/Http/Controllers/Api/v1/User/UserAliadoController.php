@@ -183,4 +183,18 @@ class UserAliadoController extends Controller
         $this->service->deleteVendedor($user);
         return response()->json(null, 204);
     }
+
+    /**
+     * Toggle status for a seller under an Aliado.
+     */
+    public function toggleStatusVendedor(Request $request, Aliado $aliado, User $user): JsonResponse
+    {
+        $this->ensureAuthorized($request);
+        if ($user->id_aliado !== $aliado->id) {
+            return response()->json(['message' => 'El vendedor no pertenece a este aliado.'], 403);
+        }
+
+        $updated = $this->service->toggleStatusVendedor($user);
+        return response()->json(['data' => $updated]);
+    }
 }
