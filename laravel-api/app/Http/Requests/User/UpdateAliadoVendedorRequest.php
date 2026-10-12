@@ -21,6 +21,8 @@ class UpdateAliadoVendedorRequest extends FormRequest
             'email' => ['required', 'email', 'max:150', 'unique:user,email,' . $userId . ',id'],
             'password' => ['nullable', 'string', 'min:6'],
             'status' => ['nullable', 'boolean'],
+            'comisiones' => ['nullable', 'array'],
+            'comisiones.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ];
     }
 }
