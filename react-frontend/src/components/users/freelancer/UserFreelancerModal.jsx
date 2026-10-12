@@ -1,42 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
-import { showToast } from '../../../utils/toast';
 
 const SERVICIOS = [
-  { key: 'hotel', label: 'Hotel' },
-  { key: 'ferry', label: 'Ferry' },
-  { key: 'vuelo', label: 'Vuelo' },
-  { key: 'excursion', label: 'Excursión' },
-  { key: 'vehiculo', label: 'Vehículo' },
-  { key: 'traslado', label: 'Traslado' },
-  { key: 'paquete', label: 'Paquete' },
-  { key: 'otro', label: 'Otro' },
+  { id: 'hotel', label: 'Hotel', icon: '🏨' },
+  { id: 'ferry', label: 'Ferry', icon: '⛴️' },
+  { id: 'vuelo', label: 'Vuelo', icon: '✈️' },
+  { id: 'excursion', label: 'Excursión', icon: '🧗' },
+  { id: 'vehiculo', label: 'Vehículo', icon: '🚗' },
+  { id: 'traslado', label: 'Traslado', icon: '🚐' },
+  { id: 'paquete', label: 'Paquete', icon: '📦' },
+  { id: 'otro', label: 'Otro', icon: '🧩' },
 ];
 
-export default function UserFreelancerModal({
-  isOpen,
-  onClose,
-  onSaveSuccess,
-  userToEdit = null,
-}) {
-  // User Personal Info
+export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdit = null }) {
+  const [currentStep, setCurrentStep] = useState(1); // 1: Acceso, 2: Datos Empresa, 3: Comisiones
+  
+  // Acceso User fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState(true);
 
-  // Freelancer Company Info
-  const [nombreEmpresa, setNombreEmpresa] = useState('');
-  const [rif, setRif] = useState('');
-  const [correoEmpresa, setCorreoEmpresa] = useState('');
-  const [telefono1, setTelefono1] = useState('');
-  const [telefono2, setTelefono2] = useState('');
-  const [direccion, setDireccion] = useState('');
-  const [colorPrimario, setColorPrimario] = useState('#E87217');
+  // Empresa Freelancer fields
+  const [freelancerNombre, setFreelancerNombre] = useState('');
+  const [freelancerRif, setFreelancerRif] = useState('');
+  const [freelancerTelefono1, setFreelancerTelefono1] = useState('');
+  const [freelancerTelefono2, setFreelancerTelefono2] = useState('');
+  const [freelancerDireccion, setFreelancerDireccion] = useState('');
+  const [freelancerColor, setFreelancerColor] = useState('#E87217');
 
-  // Commissions
+  // Commissions state
   const [comisiones, setComisiones] = useState({
     hotel: 0,
     ferry: 0,
@@ -48,136 +43,126 @@ export default function UserFreelancerModal({
     otro: 0,
   });
 
-  const [activeTab, setActiveTab] = useState('info'); // 'info' | 'empresa' | 'comisiones'
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (isOpen) {
       setErrorMessage('');
-      setActiveTab('info');
+      setErrors({});
+      setCurrentStep(1);
+
       if (userToEdit) {
+        // Acceso
         setFirstName(userToEdit.first_name || '');
         setLastName(userToEdit.last_name || '');
         setEmail(userToEdit.email || '');
         setPassword('');
         setStatus(userToEdit.status !== undefined ? Boolean(userToEdit.status) : true);
 
-        const f = userToEdit.freelancer;
-        setNombreEmpresa(f?.nombre || '');
-        setRif(f?.rif || '');
-        setCorreoEmpresa(f?.correo || '');
-        setTelefono1(f?.telefono_1 || '');
-        setTelefono2(f?.telefono_2 || '');
-        setDireccion(f?.direccion || '');
-        setColorPrimario(f?.color_primario || '#E87217');
+        // Empresa Freelancer
+        if (userToEdit.freelancer) {
+          setFreelancerNombre(userToEdit.freelancer.nombre || '');
+          setFreelancerRif(userToEdit.freelancer.rif || '');
+          setFreelancerTelefono1(userToEdit.freelancer.telefono_1 || '');
+          setFreelancerTelefono2(userToEdit.freelancer.telefono_2 || '');
+          setFreelancerDireccion(userToEdit.freelancer.direccion || '');
+          setFreelancerColor(userToEdit.freelancer.color_primario || '#E87217');
+        } else {
+          setFreelancerNombre('');
+          setFreelancerRif('');
+          setFreelancerTelefono1('');
+          setFreelancerTelefono2('');
+          setFreelancerDireccion('');
+          setFreelancerColor('#E87217');
+        }
 
-        if (userToEdit.comisiones) {
-          setComisiones({
-            hotel: userToEdit.comisiones.hotel ?? 0,
-            ferry: userToEdit.comisiones.ferry ?? 0,
-            vuelo: userToEdit.comisiones.vuelo ?? 0,
-            excursion: userToEdit.comisiones.excursion ?? 0,
-            vehiculo: userToEdit.comisiones.vehiculo ?? 0,
-            traslado: userToEdit.comisiones.traslado ?? 0,
-            paquete: userToEdit.comisiones.paquete ?? 0,
-            otro: userToEdit.comisiones.otro ?? 0,
+        // Pre-fill commissions
+        const initialComms = { ...comisiones };
+        if (userToEdit.comisiones && typeof userToEdit.comisiones === 'object') {
+          Object.keys(initialComms).forEach((key) => {
+            initialComms[key] = userToEdit.comisiones[key] !== undefined ? userToEdit.comisiones[key] : 0;
           });
         }
+        setComisiones(initialComms);
       } else {
         setFirstName('');
         setLastName('');
         setEmail('');
         setPassword('');
         setStatus(true);
-        setNombreEmpresa('');
-        setRif('');
-        setCorreoEmpresa('');
-        setTelefono1('');
-        setTelefono2('');
-        setDireccion('');
-        setColorPrimario('#E87217');
+        setFreelancerNombre('');
+        setFreelancerRif('');
+        setFreelancerTelefono1('');
+        setFreelancerTelefono2('');
+        setFreelancerDireccion('');
+        setFreelancerColor('#E87217');
         setComisiones({
-          hotel: 0,
-          ferry: 0,
-          vuelo: 0,
-          excursion: 0,
-          vehiculo: 0,
-          traslado: 0,
-          paquete: 0,
-          otro: 0,
+          hotel: 0, ferry: 0, vuelo: 0, excursion: 0,
+          vehiculo: 0, traslado: 0, paquete: 0, otro: 0,
         });
       }
     }
   }, [isOpen, userToEdit]);
 
-  const handleComisionChange = (key, val) => {
-    const num = parseFloat(val);
+  if (!isOpen) return null;
+
+  const handleComisionChange = (servicioKey, value) => {
+    const numVal = value === '' ? '' : parseFloat(value);
     setComisiones((prev) => ({
       ...prev,
-      [key]: isNaN(num) ? 0 : num,
+      [servicioKey]: numVal,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      setErrorMessage('Por favor ingrese el nombre, apellido y correo electrónico.');
-      setActiveTab('info');
-      return;
-    }
-    if (!userToEdit && !password) {
-      setErrorMessage('La contraseña es obligatoria para nuevos usuarios.');
-      setActiveTab('info');
-      return;
-    }
-
-    setIsSubmitting(true);
+    setSaving(true);
     setErrorMessage('');
+    setErrors({});
+
+    // Prepare payload
+    const payload = {
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      status: status ? 1 : 0,
+      freelancer_nombre: freelancerNombre,
+      freelancer_rif: freelancerRif,
+      freelancer_telefono_1: freelancerTelefono1,
+      freelancer_telefono_2: freelancerTelefono2,
+      freelancer_direccion: freelancerDireccion,
+      freelancer_color_primario: freelancerColor,
+      comisiones,
+    };
+
+    if (password.trim() !== '') {
+      payload.password = password;
+    } else if (!userToEdit) {
+      setErrorMessage('La contraseña es requerida para nuevos usuarios.');
+      setSaving(false);
+      return;
+    }
 
     try {
-      const payload = {
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        email: email.trim(),
-        status,
-        nombre_empresa: nombreEmpresa.trim() || null,
-        rif: rif.trim() || null,
-        correo_empresa: correoEmpresa.trim() || null,
-        telefono_1: telefono1.trim() || null,
-        telefono_2: telefono2.trim() || null,
-        direccion: direccion.trim() || null,
-        color_primario: colorPrimario,
-        comisiones,
-      };
-
-      if (password) {
-        payload.password = password;
-      }
-
       if (userToEdit) {
         await axios.put(`/v1/users/freelancer/${userToEdit.id}`, payload);
-        showToast('Usuario Freelancer actualizado con éxito.', 'success');
       } else {
         await axios.post('/v1/users/freelancer', payload);
-        showToast('Usuario Freelancer registrado con éxito.', 'success');
       }
-
-      if (onSaveSuccess) onSaveSuccess();
-      onClose();
+      onSave();
     } catch (err) {
-      console.error('Error guardando freelancer:', err);
-      const errors = err.response?.data?.errors;
-      let errorMsg = 'Error al guardar el usuario freelancer.';
-      if (errors) {
-        errorMsg = Object.values(errors).flat().join('\n');
+      if (err.response?.status === 422 && err.response.data?.errors) {
+        setErrors(err.response.data.errors);
+        setErrorMessage('Por favor verifique los campos señalados.');
       } else if (err.response?.data?.message) {
-        errorMsg = err.response.data.message;
+        setErrorMessage(err.response.data.message);
+      } else {
+        setErrorMessage('Ocurrió un error al procesar la solicitud.');
       }
-      setErrorMessage(errorMsg);
-      showToast(errorMsg, 'error');
     } finally {
-      setIsSubmitting(false);
+      setSaving(false);
     }
   };
 
@@ -185,297 +170,386 @@ export default function UserFreelancerModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={userToEdit ? 'Editar Usuario Freelancer' : 'Registrar Usuario Freelancer'}
-      size="lg"
+      title={userToEdit ? 'Editar Freelancer' : 'Nuevo Freelancer'}
+      steps={['Datos Acceso', 'Datos Empresa', 'Comisiones (%)']}
+      currentStep={currentStep}
+      stepStyle="tabs"
+      onStepChange={(step) => setCurrentStep(step)}
+      width="600px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {errorMessage && (
-          <div style={{
-            background: 'rgba(239, 68, 68, 0.15)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: '#fca5a5',
-            padding: '10px 14px',
-            borderRadius: '8px',
-            fontSize: '0.875rem',
-            whiteSpace: 'pre-line',
-          }}>
-            {errorMessage}
-          </div>
-        )}
-
-        {/* Tab Navigation */}
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', gap: '10px', marginBottom: '8px' }}>
-          <button
-            type="button"
-            onClick={() => setActiveTab('info')}
-            style={{
-              padding: '8px 16px',
-              background: activeTab === 'info' ? '#E87217' : 'transparent',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '6px 6px 0 0',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '0.875rem',
-            }}
-          >
-            Datos Personales
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('empresa')}
-            style={{
-              padding: '8px 16px',
-              background: activeTab === 'empresa' ? '#E87217' : 'transparent',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '6px 6px 0 0',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '0.875rem',
-            }}
-          >
-            Datos Empresa / Marca
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('comisiones')}
-            style={{
-              padding: '8px 16px',
-              background: activeTab === 'comisiones' ? '#E87217' : 'transparent',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '6px 6px 0 0',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '0.875rem',
-            }}
-          >
-            Comisiones (%)
-          </button>
-        </div>
-
-        {/* TAB 1: Datos Personales */}
-        {activeTab === 'info' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div>
-                <label className="erp-label">Nombre <span className="req">*</span></label>
-                <input
-                  type="text"
-                  className="erp-input"
-                  placeholder="Ej: Juan"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div>
-                <label className="erp-label">Apellido <span className="req">*</span></label>
-                <input
-                  type="text"
-                  className="erp-input"
-                  placeholder="Ej: Pérez"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
+        <div style={{ padding: '10px', display: 'flex', flexDirection: 'column' }}>
+          {errorMessage && (
+            <div
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                borderRadius: '8px',
+                color: '#FCA5A5',
+                fontSize: '0.875rem',
+                marginBottom: '16px',
+                padding: '12px'
+              }}
+            >
+              {errorMessage}
             </div>
+          )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div>
-                <label className="erp-label">Correo Electrónico <span className="req">*</span></label>
-                <input
-                  type="email"
-                  className="erp-input"
-                  placeholder="juan.perez@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div>
-                <label className="erp-label">
-                  Contraseña {userToEdit ? '(Dejar en blanco para conservar)' : <span className="req">*</span>}
-                </label>
-                <input
-                  type="password"
-                  className="erp-input"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required={!userToEdit}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-              <input
-                type="checkbox"
-                id="freelancer-status"
-                checked={status}
-                onChange={(e) => setStatus(e.target.checked)}
-                style={{ accentColor: '#E87217', width: '16px', height: '16px', cursor: 'pointer' }}
-              />
-              <label htmlFor="freelancer-status" style={{ color: '#F8FAFC', cursor: 'pointer', fontSize: '0.875rem' }}>
-                Usuario Habilitado / Activo
-              </label>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: Datos Empresa */}
-        {activeTab === 'empresa' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div>
-                <label className="erp-label">Nombre de Empresa / Agencia Freelance</label>
-                <input
-                  type="text"
-                  className="erp-input"
-                  placeholder="Ej: Caribe Tours Freelance"
-                  value={nombreEmpresa}
-                  onChange={(e) => setNombreEmpresa(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div>
-                <label className="erp-label">RIF / Identificación Fiscal</label>
-                <input
-                  type="text"
-                  className="erp-input"
-                  placeholder="Ej: J-12345678-9 o V-12345678-0"
-                  value={rif}
-                  onChange={(e) => setRif(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
-              <div>
-                <label className="erp-label">Correo de Empresa</label>
-                <input
-                  type="email"
-                  className="erp-input"
-                  placeholder="contacto@empresa.com"
-                  value={correoEmpresa}
-                  onChange={(e) => setCorreoEmpresa(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div>
-                <label className="erp-label">Teléfono Principal</label>
-                <input
-                  type="text"
-                  className="erp-input"
-                  placeholder="+58 412-0000000"
-                  value={telefono1}
-                  onChange={(e) => setTelefono1(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div>
-                <label className="erp-label">Teléfono Secundario</label>
-                <input
-                  type="text"
-                  className="erp-input"
-                  placeholder="+58 212-0000000"
-                  value={telefono2}
-                  onChange={(e) => setTelefono2(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px' }}>
-              <div>
-                <label className="erp-label">Dirección Fiscal / Ubicación</label>
-                <input
-                  type="text"
-                  className="erp-input"
-                  placeholder="Ciudad, Estado, Dirección"
-                  value={direccion}
-                  onChange={(e) => setDireccion(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div>
-                <label className="erp-label">Color de Marca</label>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <input
-                    type="color"
-                    value={colorPrimario}
-                    onChange={(e) => setColorPrimario(e.target.value)}
-                    style={{ width: '40px', height: '38px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
-                  />
+          {/* Tab 1: Acceso */}
+          {currentStep === 1 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                {/* First Name */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>
+                    Nombre Personal <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
                   <input
                     type="text"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Ej. Carlos"
                     className="erp-input"
-                    value={colorPrimario}
-                    onChange={(e) => setColorPrimario(e.target.value)}
-                    disabled={isSubmitting}
+                    style={{
+                      width: '100%',
+                      borderColor: errors.first_name ? '#EF4444' : undefined,
+                    }}
                   />
+                  {errors.first_name && (
+                    <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                      {errors.first_name[0]}
+                    </span>
+                  )}
+                </div>
+
+                {/* Last Name */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>
+                    Apellido Personal <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Ej. Pérez"
+                    className="erp-input"
+                    style={{
+                      width: '100%',
+                      borderColor: errors.last_name ? '#EF4444' : undefined,
+                    }}
+                  />
+                  {errors.last_name && (
+                    <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                      {errors.last_name[0]}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
+                  Correo Electrónico de Acceso <span style={{ color: '#EF4444' }}>*</span>
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="usuario@freelancer.com"
+                  className="erp-input"
+                  style={{
+                    width: '100%',
+                    borderColor: errors.email ? '#EF4444' : undefined,
+                  }}
+                />
+                {errors.email && (
+                  <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                    {errors.email[0]}
+                  </span>
+                )}
+              </div>
+
+              {/* Password & Status */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
+                    Contraseña {userToEdit ? <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>(en blanco = actual)</span> : <span style={{ color: '#EF4444' }}>*</span>}
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={userToEdit ? '••••••••' : 'Mínimo 6 caracteres'}
+                    className="erp-input"
+                    style={{
+                      width: '100%',
+                      borderColor: errors.password ? '#EF4444' : undefined,
+                    }}
+                  />
+                  {errors.password && (
+                    <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                      {errors.password[0]}
+                    </span>
+                  )}
+                </div>
+                
+                {/* Status */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '8px 0px 0px 0px' }}>
+                    Estado de Acceso
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', height: '42px', gap: '12px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={status}
+                        onChange={(e) => setStatus(e.target.checked)}
+                        style={{
+                          width: '18px',
+                          height: '18px',
+                          accentColor: '#E87217',
+                          cursor: 'pointer',
+                        }}
+                      />
+                      <span>{status ? 'Habilitado (Activo)' : 'Deshabilitado'}</span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* TAB 3: Comisiones */}
-        {activeTab === 'comisiones' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            {SERVICIOS.map((s) => (
-              <div key={s.key}>
-                <label className="erp-label">Comisión {s.label} (%)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="100"
+          {/* Tab 2: Empresa Freelancer */}
+          {currentStep === 2 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <p style={{ margin: 0, fontSize: '0.8125rem', color: '#94A3B8', marginBottom: '8px' }}>
+                Datos comerciales de la agencia / empresa del Freelancer.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+                {/* Nombre de Agencia */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>
+                    Nombre de Empresa / Marca <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={freelancerNombre}
+                    onChange={(e) => setFreelancerNombre(e.target.value)}
+                    placeholder="Ej. Viajes Carlos"
+                    className="erp-input"
+                    style={{
+                      width: '100%',
+                      borderColor: errors.freelancer_nombre ? '#EF4444' : undefined,
+                    }}
+                  />
+                  {errors.freelancer_nombre && (
+                    <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                      {errors.freelancer_nombre[0]}
+                    </span>
+                  )}
+                </div>
+
+                {/* RIF */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>
+                    RIF / Documento
+                  </label>
+                  <input
+                    type="text"
+                    value={freelancerRif}
+                    onChange={(e) => setFreelancerRif(e.target.value)}
+                    placeholder="J-12345678"
+                    className="erp-input"
+                    style={{
+                      width: '100%',
+                      borderColor: errors.freelancer_rif ? '#EF4444' : undefined,
+                    }}
+                  />
+                  {errors.freelancer_rif && (
+                    <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                      {errors.freelancer_rif[0]}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                {/* Teléfono 1 */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
+                    Teléfono Principal
+                  </label>
+                  <input
+                    type="text"
+                    value={freelancerTelefono1}
+                    onChange={(e) => setFreelancerTelefono1(e.target.value)}
+                    placeholder="+58 412-1234567"
+                    className="erp-input"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                {/* Teléfono 2 */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
+                    Teléfono Alternativo
+                  </label>
+                  <input
+                    type="text"
+                    value={freelancerTelefono2}
+                    onChange={(e) => setFreelancerTelefono2(e.target.value)}
+                    placeholder="+58 212-1234567"
+                    className="erp-input"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+
+              {/* Dirección */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
+                  Dirección Comercial
+                </label>
+                <textarea
+                  value={freelancerDireccion}
+                  onChange={(e) => setFreelancerDireccion(e.target.value)}
+                  placeholder="Dirección fiscal o de oficinas..."
                   className="erp-input"
-                  placeholder="0.0"
-                  value={comisiones[s.key] !== undefined ? comisiones[s.key] : 0}
-                  onChange={(e) => handleComisionChange(s.key, e.target.value)}
-                  disabled={isSubmitting}
+                  rows={2}
+                  style={{ width: '100%', resize: 'none' }}
                 />
               </div>
-            ))}
-          </div>
-        )}
 
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '14px' }}>
+              {/* Color */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
+                  Color Primario (Marca)
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <input
+                    type="color"
+                    value={freelancerColor}
+                    onChange={(e) => setFreelancerColor(e.target.value)}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      padding: '2px',
+                      cursor: 'pointer',
+                      borderRadius: '8px',
+                      background: 'transparent',
+                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                    }}
+                  />
+                  <span style={{ color: '#E2E8F0', fontSize: '0.875rem' }}>{freelancerColor}</span>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* Tab 3: Comisiones */}
+          {currentStep === 3 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <p style={{ margin: 0, fontSize: '0.8125rem', color: '#94A3B8' }}>
+                Indique el porcentaje de comisión (%) que recibe el freelancer por cada rubro cotizado y vendido:
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                {SERVICIOS.map((srv) => (
+                  <div
+                    key={srv.id}
+                    style={{
+                      background: 'rgba(15, 23, 42, 0.4)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: '10px',
+                      padding: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                    }}
+                  >
+                    <span style={{ fontSize: '0.8125rem', color: '#E2E8F0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>{srv.icon}</span>
+                      <span>{srv.label}</span>
+                    </span>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={comisiones[srv.id] !== undefined ? comisiones[srv.id] : 0}
+                        onChange={(e) => handleComisionChange(srv.id, e.target.value)}
+                        className="erp-input"
+                        style={{
+                          width: '100%',
+                          paddingRight: '28px',
+                          textAlign: 'right',
+                          fontWeight: 600,
+                          color: '#E87217',
+                        }}
+                      />
+                      <span
+                        style={{
+                          position: 'absolute',
+                          right: '10px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          color: '#94A3B8',
+                          fontSize: '0.8125rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        %
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Actions */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '12px',
+            marginTop: '16px'
+          }}
+        >
           <button
             type="button"
-            className="btn-form-cancel"
             onClick={onClose}
-            disabled={isSubmitting}
+            disabled={saving}
+            className="btn-form-cancel"
           >
             Cancelar
           </button>
-          <button
-            type="submit"
-            className="btn-form-nxt"
-            disabled={isSubmitting}
-          >
-            {isSubmitting
-              ? 'Guardando...'
-              : userToEdit
-                ? 'Actualizar Freelancer'
-                : 'Guardar Freelancer'}
-          </button>
+          
+          {currentStep < 3 ? (
+             <button
+             type="button"
+             disabled={saving}
+             onClick={() => setCurrentStep(currentStep + 1)}
+             className="btn-form-nxt"
+           >
+             Siguiente
+           </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={saving}
+              className="btn-form-nxt"
+            >
+              {saving ? 'Guardando...' : (userToEdit ? 'Actualizar Freelancer' : 'Crear Freelancer')}
+            </button>
+          )}
         </div>
       </form>
     </Modal>

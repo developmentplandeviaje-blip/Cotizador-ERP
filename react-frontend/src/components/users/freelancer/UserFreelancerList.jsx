@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import UserFreelancerModal from './UserFreelancerModal';
+import Modal from '../../common/Modal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
-import { showToast } from '../../../utils/toast';
 
 export default function UserFreelancerList({ user: currentUser }) {
   const [users, setUsers] = useState([]);
@@ -28,12 +28,15 @@ export default function UserFreelancerList({ user: currentUser }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [successBanner, setSuccessBanner] = useState('');
+  const [linksModalUser, setLinksModalUser] = useState(null);
 
   // Toggling status state
   const [togglingId, setTogglingId] = useState(null);
 
-  // Commissions popover state
+  // Popover states
   const [hoveredComisiones, setHoveredComisiones] = useState(null);
+  const [hoveredFreelancer, setHoveredFreelancer] = useState(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -54,7 +57,6 @@ export default function UserFreelancerList({ user: currentUser }) {
       setTotal(res.data.meta?.total || 0);
     } catch (err) {
       console.error('Error cargando usuarios freelancer:', err);
-      showToast('Error al cargar la lista de freelancers.', 'error');
     } finally {
       setLoading(false);
     }
@@ -83,39 +85,52 @@ export default function UserFreelancerList({ user: currentUser }) {
     );
   };
 
+  const handleCopyLink = (item) => {
+    setLinksModalUser(item);
+  };
+
+  const copySpecificLink = (url) => {
+    navigator.clipboard.writeText(url).then(() => {
+      setSuccessBanner('Enlace copiado al portapapeles.');
+      setTimeout(() => setSuccessBanner(''), 3000);
+    }).catch(err => console.error('Error al copiar: ', err));
+  };
+
   const handleOpenCreate = () => {
     setUserToEdit(null);
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (item) => {
-    setUserToEdit(item);
+  const handleOpenEdit = (userItem) => {
+    setUserToEdit(userItem);
     setIsModalOpen(true);
   };
 
   const handleSaveSuccess = () => {
     setIsModalOpen(false);
     setUserToEdit(null);
+    setSuccessBanner(userToEdit ? 'Usuario actualizado exitosamente.' : 'Usuario registrado exitosamente.');
+    setTimeout(() => setSuccessBanner(''), 4000);
     fetchUsers();
   };
 
-  const handleToggleStatus = async (item) => {
-    setTogglingId(item.id);
+  const handleToggleStatus = async (userItem) => {
+    setTogglingId(userItem.id);
     try {
-      await axios.patch(`/v1/users/freelancer/${item.id}/toggle-status`);
-      showToast(`Estado del usuario '${item.full_name}' actualizado.`, 'success');
+      await axios.patch(`/v1/users/freelancer/${userItem.id}/toggle-status`);
+      setSuccessBanner(`Estado de ${userItem.first_name} actualizado.`);
+      setTimeout(() => setSuccessBanner(''), 3000);
       fetchUsers();
     } catch (err) {
       console.error('Error al cambiar estado:', err);
-      showToast('Error al cambiar el estado del usuario.', 'error');
     } finally {
       setTogglingId(null);
     }
   };
 
-  const handlePromptDelete = (item) => {
+  const handlePromptDelete = (userItem) => {
     setDeleteError('');
-    setDeleteTarget(item);
+    setDeleteTarget(userItem);
   };
 
   const handleConfirmDelete = async () => {
@@ -124,45 +139,67 @@ export default function UserFreelancerList({ user: currentUser }) {
     setDeleteError('');
     try {
       await axios.delete(`/v1/users/freelancer/${deleteTarget.id}`);
-      showToast(`Usuario '${deleteTarget.full_name}' eliminado exitosamente.`, 'success');
       setDeleteTarget(null);
+      setSuccessBanner('Usuario eliminado exitosamente.');
+      setTimeout(() => setSuccessBanner(''), 4000);
       fetchUsers();
     } catch (err) {
-      console.error('Error al eliminar usuario:', err);
-      const errMsg = err.response?.data?.message || 'No se pudo eliminar el usuario freelancer.';
-      setDeleteError(errMsg);
-      showToast(errMsg, 'error');
+      if (err.response?.status === 422 && err.response.data?.errors?.user) {
+        setDeleteError(err.response.data.errors.user[0]);
+      } else if (err.response?.data?.message) {
+        setDeleteError(err.response.data.message);
+      } else {
+        setDeleteError('No se pudo eliminar el usuario seleccionado.');
+      }
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return 'N/A';
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-    } catch {
-      return dateStr;
-    }
+  const getInitials = (first, last) => {
+    const f = first ? first.charAt(0).toUpperCase() : '';
+    const l = last ? last.charAt(0).toUpperCase() : '';
+    return `${f}${l}` || 'U';
   };
 
   return (
     <div style={{ width: '100%' }}>
-
-      {/* Header Breadcrumb */}
+      {/* Breadcrumb & Title */}
       <div style={{ marginBottom: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem', color: '#b9c8ddff', marginBottom: '6px' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem', color: '#b9c8ddff', marginBottom: '6px', }}>
           <span>Usuarios</span>
           <span>›</span>
-          <span style={{ color: '#E87217', fontWeight: '600' }}>Freelancer</span>
+          <span style={{ color: '#E87217', fontWeight: 600 }}>Freelancer</span>
         </div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0, color: '#F8FAFC' }}>
+        <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#FFFFFF' }}>
           Usuarios Freelancer
         </h1>
       </div>
 
-      {/* Toolbar Controls */}
+      {/* Success Alert Banner */}
+      {successBanner && (
+        <div style={{
+          background: 'rgba(21, 128, 61, 0.2)',
+          border: '1px solid #16a34a',
+          color: '#86efac',
+          padding: '12px 18px',
+          borderRadius: '10px',
+          fontSize: '0.875rem',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <span>{successBanner}</span>
+          <button
+            onClick={() => setSuccessBanner('')}
+            style={{ background: 'none', border: 'none', color: '#86efac', cursor: 'pointer', fontSize: '1.1rem' }}>
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Top Toolbar Controls */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -172,16 +209,15 @@ export default function UserFreelancerList({ user: currentUser }) {
         marginBottom: '20px',
         padding: '0px 20px',
       }}>
-        {/* Search & Filters */}
+        {/* Search & Dropdown Filters */}
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Search Input */}
-          <div style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
+          <div style={{ position: 'relative', width: '300px' }}>
             <span style={{
               position: 'absolute',
               left: '14px',
               top: '50%',
               transform: 'translateY(-40%)',
-              color: '#b9c8ddff',
               fontSize: '1rem',
             }}>
               <img src={imgSearch} alt="" style={{ width: '20px', height: '20px' }} />
@@ -190,12 +226,14 @@ export default function UserFreelancerList({ user: currentUser }) {
               type="text"
               className="erp-input"
               style={{
-                paddingLeft: '36px',
+                width: '100%',
                 borderRadius: '9999px',
                 background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
                 height: '38px',
+                paddingLeft: '40px',
                 boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
                 border: '1px solid rgb(255 255 255 / 56%)',
+                color: '#FFFFFF'
               }}
               placeholder="Buscar por nombre, correo o RIF..."
               value={search}
@@ -206,7 +244,7 @@ export default function UserFreelancerList({ user: currentUser }) {
             />
           </div>
 
-          {/* Status Select Filter */}
+          {/* Status Filter */}
           <div style={{ width: '180px' }}>
             <select
               className="erp-input"
@@ -218,8 +256,8 @@ export default function UserFreelancerList({ user: currentUser }) {
                 paddingRight: '36px',
                 boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
                 border: '1px solid rgb(255 255 255 / 56%)',
+                color: selectedStatus ? '#FFFFFF' : '#b9c8ddff',
                 cursor: 'pointer',
-                color: selectedStatus !== '' ? '#FFFFFF' : '#b9c8ddff',
                 appearance: 'none',
                 WebkitAppearance: 'none',
                 MozAppearance: 'none',
@@ -227,29 +265,35 @@ export default function UserFreelancerList({ user: currentUser }) {
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'calc(100% - 12px) center',
                 backgroundSize: '16px',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
               value={selectedStatus}
               onChange={(e) => {
                 setSelectedStatus(e.target.value);
                 setPage(1);
-              }}
-            >
-              <option value="" style={{ background: '#101c44', color: '#b9c8ddff' }}>Todos los estados</option>
-              <option value="1" style={{ background: '#101c44', color: '#FFFFFF' }}>Habilitado</option>
-              <option value="0" style={{ background: '#101c44', color: '#FFFFFF' }}>Deshabilitado</option>
+              }}>
+              <option value="" style={{ backgroundColor: '#101c44', color: '#FFF' }}>
+                Todos los estados
+              </option>
+              <option value="1" style={{ backgroundColor: '#101c44', color: '#FFF' }}>
+                Habilitados
+              </option>
+              <option value="0" style={{ backgroundColor: '#101c44', color: '#FFF' }}>
+                Deshabilitados
+              </option>
             </select>
           </div>
         </div>
 
-        {/* Buttons Action Group */}
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
               className="btn-secondary"
               onClick={handleOpenCreate}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              title="Agregar nuevo freelancer"
-            >
+              title="Agregar nuevo usuario freelancer">
               <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
             </button>
             <span className='title-input'>Agregar</span>
@@ -257,245 +301,342 @@ export default function UserFreelancerList({ user: currentUser }) {
         </div>
       </div>
 
-      {/* Main Table Container */}
+      {/* Main Table */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        background: 'rgba(188, 192, 215, 0.09)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: '16px',
-        overflow: 'hidden',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
+        overflow: 'visible',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
       }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left', fontSize: '0.875rem' }}>
           <thead>
-            <tr style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-              color: '#94A3B8',
-              textTransform: 'uppercase',
-              fontSize: '0.75rem',
-              letterSpacing: '0.05em',
-            }}>
-              <th style={{ padding: '16px 20px', cursor: 'pointer' }} onClick={() => handleSort('id')}>
-                USUARIO {getSortIndicator('id')}
+            <tr style={{ background: '#e8721726' }}>
+              <th style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', borderTopLeftRadius: '16px' }}>
+                Usuario
               </th>
-              <th style={{ padding: '16px 20px', cursor: 'pointer' }} onClick={() => handleSort('first_name')}>
-                NOMBRE / EMAIL {getSortIndicator('first_name')}
+              <th onClick={() => handleSort('first_name')}
+                style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
+                Nombre / Email {getSortIndicator('first_name')}
               </th>
-              <th style={{ padding: '16px 20px' }}>
-                DATOS EMPRESA (FREELANCER)
+              <th style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                Datos Empresa (Freelancer)
               </th>
-              <th style={{ padding: '16px 20px' }}>
-                COMISIONES
+              <th style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                Comisiones
               </th>
-              <th style={{ padding: '16px 20px', cursor: 'pointer' }} onClick={() => handleSort('status')}>
-                ESTADO {getSortIndicator('status')}
+              <th onClick={() => handleSort('status')}
+                style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
+                Estado {getSortIndicator('status')}
               </th>
-              <th style={{ padding: '16px 20px', cursor: 'pointer' }} onClick={() => handleSort('date_creation')}>
-                REGISTRO {getSortIndicator('date_creation')}
+              <th onClick={() => handleSort('date_creation')}
+                style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none', }}>
+                Registro {getSortIndicator('date_creation')}
               </th>
-              <th style={{ padding: '16px 20px', textAlign: 'right' }}>
-                ACCIONES
+              <th style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.84)', padding: '14px 16px', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', textAlign: 'center', borderTopRightRadius: '16px' }}>
+                Acciones
               </th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="7" style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
-                  Cargando usuarios freelancer...
+                <td colSpan="7" style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                  <div className="spinner-border" style={{ margin: '0 auto 12px auto' }} />
+                  <p style={{ margin: 0, fontSize: '0.875rem' }}>Cargando usuarios freelancer...</p>
                 </td>
               </tr>
-            ) : users.length > 0 ? (
-              users.map((item) => {
-                const freelancerObj = item.freelancer;
-                return (
-                  <tr key={item.id} style={{
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+            ) : users.length === 0 ? (
+              <tr>
+                <td colSpan="7" style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                  <span style={{ fontSize: '2rem', display: 'block', marginBottom: '8px' }}>👤</span>
+                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: '#E2E8F0' }}>
+                    No se encontraron usuarios
+                  </p>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.8125rem' }}>
+                    Intente ajustando los filtros de búsqueda o registre un nuevo freelancer.
+                  </p>
+                </td>
+              </tr>
+            ) : (
+              users.map((item) => (
+                <tr
+                  key={item.id}
+                  style={{
                     transition: 'background 0.2s',
-                  }}>
-                    {/* ID / Avatar */}
-                    <td style={{ padding: '16px 20px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          background: freelancerObj?.color_primario || '#E87217',
-                          color: '#FFFFFF',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 'bold',
-                          fontSize: '0.8125rem',
-                        }}>
-                          {item.first_name ? item.first_name.charAt(0).toUpperCase() : 'F'}
-                        </div>
-                        <span style={{ color: '#94A3B8', fontSize: '0.8125rem' }}>#{item.id}</span>
-                      </div>
-                    </td>
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(157, 175, 206, 0.17)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  {/* Avatar Initials */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        backgroundColor: '#E87217',
+                        color: '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 700,
+                        fontSize: '0.8125rem',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                      }}
+                    >
+                      {getInitials(item.first_name, item.last_name)}
+                    </div>
+                  </td>
 
-                    {/* Name / Email */}
-                    <td style={{ padding: '16px 20px' }}>
-                      <div style={{ fontWeight: '600', color: '#F8FAFC' }}>
-                        {item.full_name}
-                      </div>
-                      <div style={{ color: '#94A3B8', fontSize: '0.8125rem' }}>
-                        {item.email}
-                      </div>
-                    </td>
+                  {/* Name & Email */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
+                    <div style={{ fontWeight: 600, color: '#FFFFFF', fontSize: '0.875rem' }}>
+                      {item.full_name}
+                    </div>
+                    <div style={{ color: '#b9c8ddff', fontSize: '0.8125rem' }}>
+                      {item.email}
+                    </div>
+                  </td>
 
-                    {/* Empresa / Freelancer Info */}
-                    <td style={{ padding: '16px 20px' }}>
-                      {freelancerObj ? (
-                        <div>
-                          <div style={{ fontWeight: '600', color: '#E87217' }}>
-                            {freelancerObj.nombre}
+                  {/* Freelancer Company Preview */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', position: 'relative' }}>
+                    {item.freelancer ? (
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => setHoveredFreelancer(hoveredFreelancer === item.id ? null : item.id)}
+                          style={{
+                            background: 'rgba(59, 130, 246, 0.1)',
+                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                            borderRadius: '6px',
+                            padding: '4px 10px',
+                            color: '#60A5FA',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <span>{item.freelancer.nombre}</span>
+                        </button>
+                        
+                        {hoveredFreelancer === item.id && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              left: '16px',
+                              top: '40px',
+                              backgroundColor: '#001231eb',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              borderRadius: '10px',
+                              padding: '12px',
+                              zIndex: 100,
+                              boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                              minWidth: '220px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '6px',
+                              fontSize: '0.75rem',
+                            }}
+                          >
+                            <div style={{ color: '#FFFFFF', fontWeight: 600, marginBottom: '4px' }}>{item.freelancer.nombre}</div>
+                            {item.freelancer.rif && (
+                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ color: '#94A3B8' }}>RIF:</span>
+                                <span style={{ color: '#E2E8F0' }}>{item.freelancer.rif}</span>
+                              </div>
+                            )}
+                            {item.freelancer.telefono_1 && (
+                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ color: '#94A3B8' }}>Teléfono:</span>
+                                <span style={{ color: '#E2E8F0' }}>{item.freelancer.telefono_1}</span>
+                              </div>
+                            )}
+                            {item.freelancer.direccion && (
+                              <div style={{ display: 'flex', flexDirection: 'column', marginTop: '4px' }}>
+                                <span style={{ color: '#94A3B8' }}>Dirección:</span>
+                                <span style={{ color: '#E2E8F0', marginTop: '2px' }}>{item.freelancer.direccion}</span>
+                              </div>
+                            )}
                           </div>
-                          <div style={{ color: '#94A3B8', fontSize: '0.75rem' }}>
-                            {freelancerObj.rif ? `RIF: ${freelancerObj.rif}` : ''} {freelancerObj.telefono_1 ? `• ${freelancerObj.telefono_1}` : ''}
-                          </div>
-                        </div>
-                      ) : (
-                        <span style={{ color: '#64748B', fontSize: '0.8125rem' }}>Sin empresa asociada</span>
-                      )}
-                    </td>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ color: '#94A3B8', fontSize: '0.8125rem' }}>N/A</span>
+                    )}
+                  </td>
 
-                    {/* Comisiones Popover */}
-                    <td style={{ padding: '16px 20px', position: 'relative' }}>
-                      <button
-                        type="button"
-                        onClick={() => setHoveredComisiones(hoveredComisiones === item.id ? null : item.id)}
+                  {/* Commissions Preview */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', position: 'relative' }}>
+                    <button
+                      type="button"
+                      onClick={() => setHoveredComisiones(hoveredComisiones === item.id ? null : item.id)}
+                      style={{
+                        background: 'rgba(232, 114, 23, 0.1)',
+                        border: '1px solid rgba(232, 114, 23, 0.3)',
+                        borderRadius: '6px',
+                        padding: '4px 10px',
+                        color: '#E87217',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <span>Ver %</span>
+                    </button>
+
+                    {hoveredComisiones === item.id && (
+                      <div
                         style={{
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
-                          borderRadius: '6px',
-                          padding: '4px 10px',
-                          color: '#E2E8F0',
-                          fontSize: '0.75rem',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Ver Comisiones
-                      </button>
-
-                      {hoveredComisiones === item.id && (
-                        <div style={{
                           position: 'absolute',
-                          left: '20px',
-                          top: '45px',
+                          left: '16px',
+                          top: '40px',
                           backgroundColor: '#001231eb',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
                           borderRadius: '10px',
                           padding: '12px',
                           zIndex: 100,
                           boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-                          minWidth: '220px',
+                          minWidth: '200px',
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '6px',
                           fontSize: '0.75rem',
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <span style={{ fontWeight: 600, color: '#E87217' }}>Configuración Comisiones:</span>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setHoveredComisiones(null);
-                              }}
-                              style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
-                            >
-                              ✕
-                            </button>
+                        }}
+                      >
+                        {Object.entries(item.comisiones || {}).map(([key, val]) => (
+                          <div key={key} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                            <span style={{ color: '#b9c8ddff', textTransform: 'capitalize' }}>{key}:</span>
+                            <span style={{ color: '#E87217', fontWeight: 600 }}>{val}%</span>
                           </div>
-                          {Object.entries(item.comisiones || {}).map(([serv, pct]) => (
-                            <div key={serv} style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#E2E8F0' }}>
-                              <span style={{ textTransform: 'capitalize' }}>{serv}:</span>
-                              <span style={{ fontWeight: 'bold', color: '#10B981' }}>{pct}%</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </td>
+                        ))}
+                      </div>
+                    )}
+                  </td>
 
-                    {/* Status Toggle */}
-                    <td style={{ padding: '16px 20px' }}>
+                  {/* Status with Toggle */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleStatus(item)}
+                      disabled={togglingId === item.id}
+                      title="Haga click para cambiar el estado"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        opacity: togglingId === item.id ? 0.5 : 1,
+                      }}
+                    >
+                      {item.status ? (
+                        <Badge variant="success">Habilitado</Badge>
+                      ) : (
+                        <Badge variant="error">Deshabilitado</Badge>
+                      )}
+                    </button>
+                  </td>
+
+                  {/* Date Creation */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', color: '#b9c8ddff', fontSize: '0.8125rem' }}>
+                    {item.date_creation ? item.date_creation.split(' ')[0] : '—'}
+                  </td>
+
+                  {/* Actions */}
+                  <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', textAlign: 'center' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      {/* Copy Link Button */}
                       <button
                         type="button"
-                        onClick={() => handleToggleStatus(item)}
-                        disabled={togglingId === item.id}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                        title="Click para cambiar estado"
+                        onClick={() => handleCopyLink(item)}
+                        title="Copiar enlace de métodos de pago"
+                        style={{
+                          background: 'rgba(37, 99, 235, 0.1)',
+                          border: '1px solid rgba(37, 99, 235, 0.3)',
+                          borderRadius: '8px',
+                          padding: '6px 10px',
+                          color: '#60A5FA',
+                          fontSize: '0.8125rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
                       >
-                        {item.status ? (
-                          <Badge variant="success">Habilitado</Badge>
-                        ) : (
-                          <Badge variant="error">Deshabilitado</Badge>
-                        )}
+                        Enlace
                       </button>
-                    </td>
 
-                    {/* Registration Date */}
-                    <td style={{ padding: '16px 20px', color: '#94A3B8', fontSize: '0.8125rem' }}>
-                      {formatDate(item.date_creation)}
-                    </td>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(item)}
+                        title="Editar freelancer"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          borderRadius: '8px',
+                          padding: '6px 10px',
+                          color: '#F8FAFC',
+                          fontSize: '0.8125rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        Editar
+                      </button>
 
-                    {/* Actions */}
-                    <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        <button
-                          className="btn-secondary"
-                          onClick={() => handleOpenEdit(item)}
-                          style={{ padding: '4px 10px', fontSize: '0.75rem' }}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          className="btn-secondary"
-                          onClick={() => handlePromptDelete(item)}
-                          style={{ padding: '4px 10px', fontSize: '0.75rem', borderColor: 'rgba(239, 68, 68, 0.4)', color: '#fca5a5' }}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan="7" style={{ padding: '50px 20px', textAlign: 'center' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', color: '#94A3B8' }}>
-                      👤
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        onClick={() => handlePromptDelete(item)}
+                        title="Eliminar freelancer"
+                        style={{
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: '8px',
+                          padding: '6px 10px',
+                          color: '#F87171',
+                          fontSize: '0.8125rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        Eliminar
+                      </button>
                     </div>
-                    <div style={{ fontSize: '1rem', fontWeight: '600', color: '#F8FAFC' }}>
-                      No se encontraron usuarios
-                    </div>
-                    <div style={{ fontSize: '0.8125rem', color: '#94A3B8', maxWidth: '400px' }}>
-                      Intente ajustando los filtros de búsqueda o registre un nuevo freelancer.
-                    </div>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
 
-        {/* Pagination Footer */}
-        <div style={{
-          padding: '16px 20px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <Pagination page={page} lastPage={lastPage} setPage={setPage} />
-        </div>
+        {/* Pagination */}
+        {total > 0 && (
+          <div
+            style={{
+              padding: '16px 20px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              fontSize: '0.8125rem',
+              color: '#94A3B8',
+            }}
+          >
+            <Pagination page={page} lastPage={lastPage} setPage={setPage} />
+          </div>
+        )}
       </div>
 
-      {/* Freelancer Create / Edit Modal */}
+      {/* User Create/Edit Modal */}
       <UserFreelancerModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSaveSuccess={handleSaveSuccess}
+        onSave={handleSaveSuccess}
         userToEdit={userToEdit}
       />
 
@@ -508,14 +649,52 @@ export default function UserFreelancerList({ user: currentUser }) {
         isDeleting={isDeleting}
         error={deleteError}
         title="Confirmar Eliminación"
-        subtitle="Esta acción no se puede deshacer."
+        subtitle="Esta acción intentará remover al freelancer y su usuario asociado"
         content={
           <p style={{ color: '#F8FAFC', fontSize: '0.875rem', lineHeight: '1.5', margin: 0 }}>
-            ¿Está seguro de que desea eliminar al usuario freelancer <strong style={{ color: '#FFFFFF' }}>{deleteTarget?.full_name}</strong>?
+            ¿Está seguro de que desea eliminar a <strong style={{ color: '#FFFFFF' }}>{deleteTarget?.full_name}</strong> (<span style={{ color: '#E87217' }}>{deleteTarget?.freelancer?.nombre}</span>)?
           </p>
         }
-        confirmText="Sí, Eliminar"
+        confirmText="Eliminar Freelancer"
       />
+
+      {/* Links Modal (same as UserAgenciaList) */}
+      {linksModalUser && (
+        <Modal
+          isOpen={true}
+          onClose={() => setLinksModalUser(null)}
+          title="Links para los Métodos de Pago"
+          width="600px"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px 0' }}>
+            {['divisas', 'bolivares', 'bolivares/provisional'].map((linkType) => (
+              <div key={linkType} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(15, 23, 42, 0.4)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.8125rem', color: '#94A3B8', fontWeight: 600, textTransform: 'capitalize' }}>
+                    {linkType.replace('/', ' ')}:
+                  </span>
+                  <span style={{ fontSize: '0.875rem', color: '#60A5FA', wordBreak: 'break-all' }}>
+                    https://cotizador.plandeviaje.com.ve/metodo-de-pago/{linksModalUser.id}/{linkType}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => copySpecificLink(`https://cotizador.plandeviaje.com.ve/metodo-de-pago/${linksModalUser.id}/${linkType}`)}
+                  style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '6px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '16px', color: '#F8FAFC' }}
+                  title="Copiar"
+                >
+                  📋
+                </button>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+            <button type="button" className="btn-form-cancel" onClick={() => setLinksModalUser(null)}>
+              Cerrar
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

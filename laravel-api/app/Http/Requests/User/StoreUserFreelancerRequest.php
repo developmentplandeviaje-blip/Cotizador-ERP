@@ -8,25 +8,38 @@ class StoreUserFreelancerRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        return $user && in_array($user->level, ['Admin', 'Administrador', 'Sub Gerente'], true);
     }
 
     public function rules(): array
     {
         return [
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:100', 'unique:user,email'],
+            // User rules
+            'first_name' => ['required', 'string', 'max:30'],
+            'last_name' => ['required', 'string', 'max:30'],
+            'email' => ['required', 'email', 'max:70', 'unique:user,email'],
             'password' => ['required', 'string', 'min:6'],
             'status' => ['nullable', 'boolean'],
-            'nombre_empresa' => ['nullable', 'string', 'max:150'],
-            'rif' => ['nullable', 'string', 'max:50'],
-            'correo_empresa' => ['nullable', 'email', 'max:100'],
-            'telefono_1' => ['nullable', 'string', 'max:50'],
-            'telefono_2' => ['nullable', 'string', 'max:50'],
-            'direccion' => ['nullable', 'string', 'max:255'],
-            'color_primario' => ['nullable', 'string', 'max:20'],
+            
+            // Freelancer company rules
+            'freelancer_nombre' => ['required', 'string', 'max:100'],
+            'freelancer_rif' => ['nullable', 'string', 'max:20'],
+            'freelancer_telefono_1' => ['nullable', 'string', 'max:20'],
+            'freelancer_telefono_2' => ['nullable', 'string', 'max:20'],
+            'freelancer_direccion' => ['nullable', 'string', 'max:255'],
+            'freelancer_color_primario' => ['nullable', 'string', 'max:10'],
+
+            // Commissions
             'comisiones' => ['nullable', 'array'],
+            'comisiones.hotel' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'comisiones.ferry' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'comisiones.vuelo' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'comisiones.excursion' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'comisiones.vehiculo' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'comisiones.traslado' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'comisiones.paquete' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'comisiones.otro' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ];
     }
 
@@ -36,10 +49,11 @@ class StoreUserFreelancerRequest extends FormRequest
             'first_name.required' => 'El nombre del usuario es obligatorio.',
             'last_name.required' => 'El apellido del usuario es obligatorio.',
             'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'Debe ingresar un correo electrónico válido.',
+            'email.email' => 'Debe ingresar un formato de correo electrónico válido.',
             'email.unique' => 'Este correo electrónico ya se encuentra registrado.',
             'password.required' => 'La contraseña es obligatoria.',
             'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
+            'freelancer_nombre.required' => 'El nombre de la empresa/agencia freelancer es obligatorio.',
         ];
     }
 }

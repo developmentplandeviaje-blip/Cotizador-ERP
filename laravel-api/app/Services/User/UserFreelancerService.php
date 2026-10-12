@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\Freelancer;
 use App\Models\UserComisionConfig;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -30,9 +29,9 @@ class UserFreelancerService
     /**
      * Retrieve paginated freelancer users with filters.
      */
-    public function getUsers(array $filters = [], int $perPage = 15)
+    public function getUsers(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = User::freelancers()->with(['freelancer', 'comisiones']);
+        $query = User::freelancers()->with(['comisiones', 'freelancer']);
 
         if (!empty($filters['search'])) {
             $search = trim($filters['search']);
@@ -41,19 +40,15 @@ class UserFreelancerService
                   ->orWhere('last_name', 'LIKE', "%{$search}%")
                   ->orWhere('email', 'LIKE', "%{$search}%")
                   ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"])
-                  ->orWhereHas('freelancer', function ($fq) use ($search) {
-                      $fq->where('nombre', 'LIKE', "%{$search}%")
-                         ->orWhere('rif', 'LIKE', "%{$search}%")
-                         ->orWhere('correo', 'LIKE', "%{$search}%");
+                  ->orWhereHas('freelancer', function ($qFreelancer) use ($search) {
+                      $qFreelancer->where('nombre', 'LIKE', "%{$search}%")
+                                  ->orWhere('rif', 'LIKE', "%{$search}%");
                   });
             });
         }
 
         if (isset($filters['status']) && $filters['status'] !== '') {
-            $statusBool = filter_var($filters['status'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($statusBool !== null) {
-                $query->where('status', $statusBool);
-            }
+            $query->where('status', (bool) $filters['status']);
         }
 
         $sortField = $filters['sort_by'] ?? 'id';
@@ -66,157 +61,176 @@ class UserFreelancerService
             $query->orderBy('id', 'desc');
         }
 
-        if ($perPage <= 0) {
-            return $query->get();
-        }
-
         return $query->paginate($perPage);
     }
 
     /**
-     * Create a new Freelancer User and associated Freelancer entity.
+     * Create a new freelancer user and their associated Freelancer company entity within a transaction.
      */
     public function createUser(array $data): User
     {
         return DB::transaction(function () use ($data) {
-            // 1. Create or resolve Freelancer entity
-            $freelancer = Freelancer::create([
-                'nombre' => $data['nombre_empresa'] ?? trim("{$data['first_name']} {$data['last_name']}"),
-                'rif' => $data['rif'] ?? null,
-                'correo' => $data['correo_empresa'] ?? $data['email'],
-                'telefono_1' => $data['telefono_1'] ?? null,
-                'telefono_2' => $data['telefono_2'] ?? null,
-                'direccion' => $data['direccion'] ?? null,
-                'color_primario' => $data['color_primario'] ?? '#E87217',
-                'logo_url' => $data['logo_url'] ?? null,
-                'hoja_membrete_config' => $data['hoja_membrete_config'] ?? null,
-                'status' => isset($data['status']) ? (bool)$data['status'] : true,
-            ]);
+            // 1. Create the Freelancer company entity
+            $freelancerData = [
+                'nombre' => trim($data['freelancer_nombre']),
+                'rif' => trim($data['freelancer_rif'] ?? ''),
+                'correo' => strtolower(trim($data['email'])),
+                'telefono_1' => trim($data['freelancer_telefono_1'] ?? ''),
+                'telefono_2' => trim($data['freelancer_telefono_2'] ?? ''),
+                'direccion' => trim($data['freelancer_direccion'] ?? ''),
+                'color_primario' => trim($data['freelancer_color_primario'] ?? ''),
+                'status' => isset($data['status']) ? (bool) $data['status'] : true,
+            ];
 
-            // 2. Create User record
-            $user = User::create([
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'email' => $data['email'],
+            $freelancer = Freelancer::create($freelancerData);
+
+            // 2. Create the User linked to the Freelancer
+            $userData = [
+                'first_name' => trim($data['first_name']),
+                'last_name' => trim($data['last_name']),
+                'email' => strtolower(trim($data['email'])),
                 'password' => Hash::make($data['password']),
-                'level' => 'Freelancer',
-                'status' => isset($data['status']) ? (bool)$data['status'] : true,
+                'level' => 'Freelancer', // Force level to Freelancer
+                'status' => isset($data['status']) ? (bool) $data['status'] : true,
                 'id_freelancer' => $freelancer->id,
-            ]);
+            ];
 
-            // 3. Set commissions if provided
+            $user = User::create($userData);
+
+            // 3. Sync commissions
             if (isset($data['comisiones']) && is_array($data['comisiones'])) {
-                $this->syncComisiones($user, $data['comisiones']);
+                $this->syncComisiones($user->id, $data['comisiones']);
             }
 
-            return $user->load(['freelancer', 'comisiones']);
+            return $user->load(['comisiones', 'freelancer']);
         });
     }
 
     /**
-     * Update an existing Freelancer User.
+     * Update a freelancer user, their associated company, and commissions within a transaction.
      */
     public function updateUser(User $user, array $data): User
     {
         return DB::transaction(function () use ($user, $data) {
-            $userPayload = [
-                'first_name' => $data['first_name'] ?? $user->first_name,
-                'last_name' => $data['last_name'] ?? $user->last_name,
-                'email' => $data['email'] ?? $user->email,
-            ];
+            // Update User
+            $updateData = [];
 
-            if (isset($data['status'])) {
-                $userPayload['status'] = (bool)$data['status'];
+            if (isset($data['first_name'])) {
+                $updateData['first_name'] = trim($data['first_name']);
             }
-
+            if (isset($data['last_name'])) {
+                $updateData['last_name'] = trim($data['last_name']);
+            }
+            if (isset($data['email'])) {
+                $updateData['email'] = strtolower(trim($data['email']));
+            }
             if (!empty($data['password'])) {
-                $userPayload['password'] = Hash::make($data['password']);
+                $updateData['password'] = Hash::make($data['password']);
+            }
+            if (isset($data['status'])) {
+                $updateData['status'] = (bool) $data['status'];
             }
 
-            $user->update($userPayload);
+            if (!empty($updateData)) {
+                $user->update($updateData);
+            }
 
-            // Update associated Freelancer record
-            if ($user->id_freelancer) {
-                $freelancer = Freelancer::find($user->id_freelancer);
-                if ($freelancer) {
-                    $freelancerPayload = [];
-                    if (isset($data['nombre_empresa'])) $freelancerPayload['nombre'] = $data['nombre_empresa'];
-                    if (isset($data['rif'])) $freelancerPayload['rif'] = $data['rif'];
-                    if (isset($data['correo_empresa'])) $freelancerPayload['correo'] = $data['correo_empresa'];
-                    if (isset($data['telefono_1'])) $freelancerPayload['telefono_1'] = $data['telefono_1'];
-                    if (isset($data['telefono_2'])) $freelancerPayload['telefono_2'] = $data['telefono_2'];
-                    if (isset($data['direccion'])) $freelancerPayload['direccion'] = $data['direccion'];
-                    if (isset($data['color_primario'])) $freelancerPayload['color_primario'] = $data['color_primario'];
-                    if (isset($data['logo_url'])) $freelancerPayload['logo_url'] = $data['logo_url'];
-                    if (isset($data['status'])) $freelancerPayload['status'] = (bool)$data['status'];
+            // Update Freelancer Company
+            if ($user->freelancer) {
+                $freelancerUpdateData = [];
+                if (isset($data['freelancer_nombre'])) $freelancerUpdateData['nombre'] = trim($data['freelancer_nombre']);
+                if (isset($data['freelancer_rif'])) $freelancerUpdateData['rif'] = trim($data['freelancer_rif']);
+                if (isset($data['email'])) $freelancerUpdateData['correo'] = strtolower(trim($data['email'])); // keep email in sync
+                if (isset($data['freelancer_telefono_1'])) $freelancerUpdateData['telefono_1'] = trim($data['freelancer_telefono_1']);
+                if (isset($data['freelancer_telefono_2'])) $freelancerUpdateData['telefono_2'] = trim($data['freelancer_telefono_2']);
+                if (isset($data['freelancer_direccion'])) $freelancerUpdateData['direccion'] = trim($data['freelancer_direccion']);
+                if (isset($data['freelancer_color_primario'])) $freelancerUpdateData['color_primario'] = trim($data['freelancer_color_primario']);
+                if (isset($data['status'])) $freelancerUpdateData['status'] = (bool) $data['status'];
 
-                    if (!empty($freelancerPayload)) {
-                        $freelancer->update($freelancerPayload);
-                    }
+                if (!empty($freelancerUpdateData)) {
+                    $user->freelancer->update($freelancerUpdateData);
                 }
             }
 
+            // Update Commissions
             if (isset($data['comisiones']) && is_array($data['comisiones'])) {
-                $this->syncComisiones($user, $data['comisiones']);
+                $this->syncComisiones($user->id, $data['comisiones']);
             }
 
-            return $user->load(['freelancer', 'comisiones']);
+            return $user->fresh(['comisiones', 'freelancer']);
         });
     }
 
     /**
-     * Toggle active/inactive status.
+     * Toggle the status of a freelancer user.
      */
     public function toggleStatus(User $user): User
     {
-        $newStatus = !$user->status;
-        $user->update(['status' => $newStatus]);
-        if ($user->id_freelancer) {
-            Freelancer::where('id', $user->id_freelancer)->update(['status' => $newStatus]);
-        }
-        return $user->load(['freelancer', 'comisiones']);
-    }
+        return DB::transaction(function () use ($user) {
+            $newStatus = !$user->status;
+            
+            $user->status = $newStatus;
+            $user->save();
 
-    /**
-     * Delete user and freelancer record if no dependencies exist.
-     */
-    public function deleteUser(User $user): void
-    {
-        if ($user->ventasCount() > 0) {
-            throw ValidationException::withMessages([
-                'user' => ["No se puede eliminar el usuario '{$user->first_name} {$user->last_name}' porque posee ventas asociadas en el sistema."],
-            ]);
-        }
-
-        DB::transaction(function () use ($user) {
-            $user->comisiones()->delete();
-            $freelancerId = $user->id_freelancer;
-            $user->delete();
-
-            if ($freelancerId) {
-                // If no other user uses this freelancer record, delete it
-                $otherCount = User::where('id_freelancer', $freelancerId)->count();
-                if ($otherCount === 0) {
-                    Freelancer::where('id', $freelancerId)->delete();
-                }
+            // Also toggle the freelancer company status
+            if ($user->freelancer) {
+                $user->freelancer->status = $newStatus;
+                $user->freelancer->save();
             }
+
+            return $user->load(['comisiones', 'freelancer']);
         });
     }
 
     /**
-     * Sync commission configurations.
+     * Safely delete a freelancer user enforcing referential integrity.
      */
-    private function syncComisiones(User $user, array $comisionesInput): void
+    public function deleteUser(User $user): bool
+    {
+        if ($user->ventasCount() > 0 || $user->cotizacionesCount() > 0 || $user->metodosPagoCount() > 0) {
+            throw ValidationException::withMessages([
+                'user' => 'No es posible eliminar el usuario freelancer porque posee registros operativos vinculados (ventas, cotizaciones o métodos de pago). Puede deshabilitarlo en su lugar.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($user) {
+            $freelancerId = $user->id_freelancer;
+
+            // Remove associated user configs & security tokens
+            UserComisionConfig::where('id_user', $user->id)->delete();
+            DB::table('login_logs')->where('id_user', $user->id)->delete();
+            DB::table('token_device')->where('id_user', $user->id)->delete();
+            $user->tokens()->delete();
+
+            $deleted = $user->delete();
+
+            // Check if there are no other users linked to this freelancer, then delete freelancer
+            if ($freelancerId) {
+                $remainingUsersCount = User::where('id_freelancer', $freelancerId)->count();
+                if ($remainingUsersCount === 0) {
+                    Freelancer::where('id', $freelancerId)->delete();
+                }
+            }
+
+            return (bool) $deleted;
+        });
+    }
+
+    /**
+     * Sync commission percentages for the user.
+     */
+    private function syncComisiones(int $userId, array $comisiones): void
     {
         foreach (self::SERVICIOS_COMISION as $servicio) {
-            $percentage = isset($comisionesInput[$servicio]) ? (float)$comisionesInput[$servicio] : 0.0;
+            $porcentaje = isset($comisiones[$servicio]) ? max(0, min(100, (float) $comisiones[$servicio])) : 0.0;
+
             UserComisionConfig::updateOrCreate(
                 [
-                    'id_user' => $user->id,
+                    'id_user' => $userId,
                     'tipo_servicio' => $servicio,
                 ],
                 [
-                    'porcentaje_comision' => $percentage,
+                    'porcentaje_comision' => $porcentaje,
                 ]
             );
         }
