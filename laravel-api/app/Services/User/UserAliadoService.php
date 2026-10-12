@@ -110,4 +110,16 @@ class UserAliadoService
             $user->delete();
         });
     }
+
+    /**
+     * Toggle status of a seller.
+     */
+    public function toggleStatusVendedor(User $user): User
+    {
+        return DB::transaction(function () use ($user) {
+            $user->status = !$user->status;
+            $user->save();
+            return $user;
+        });
+    }
 }
