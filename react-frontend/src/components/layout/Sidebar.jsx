@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import logoinicio from '../../assets/logonaranjapdv.png';
 import nuevacotizacion from '../../assets/NuevaCotizacion.svg';
 import ventas from '../../assets/Ventas.svg';
@@ -21,7 +21,7 @@ import dashboard from '../../assets/home.svg';
 
 
 export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
-  // Track open state of submenus. Defaults to 'servicios' open.
+  // Track open state of submenus.
 
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem("sidebar_collapsed") === "true";
@@ -38,11 +38,23 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
   const sidebarWidth = isCollapsed ? "80px" : "240px";
 
   const [openMenus, setOpenMenus] = useState({
-    ventas: activeRoute?.startsWith('ventas'),
-    reportes: activeRoute?.startsWith('reportes'),
-    servicios: true,
-    usuarios: activeRoute?.startsWith('usuarios'),
+    ventas: Boolean(activeRoute?.startsWith('ventas')),
+    reportes: Boolean(activeRoute?.startsWith('reportes')),
+    servicios: Boolean(activeRoute?.startsWith('servicios')),
+    usuarios: Boolean(activeRoute?.startsWith('usuarios')),
   });
+
+  useEffect(() => {
+    if (activeRoute?.startsWith('servicios')) {
+      setOpenMenus(prev => ({ ...prev, servicios: true }));
+    } else if (activeRoute?.startsWith('ventas')) {
+      setOpenMenus(prev => ({ ...prev, ventas: true }));
+    } else if (activeRoute?.startsWith('reportes')) {
+      setOpenMenus(prev => ({ ...prev, reportes: true }));
+    } else if (activeRoute?.startsWith('usuarios')) {
+      setOpenMenus(prev => ({ ...prev, usuarios: true }));
+    }
+  }, [activeRoute]);
 
   const toggleMenu = (menuKey) => {
     setOpenMenus(prev => {
