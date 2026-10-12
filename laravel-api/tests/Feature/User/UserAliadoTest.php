@@ -88,4 +88,51 @@ class UserAliadoTest extends TestCase
         $response = $this->patchJson("/api/v1/users/aliados/{$this->aliado->id}/vendedores/{$vendedor->id}/toggle-status");
         $response->assertStatus(403);
     }
+
+    public function test_can_create_and_update_vendedor_with_commissions(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        $payload = [
+            'first_name' => 'Alexa',
+            'last_name' => 'Saen',
+            'email' => 'alexa@worldtravel.com',
+            'password' => 'password123',
+            'status' => true,
+            'comisiones' => [
+                'hotel' => 12.5,
+                'vuelo' => 5.0,
+                'excursion' => 8.0,
+            ],
+        ];
+
+        $response = $this->postJson("/api/v1/users/aliados/{$this->aliado->id}/vendedores", $payload);
+        $response->assertStatus(201);
+        $this->assertEquals(12.5, $response->json('data.comisiones.hotel'));
+        $this->assertEquals(5.0, $response->json('data.comisiones.vuelo'));
+        $this->assertEquals(0.0, $response->json('data.comisiones.ferry'));
+
+        $vendedorId = $response->json('data.id');
+
+        // Update commissions
+        $updatePayload = [
+            'first_name' => 'Alexa',
+            'last_name' => 'Saen',
+            'email' => 'alexa@worldtravel.com',
+            'comisiones' => [
+                'hotel' => 15.0,
+                'ferry' => 7.5,
+            ],
+        ];
+
+        $updateResponse = $this->putJson("/api/v1/users/aliados/{$this->aliado->id}/vendedores/{$vendedorId}", $updatePayload);
+        $updateResponse->assertStatus(200);
+        $this->assertEquals(15.0, $updateResponse->json('data.comisiones.hotel'));
+        $this->assertEquals(7.5, $updateResponse->json('data.comisiones.ferry'));
+
+        // List vendedores
+        $listResponse = $this->getJson("/api/v1/users/aliados/{$this->aliado->id}/vendedores");
+        $listResponse->assertStatus(200);
+        $this->assertEquals(15.0, $listResponse->json('data.0.comisiones.hotel'));
+    }
 }

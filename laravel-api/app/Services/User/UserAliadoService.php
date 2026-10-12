@@ -4,11 +4,26 @@ namespace App\Services\User;
 
 use App\Models\Aliado;
 use App\Models\User;
+use App\Models\UserComisionConfig;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UserAliadoService
 {
+    /**
+     * Supported service types for commissions.
+     */
+    public const SERVICIOS_COMISION = [
+        'hotel',
+        'ferry',
+        'vuelo',
+        'excursion',
+        'vehiculo',
+        'traslado',
+        'paquete',
+        'otro',
+    ];
+
     /**
      * Create a new Aliado company.
      */
@@ -50,15 +65,21 @@ class UserAliadoService
     public function createVendedor(Aliado $aliado, array $data): User
     {
         return DB::transaction(function () use ($aliado, $data) {
-            return User::create([
+            $user = User::create([
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
                 'id_aliado' => $aliado->id,
-                'level' => 'Asesor', // or Vendedor? The prompt says "Vendedor/Asesor". I'll use Asesor.
+                'level' => 'Asesor',
                 'status' => $data['status'] ?? true,
             ]);
+
+            if (isset($data['comisiones']) && is_array($data['comisiones'])) {
+                $this->syncComisiones($user->id, $data['comisiones']);
+            }
+
+            return $user->load('comisiones');
         });
     }
 
@@ -81,7 +102,11 @@ class UserAliadoService
 
             $user->update($updateData);
 
-            return $user;
+            if (isset($data['comisiones']) && is_array($data['comisiones'])) {
+                $this->syncComisiones($user->id, $data['comisiones']);
+            }
+
+            return $user->fresh('comisiones');
         });
     }
 
@@ -91,12 +116,6 @@ class UserAliadoService
     public function deleteAliado(Aliado $aliado): void
     {
         DB::transaction(function () use ($aliado) {
-            // Unlink or delete users?
-            // Usually we'd check if they have sales. If not, delete users.
-            // But for simplicity, Aliado deletion could just delete the Aliado if possible.
-            // Wait, what if the Aliado has sellers with sales?
-            // "id_aliado" in "user" table is "set null" on delete. So deleting an Aliado just detaches users.
-            // Let's delete the Aliado.
             $aliado->delete();
         });
     }
@@ -107,6 +126,7 @@ class UserAliadoService
     public function deleteVendedor(User $user): void
     {
         DB::transaction(function () use ($user) {
+            UserComisionConfig::where('id_user', $user->id)->delete();
             $user->delete();
         });
     }
@@ -119,7 +139,27 @@ class UserAliadoService
         return DB::transaction(function () use ($user) {
             $user->status = !$user->status;
             $user->save();
-            return $user;
+            return $user->load('comisiones');
         });
+    }
+
+    /**
+     * Sync commission percentages for the user.
+     */
+    private function syncComisiones(int $userId, array $comisiones): void
+    {
+        foreach (self::SERVICIOS_COMISION as $servicio) {
+            $porcentaje = isset($comisiones[$servicio]) ? max(0, min(100, (float) $comisiones[$servicio])) : 0.0;
+
+            UserComisionConfig::updateOrCreate(
+                [
+                    'id_user' => $userId,
+                    'tipo_servicio' => $servicio,
+                ],
+                [
+                    'porcentaje_comision' => $porcentaje,
+                ]
+            );
+        }
     }
 }
