@@ -19,6 +19,8 @@ class StoreAliadoVendedorRequest extends FormRequest
             'email' => ['required', 'email', 'max:150', 'unique:user,email'],
             'password' => ['required', 'string', 'min:6'],
             'status' => ['nullable', 'boolean'],
+            'comisiones' => ['nullable', 'array'],
+            'comisiones.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ];
     }
 }
