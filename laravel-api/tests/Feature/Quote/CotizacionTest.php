@@ -338,4 +338,61 @@ class CotizacionTest extends TestCase
             'id_asesor' => $this->adminUser->id,
         ]);
     }
+
+    public function test_crear_cotizacion_solo_requiere_nombres_y_apellidos_cliente(): void
+    {
+        $payload = [
+            'cliente' => [
+                'nombres' => 'Pedro',
+                'apellidos' => 'Pérez',
+                // documento, telefono, correo omitidos o nulos
+            ],
+            'checkin' => '2026-11-01',
+            'checkout' => '2026-11-05',
+            'descuento_porcentaje' => '15%',
+            'descuento_monto' => 30.00,
+            'hoteles' => [],
+            'vuelos' => [],
+        ];
+
+        $response = $this->actingAs($this->adminUser, 'sanctum')
+            ->postJson('/api/v1/cotizaciones', $payload);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('persona_venta', [
+            'nombres' => 'Pedro',
+            'apellidos' => 'Pérez',
+            'documento' => '',
+            'telefono' => '',
+            'correo' => '',
+            'principal' => 1,
+        ]);
+        $this->assertDatabaseHas('ventas', [
+            'descuento_porcentaje' => '15%',
+            'descuento_monto' => 30.00,
+        ]);
+    }
+
+    public function test_crear_cotizacion_falla_si_falta_nombre_o_apellido(): void
+    {
+        // Sin apellidos
+        $response1 = $this->actingAs($this->adminUser, 'sanctum')
+            ->postJson('/api/v1/cotizaciones', [
+                'cliente' => [
+                    'nombres' => 'Carlos',
+                ],
+            ]);
+        $response1->assertStatus(422)
+            ->assertJsonValidationErrors(['cliente.apellidos']);
+
+        // Sin nombres
+        $response2 = $this->actingAs($this->adminUser, 'sanctum')
+            ->postJson('/api/v1/cotizaciones', [
+                'cliente' => [
+                    'apellidos' => 'Gómez',
+                ],
+            ]);
+        $response2->assertStatus(422)
+            ->assertJsonValidationErrors(['cliente.nombres']);
+    }
 }
