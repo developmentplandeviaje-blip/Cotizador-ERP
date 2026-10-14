@@ -1,0 +1,3 @@
+export { default as EditarProductoModal } from './EditarProductoModal';
+export { default as EliminarProductoModal } from './EliminarProductoModal';
+export { default as VaciarProductosModal } from './VaciarProductosModal';
