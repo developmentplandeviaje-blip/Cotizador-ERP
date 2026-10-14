@@ -12,6 +12,11 @@ import imgAgregar from '../../assets/Agregar.svg';
 import Badge from '../common/Badge';
 import imgUsuario from '../../assets/Usuario.svg';
 import imgServicios from '../../assets/Servicios.svg';
+import {
+  EditarProductoModal,
+  EliminarProductoModal,
+  VaciarProductosModal,
+} from './modals';
 
 export default function NuevaCotizacion({ user }) {
   // Catalogs
@@ -101,6 +106,9 @@ export default function NuevaCotizacion({ user }) {
     precio: 0,
     costo: 0,
     observacion: '',
+    tipo_asignacion: 'todos', // 'todos' | 'individual' | 'grupo'
+    pax_individual_id: 0,
+    pax_seleccionados: [],
   });
 
   const [excursionForm, setExcursionForm] = useState({
@@ -158,8 +166,16 @@ export default function NuevaCotizacion({ user }) {
   });
 
   // General observations & discount
-  const [descuentoAdicional, setDescuentoAdicional] = useState(0);
+  const [descuentoAdicional, setDescuentoAdicional] = useState('0');
+  const [tipoDescuento, setTipoDescuento] = useState('Porcentaje');
   const [observacion, setObservacion] = useState('');
+
+  // Cart item delete confirmation modal state
+  const [itemToDelete, setItemToDelete] = useState(null);
+  // Cart empty confirmation modal state
+  const [isVaciarModalOpen, setIsVaciarModalOpen] = useState(false);
+  // Cart item edit modal state
+  const [itemToEdit, setItemToEdit] = useState(null);
 
   // Submit / Result state
   const [submitting, setSubmitting] = useState(false);
@@ -277,6 +293,30 @@ export default function NuevaCotizacion({ user }) {
     });
   };
 
+  // Unified passenger list for individual/group customization
+  const allPassengers = useMemo(() => {
+    const list = [];
+    const clientFullName = `${cliente.nombres || ''} ${cliente.apellidos || ''}`.trim();
+    list.push({
+      id: 0,
+      tipo: 'titular',
+      nombre: clientFullName ? `${clientFullName} (Titular)` : 'Cliente Principal (Titular)',
+      nombreCorto: clientFullName || 'Cliente Principal',
+    });
+    const needed = Math.max(0, totalPax - 1);
+    for (let idx = 0; idx < needed; idx++) {
+      const p = pasajeros[idx];
+      const pFullName = p ? `${p.nombres || ''} ${p.apellidos || ''}`.trim() : '';
+      list.push({
+        id: idx + 1,
+        tipo: 'acompanante',
+        nombre: pFullName ? `${pFullName} (Acompañante ${idx + 1})` : `Pasajero ${idx + 2} (Acompañante)`,
+        nombreCorto: pFullName || `Pasajero ${idx + 2}`,
+      });
+    }
+    return list;
+  }, [cliente.nombres, cliente.apellidos, pasajeros, totalPax]);
+
   // Hotels cascading dropdown
   const filteredHoteles = useMemo(() => {
     if (!hotelForm.id_ubicacion) return catalogos.hoteles || [];
@@ -328,7 +368,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'hotel',
-        titulo: `Hotel: ${hotelObj.nombre || 'Hotel'} (${habObj.habitacion || 'Habitación'})`,
+        titulo: `${hotelObj.nombre || 'Hotel'} (${habObj.habitacion || 'Habitación'})`,
         detalle: `${hotelForm.noches} noches • ${pax.adultos} adultos, ${pax.adolescentes} adol, ${pax.ninos} niños`,
         precio: totalItem,
         data: {
@@ -360,7 +400,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'vuelo',
-        titulo: `Vuelo: ${aeroObj.nombre || 'Aerolínea'} - ${vueloForm.itinerario || 'Ruta'}`,
+        titulo: `${aeroObj.nombre || 'Aerolínea'} - ${vueloForm.itinerario || 'Ruta'}`,
         detalle: `Fecha: ${vueloForm.fecha_vuelo || 'Por definir'} • ${pax.adultos} ad, ${pax.ninos} niños, ${pax.infantes} inf`,
         precio: totalItem,
         data: {
@@ -379,31 +419,81 @@ export default function NuevaCotizacion({ user }) {
         },
       };
     } else if (tipo === 'traslado') {
+      if (!trasladoForm.id_traslado) {
+        alert('Por favor seleccione un servicio de traslado.');
+        return;
+      }
+
       const trasObj = (catalogos.traslados || []).find(t => String(t.id) === String(trasladoForm.id_traslado)) || {};
+
+      let titulo = `${trasObj.ruta_origen || 'Servicio de Traslado'}`;
+      let detallePax = totalPax > 1 ? `Todos los pasajeros (${totalPax} pax)` : `1 pasajero`;
+      let obsBase = trasladoForm.observacion ? trasladoForm.observacion.trim() : '';
+      let obsFinal = obsBase;
+      let adultosCount = pax.adultos;
+      let ninosCount = pax.ninos;
+      let infantesCount = pax.infantes;
+
+      if (totalPax > 1) {
+        if (trasladoForm.tipo_asignacion === 'individual') {
+          const targetPax = allPassengers.find(p => p.id === Number(trasladoForm.pax_individual_id)) || allPassengers[0];
+          const nombrePax = targetPax ? targetPax.nombreCorto : 'Individual';
+          titulo += ` (Individual)`;
+          detallePax = `Pasajero: ${nombrePax}`;
+          obsFinal = `[Individual: ${nombrePax}] ${obsBase}`.trim();
+          adultosCount = 1;
+          ninosCount = 0;
+          infantesCount = 0;
+        } else if (trasladoForm.tipo_asignacion === 'grupo') {
+          const selectedList = allPassengers.filter(p => (trasladoForm.pax_seleccionados || []).includes(p.id));
+          if (selectedList.length === 0) {
+            alert('Por favor seleccione al menos un pasajero para el traslado grupal.');
+            return;
+          }
+          const nombres = selectedList.map(p => p.nombreCorto).join(', ');
+          titulo += ` (Grupo - ${selectedList.length} pax)`;
+          detallePax = `Pasajeros (${selectedList.length}): ${nombres}`;
+          obsFinal = `[Grupo: ${nombres}] ${obsBase}`.trim();
+          adultosCount = selectedList.length;
+          ninosCount = 0;
+          infantesCount = 0;
+        }
+      }
+
       newItem = {
         uid,
         tipo: 'traslado',
-        titulo: `Traslado: ${trasObj.ruta_origen || 'Servicio de Traslado'}`,
-        detalle: `Fecha: ${trasladoForm.fecha_traslado || 'Por definir'} • Obs: ${trasladoForm.observacion || 'Ninguna'}`,
+        titulo,
+        detalle: `Fecha: ${trasladoForm.fecha_traslado || 'Por definir'} • ${detallePax}${obsBase ? ` • Obs: ${obsBase}` : ''}`,
         precio: Number(trasladoForm.precio || trasObj.precio_publico || 0),
         data: {
           id_traslado: Number(trasladoForm.id_traslado || 1),
           fecha_traslado: trasladoForm.fecha_traslado,
-          adultos: pax.adultos,
-          ninos: pax.ninos,
-          infantes: pax.infantes,
+          adultos: adultosCount,
+          ninos: ninosCount,
+          infantes: infantesCount,
           precio_historico: Number(trasladoForm.precio || trasObj.precio_publico || 0),
           costo_historico: Number(trasladoForm.costo || trasObj.costo || 0),
-          observacion: trasladoForm.observacion,
+          observacion: obsFinal,
+          observacion_base: obsBase,
+          tipo_asignacion: totalPax > 1 ? trasladoForm.tipo_asignacion : 'todos',
+          pax_individual_id: trasladoForm.pax_individual_id,
+          pax_seleccionados: trasladoForm.pax_seleccionados,
         },
       };
+
+      setTrasladoForm(prev => ({
+        ...prev,
+        observacion: '',
+        pax_seleccionados: [],
+      }));
     } else if (tipo === 'excursion') {
       const excObj = (catalogos.excursiones || []).find(e => String(e.id) === String(excursionForm.id_excursion)) || {};
       const totalItem = (pax.adultos * excursionForm.precio_adulto) + (pax.ninos * excursionForm.precio_nino);
       newItem = {
         uid,
         tipo: 'excursion',
-        titulo: `Excursión: ${excObj.tipo_excursion || 'Excursión'}`,
+        titulo: `${excObj.tipo_excursion || 'Excursión'}`,
         detalle: `Fecha: ${excursionForm.fecha || 'Por definir'} • ${pax.adultos} ad, ${pax.ninos} niños`,
         precio: totalItem,
         data: {
@@ -424,7 +514,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'paquete',
-        titulo: `Paquete: ${paqObj.paquete || 'Paquete Turístico'}`,
+        titulo: `${paqObj.paquete || 'Paquete Turístico'}`,
         detalle: `Fecha: ${paqueteForm.fecha || 'Por definir'} • ${pax.adultos} ad, ${pax.ninos} niños`,
         precio: totalItem,
         data: {
@@ -445,7 +535,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'vehiculo',
-        titulo: `Vehículo: ${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`,
+        titulo: `${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`,
         detalle: `${vehiculoForm.dias} días • Desde: ${vehiculoForm.desde} hasta: ${vehiculoForm.hasta}`,
         precio: totalItem,
         data: {
@@ -463,7 +553,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'ferry',
-        titulo: `Ferry: ${ferryForm.ruta || 'Ruta'} (${ferryForm.clase})`,
+        titulo: `${ferryForm.ruta || 'Ruta'} (${ferryForm.clase})`,
         detalle: `${pax.adultos} ad, ${pax.ninos} niños, ${ferryForm.vehiculos} veh • Itinerario: ${ferryForm.itinerario}`,
         precio: totalItem,
         data: {
@@ -484,7 +574,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'otro',
-        titulo: `Otro: ${otroForm.descripcion || 'Servicio Personalizado'}`,
+        titulo: `${otroForm.descripcion || 'Servicio Personalizado'}`,
         detalle: `Fecha: ${otroForm.fecha || 'Por definir'}`,
         precio: Number(otroForm.precio || 0),
         data: {
@@ -508,9 +598,36 @@ export default function NuevaCotizacion({ user }) {
     setItems(prev => prev.filter(item => item.uid !== uid));
   };
 
+  const handleSaveEditedItem = (updatedItem) => {
+    setItems(prev => prev.map(item => item.uid === updatedItem.uid ? updatedItem : item));
+    setItemToEdit(null);
+  };
+
   const handleClearItems = () => {
-    if (window.confirm('¿Está seguro de vaciar todos los productos agregados?')) {
-      setItems([]);
+    setIsVaciarModalOpen(true);
+  };
+
+  // Word count for itinerary observations (max 500 words)
+  const wordCount = useMemo(() => {
+    const trimmed = observacion.trim();
+    return trimmed ? trimmed.split(/\s+/).length : 0;
+  }, [observacion]);
+
+  const handleObservacionKeyDown = (e) => {
+    // Si ya alcanzó 500 palabras, prevenir agregar nuevas palabras con espacio o enter
+    if (wordCount >= 500 && (e.key === ' ' || e.key === 'Enter')) {
+      e.preventDefault();
+    }
+  };
+
+  const handleObservacionChange = (e) => {
+    const val = e.target.value;
+    const words = val.trim() ? val.trim().split(/\s+/) : [];
+    if (words.length > 500) {
+      const truncated = words.slice(0, 500).join(' ');
+      setObservacion(truncated);
+    } else {
+      setObservacion(val);
     }
   };
 
@@ -520,8 +637,76 @@ export default function NuevaCotizacion({ user }) {
   }, [items]);
 
   const descuentoReferidoMonto = 0.00; // Pasivo US-01
-  const totalUSD = Math.max(0, subtotalUSD - descuentoReferidoMonto - Number(descuentoAdicional || 0));
+
+  const descuentoCalculadoMonto = useMemo(() => {
+    const val = parseFloat(descuentoAdicional) || 0;
+    if (tipoDescuento === 'Porcentaje') {
+      const pct = Math.max(0, val);
+      return (subtotalUSD * pct) / 100;
+    }
+    return Math.max(0, val);
+  }, [subtotalUSD, descuentoAdicional, tipoDescuento]);
+
+  const totalUSD = Math.max(0, subtotalUSD - descuentoReferidoMonto - descuentoCalculadoMonto);
   const totalVES = (totalUSD * tasaReferencialVES).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const handleDescuentoChange = (e) => {
+    let rawVal = e.target.value.replace(',', '.'); // Soporte para punto y coma decimal
+
+    if (rawVal === '') {
+      setDescuentoAdicional('');
+      return;
+    }
+
+    // Permitir solo dígitos y un único punto decimal
+    if (!/^\d*\.?\d*$/.test(rawVal)) {
+      return;
+    }
+
+    const parts = rawVal.split('.');
+    let intPart = parts[0];
+    let decPart = parts.length > 1 ? parts[1] : null;
+
+    if (tipoDescuento === 'Porcentaje') {
+      // Porcentaje: máximo 2 dígitos en la parte entera (0 a 99)
+      if (intPart.length > 2) {
+        intPart = intPart.slice(0, 2);
+      }
+      // Permitir hasta 2 decimales
+      if (decPart !== null && decPart.length > 2) {
+        decPart = decPart.slice(0, 2);
+      }
+    } else {
+      // Monto: máximo 3 dígitos en la parte entera (0 a 999)
+      if (intPart.length > 3) {
+        intPart = intPart.slice(0, 3);
+      }
+      // Permitir hasta 2 decimales
+      if (decPart !== null && decPart.length > 2) {
+        decPart = decPart.slice(0, 2);
+      }
+    }
+
+    const finalVal = decPart !== null ? `${intPart}.${decPart}` : intPart;
+    setDescuentoAdicional(finalVal);
+  };
+
+  const handleTipoDescuentoChange = (e) => {
+    const nuevoTipo = e.target.value;
+    setTipoDescuento(nuevoTipo);
+    if (!descuentoAdicional) return;
+
+    const parts = String(descuentoAdicional).split('.');
+    let intPart = parts[0];
+    let decPart = parts.length > 1 ? parts[1] : null;
+
+    if (nuevoTipo === 'Porcentaje') {
+      intPart = intPart.slice(0, 2);
+    } else {
+      intPart = intPart.slice(0, 3);
+    }
+    setDescuentoAdicional(decPart !== null ? `${intPart}.${decPart}` : intPart);
+  };
 
   // Installments calculation
   const cuotasCalculadas = useMemo(() => {
@@ -547,8 +732,8 @@ export default function NuevaCotizacion({ user }) {
 
   // Submit Formal Quote
   const handleSubmitCotizacion = async () => {
-    if (!cliente.nombres.trim() || !cliente.documento.trim()) {
-      alert('Por favor ingrese al menos el nombre y la cédula del cliente principal.');
+    if (!cliente.nombres.trim() || !cliente.apellidos.trim()) {
+      alert('Por favor ingrese el nombre y el apellido del cliente principal.');
       return;
     }
     if (items.length === 0) {
@@ -574,7 +759,8 @@ export default function NuevaCotizacion({ user }) {
       checkin: fechasViaje.checkin,
       checkout: fechasViaje.checkout,
       tipo_pago: enableCuotas ? 'Cuotas' : 'Total',
-      descuento_monto: Number(descuentoAdicional || 0),
+      descuento_porcentaje: tipoDescuento === 'Porcentaje' ? `${parseFloat(descuentoAdicional) || 0}%` : null,
+      descuento_monto: descuentoCalculadoMonto,
       descuento_referidos_monto: descuentoReferidoMonto,
       observacion: observacion + (cuotasCalculadas ? ` | Plan de financiamiento: Inicial $${cuotasCalculadas.montoInicial.toFixed(2)} + ${cuotasCalculadas.numeroCuotas} cuotas de $${cuotasCalculadas.montoPorCuota.toFixed(2)}` : ''),
       hoteles: items.filter(i => i.tipo === 'hotel').map(i => i.data),
@@ -596,7 +782,8 @@ export default function NuevaCotizacion({ user }) {
       });
       // Clear forms
       setItems([]);
-      setDescuentoAdicional(0);
+      setDescuentoAdicional('0');
+      setTipoDescuento('Porcentaje');
       setObservacion('');
     } catch (err) {
       console.error('Error creando cotización:', err);
@@ -670,13 +857,6 @@ export default function NuevaCotizacion({ user }) {
         border: '1px solid rgba(255, 255, 255, 0.18)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          {/*<div style={{
-            background: 'linear-gradient(135deg, rgba(232, 114, 23, 0.2), rgba(37, 99, 235, 0.2))',
-            padding: '12px',
-            borderRadius: '12px',
-            border: '1px solid rgba(232, 114, 23, 0.3)',
-          }}>
-          </div>*/}
           <img src={imgNuevaCotizacion} alt="Cotizador" style={{ width: '28px', height: '28px' }} />
           <div>
             <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#FFFFFF' }}>
@@ -804,7 +984,7 @@ export default function NuevaCotizacion({ user }) {
             </select>
             <input
               type="text"
-              placeholder="Número de Cédula / Documento..."
+              placeholder="Número de Cédula / Documento (Opcional)..."
               value={cliente.documento}
               onChange={e => setCliente({ ...cliente, documento: e.target.value })}
               onKeyDown={e => e.key === 'Enter' && handleBuscarCliente()}
@@ -1249,56 +1429,255 @@ export default function NuevaCotizacion({ user }) {
 
           {/* TAB TRASLADO */}
           {activeTab === 'traslado' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
-              <div>
-                <label className='erp-label'>Servicio de Traslado</label>
-                <select
-                  value={trasladoForm.id_traslado}
-                  onChange={e => {
-                    const id = e.target.value;
-                    const found = (catalogos.traslados || []).find(t => String(t.id) === String(id));
-                    setTrasladoForm({
-                      ...trasladoForm,
-                      id_traslado: id,
-                      precio: found ? Number(found.precio_publico) : 0,
-                    });
-                  }}
-                  className="erp-select"
-                >
-                  <option value="">Seleccione traslado...</option>
-                  {(catalogos.traslados || []).map(t => (
-                    <option key={t.id} value={t.id}>{t.ruta_origen} (${t.precio_publico})</option>
-                  ))}
-                </select>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
+                <div>
+                  <label className='erp-label'>Servicio de Traslado</label>
+                  <select
+                    value={trasladoForm.id_traslado}
+                    onChange={e => {
+                      const id = e.target.value;
+                      const found = (catalogos.traslados || []).find(t => String(t.id) === String(id));
+                      setTrasladoForm({
+                        ...trasladoForm,
+                        id_traslado: id,
+                        precio: found ? Number(found.precio_publico) : 0,
+                      });
+                    }}
+                    className="erp-select"
+                  >
+                    <option value="">Seleccione traslado...</option>
+                    {(catalogos.traslados || []).map(t => (
+                      <option key={t.id} value={t.id}>{t.ruta_origen} (${t.precio_publico})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className='erp-label'>Fecha y Hora</label>
+                  <input
+                    type="datetime-local"
+                    value={trasladoForm.fecha_traslado}
+                    onChange={e => setTrasladoForm({ ...trasladoForm, fecha_traslado: e.target.value })}
+                    className="erp-input"
+                  />
+                </div>
+
+                <div>
+                  <label className='erp-label'>Precio Total ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={trasladoForm.precio}
+                    onChange={e => setTrasladoForm({ ...trasladoForm, precio: parseFloat(e.target.value) || 0 })}
+                    className="erp-input"
+                  />
+                </div>
+
+                <div>
+                  <label className='erp-label'>Observación (Opcional)</label>
+                  <input
+                    type="text"
+                    value={trasladoForm.observacion}
+                    onChange={e => setTrasladoForm({ ...trasladoForm, observacion: e.target.value })}
+                    placeholder="Ej: Vuelo Laser 912, equipaje extra..."
+                    className="erp-input"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className='erp-label'>Fecha y Hora</label>
-                <input
-                  type="datetime-local"
-                  value={trasladoForm.fecha_traslado}
-                  onChange={e => setTrasladoForm({ ...trasladoForm, fecha_traslado: e.target.value })}
-                  className="erp-input"
-                />
-              </div>
+              {/* Personalización de Pasajeros si totalPax > 1 */}
+              {totalPax > 1 && (
+                <div style={{
+                  padding: '14px 16px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(232, 114, 23, 0.35)',
+                  borderRadius: '10px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '1rem' }}>👥</span>
+                      <strong style={{ color: '#E87217', fontSize: '0.875rem' }}>
+                        Personalización de Pasajeros ({totalPax} pax en la cotización)
+                      </strong>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                      Configure si este traslado es para todos o individual / subgrupo
+                    </span>
+                  </div>
 
-              <div>
-                <label className='erp-label'>Precio Total ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={trasladoForm.precio}
-                  onChange={e => setTrasladoForm({ ...trasladoForm, precio: parseFloat(e.target.value) || 0 })}
-                  className="erp-input"
-                />
-              </div>
+                  {/* Selector de tipo de asignación */}
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                    {[
+                      { id: 'todos', label: `Todos los pasajeros (${totalPax})` },
+                      { id: 'individual', label: 'Traslado Individual (1 pax)' },
+                      { id: 'grupo', label: 'Subgrupo Personalizado' },
+                    ].map(opt => {
+                      const active = (trasladoForm.tipo_asignacion || 'todos') === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            setTrasladoForm(prev => ({
+                              ...prev,
+                              tipo_asignacion: opt.id,
+                              pax_individual_id: opt.id === 'individual' ? (prev.pax_individual_id ?? 0) : prev.pax_individual_id,
+                              pax_seleccionados: opt.id === 'grupo' ? (prev.pax_seleccionados?.length ? prev.pax_seleccionados : [0, 1]) : prev.pax_seleccionados,
+                            }));
+                          }}
+                          style={{
+                            padding: '6px 14px',
+                            borderRadius: '8px',
+                            border: active ? '1px solid #E87217' : '1px solid rgba(255, 255, 255, 0.15)',
+                            background: active ? 'rgba(232, 114, 23, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+                            color: active ? '#FFF' : '#94A3B8',
+                            fontSize: '0.8125rem',
+                            fontWeight: active ? '600' : '400',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                          }}
+                        >
+                          <span style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            background: active ? '#E87217' : 'rgba(255, 255, 255, 0.3)',
+                            display: 'inline-block',
+                          }} />
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-              <div>
+                  {/* Contenido según tipo de asignación */}
+                  {trasladoForm.tipo_asignacion === 'todos' && (
+                    <div style={{ fontSize: '0.8125rem', color: '#CBD5E1', background: 'rgba(255, 255, 255, 0.02)', padding: '8px 12px', borderRadius: '6px' }}>
+                      ℹ️ Este servicio de traslado se registrará para <strong>los {totalPax} pasajeros</strong> del viaje.
+                    </div>
+                  )}
+
+                  {trasladoForm.tipo_asignacion === 'individual' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', alignItems: 'center' }}>
+                      <div>
+                        <label className='erp-label'>Seleccione el Pasajero para este traslado individual</label>
+                        <select
+                          value={trasladoForm.pax_individual_id ?? 0}
+                          onChange={e => setTrasladoForm({ ...trasladoForm, pax_individual_id: Number(e.target.value) })}
+                          className="erp-select"
+                        >
+                          {allPassengers.map(p => (
+                            <option key={p.id} value={p.id}>
+                              {p.nombre} {p.documento ? `(Doc: ${p.documento})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div style={{ fontSize: '0.8125rem', color: '#10B981', paddingTop: '16px' }}>
+                        ✓ Traslado individual asignado a: <strong>{allPassengers.find(p => p.id === Number(trasladoForm.pax_individual_id ?? 0))?.nombreCorto || 'Pasajero'}</strong>
+                      </div>
+                    </div>
+                  )}
+
+                  {trasladoForm.tipo_asignacion === 'grupo' && (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <label className='erp-label' style={{ margin: 0 }}>
+                          Seleccione los pasajeros asignados a este traslado:
+                        </label>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setTrasladoForm({ ...trasladoForm, pax_seleccionados: allPassengers.map(p => p.id) })}
+                            style={{
+                              background: 'transparent',
+                              border: '1px solid rgba(255,255,255,0.2)',
+                              color: '#CBD5E1',
+                              fontSize: '0.75rem',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Marcar Todos
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTrasladoForm({ ...trasladoForm, pax_seleccionados: [] })}
+                            style={{
+                              background: 'transparent',
+                              border: '1px solid rgba(255,255,255,0.2)',
+                              color: '#CBD5E1',
+                              fontSize: '0.75rem',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Limpiar
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '8px' }}>
+                        {allPassengers.map(p => {
+                          const isChecked = (trasladoForm.pax_seleccionados || []).includes(p.id);
+                          return (
+                            <label
+                              key={p.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px 12px',
+                                background: isChecked ? 'rgba(232, 114, 23, 0.16)' : 'rgba(255, 255, 255, 0.04)',
+                                border: isChecked ? '1px solid #E87217' : '1px solid rgba(255, 255, 255, 0.1)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '0.8125rem',
+                                color: isChecked ? '#FFF' : '#94A3B8',
+                                userSelect: 'none',
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => {
+                                  setTrasladoForm(prev => {
+                                    const curr = prev.pax_seleccionados || [];
+                                    const next = curr.includes(p.id) ? curr.filter(x => x !== p.id) : [...curr, p.id];
+                                    return { ...prev, pax_seleccionados: next };
+                                  });
+                                }}
+                                style={{ accentColor: '#E87217', cursor: 'pointer' }}
+                              />
+                              <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                {p.nombre}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+
+                      <div style={{ marginTop: '10px', fontSize: '0.8125rem', color: (trasladoForm.pax_seleccionados?.length > 0) ? '#10B981' : '#EF4444' }}>
+                        {(trasladoForm.pax_seleccionados?.length > 0)
+                          ? `✓ ${(trasladoForm.pax_seleccionados || []).length} de ${totalPax} pasajeros seleccionados`
+                          : '⚠️ Debe seleccionar al menos un pasajero para el traslado grupal'}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
                 <button
                   type="button"
                   onClick={() => handleAddItem('traslado')}
                   className="btn-form-nxt"
-                  style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                  style={{ padding: '9px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
                   <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
                   Agregar Traslado
@@ -1630,21 +2009,49 @@ export default function NuevaCotizacion({ user }) {
                       ${Number(item.precio || 0).toFixed(2)}
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <button
-                        onClick={() => handleRemoveItem(item.uid)}
-                        style={{
-                          background: 'rgba(239, 68, 68, 0.2)',
-                          border: 'none',
-                          color: '#EF4444',
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                        }}
-                        title="Eliminar producto"
-                      >
-                        ✕
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => setItemToEdit(item)}
+                          style={{
+                            background: 'rgba(37, 99, 235, 0.2)',
+                            border: '1px solid rgba(37, 99, 235, 0.4)',
+                            color: '#60A5FA',
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                          title="Editar producto"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setItemToDelete(item)}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.2)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            color: '#EF4444',
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                          title="Eliminar producto"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1766,13 +2173,28 @@ export default function NuevaCotizacion({ user }) {
 
           {/* Observations */}
           <div style={{ marginTop: '16px' }}>
-            <label className="erp-label">Observaciones del Itinerario</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label className="erp-label" style={{ margin: 0 }}>Observaciones del Itinerario</label>
+              <span style={{ fontSize: '0.75rem', color: wordCount >= 500 ? '#EF4444' : '#b9c8ddff', fontWeight: wordCount >= 500 ? '700' : '400' }}>
+                {wordCount} / 500 palabras
+              </span>
+            </div>
             <textarea
               rows="3"
               value={observacion}
-              onChange={e => setObservacion(e.target.value)}
-              placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales..."
+              onChange={handleObservacionChange}
+              onKeyDown={handleObservacionKeyDown}
+              placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 500 palabras)..."
               className="erp-input"
+              style={{
+                resize: 'none',
+                height: '90px',
+                minHeight: '90px',
+                maxHeight: '90px',
+                overflowY: 'auto',
+                boxSizing: 'border-box',
+                width: '100%',
+              }}
             />
           </div>
         </div>
@@ -1804,28 +2226,36 @@ export default function NuevaCotizacion({ user }) {
                   <span>-$0.00 USD</span>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', justifyContent: 'space-between' }}>
-                <span style={{ color: '#b9c8ddff', fontSize: '0.875rem' }}>Descuento Adicional:</span>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#b9c8ddff', fontSize: '0.875rem' }}>
+                  Descuento Adicional:
+                  {tipoDescuento === 'Porcentaje' && (parseFloat(descuentoAdicional) || 0) > 0 && (
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: '#10B981' }}>
+                      (-${descuentoCalculadoMonto.toFixed(2)} USD)
+                    </span>
+                  )}
+                </span>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
                   <input
-                    type="number"
-                    min="0"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
                     value={descuentoAdicional}
-                    onChange={e => setDescuentoAdicional(parseFloat(e.target.value) || 0)}
+                    onChange={handleDescuentoChange}
                     className="erp-input"
                     style={{ width: '100px', textAlign: 'right' }}
-
-
+                    placeholder="0"
+                    title={tipoDescuento === 'Porcentaje' ? 'Porcentaje de descuento (máx. 2 dígitos y decimales, ej. 15.5%)' : 'Monto de descuento en USD (máx. 3 dígitos y decimales, ej. 250.00)'}
                   />
                   <select
+                    value={tipoDescuento}
+                    onChange={handleTipoDescuentoChange}
                     className='erp-select'
                     style={{
-                      width: '70px',
+                      width: '85px',
                     }}
                   >
                     <option value="Porcentaje">%</option>
-                    <option value="Monto">Monto</option>
+                    <option value="Monto">Monto ($)</option>
                   </select>
                 </div>
               </div>
@@ -1892,6 +2322,36 @@ export default function NuevaCotizacion({ user }) {
           </div>
         </div>
       </div>
+
+      {/* Modales del itinerario */}
+      <EliminarProductoModal
+        isOpen={!!itemToDelete}
+        item={itemToDelete}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={(uid) => {
+          handleRemoveItem(uid);
+          setItemToDelete(null);
+        }}
+      />
+
+      <VaciarProductosModal
+        isOpen={isVaciarModalOpen}
+        totalItems={items.length}
+        onClose={() => setIsVaciarModalOpen(false)}
+        onConfirm={() => {
+          setItems([]);
+          setIsVaciarModalOpen(false);
+        }}
+      />
+
+      <EditarProductoModal
+        isOpen={!!itemToEdit}
+        item={itemToEdit}
+        catalogos={catalogos}
+        allPassengers={allPassengers}
+        onClose={() => setItemToEdit(null)}
+        onSave={handleSaveEditedItem}
+      />
     </div>
   );
 }
