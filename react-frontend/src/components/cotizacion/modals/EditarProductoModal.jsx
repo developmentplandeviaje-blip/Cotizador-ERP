@@ -126,15 +126,15 @@ export default function EditarProductoModal({
     if (tipo === 'hotel') {
       const hotelObj = (catalogos.hoteles || []).find(h => String(h.id) === String(formData.id_hotel)) || {};
       const habObj = (hotelObj.habitaciones || []).find(hab => String(hab.id) === String(formData.id_habitacion)) || {};
-      updatedTitulo = `${hotelObj.nombre || item.titulo.split(' (')[0]} (${habObj.habitacion || 'HabitaciÃ³n'})`;
-      updatedDetalle = `${formData.noches} noches â€¢ ${formData.adultos} adultos, ${formData.adolescente} adol, ${formData.ninos} niÃ±os`;
+      updatedTitulo = `${hotelObj.nombre || item.titulo.split(' (')[0]} (${habObj.habitacion || 'Habitación'})`;
+      updatedDetalle = `${formData.noches} noches • ${formData.adultos} adultos, ${formData.adolescente} adol, ${formData.ninos} niños`;
       finalData.id_hotel = Number(formData.id_hotel);
       finalData.id_habitacion = Number(formData.id_habitacion || 0);
       finalData.noches = Number(formData.noches);
     } else if (tipo === 'vuelo') {
       const aeroObj = (catalogos.aerolineas || []).find(a => String(a.id) === String(formData.id_aerolinea)) || {};
-      updatedTitulo = `${aeroObj.nombre || 'AerolÃ­nea'} - ${formData.itinerario || 'Ruta'}`;
-      updatedDetalle = `Fecha: ${formData.fecha_vuelo || 'Por definir'} â€¢ ${formData.adultos} ad, ${formData.ninos} niÃ±os, ${formData.infantes} inf`;
+      updatedTitulo = `${aeroObj.nombre || 'Aerolínea'} - ${formData.itinerario || 'Ruta'}`;
+      updatedDetalle = `Fecha: ${formData.fecha_vuelo || 'Por definir'} • ${formData.adultos} ad, ${formData.ninos} niños, ${formData.infantes} inf`;
       finalData.id_aerolinea = Number(formData.id_aerolinea);
     } else if (tipo === 'traslado') {
       const trasObj = (catalogos.traslados || []).find(t => String(t.id) === String(formData.id_traslado)) || {};
@@ -174,24 +174,24 @@ export default function EditarProductoModal({
       finalData.pax_seleccionados = formData.pax_seleccionados;
     } else if (tipo === 'excursion') {
       const excObj = (catalogos.excursiones || []).find(e => String(e.id) === String(formData.id_excursion)) || {};
-      updatedTitulo = `ExcursiÃ³n: ${excObj.tipo_excursion || item.titulo}`;
-      updatedDetalle = `Fecha: ${formData.fecha || 'Por definir'} â€¢ ${formData.adultos} ad, ${formData.ninos} niÃ±os`;
+      updatedTitulo = `Excusión: ${excObj.tipo_excursion || item.titulo}`;
+      updatedDetalle = `Fecha: ${formData.fecha || 'Por definir'} • ${formData.adultos} ad, ${formData.ninos} niños`;
       finalData.id_excursion = Number(formData.id_excursion);
     } else if (tipo === 'paquete') {
       const paqObj = (catalogos.paquetes || []).find(p => String(p.id) === String(formData.id_paquete)) || {};
       updatedTitulo = `Paquete: ${paqObj.paquete || item.titulo}`;
-      updatedDetalle = `Fecha: ${formData.fecha || 'Por definir'} â€¢ ${formData.adultos} ad, ${formData.ninos} niÃ±os`;
+      updatedDetalle = `Fecha: ${formData.fecha || 'Por definir'} • ${formData.adultos} ad, ${formData.ninos} niños`;
       finalData.id_paquete = Number(formData.id_paquete);
     } else if (tipo === 'vehiculo') {
       const vehObj = (catalogos.vehiculos || []).find(v => String(v.id) === String(formData.id_vehiculo)) || {};
-      updatedTitulo = `${vehObj.marca || 'VehÃ­culo'} ${vehObj.modelo || ''}`;
-      updatedDetalle = `${formData.dias} dÃ­as â€¢ Desde: ${formData.desde || 'N/A'} hasta: ${formData.hasta || 'N/A'}`;
+      updatedTitulo = `${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`;
+      updatedDetalle = `${formData.dias} días • Desde: ${formData.desde || 'N/A'} hasta: ${formData.hasta || 'N/A'}`;
       finalData.id_vehiculo = Number(formData.id_vehiculo);
       finalData.dias = Number(formData.dias);
       finalData.precio_unitario = Number(formData.precio_unitario);
     } else if (tipo === 'ferry') {
       updatedTitulo = `${formData.ruta || 'Ruta'} (${formData.clase || 'Clase'})`;
-      updatedDetalle = `${formData.adultos} ad, ${formData.ninos} niÃ±os, ${formData.vehiculos || 0} veh â€¢ Itinerario: ${formData.itinerario || 'N/A'}`;
+      updatedDetalle = `${formData.adultos} ad, ${formData.ninos} niños, ${formData.vehiculos || 0} veh • Itinerario: ${formData.itinerario || 'N/A'}`;
     } else if (tipo === 'otro') {
       updatedTitulo = `Otro: ${formData.descripcion || 'Servicio Personalizado'}`;
       updatedDetalle = `Fecha: ${formData.fecha || 'Por definir'}`;
@@ -248,13 +248,13 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">HabitaciÃ³n</label>
+              <label className="erp-label">Habitación</label>
               <select
                 value={formData.id_habitacion || ''}
                 onChange={e => handleHabitacionChange(e.target.value)}
                 className="erp-select"
               >
-                <option value="">Seleccione habitaciÃ³n...</option>
+                <option value="">Seleccione habitación...</option>
                 {(selectedHotel?.habitaciones || []).map(hab => (
                   <option key={hab.id} value={hab.id}>{hab.habitacion}</option>
                 ))}
@@ -295,7 +295,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">NiÃ±os</label>
+              <label className="erp-label">Niños</label>
               <input
                 type="number"
                 min="0"
@@ -330,7 +330,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">Precio Noche NiÃ±o ($)</label>
+              <label className="erp-label">Precio Noche Niño ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -347,13 +347,13 @@ export default function EditarProductoModal({
         {tipo === 'vuelo' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             <div>
-              <label className="erp-label">AerolÃ­nea</label>
+              <label className="erp-label">Aerolínea</label>
               <select
                 value={formData.id_aerolinea || ''}
                 onChange={e => setFormData({ ...formData, id_aerolinea: e.target.value })}
                 className="erp-select"
               >
-                <option value="">Seleccione aerolÃ­nea...</option>
+                <option value="">Seleccione aerolínea...</option>
                 {(catalogos.aerolineas || []).map(a => (
                   <option key={a.id} value={a.id}>{a.nombre}</option>
                 ))}
@@ -393,7 +393,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">NiÃ±os</label>
+              <label className="erp-label">Niños</label>
               <input
                 type="number"
                 min="0"
@@ -427,7 +427,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">Precio NiÃ±o ($)</label>
+              <label className="erp-label">Precio Niño ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -645,11 +645,11 @@ export default function EditarProductoModal({
           </div>
         )}
 
-        {/* ==================== FORMULARIO EXCURSIÃ“N O PAQUETE ==================== */}
+        {/* ==================== FORMULARIO EXCURSIÓN O PAQUETE ==================== */}
         {(tipo === 'excursion' || tipo === 'paquete') && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             <div>
-              <label className="erp-label">{tipo === 'excursion' ? 'ExcursiÃ³n' : 'Paquete'}</label>
+              <label className="erp-label">{tipo === 'excursion' ? 'Excusión' : 'Paquete'}</label>
               <select
                 value={tipo === 'excursion' ? (formData.id_excursion || '') : (formData.id_paquete || '')}
                 onChange={e => {
@@ -695,7 +695,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">NiÃ±os</label>
+              <label className="erp-label">Niños</label>
               <input
                 type="number"
                 min="0"
@@ -718,7 +718,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">Precio NiÃ±o ($)</label>
+              <label className="erp-label">Precio Niño ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -731,17 +731,17 @@ export default function EditarProductoModal({
           </div>
         )}
 
-        {/* ==================== FORMULARIO VEHÃCULO ==================== */}
+        {/* ==================== FORMULARIO VEHÍCULO ==================== */}
         {tipo === 'vehiculo' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             <div>
-              <label className="erp-label">VehÃ­culo</label>
+              <label className="erp-label">Vehículo</label>
               <select
                 value={formData.id_vehiculo || ''}
                 onChange={e => setFormData({ ...formData, id_vehiculo: e.target.value })}
                 className="erp-select"
               >
-                <option value="">Seleccione vehÃ­culo...</option>
+                <option value="">Seleccione vehículo...</option>
                 {(catalogos.vehiculos || []).map(v => (
                   <option key={v.id} value={v.id}>{v.marca} {v.modelo}</option>
                 ))}
@@ -749,7 +749,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">DÃ­as de Alquiler</label>
+              <label className="erp-label">Días de Alquiler</label>
               <input
                 type="number"
                 min="1"
@@ -760,7 +760,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">Precio por DÃ­a ($)</label>
+              <label className="erp-label">Precio por Día ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -838,7 +838,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">NiÃ±os</label>
+              <label className="erp-label">Niños</label>
               <input
                 type="number"
                 min="0"
@@ -849,7 +849,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">VehÃ­culos</label>
+              <label className="erp-label">Vehículos</label>
               <input
                 type="number"
                 min="0"
@@ -872,7 +872,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">Precio NiÃ±o ($)</label>
+              <label className="erp-label">Precio Niño ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -884,7 +884,7 @@ export default function EditarProductoModal({
             </div>
 
             <div>
-              <label className="erp-label">Precio VehÃ­culo ($)</label>
+              <label className="erp-label">Precio Vehículo ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -901,7 +901,7 @@ export default function EditarProductoModal({
         {tipo === 'otro' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label className="erp-label">DescripciÃ³n del Servicio</label>
+              <label className="erp-label">Descripción del Servicio</label>
               <input
                 type="text"
                 value={formData.descripcion || ''}
