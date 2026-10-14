@@ -16,9 +16,9 @@ class StoreCotizacionRequest extends FormRequest
         return [
             'cliente' => ['required', 'array'],
             'cliente.nombres' => ['required', 'string', 'max:150'],
-            'cliente.apellidos' => ['nullable', 'string', 'max:150'],
+            'cliente.apellidos' => ['required', 'string', 'max:150'],
             'cliente.tipo_documento' => ['nullable', 'string', 'max:10'],
-            'cliente.documento' => ['required', 'string', 'max:50'],
+            'cliente.documento' => ['nullable', 'string', 'max:50'],
             'cliente.edad' => ['nullable', 'integer', 'min:0', 'max:120'],
             'cliente.telefono' => ['nullable', 'string', 'max:50'],
             'cliente.correo' => ['nullable', 'string', 'max:100'],
@@ -68,7 +68,7 @@ class StoreCotizacionRequest extends FormRequest
         return [
             'cliente.required' => 'La información del cliente principal es obligatoria.',
             'cliente.nombres.required' => 'El nombre del cliente principal es obligatorio.',
-            'cliente.documento.required' => 'El número de cédula/documento del cliente es obligatorio.',
+            'cliente.apellidos.required' => 'El apellido del cliente principal es obligatorio.',
         ];
     }
 }

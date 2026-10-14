@@ -12,6 +12,7 @@ import imgAgregar from '../../assets/Agregar.svg';
 import Badge from '../common/Badge';
 import imgUsuario from '../../assets/Usuario.svg';
 import imgServicios from '../../assets/Servicios.svg';
+import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
 
 export default function NuevaCotizacion({ user }) {
   // Catalogs
@@ -158,8 +159,12 @@ export default function NuevaCotizacion({ user }) {
   });
 
   // General observations & discount
-  const [descuentoAdicional, setDescuentoAdicional] = useState(0);
+  const [descuentoAdicional, setDescuentoAdicional] = useState('0');
+  const [tipoDescuento, setTipoDescuento] = useState('Porcentaje');
   const [observacion, setObservacion] = useState('');
+
+  // Cart item delete confirmation modal state
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   // Submit / Result state
   const [submitting, setSubmitting] = useState(false);
@@ -328,7 +333,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'hotel',
-        titulo: `Hotel: ${hotelObj.nombre || 'Hotel'} (${habObj.habitacion || 'Habitación'})`,
+        titulo: `${hotelObj.nombre || 'Hotel'} (${habObj.habitacion || 'Habitación'})`,
         detalle: `${hotelForm.noches} noches • ${pax.adultos} adultos, ${pax.adolescentes} adol, ${pax.ninos} niños`,
         precio: totalItem,
         data: {
@@ -360,7 +365,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'vuelo',
-        titulo: `Vuelo: ${aeroObj.nombre || 'Aerolínea'} - ${vueloForm.itinerario || 'Ruta'}`,
+        titulo: `${aeroObj.nombre || 'Aerolínea'} - ${vueloForm.itinerario || 'Ruta'}`,
         detalle: `Fecha: ${vueloForm.fecha_vuelo || 'Por definir'} • ${pax.adultos} ad, ${pax.ninos} niños, ${pax.infantes} inf`,
         precio: totalItem,
         data: {
@@ -383,7 +388,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'traslado',
-        titulo: `Traslado: ${trasObj.ruta_origen || 'Servicio de Traslado'}`,
+        titulo: `${trasObj.ruta_origen || 'Servicio de Traslado'}`,
         detalle: `Fecha: ${trasladoForm.fecha_traslado || 'Por definir'} • Obs: ${trasladoForm.observacion || 'Ninguna'}`,
         precio: Number(trasladoForm.precio || trasObj.precio_publico || 0),
         data: {
@@ -403,7 +408,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'excursion',
-        titulo: `Excursión: ${excObj.tipo_excursion || 'Excursión'}`,
+        titulo: `${excObj.tipo_excursion || 'Excursión'}`,
         detalle: `Fecha: ${excursionForm.fecha || 'Por definir'} • ${pax.adultos} ad, ${pax.ninos} niños`,
         precio: totalItem,
         data: {
@@ -424,7 +429,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'paquete',
-        titulo: `Paquete: ${paqObj.paquete || 'Paquete Turístico'}`,
+        titulo: `${paqObj.paquete || 'Paquete Turístico'}`,
         detalle: `Fecha: ${paqueteForm.fecha || 'Por definir'} • ${pax.adultos} ad, ${pax.ninos} niños`,
         precio: totalItem,
         data: {
@@ -445,7 +450,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'vehiculo',
-        titulo: `Vehículo: ${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`,
+        titulo: `${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`,
         detalle: `${vehiculoForm.dias} días • Desde: ${vehiculoForm.desde} hasta: ${vehiculoForm.hasta}`,
         precio: totalItem,
         data: {
@@ -463,7 +468,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'ferry',
-        titulo: `Ferry: ${ferryForm.ruta || 'Ruta'} (${ferryForm.clase})`,
+        titulo: `${ferryForm.ruta || 'Ruta'} (${ferryForm.clase})`,
         detalle: `${pax.adultos} ad, ${pax.ninos} niños, ${ferryForm.vehiculos} veh • Itinerario: ${ferryForm.itinerario}`,
         precio: totalItem,
         data: {
@@ -484,7 +489,7 @@ export default function NuevaCotizacion({ user }) {
       newItem = {
         uid,
         tipo: 'otro',
-        titulo: `Otro: ${otroForm.descripcion || 'Servicio Personalizado'}`,
+        titulo: `${otroForm.descripcion || 'Servicio Personalizado'}`,
         detalle: `Fecha: ${otroForm.fecha || 'Por definir'}`,
         precio: Number(otroForm.precio || 0),
         data: {
@@ -514,14 +519,106 @@ export default function NuevaCotizacion({ user }) {
     }
   };
 
+  // Word count for itinerary observations (max 500 words)
+  const wordCount = useMemo(() => {
+    const trimmed = observacion.trim();
+    return trimmed ? trimmed.split(/\s+/).length : 0;
+  }, [observacion]);
+
+  const handleObservacionKeyDown = (e) => {
+    // Si ya alcanzó 500 palabras, prevenir agregar nuevas palabras con espacio o enter
+    if (wordCount >= 500 && (e.key === ' ' || e.key === 'Enter')) {
+      e.preventDefault();
+    }
+  };
+
+  const handleObservacionChange = (e) => {
+    const val = e.target.value;
+    const words = val.trim() ? val.trim().split(/\s+/) : [];
+    if (words.length > 500) {
+      const truncated = words.slice(0, 500).join(' ');
+      setObservacion(truncated);
+    } else {
+      setObservacion(val);
+    }
+  };
+
   // Financial Computations
   const subtotalUSD = useMemo(() => {
     return items.reduce((acc, curr) => acc + Number(curr.precio || 0), 0);
   }, [items]);
 
   const descuentoReferidoMonto = 0.00; // Pasivo US-01
-  const totalUSD = Math.max(0, subtotalUSD - descuentoReferidoMonto - Number(descuentoAdicional || 0));
+
+  const descuentoCalculadoMonto = useMemo(() => {
+    const val = parseFloat(descuentoAdicional) || 0;
+    if (tipoDescuento === 'Porcentaje') {
+      const pct = Math.max(0, val);
+      return (subtotalUSD * pct) / 100;
+    }
+    return Math.max(0, val);
+  }, [subtotalUSD, descuentoAdicional, tipoDescuento]);
+
+  const totalUSD = Math.max(0, subtotalUSD - descuentoReferidoMonto - descuentoCalculadoMonto);
   const totalVES = (totalUSD * tasaReferencialVES).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const handleDescuentoChange = (e) => {
+    let rawVal = e.target.value.replace(',', '.'); // Soporte para punto y coma decimal
+
+    if (rawVal === '') {
+      setDescuentoAdicional('');
+      return;
+    }
+
+    // Permitir solo dígitos y un único punto decimal
+    if (!/^\d*\.?\d*$/.test(rawVal)) {
+      return;
+    }
+
+    const parts = rawVal.split('.');
+    let intPart = parts[0];
+    let decPart = parts.length > 1 ? parts[1] : null;
+
+    if (tipoDescuento === 'Porcentaje') {
+      // Porcentaje: máximo 2 dígitos en la parte entera (0 a 99)
+      if (intPart.length > 2) {
+        intPart = intPart.slice(0, 2);
+      }
+      // Permitir hasta 2 decimales
+      if (decPart !== null && decPart.length > 2) {
+        decPart = decPart.slice(0, 2);
+      }
+    } else {
+      // Monto: máximo 3 dígitos en la parte entera (0 a 999)
+      if (intPart.length > 3) {
+        intPart = intPart.slice(0, 3);
+      }
+      // Permitir hasta 2 decimales
+      if (decPart !== null && decPart.length > 2) {
+        decPart = decPart.slice(0, 2);
+      }
+    }
+
+    const finalVal = decPart !== null ? `${intPart}.${decPart}` : intPart;
+    setDescuentoAdicional(finalVal);
+  };
+
+  const handleTipoDescuentoChange = (e) => {
+    const nuevoTipo = e.target.value;
+    setTipoDescuento(nuevoTipo);
+    if (!descuentoAdicional) return;
+
+    const parts = String(descuentoAdicional).split('.');
+    let intPart = parts[0];
+    let decPart = parts.length > 1 ? parts[1] : null;
+
+    if (nuevoTipo === 'Porcentaje') {
+      intPart = intPart.slice(0, 2);
+    } else {
+      intPart = intPart.slice(0, 3);
+    }
+    setDescuentoAdicional(decPart !== null ? `${intPart}.${decPart}` : intPart);
+  };
 
   // Installments calculation
   const cuotasCalculadas = useMemo(() => {
@@ -547,8 +644,8 @@ export default function NuevaCotizacion({ user }) {
 
   // Submit Formal Quote
   const handleSubmitCotizacion = async () => {
-    if (!cliente.nombres.trim() || !cliente.documento.trim()) {
-      alert('Por favor ingrese al menos el nombre y la cédula del cliente principal.');
+    if (!cliente.nombres.trim() || !cliente.apellidos.trim()) {
+      alert('Por favor ingrese el nombre y el apellido del cliente principal.');
       return;
     }
     if (items.length === 0) {
@@ -574,7 +671,8 @@ export default function NuevaCotizacion({ user }) {
       checkin: fechasViaje.checkin,
       checkout: fechasViaje.checkout,
       tipo_pago: enableCuotas ? 'Cuotas' : 'Total',
-      descuento_monto: Number(descuentoAdicional || 0),
+      descuento_porcentaje: tipoDescuento === 'Porcentaje' ? `${parseFloat(descuentoAdicional) || 0}%` : null,
+      descuento_monto: descuentoCalculadoMonto,
       descuento_referidos_monto: descuentoReferidoMonto,
       observacion: observacion + (cuotasCalculadas ? ` | Plan de financiamiento: Inicial $${cuotasCalculadas.montoInicial.toFixed(2)} + ${cuotasCalculadas.numeroCuotas} cuotas de $${cuotasCalculadas.montoPorCuota.toFixed(2)}` : ''),
       hoteles: items.filter(i => i.tipo === 'hotel').map(i => i.data),
@@ -596,7 +694,8 @@ export default function NuevaCotizacion({ user }) {
       });
       // Clear forms
       setItems([]);
-      setDescuentoAdicional(0);
+      setDescuentoAdicional('0');
+      setTipoDescuento('Porcentaje');
       setObservacion('');
     } catch (err) {
       console.error('Error creando cotización:', err);
@@ -670,13 +769,6 @@ export default function NuevaCotizacion({ user }) {
         border: '1px solid rgba(255, 255, 255, 0.18)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          {/*<div style={{
-            background: 'linear-gradient(135deg, rgba(232, 114, 23, 0.2), rgba(37, 99, 235, 0.2))',
-            padding: '12px',
-            borderRadius: '12px',
-            border: '1px solid rgba(232, 114, 23, 0.3)',
-          }}>
-          </div>*/}
           <img src={imgNuevaCotizacion} alt="Cotizador" style={{ width: '28px', height: '28px' }} />
           <div>
             <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#FFFFFF' }}>
@@ -804,7 +896,7 @@ export default function NuevaCotizacion({ user }) {
             </select>
             <input
               type="text"
-              placeholder="Número de Cédula / Documento..."
+              placeholder="Número de Cédula / Documento (Opcional)..."
               value={cliente.documento}
               onChange={e => setCliente({ ...cliente, documento: e.target.value })}
               onKeyDown={e => e.key === 'Enter' && handleBuscarCliente()}
@@ -1631,7 +1723,7 @@ export default function NuevaCotizacion({ user }) {
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       <button
-                        onClick={() => handleRemoveItem(item.uid)}
+                        onClick={() => setItemToDelete(item)}
                         style={{
                           background: 'rgba(239, 68, 68, 0.2)',
                           border: 'none',
@@ -1766,13 +1858,28 @@ export default function NuevaCotizacion({ user }) {
 
           {/* Observations */}
           <div style={{ marginTop: '16px' }}>
-            <label className="erp-label">Observaciones del Itinerario</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label className="erp-label" style={{ margin: 0 }}>Observaciones del Itinerario</label>
+              <span style={{ fontSize: '0.75rem', color: wordCount >= 500 ? '#EF4444' : '#b9c8ddff', fontWeight: wordCount >= 500 ? '700' : '400' }}>
+                {wordCount} / 500 palabras
+              </span>
+            </div>
             <textarea
               rows="3"
               value={observacion}
-              onChange={e => setObservacion(e.target.value)}
-              placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales..."
+              onChange={handleObservacionChange}
+              onKeyDown={handleObservacionKeyDown}
+              placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 500 palabras)..."
               className="erp-input"
+              style={{
+                resize: 'none',
+                height: '90px',
+                minHeight: '90px',
+                maxHeight: '90px',
+                overflowY: 'auto',
+                boxSizing: 'border-box',
+                width: '100%',
+              }}
             />
           </div>
         </div>
@@ -1804,28 +1911,36 @@ export default function NuevaCotizacion({ user }) {
                   <span>-$0.00 USD</span>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', justifyContent: 'space-between' }}>
-                <span style={{ color: '#b9c8ddff', fontSize: '0.875rem' }}>Descuento Adicional:</span>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#b9c8ddff', fontSize: '0.875rem' }}>
+                  Descuento Adicional:
+                  {tipoDescuento === 'Porcentaje' && (parseFloat(descuentoAdicional) || 0) > 0 && (
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: '#10B981' }}>
+                      (-${descuentoCalculadoMonto.toFixed(2)} USD)
+                    </span>
+                  )}
+                </span>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
                   <input
-                    type="number"
-                    min="0"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
                     value={descuentoAdicional}
-                    onChange={e => setDescuentoAdicional(parseFloat(e.target.value) || 0)}
+                    onChange={handleDescuentoChange}
                     className="erp-input"
                     style={{ width: '100px', textAlign: 'right' }}
-
-
+                    placeholder="0"
+                    title={tipoDescuento === 'Porcentaje' ? 'Porcentaje de descuento (máx. 2 dígitos y decimales, ej. 15.5%)' : 'Monto de descuento en USD (máx. 3 dígitos y decimales, ej. 250.00)'}
                   />
                   <select
+                    value={tipoDescuento}
+                    onChange={handleTipoDescuentoChange}
                     className='erp-select'
                     style={{
-                      width: '70px',
+                      width: '85px',
                     }}
                   >
                     <option value="Porcentaje">%</option>
-                    <option value="Monto">Monto</option>
+                    <option value="Monto">Monto ($)</option>
                   </select>
                 </div>
               </div>
@@ -1892,6 +2007,31 @@ export default function NuevaCotizacion({ user }) {
           </div>
         </div>
       </div>
+
+      {/* Modal de confirmación para eliminar producto del itinerario */}
+      <DeleteConfirmationModal
+        isOpen={!!itemToDelete}
+        title="Confirmar Eliminación de Producto"
+        subtitle="¿Está seguro de que desea eliminar este producto de la cotización?"
+        content={
+          itemToDelete ? (
+            <div style={{ color: '#E2E8F0', fontSize: '0.875rem' }}>
+              <p style={{ margin: '4px 0' }}><strong>Tipo:</strong> <span style={{ textTransform: 'capitalize', color: '#E87217' }}>{itemToDelete.tipo}</span></p>
+              <p style={{ margin: '4px 0' }}><strong>Producto:</strong> {itemToDelete.titulo}</p>
+              <p style={{ margin: '4px 0' }}><strong>Detalle:</strong> {itemToDelete.detalle}</p>
+              <p style={{ margin: '4px 0' }}><strong>Monto:</strong> ${Number(itemToDelete.precio || 0).toFixed(2)} USD</p>
+            </div>
+          ) : null
+        }
+        confirmText="Sí, Eliminar"
+        onCancel={() => setItemToDelete(null)}
+        onConfirm={() => {
+          if (itemToDelete) {
+            handleRemoveItem(itemToDelete.uid);
+            setItemToDelete(null);
+          }
+        }}
+      />
     </div>
   );
 }
