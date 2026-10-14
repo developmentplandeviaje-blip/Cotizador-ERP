@@ -10,6 +10,8 @@ import imgPaquetes from '../../assets/Paqueteria.svg';
 import imgVehiculos from '../../assets/Vehiculos.svg';
 import imgAgregar from '../../assets/Agregar.svg';
 import Badge from '../common/Badge';
+import imgUsuario from '../../assets/Usuario.svg';
+import imgServicios from '../../assets/Servicios.svg';
 
 export default function NuevaCotizacion({ user }) {
   // Catalogs
@@ -647,7 +649,7 @@ export default function NuevaCotizacion({ user }) {
 
   if (loadingCatalogs) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px', color: '#94A3B8' }}>
+      <div style={{ textAlign: 'center', padding: '60px', color: '#b9c8ddff' }}>
         <p style={{ fontSize: '1.125rem' }}>Cargando catálogo maestro de productos y servicios...</p>
       </div>
     );
@@ -663,26 +665,23 @@ export default function NuevaCotizacion({ user }) {
         flexWrap: 'wrap',
         gap: '16px',
         padding: '20px 24px',
-        background: 'rgba(30, 41, 59, 0.72)',
+        background: 'rgba(16, 28, 68, 0.72)',
         borderRadius: '16px',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: '1px solid rgba(255, 255, 255, 0.18)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{
+          {/*<div style={{
             background: 'linear-gradient(135deg, rgba(232, 114, 23, 0.2), rgba(37, 99, 235, 0.2))',
             padding: '12px',
             borderRadius: '12px',
             border: '1px solid rgba(232, 114, 23, 0.3)',
           }}>
-            <img src={imgNuevaCotizacion} alt="Cotizador" style={{ width: '28px', height: '28px' }} />
-          </div>
+          </div>*/}
+          <img src={imgNuevaCotizacion} alt="Cotizador" style={{ width: '28px', height: '28px' }} />
           <div>
             <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#FFFFFF' }}>
               Nueva Cotización
             </h1>
-            <p style={{ margin: '4px 0 0 0', color: '#94A3B8', fontSize: '0.875rem' }}>
-              Configuración de pasajeros, servicios multidestino y plan de pagos
-            </p>
           </div>
         </div>
 
@@ -691,13 +690,13 @@ export default function NuevaCotizacion({ user }) {
           display: 'flex',
           alignItems: 'center',
           gap: '16px',
-          background: 'rgba(15, 23, 42, 0.6)',
+          background: 'rgb(10 54 151 / 30%)',
           padding: '8px 18px',
           borderRadius: '12px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          border: '1px solid rgb(71, 113, 207)',
         }}>
           <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block' }}>Adultos</span>
+            <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', display: 'block' }}>Adultos</span>
             <input
               type="number"
               min="1"
@@ -706,9 +705,9 @@ export default function NuevaCotizacion({ user }) {
               style={{ width: '50px', background: 'transparent', border: 'none', color: '#FFF', fontWeight: '700', textAlign: 'center' }}
             />
           </div>
-          <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ width: '1px', height: '24px', background: 'rgb(37, 99, 235)' }} />
           <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block' }}>Adolescentes</span>
+            <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', display: 'block' }}>Adolescentes</span>
             <input
               type="number"
               min="0"
@@ -717,9 +716,9 @@ export default function NuevaCotizacion({ user }) {
               style={{ width: '50px', background: 'transparent', border: 'none', color: '#FFF', fontWeight: '700', textAlign: 'center' }}
             />
           </div>
-          <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ width: '1px', height: '24px', background: 'rgb(37, 99, 235)' }} />
           <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block' }}>Niños</span>
+            <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', display: 'block' }}>Niños</span>
             <input
               type="number"
               min="0"
@@ -728,9 +727,9 @@ export default function NuevaCotizacion({ user }) {
               style={{ width: '50px', background: 'transparent', border: 'none', color: '#FFF', fontWeight: '700', textAlign: 'center' }}
             />
           </div>
-          <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ width: '1px', height: '24px', background: 'rgb(37, 99, 235)' }} />
           <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block' }}>Infantes</span>
+            <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', display: 'block' }}>Infantes</span>
             <input
               type="number"
               min="0"
@@ -739,8 +738,8 @@ export default function NuevaCotizacion({ user }) {
               style={{ width: '50px', background: 'transparent', border: 'none', color: '#FFF', fontWeight: '700', textAlign: 'center' }}
             />
           </div>
-          <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)' }} />
-          <Badge status="activo">{totalPax} Pax</Badge>
+          <div style={{ width: '1px', height: '24px', background: 'rgb(37, 99, 235)' }} />
+          <Badge status="badge-neutral">{totalPax} Pax</Badge>
         </div>
       </div>
 
@@ -777,13 +776,13 @@ export default function NuevaCotizacion({ user }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
         {/* Card: Cliente Principal */}
         <div style={{
-          background: 'rgba(30, 41, 59, 0.72)',
+          background: 'rgb(6, 18, 81)',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '20px',
         }}>
           <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>👤</span> Cliente Principal (Pasajero Titular)
+            <img src={imgUsuario} style={{ width: '20px', height: '20px' }} alt="" /> Cliente Principal (Pasajero Titular)
           </h2>
 
           {/* Autocomplete Lookup Bar (US-04) */}
@@ -791,13 +790,10 @@ export default function NuevaCotizacion({ user }) {
             <select
               value={cliente.tipo_documento}
               onChange={e => setCliente({ ...cliente, tipo_documento: e.target.value })}
+              className='erp-select'
               style={{
                 width: '70px',
-                background: 'rgba(15, 23, 42, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#FFF',
-                borderRadius: '8px',
-                padding: '8px',
+
               }}
             >
               <option value="V">V-</option>
@@ -812,19 +808,12 @@ export default function NuevaCotizacion({ user }) {
               value={cliente.documento}
               onChange={e => setCliente({ ...cliente, documento: e.target.value })}
               onKeyDown={e => e.key === 'Enter' && handleBuscarCliente()}
-              style={{
-                flex: 1,
-                background: 'rgba(15, 23, 42, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#FFF',
-                borderRadius: '8px',
-                padding: '8px 12px',
-              }}
+              className='erp-input'
             />
             <button
               onClick={handleBuscarCliente}
               disabled={searchingClient}
-              className="btn-primary"
+              className="btn-secondary-form"
               style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
               title="Buscar en base de datos"
             >
@@ -849,43 +838,43 @@ export default function NuevaCotizacion({ user }) {
           {/* Form Fields */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
-              <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Nombres *</label>
+              <label className='erp-label'>Nombres <span className="req">*</span></label>
               <input
                 type="text"
                 value={cliente.nombres}
                 onChange={e => setCliente({ ...cliente, nombres: e.target.value })}
                 placeholder="Nombre(s)"
-                style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                className='erp-input'
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Apellidos</label>
+              <label className='erp-label'>Apellidos <span className="req">*</span></label>
               <input
                 type="text"
                 value={cliente.apellidos}
                 onChange={e => setCliente({ ...cliente, apellidos: e.target.value })}
                 placeholder="Apellido(s)"
-                style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                className='erp-input'
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Teléfono</label>
+              <label className='erp-label'>Teléfono </label>
               <input
                 type="text"
                 value={cliente.telefono}
                 onChange={e => setCliente({ ...cliente, telefono: e.target.value })}
                 placeholder="+58 412 0000000"
-                style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                className='erp-input'
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Correo Electrónico</label>
+              <label className='erp-label'>Correo Electrónico </label>
               <input
                 type="email"
                 value={cliente.correo}
                 onChange={e => setCliente({ ...cliente, correo: e.target.value })}
                 placeholder="cliente@correo.com"
-                style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                className='erp-input'
               />
             </div>
           </div>
@@ -893,63 +882,56 @@ export default function NuevaCotizacion({ user }) {
 
         {/* Card: Fechas del Viaje & Código de Referido (US-01) */}
         <div style={{
-          background: 'rgba(30, 41, 59, 0.72)',
+          background: 'rgb(6, 18, 81)',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '20px',
         }}>
           <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>🗓️</span> Fechas del Viaje & Promotor
+            <span></span> Fechas del Viaje
           </h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
             <div>
-              <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Fecha Check-in</label>
+              <label className='erp-label'>Fecha Check-in</label>
               <input
                 type="date"
                 value={fechasViaje.checkin}
                 onChange={e => setFechasViaje({ ...fechasViaje, checkin: e.target.value })}
-                style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                className='erp-input'
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Fecha Check-out</label>
+              <label className='erp-label'>Fecha Check-out</label>
               <input
                 type="date"
                 value={fechasViaje.checkout}
                 onChange={e => setFechasViaje({ ...fechasViaje, checkout: e.target.value })}
-                style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                className='erp-input'
               />
             </div>
           </div>
 
           {/* Referral Code (US-01) */}
           <div>
-            <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>
-              Código de Referido / Promotor (US-01)
+            <label className='erp-label'>
+              Código de Referido
             </label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
-                placeholder="Ej. REF-2026-X"
+                placeholder="Ej. EMB-EJEMPLO"
                 value={codigoReferido}
                 disabled={!!referidoData}
                 onChange={e => setCodigoReferido(e.target.value.toUpperCase())}
-                style={{
-                  flex: 1,
-                  background: 'rgba(15, 23, 42, 0.8)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  color: '#FFF',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
-                }}
+                className='erp-input'
               />
               {!referidoData ? (
                 <button
                   type="button"
                   onClick={handleValidarReferido}
                   disabled={validatingReferido || !codigoReferido.trim()}
-                  className="btn-primary"
+                  className="btn-form-nxt"
                   style={{ padding: '8px 16px' }}
                 >
                   {validatingReferido ? 'Validando...' : 'Aplicar'}
@@ -975,7 +957,7 @@ export default function NuevaCotizacion({ user }) {
             {referidoData && (
               <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem', color: '#10B981' }}>
                 <span>✓ Promotor Asociado: <strong>{referidoData.nombre}</strong> ({referidoData.codigo})</span>
-                <span style={{ color: '#94A3B8' }}>($0.00 descuento pasivo)</span>
+                <span style={{ color: '#b9c8ddff' }}>($0.00 descuento pasivo)</span>
               </div>
             )}
 
@@ -991,17 +973,17 @@ export default function NuevaCotizacion({ user }) {
       {/* Accompanist / Companion Passengers (if > 1 pax) */}
       {pasajeros.length > 0 && (
         <div style={{
-          background: 'rgba(30, 41, 59, 0.72)',
+          background: 'rgb(6, 18, 81)',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '20px',
         }}>
           <h2 style={{ fontSize: '1rem', color: '#FFF', margin: '0 0 12px 0' }}>
-            👥 Pasajeros Acompañantes ({pasajeros.length})
+            <img src={imgUsuario} style={{ width: '18px', height: '18px' }} alt="" /> Pasajeros Acompañantes ({pasajeros.length})
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
             {pasajeros.map((p, idx) => (
-              <div key={idx} style={{ background: 'rgba(15, 23, 42, 0.5)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div key={idx} style={{ background: 'rgba(255,255,250, 0.03)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.18)' }}>
                 <span style={{ fontSize: '0.75rem', color: '#E87217', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
                   Acompañante #{idx + 2}
                 </span>
@@ -1011,23 +993,40 @@ export default function NuevaCotizacion({ user }) {
                     placeholder="Nombres"
                     value={p.nombres}
                     onChange={e => handleUpdatePasajero(idx, 'nombres', e.target.value)}
-                    style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', borderRadius: '6px', padding: '6px' }}
+                    className='erp-input'
                   />
                   <input
                     type="text"
                     placeholder="Apellidos"
                     value={p.apellidos}
                     onChange={e => handleUpdatePasajero(idx, 'apellidos', e.target.value)}
-                    style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', borderRadius: '6px', padding: '6px' }}
+                    className='erp-input'
                   />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Cédula / Documento"
-                  value={p.documento}
-                  onChange={e => handleUpdatePasajero(idx, 'documento', e.target.value)}
-                  style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', borderRadius: '6px', padding: '6px' }}
-                />
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                  <select
+                    value={p.tipo_documento}
+                    onChange={e => handleUpdatePasajero(idx, 'tipo_documento', e.target.value)}
+                    className='erp-select'
+                    style={{
+                      width: '70px',
+
+                    }}
+                  >
+                    <option value="V">V-</option>
+                    <option value="E">E-</option>
+                    <option value="J">J-</option>
+                    <option value="P">P-</option>
+                    <option value="G">G-</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Cédula / Documento"
+                    value={p.documento}
+                    onChange={e => handleUpdatePasajero(idx, 'documento', e.target.value)}
+                    className='erp-input'
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -1036,14 +1035,14 @@ export default function NuevaCotizacion({ user }) {
 
       {/* 2. Selector Dinámico de Productos (Hoteles, Vuelos, Traslados, Excursiones, etc.) */}
       <div style={{
-        background: 'rgba(30, 41, 59, 0.72)',
+        background: 'rgb(6, 18, 81)',
         borderRadius: '16px',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: '1px solid rgba(255, 255, 255, 0.18)',
         padding: '20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
           <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
-            🛍️ Agregar Productos y Servicios al Viaje
+            <img src={imgServicios} alt="Servicios" style={{ width: '24px', height: '24px' }} /> Agregar Productos y Servicios al Viaje
           </h2>
           {catalogos.is_freelancer && (
             <Badge status="activo">Modalidad Freelancer (Costos Ocultos US-03)</Badge>
@@ -1051,7 +1050,7 @@ export default function NuevaCotizacion({ user }) {
         </div>
 
         {/* Tab Buttons */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           {[
             { id: 'hotel', label: 'Hoteles', icon: imgHoteles },
             { id: 'vuelo', label: 'Vuelos', icon: imgAerolineas },
@@ -1060,7 +1059,7 @@ export default function NuevaCotizacion({ user }) {
             { id: 'paquete', label: 'Paquetes', icon: imgPaquetes },
             { id: 'vehiculo', label: 'Vehículos', icon: imgVehiculos },
             { id: 'ferry', label: 'Ferries', icon: '⛴️' },
-            { id: 'otro', label: 'Otros', icon: '➕' },
+            { id: 'otro', label: 'Otros', icon: imgAgregar },
           ].map(tab => {
             const isActive = activeTab === tab.id;
             return (
@@ -1073,9 +1072,9 @@ export default function NuevaCotizacion({ user }) {
                   gap: '8px',
                   padding: '8px 16px',
                   borderRadius: '10px',
-                  border: isActive ? '1px solid #E87217' : '1px solid rgba(255,255,255,0.08)',
-                  background: isActive ? 'rgba(232, 114, 23, 0.2)' : 'rgba(15, 23, 42, 0.5)',
-                  color: isActive ? '#E87217' : '#94A3B8',
+                  border: isActive ? '1px solid #E87217' : '1px solid rgba(255,255,255,0.18)',
+                  background: isActive ? 'rgba(232, 114, 23, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                  color: isActive ? '#E87217' : '#b9c8ddff',
                   fontWeight: isActive ? '600' : '400',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
@@ -1108,11 +1107,11 @@ export default function NuevaCotizacion({ user }) {
           {activeTab === 'hotel' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Destino / Ubicación</label>
+                <label className='erp-label'>Ubicación</label>
                 <select
                   value={hotelForm.id_ubicacion}
                   onChange={e => setHotelForm({ ...hotelForm, id_ubicacion: e.target.value, id_hotel: '', id_habitacion: '' })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-select"
                 >
                   <option value="">Todas las ubicaciones</option>
                   {(catalogos.ubicaciones || []).map(u => (
@@ -1122,11 +1121,11 @@ export default function NuevaCotizacion({ user }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Hotel</label>
+                <label className='erp-label'>Hotel</label>
                 <select
                   value={hotelForm.id_hotel}
                   onChange={e => setHotelForm({ ...hotelForm, id_hotel: e.target.value, id_habitacion: '' })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-select"
                 >
                   <option value="">Seleccione un hotel...</option>
                   {filteredHoteles.map(h => (
@@ -1136,11 +1135,11 @@ export default function NuevaCotizacion({ user }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Habitación</label>
+                <label className='erp-label'>Habitación</label>
                 <select
                   value={hotelForm.id_habitacion}
                   onChange={e => setHotelForm({ ...hotelForm, id_habitacion: e.target.value })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-select"
                 >
                   <option value="">Seleccione habitación...</option>
                   {(selectedHotel?.habitaciones || []).map(hab => (
@@ -1150,24 +1149,24 @@ export default function NuevaCotizacion({ user }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Noches</label>
+                <label className='erp-label'>Noches</label>
                 <input
                   type="number"
                   min="1"
                   value={hotelForm.noches}
                   onChange={e => setHotelForm({ ...hotelForm, noches: Math.max(1, parseInt(e.target.value) || 1) })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Tarifa Adulto ($/noche)</label>
+                <label className='erp-label'>Tarifa Adulto ($/noche)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={hotelForm.precio_noche_adulto}
                   onChange={e => setHotelForm({ ...hotelForm, precio_noche_adulto: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
@@ -1175,11 +1174,11 @@ export default function NuevaCotizacion({ user }) {
                 <button
                   type="button"
                   onClick={() => handleAddItem('hotel')}
-                  className="btn-primary"
+                  className="btn-form-nxt"
                   style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  + Agregar Hotel
+                  Agregar Hotel
                 </button>
               </div>
             </div>
@@ -1189,11 +1188,11 @@ export default function NuevaCotizacion({ user }) {
           {activeTab === 'vuelo' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Aerolínea</label>
+                <label className='erp-label'>Aerolínea</label>
                 <select
                   value={vueloForm.id_aerolinea}
                   onChange={e => setVueloForm({ ...vueloForm, id_aerolinea: e.target.value })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-select"
                 >
                   <option value="">Seleccione aerolínea...</option>
                   {(catalogos.aerolineas || []).map(a => (
@@ -1203,34 +1202,34 @@ export default function NuevaCotizacion({ user }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Itinerario (Ruta)</label>
+                <label className='erp-label'>Itinerario (Ruta)</label>
                 <input
                   type="text"
                   placeholder="Ej. CCS - PMV - CCS"
                   value={vueloForm.itinerario}
                   onChange={e => setVueloForm({ ...vueloForm, itinerario: e.target.value })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Fecha Vuelo</label>
+                <label className='erp-label'>Fecha Vuelo</label>
                 <input
                   type="datetime-local"
                   value={vueloForm.fecha_vuelo}
                   onChange={e => setVueloForm({ ...vueloForm, fecha_vuelo: e.target.value })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Tarifa Adulto ($)</label>
+                <label className='erp-label'>Tarifa Adulto ($)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={vueloForm.precio_adulto}
                   onChange={e => setVueloForm({ ...vueloForm, precio_adulto: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
@@ -1238,11 +1237,11 @@ export default function NuevaCotizacion({ user }) {
                 <button
                   type="button"
                   onClick={() => handleAddItem('vuelo')}
-                  className="btn-primary"
+                  className="btn-form-nxt"
                   style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  + Agregar Vuelo
+                  Agregar Vuelo
                 </button>
               </div>
             </div>
@@ -1252,7 +1251,7 @@ export default function NuevaCotizacion({ user }) {
           {activeTab === 'traslado' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Servicio de Traslado</label>
+                <label className='erp-label'>Servicio de Traslado</label>
                 <select
                   value={trasladoForm.id_traslado}
                   onChange={e => {
@@ -1264,7 +1263,7 @@ export default function NuevaCotizacion({ user }) {
                       precio: found ? Number(found.precio_publico) : 0,
                     });
                   }}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-select"
                 >
                   <option value="">Seleccione traslado...</option>
                   {(catalogos.traslados || []).map(t => (
@@ -1274,23 +1273,23 @@ export default function NuevaCotizacion({ user }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Fecha y Hora</label>
+                <label className='erp-label'>Fecha y Hora</label>
                 <input
                   type="datetime-local"
                   value={trasladoForm.fecha_traslado}
                   onChange={e => setTrasladoForm({ ...trasladoForm, fecha_traslado: e.target.value })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Precio Total ($)</label>
+                <label className='erp-label'>Precio Total ($)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={trasladoForm.precio}
                   onChange={e => setTrasladoForm({ ...trasladoForm, precio: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
@@ -1298,11 +1297,11 @@ export default function NuevaCotizacion({ user }) {
                 <button
                   type="button"
                   onClick={() => handleAddItem('traslado')}
-                  className="btn-primary"
+                  className="btn-form-nxt"
                   style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  + Agregar Traslado
+                  Agregar Traslado
                 </button>
               </div>
             </div>
@@ -1312,7 +1311,7 @@ export default function NuevaCotizacion({ user }) {
           {activeTab === 'excursion' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Excursión</label>
+                <label className='erp-label'>Excursión</label>
                 <select
                   value={excursionForm.id_excursion}
                   onChange={e => {
@@ -1325,7 +1324,7 @@ export default function NuevaCotizacion({ user }) {
                       precio_nino: found ? Number(found.precio_nino) : 0,
                     });
                   }}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-select"
                 >
                   <option value="">Seleccione excursión...</option>
                   {(catalogos.excursiones || []).map(ex => (
@@ -1335,23 +1334,23 @@ export default function NuevaCotizacion({ user }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Fecha</label>
+                <label className='erp-label'>Fecha</label>
                 <input
                   type="date"
                   value={excursionForm.fecha}
                   onChange={e => setExcursionForm({ ...excursionForm, fecha: e.target.value })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Precio Adulto ($)</label>
+                <label className='erp-label'>Precio Adulto ($)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={excursionForm.precio_adulto}
                   onChange={e => setExcursionForm({ ...excursionForm, precio_adulto: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
@@ -1359,11 +1358,11 @@ export default function NuevaCotizacion({ user }) {
                 <button
                   type="button"
                   onClick={() => handleAddItem('excursion')}
-                  className="btn-primary"
+                  className="btn-form-nxt"
                   style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  + Agregar Excursión
+                  Agregar Excursión
                 </button>
               </div>
             </div>
@@ -1373,7 +1372,7 @@ export default function NuevaCotizacion({ user }) {
           {activeTab === 'paquete' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Paquete Turístico</label>
+                <label className='erp-label'>Paquete Turístico</label>
                 <select
                   value={paqueteForm.id_paquete}
                   onChange={e => {
@@ -1386,7 +1385,7 @@ export default function NuevaCotizacion({ user }) {
                       precio_nino: found ? Number(found.precio_nino) : 0,
                     });
                   }}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-select"
                 >
                   <option value="">Seleccione paquete...</option>
                   {(catalogos.paquetes || []).map(p => (
@@ -1396,23 +1395,23 @@ export default function NuevaCotizacion({ user }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Fecha</label>
+                <label className='erp-label'>Fecha</label>
                 <input
                   type="date"
                   value={paqueteForm.fecha}
                   onChange={e => setPaqueteForm({ ...paqueteForm, fecha: e.target.value })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Precio Adulto ($)</label>
+                <label className='erp-label'>Precio Adulto ($)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={paqueteForm.precio_adulto}
                   onChange={e => setPaqueteForm({ ...paqueteForm, precio_adulto: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
@@ -1420,11 +1419,11 @@ export default function NuevaCotizacion({ user }) {
                 <button
                   type="button"
                   onClick={() => handleAddItem('paquete')}
-                  className="btn-primary"
+                  className="btn-form-nxt"
                   style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  + Agregar Paquete
+                  Agregar Paquete
                 </button>
               </div>
             </div>
@@ -1434,11 +1433,11 @@ export default function NuevaCotizacion({ user }) {
           {activeTab === 'vehiculo' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Vehículo</label>
+                <label className='erp-label'>Vehículo</label>
                 <select
                   value={vehiculoForm.id_vehiculo}
                   onChange={e => setVehiculoForm({ ...vehiculoForm, id_vehiculo: e.target.value })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-select"
                 >
                   <option value="">Seleccione vehículo...</option>
                   {(catalogos.vehiculos || []).map(v => (
@@ -1448,24 +1447,24 @@ export default function NuevaCotizacion({ user }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Días de Alquiler</label>
+                <label className='erp-label'>Días de Alquiler</label>
                 <input
                   type="number"
                   min="1"
                   value={vehiculoForm.dias}
                   onChange={e => setVehiculoForm({ ...vehiculoForm, dias: Math.max(1, parseInt(e.target.value) || 1) })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Tarifa Diaria ($)</label>
+                <label className='erp-label'>Tarifa Diaria ($)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={vehiculoForm.precio_unitario}
                   onChange={e => setVehiculoForm({ ...vehiculoForm, precio_unitario: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
@@ -1473,11 +1472,11 @@ export default function NuevaCotizacion({ user }) {
                 <button
                   type="button"
                   onClick={() => handleAddItem('vehiculo')}
-                  className="btn-primary"
+                  className="btn-form-nxt"
                   style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  + Agregar Vehículo
+                  Agregar Vehículo
                 </button>
               </div>
             </div>
@@ -1487,35 +1486,35 @@ export default function NuevaCotizacion({ user }) {
           {activeTab === 'ferry' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Ruta</label>
+                <label className='erp-label'>Ruta</label>
                 <input
                   type="text"
                   placeholder="Ej. Puerto La Cruz - Punta de Piedras"
                   value={ferryForm.ruta}
                   onChange={e => setFerryForm({ ...ferryForm, ruta: e.target.value })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Tarifa Adulto ($)</label>
+                <label className='erp-label'>Tarifa Adulto ($)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={ferryForm.precio_adulto}
                   onChange={e => setFerryForm({ ...ferryForm, precio_adulto: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Vehículos adicionales ($)</label>
+                <label className='erp-label'>Vehículos adicionales ($)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={ferryForm.precio_vehiculo}
                   onChange={e => setFerryForm({ ...ferryForm, precio_vehiculo: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
@@ -1523,11 +1522,11 @@ export default function NuevaCotizacion({ user }) {
                 <button
                   type="button"
                   onClick={() => handleAddItem('ferry')}
-                  className="btn-primary"
+                  className="btn-form-nxt"
                   style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  + Agregar Ferry
+                  Agregar Ferry
                 </button>
               </div>
             </div>
@@ -1537,24 +1536,24 @@ export default function NuevaCotizacion({ user }) {
           {activeTab === 'otro' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Descripción del Servicio</label>
+                <label className='erp-label'>Descripción del Servicio</label>
                 <input
                   type="text"
                   placeholder="Ej. Seguro de Viaje, Asistencia Médica..."
                   value={otroForm.descripcion}
                   onChange={e => setOtroForm({ ...otroForm, descripcion: e.target.value })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Precio Venta ($)</label>
+                <label className='erp-label'>Precio Venta ($)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={otroForm.precio}
                   onChange={e => setOtroForm({ ...otroForm, precio: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-input"
                 />
               </div>
 
@@ -1562,11 +1561,11 @@ export default function NuevaCotizacion({ user }) {
                 <button
                   type="button"
                   onClick={() => handleAddItem('otro')}
-                  className="btn-primary"
+                  className="btn-form-nxt"
                   style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  + Agregar Servicio
+                  Agregar Servicio
                 </button>
               </div>
             </div>
@@ -1576,20 +1575,20 @@ export default function NuevaCotizacion({ user }) {
 
       {/* 3. Carrito de Productos Agregados */}
       <div style={{
-        background: 'rgba(30, 41, 59, 0.72)',
+        background: 'rgb(97 157 255 / 8%)',
         borderRadius: '16px',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: '1px solid rgb(255 255 255 / 34%)',
         padding: '20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
-            🛒 Resumen de Productos del Itinerario ({items.length})
+            Resumen de Productos del Itinerario ({items.length})
           </h2>
           {items.length > 0 && (
             <button
               onClick={handleClearItems}
               style={{
-                background: 'transparent',
+                background: 'rgb(255 0 0 / 14%)',
                 border: '1px solid rgba(239, 68, 68, 0.4)',
                 color: '#EF4444',
                 padding: '6px 12px',
@@ -1604,14 +1603,14 @@ export default function NuevaCotizacion({ user }) {
         </div>
 
         {items.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '36px', color: '#94A3B8', border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '12px' }}>
+          <div style={{ textAlign: 'center', padding: '36px', color: '#b9c8ddff', border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '12px' }}>
             <p style={{ margin: 0 }}>No hay productos en esta cotización. Utilice las pestañas superiores para agregar servicios.</p>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.51)', color: '#c7d4e7ff', fontSize: '0.75rem', textTransform: 'uppercase' }}>
                   <th style={{ padding: '10px 12px' }}>Tipo</th>
                   <th style={{ padding: '10px 12px' }}>Producto / Descripción</th>
                   <th style={{ padding: '10px 12px' }}>Detalles / Pax</th>
@@ -1621,13 +1620,13 @@ export default function NuevaCotizacion({ user }) {
               </thead>
               <tbody>
                 {items.map(item => (
-                  <tr key={item.uid} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#FFF', fontSize: '0.875rem' }}>
+                  <tr key={item.uid} style={{ borderBottom: '1px solid rgba(255,255,255,0.51)', color: '#FFF', fontSize: '0.875rem' }}>
                     <td style={{ padding: '12px' }}>
                       <span style={{ textTransform: 'capitalize', fontWeight: '600', color: '#E87217' }}>{item.tipo}</span>
                     </td>
                     <td style={{ padding: '12px', fontWeight: '500' }}>{item.titulo}</td>
-                    <td style={{ padding: '12px', color: '#94A3B8', fontSize: '0.8125rem' }}>{item.detalle}</td>
-                    <td style={{ padding: '12px', textAlign: 'right', fontWeight: '700', color: '#10B981' }}>
+                    <td style={{ padding: '12px', color: '#F8FAFC', fontSize: '0.8125rem' }}>{item.detalle}</td>
+                    <td style={{ padding: '12px', textAlign: 'right', fontWeight: '700', color: '#F8FAFC' }}>
                       ${Number(item.precio || 0).toFixed(2)}
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
@@ -1659,21 +1658,39 @@ export default function NuevaCotizacion({ user }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
         {/* Card: Plan de Pagos por Cuotas */}
         <div style={{
-          background: 'rgba(30, 41, 59, 0.72)',
+          background: 'rgb(6, 18, 81)',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '20px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
-              💳 Financiamiento / Cuotas
+              Financiamiento / Cuotas
             </h2>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#94A3B8', fontSize: '0.875rem' }}>
+
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              fontSize: '0.8125rem',
+              fontWeight: '500',
+              color: enableCuotas ? '#E87217' : '#b9c8ddff',
+              padding: '10px 16px',
+              borderRadius: '12px',
+              background: 'rgb(30, 41, 59)',
+              transition: 'all 0.2s ease',
+              boxShadow: enableCuotas
+                ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
+                : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+              border: enableCuotas ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+              userSelect: 'none'
+            }}>
               <input
                 type="checkbox"
                 checked={enableCuotas}
                 onChange={e => setEnableCuotas(e.target.checked)}
-                style={{ width: '16px', height: '16px', accentColor: '#E87217' }}
+                style={{ display: 'none' }}
               />
               Habilitar Cuotas
             </label>
@@ -1683,11 +1700,11 @@ export default function NuevaCotizacion({ user }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Modo de Pago Inicial</label>
+                  <label className="erp-label">Modo de Pago Inicial</label>
                   <select
                     value={cuotasConfig.modo}
                     onChange={e => setCuotasConfig({ ...cuotasConfig, modo: e.target.value })}
-                    style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                    className="erp-select"
                   >
                     <option value="monto">Monto Fijo ($)</option>
                     <option value="porcentaje">Porcentaje (%)</option>
@@ -1695,7 +1712,7 @@ export default function NuevaCotizacion({ user }) {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>
+                  <label className="erp-label">
                     {cuotasConfig.modo === 'monto' ? 'Monto Inicial ($)' : 'Porcentaje Inicial (%)'}
                   </label>
                   <input
@@ -1703,17 +1720,17 @@ export default function NuevaCotizacion({ user }) {
                     step="0.01"
                     value={cuotasConfig.valor_inicial}
                     onChange={e => setCuotasConfig({ ...cuotasConfig, valor_inicial: parseFloat(e.target.value) || 0 })}
-                    style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                    className="erp-input"
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Número de Cuotas (1 a 12)</label>
+                <label className="erp-label">Número de Cuotas (1 a 12)</label>
                 <select
                   value={cuotasConfig.numero_cuotas}
                   onChange={e => setCuotasConfig({ ...cuotasConfig, numero_cuotas: parseInt(e.target.value) || 1 })}
-                  style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px' }}
+                  className="erp-select"
                 >
                   {[1, 2, 3, 4, 5, 6, 8, 10, 12].map(n => (
                     <option key={n} value={n}>{n} Cuotas mensuales</option>
@@ -1722,49 +1739,49 @@ export default function NuevaCotizacion({ user }) {
               </div>
 
               {cuotasCalculadas && (
-                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Proyección Estimada:</span>
+                <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.18)' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Proyección Estimada:</span>
                   <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF' }}>
                       <span>Pago Inicial:</span>
-                      <strong style={{ color: '#E87217' }}>${cuotasCalculadas.montoInicial.toFixed(2)} USD</strong>
+                      <strong style={{ color: '#10B981' }}>${cuotasCalculadas.montoInicial.toFixed(2)} USD</strong>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fff' }}>
                       <span>Monto Financiado:</span>
-                      <span>${cuotasCalculadas.montoRestante.toFixed(2)} USD</span>
+                      <span style={{ color: '#E87217' }}>${cuotasCalculadas.montoRestante.toFixed(2)} USD</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF', borderTop: '1px solid rgba(255,255,255,0.51)', paddingTop: '6px' }}>
                       <span>{cuotasCalculadas.numeroCuotas} cuotas iguales de:</span>
-                      <strong style={{ color: '#10B981' }}>${cuotasCalculadas.montoPorCuota.toFixed(2)} USD</strong>
+                      <strong style={{ color: '#E87217' }}>${cuotasCalculadas.montoPorCuota.toFixed(2)} USD</strong>
                     </div>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <p style={{ color: '#94A3B8', fontSize: '0.875rem', margin: '8px 0 0 0' }}>
+            <p style={{ color: '#b9c8ddff', fontSize: '0.875rem', margin: '8px 0 0 0' }}>
               Pago único al contado. Active la casilla para configurar pagos fraccionados o financiamiento.
             </p>
           )}
 
           {/* Observations */}
           <div style={{ marginTop: '16px' }}>
-            <label style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>Observaciones del Itinerario</label>
+            <label className="erp-label">Observaciones del Itinerario</label>
             <textarea
               rows="3"
               value={observacion}
               onChange={e => setObservacion(e.target.value)}
               placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales..."
-              style={{ width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '8px', padding: '8px', resize: 'vertical' }}
+              className="erp-input"
             />
           </div>
         </div>
 
         {/* Card: Panel de Totales y Persistencia */}
         <div style={{
-          background: 'rgba(30, 41, 59, 0.72)',
+          background: 'rgb(6, 18, 81)',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
@@ -1772,11 +1789,11 @@ export default function NuevaCotizacion({ user }) {
         }}>
           <div>
             <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: '0 0 16px 0' }}>
-              📊 Resumen Financiero
+              Resumen Financiero
             </h2>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94A3B8', fontSize: '0.9375rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b9c8ddff', fontSize: '0.9375rem' }}>
                 <span>Subtotal Servicios:</span>
                 <span style={{ color: '#FFF', fontWeight: '600' }}>${subtotalUSD.toFixed(2)} USD</span>
               </div>
@@ -1787,17 +1804,30 @@ export default function NuevaCotizacion({ user }) {
                   <span>-$0.00 USD</span>
                 </div>
               )}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', justifyContent: 'space-between' }}>
+                <span style={{ color: '#b9c8ddff', fontSize: '0.875rem' }}>Descuento Adicional:</span>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={descuentoAdicional}
+                    onChange={e => setDescuentoAdicional(parseFloat(e.target.value) || 0)}
+                    className="erp-input"
+                    style={{ width: '100px', textAlign: 'right' }}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#94A3B8', fontSize: '0.875rem' }}>Descuento Adicional ($):</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={descuentoAdicional}
-                  onChange={e => setDescuentoAdicional(parseFloat(e.target.value) || 0)}
-                  style={{ width: '100px', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', borderRadius: '6px', padding: '4px 8px', textAlign: 'right' }}
-                />
+
+                  />
+                  <select
+                    className='erp-select'
+                    style={{
+                      width: '70px',
+                    }}
+                  >
+                    <option value="Porcentaje">%</option>
+                    <option value="Monto">Monto</option>
+                  </select>
+                </div>
               </div>
 
               <div style={{
@@ -1813,7 +1843,7 @@ export default function NuevaCotizacion({ user }) {
                   <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#E87217' }}>
                     ${totalUSD.toFixed(2)} USD
                   </div>
-                  <div style={{ fontSize: '0.8125rem', color: '#94A3B8' }}>
+                  <div style={{ fontSize: '0.8125rem', color: '#b9c8ddff' }}>
                     Bs. {totalVES} (Ref. BCV)
                   </div>
                 </div>
@@ -1839,7 +1869,7 @@ export default function NuevaCotizacion({ user }) {
                 borderRadius: '12px',
               }}
             >
-              {submitting ? 'Creando Cotización Oficial...' : '💼 Crear Cotización Formal'}
+              {submitting ? 'Creando Cotización...' : ' Crear Cotización'}
             </button>
 
             <button
@@ -1850,14 +1880,14 @@ export default function NuevaCotizacion({ user }) {
                 padding: '12px',
                 background: 'rgba(37, 99, 235, 0.2)',
                 border: '1px solid rgba(37, 99, 235, 0.4)',
-                color: '#60A5FA',
+                color: 'white',
                 fontSize: '0.9375rem',
                 fontWeight: '600',
                 borderRadius: '12px',
                 cursor: 'pointer',
               }}
             >
-              {submittingRapida ? 'Guardando Express...' : '⚡ Guardar Cotización Rápida'}
+              {submittingRapida ? 'Generando...' : ' Generar Cotización Rápida'}
             </button>
           </div>
         </div>
