@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { showToast } from '../../../utils/toast';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
+import CustomDatePicker from '../../common/CustomDatePicker';
 
 export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = false, showAdolescentes = true, tarifaToEdit = null }) {
   const initialFormState = {
@@ -91,9 +93,7 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
             <label className="erp-label">Desde: <span className="req">*</span></label>
-            <input
-              type="date"
-              className="erp-input"
+            <CustomDatePicker
               value={formData.desde}
               onChange={(e) => handleChange('desde', e.target.value)}
               required
@@ -101,9 +101,7 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
           </div>
           <div>
             <label className="erp-label">Hasta: <span className="req">*</span></label>
-            <input
-              type="date"
-              className="erp-input"
+            <CustomDatePicker
               value={formData.hasta}
               onChange={(e) => handleChange('hasta', e.target.value)}
               required
@@ -138,7 +136,7 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
         {/* Currency */}
         <div style={{ marginBottom: '16px' }}>
           <label className="erp-label">Moneda <span className="req">*</span></label>
-          <select
+          <CustomSelect
             className="erp-select"
             value={formData.moneda}
             onChange={(e) => handleChange('moneda', e.target.value)}
@@ -146,7 +144,7 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             <option value="USD">USD ($)</option>
             <option value="VES">VES (Bs.)</option>
             <option value="EUR">EUR (€)</option>
-          </select>
+          </CustomSelect>
         </div>
 
         {/* Adult Rates */}
@@ -351,18 +349,14 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px', background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px' }}>
             <div>
               <label className="erp-label">Fecha Venta Desde:</label>
-              <input
-                type="date"
-                className="erp-input"
+              <CustomDatePicker
                 value={formData.desde_venta}
                 onChange={(e) => handleChange('desde_venta', e.target.value)}
               />
             </div>
             <div>
               <label className="erp-label">Fecha Venta Hasta:</label>
-              <input
-                type="date"
-                className="erp-input"
+              <CustomDatePicker
                 value={formData.hasta_venta}
                 onChange={(e) => handleChange('hasta_venta', e.target.value)}
               />
