@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import Modal from '../../common/Modal';
 import Badge from '../../common/Badge';
+import CustomSelect from '../../common/CustomSelect';
+import CustomDatePicker from '../../common/CustomDatePicker';
 
 export default function EditarProductoModal({
   isOpen,
@@ -235,7 +237,7 @@ export default function EditarProductoModal({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             <div>
               <label className="erp-label">Hotel</label>
-              <select
+              <CustomSelect
                 value={formData.id_hotel || ''}
                 onChange={e => setFormData({ ...formData, id_hotel: e.target.value, id_habitacion: '' })}
                 className="erp-select"
@@ -244,12 +246,12 @@ export default function EditarProductoModal({
                 {(catalogos.hoteles || []).map(h => (
                   <option key={h.id} value={h.id}>{h.nombre}</option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
 
             <div>
               <label className="erp-label">Habitación</label>
-              <select
+              <CustomSelect
                 value={formData.id_habitacion || ''}
                 onChange={e => handleHabitacionChange(e.target.value)}
                 className="erp-select"
@@ -258,7 +260,7 @@ export default function EditarProductoModal({
                 {(selectedHotel?.habitaciones || []).map(hab => (
                   <option key={hab.id} value={hab.id}>{hab.habitacion}</option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
 
             <div>
@@ -348,7 +350,7 @@ export default function EditarProductoModal({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             <div>
               <label className="erp-label">Aerolínea</label>
-              <select
+              <CustomSelect
                 value={formData.id_aerolinea || ''}
                 onChange={e => setFormData({ ...formData, id_aerolinea: e.target.value })}
                 className="erp-select"
@@ -357,7 +359,7 @@ export default function EditarProductoModal({
                 {(catalogos.aerolineas || []).map(a => (
                   <option key={a.id} value={a.id}>{a.nombre}</option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
 
             <div>
@@ -373,11 +375,9 @@ export default function EditarProductoModal({
 
             <div>
               <label className="erp-label">Fecha de Vuelo</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={formData.fecha_vuelo || ''}
                 onChange={e => setFormData({ ...formData, fecha_vuelo: e.target.value })}
-                className="erp-input"
               />
             </div>
 
@@ -458,7 +458,7 @@ export default function EditarProductoModal({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
               <div>
                 <label className="erp-label">Servicio de Traslado</label>
-                <select
+                <CustomSelect
                   value={formData.id_traslado || ''}
                   onChange={e => setFormData({ ...formData, id_traslado: e.target.value })}
                   className="erp-select"
@@ -467,16 +467,15 @@ export default function EditarProductoModal({
                   {(catalogos.traslados || []).map(t => (
                     <option key={t.id} value={t.id}>{t.ruta_origen}</option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div>
                 <label className="erp-label">Fecha y Hora de Traslado</label>
-                <input
+                <CustomDatePicker
                   type="datetime-local"
                   value={formData.fecha_traslado ? (formData.fecha_traslado.includes('T') ? formData.fecha_traslado : `${formData.fecha_traslado}T00:00`) : ''}
                   onChange={e => setFormData({ ...formData, fecha_traslado: e.target.value })}
-                  className="erp-input"
                 />
               </div>
 
@@ -567,7 +566,7 @@ export default function EditarProductoModal({
                 {formData.tipo_asignacion === 'individual' && (
                   <div>
                     <label className="erp-label">Pasajero asignado a este traslado:</label>
-                    <select
+                    <CustomSelect
                       value={formData.pax_individual_id ?? 0}
                       onChange={e => setFormData({ ...formData, pax_individual_id: Number(e.target.value) })}
                       className="erp-select"
@@ -577,7 +576,7 @@ export default function EditarProductoModal({
                           {p.nombre}
                         </option>
                       ))}
-                    </select>
+                    </CustomSelect>
                   </div>
                 )}
 
@@ -650,7 +649,7 @@ export default function EditarProductoModal({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             <div>
               <label className="erp-label">{tipo === 'excursion' ? 'Excusión' : 'Paquete'}</label>
-              <select
+              <CustomSelect
                 value={tipo === 'excursion' ? (formData.id_excursion || '') : (formData.id_paquete || '')}
                 onChange={e => {
                   if (tipo === 'excursion') {
@@ -670,16 +669,14 @@ export default function EditarProductoModal({
                     <option key={pq.id} value={pq.id}>{pq.paquete}</option>
                   ))
                 }
-              </select>
+              </CustomSelect>
             </div>
 
             <div>
               <label className="erp-label">Fecha</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={formData.fecha || ''}
                 onChange={e => setFormData({ ...formData, fecha: e.target.value })}
-                className="erp-input"
               />
             </div>
 
@@ -736,7 +733,7 @@ export default function EditarProductoModal({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             <div>
               <label className="erp-label">Vehículo</label>
-              <select
+              <CustomSelect
                 value={formData.id_vehiculo || ''}
                 onChange={e => setFormData({ ...formData, id_vehiculo: e.target.value })}
                 className="erp-select"
@@ -745,7 +742,7 @@ export default function EditarProductoModal({
                 {(catalogos.vehiculos || []).map(v => (
                   <option key={v.id} value={v.id}>{v.marca} {v.modelo}</option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
 
             <div>
@@ -773,21 +770,17 @@ export default function EditarProductoModal({
 
             <div>
               <label className="erp-label">Fecha Desde</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={formData.desde || ''}
                 onChange={e => setFormData({ ...formData, desde: e.target.value })}
-                className="erp-input"
               />
             </div>
 
             <div>
               <label className="erp-label">Fecha Hasta</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={formData.hasta || ''}
                 onChange={e => setFormData({ ...formData, hasta: e.target.value })}
-                className="erp-input"
               />
             </div>
 
@@ -913,11 +906,9 @@ export default function EditarProductoModal({
 
             <div>
               <label className="erp-label">Fecha</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={formData.fecha || ''}
                 onChange={e => setFormData({ ...formData, fecha: e.target.value })}
-                className="erp-input"
               />
             </div>
 

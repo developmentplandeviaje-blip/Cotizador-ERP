@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
+import CustomDatePicker from '../../common/CustomDatePicker';
 import { showToast } from '../../../utils/toast';
 
 export default function VehiculoModal({
@@ -237,23 +239,21 @@ export default function VehiculoModal({
             Agencia de Alquiler <span className="req">*</span>
           </label>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <select
-              className="erp-input"
+            <CustomSelect
+              style={{ flex: 1 }}
               value={idVehiculoAgencia}
               onChange={(e) => setIdVehiculoAgencia(e.target.value)}
-              required
               disabled={isSubmitting}
-              style={{ flex: 1, cursor: 'pointer', color: idVehiculoAgencia ? '#FFFFFF' : '#94A3B8' }}
             >
-              <option value="" style={{ background: '#1e293b', color: '#94A3B8' }}>
+              <option value="">
                 Seleccione una agencia...
               </option>
               {agencias.map((ag) => (
-                <option key={ag.id} value={ag.id} style={{ background: '#1e293b', color: '#FFFFFF' }}>
+                <option key={ag.id} value={ag.id}>
                   {ag.agencia} {ag.nombre_ubicacion ? `(${ag.nombre_ubicacion})` : ''}
                 </option>
               ))}
-            </select>
+            </CustomSelect>
             {onOpenAgenciaModal && (
               <button
                 type="button"
@@ -328,40 +328,34 @@ export default function VehiculoModal({
             <label className="erp-label">
               Tipo de Vehículo <span className="req">*</span>
             </label>
-            <select
-              className="erp-input"
+            <CustomSelect
               value={tipoVehiculo}
               onChange={(e) => setTipoVehiculo(e.target.value)}
-              required
               disabled={isSubmitting}
-              style={{ cursor: 'pointer', color: tipoVehiculo ? '#FFFFFF' : '#94A3B8' }}
             >
-              <option value="" style={{ background: '#1e293b', color: '#94A3B8' }}>
+              <option value="">
                 Seleccione tipo...
               </option>
               {tiposVehiculoOptions.map((t) => (
-                <option key={t} value={t} style={{ background: '#1e293b', color: '#FFFFFF' }}>
+                <option key={t} value={t}>
                   {t}
                 </option>
               ))}
-            </select>
+            </CustomSelect>
           </div>
 
           <div>
             <label className="erp-label">
               Transmisión <span className="req">*</span>
             </label>
-            <select
-              className="erp-input"
+            <CustomSelect
               value={tipoTransmision}
               onChange={(e) => setTipoTransmision(e.target.value)}
-              required
               disabled={isSubmitting}
-              style={{ cursor: 'pointer', color: '#FFFFFF' }}
             >
-              <option value="Automático" style={{ background: '#1e293b', color: '#FFFFFF' }}>Automático</option>
-              <option value="Sincrónico" style={{ background: '#1e293b', color: '#FFFFFF' }}>Sincrónico / Manual</option>
-            </select>
+              <option value="Automático">Automático</option>
+              <option value="Sincrónico">Sincrónico / Manual</option>
+            </CustomSelect>
           </div>
         </div>
 
@@ -457,18 +451,14 @@ export default function VehiculoModal({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <label className="erp-label">Válido Desde (Viaje)</label>
-                    <input
-                      type="date"
-                      className="erp-input"
+                    <CustomDatePicker
                       value={desde}
                       onChange={(e) => setDesde(e.target.value)}
                     />
                   </div>
                   <div>
                     <label className="erp-label">Válido Hasta (Viaje)</label>
-                    <input
-                      type="date"
-                      className="erp-input"
+                    <CustomDatePicker
                       value={hasta}
                       onChange={(e) => setHasta(e.target.value)}
                     />

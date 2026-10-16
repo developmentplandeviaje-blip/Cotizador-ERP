@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
 import axios from 'axios';
 
 export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursionToEdit = null }) {
@@ -237,29 +238,23 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
             <label className="erp-label">
               Ubicación Geográfica <span className="req">*</span>
             </label>
-            <select
-              className="erp-input"
+            <CustomSelect
               value={idUbicacion}
               onChange={(e) => {
                 setIdUbicacion(e.target.value);
                 if (errorMessage) setErrorMessage('');
               }}
-              required
               disabled={isSubmitting || loadingUbicaciones}
-              style={{
-                cursor: 'pointer',
-                color: idUbicacion ? '#FFFFFF' : '#94A3B8',
-              }}
             >
-              <option value="" style={{ background: '#1e293b', color: '#94A3B8' }}>
+              <option value="">
                 {loadingUbicaciones ? 'Cargando ubicaciones...' : 'Seleccione una ubicación...'}
               </option>
               {ubicaciones.map((u) => (
-                <option key={u.id} value={u.id} style={{ background: '#1e293b', color: '#FFFFFF' }}>
+                <option key={u.id} value={u.id}>
                   {u.ubicacion}
                 </option>
               ))}
-            </select>
+            </CustomSelect>
           </div>
         </div>
 

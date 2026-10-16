@@ -249,8 +249,7 @@ body {
 }
 
 /* Inputs y Selects */
-.erp-input,
-.erp-select {
+.erp-input {
   background: #1e387599;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
@@ -261,6 +260,33 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
   width: 100%;
+}
+
+.erp-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: #1e387599;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 512 512' fill='%23ffffff'%3E%3Cpath d='M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 34px 8px 12px;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  width: 100%;
+  cursor: pointer;
+}
+
+.erp-select option {
+  background-color: #101c44;
+  color: #F8FAFC;
+  padding: 8px 12px;
 }
 
 .erp-input::placeholder {
@@ -275,6 +301,149 @@ body {
   box-shadow: 0 0 0 2px rgba(66, 118, 230, 0.349);
 }
 
+/* ===================================================
+   Diseño de Menú Desplegable Personalizado (Select)
+   =================================================== */
+.select {
+  width: 100%;
+  cursor: pointer;
+  position: relative;
+  transition: 300ms ease;
+  color: white;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.selected {
+  background-color: #1e387599;
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.12));
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 6px);
+  position: relative;
+  z-index: 10;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--color-text-primary, #F8FAFC);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  box-sizing: border-box;
+  min-height: 38px;
+}
+
+.select:hover>.selected,
+.select.open>.selected,
+.selected:focus {
+  border-color: var(--color-accent, #2563EB);
+  box-shadow: 0 0 0 2px rgba(66, 118, 230, 0.35);
+}
+
+.selected .selected-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.arrow {
+  position: relative;
+  right: 0px;
+  height: 10px;
+  transform: rotate(-90deg);
+  width: 18px;
+  fill: white;
+  z-index: 10;
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.select:not(.temporarily-closed):hover>.selected .arrow,
+.select.open>.selected .arrow {
+  transform: rotate(0deg);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-sm, 6px);
+  padding: 5px;
+  background-color: #101c44;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  max-height: 240px;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity 300ms ease, transform 300ms ease, visibility 300ms;
+  pointer-events: none;
+}
+
+.select:not(.temporarily-closed):hover>.options,
+.select.open>.options {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.option {
+  border-radius: 5px;
+  padding: 8px 12px;
+  transition: background-color 200ms ease, color 200ms ease;
+  background-color: transparent;
+  width: 100%;
+  font-size: 0.85rem;
+  color: var(--color-text-primary, #F8FAFC);
+  cursor: pointer;
+  box-sizing: border-box;
+  text-align: left;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option:hover {
+  background-color: rgba(37, 99, 235, 0.35);
+  color: #FFFFFF;
+}
+
+.option.active {
+  background-color: rgba(232, 114, 23, 0.2);
+  color: #E87217;
+  font-weight: 600;
+}
+
+.select.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.options::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.options::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.options::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
 .erp-label {
   display: block;
   color: var(--color-text-secondary);
@@ -285,4 +454,398 @@ body {
 
 .erp-label span.req {
   color: #EF4444;
+}
+
+/* ===================================================
+   Diseño de Calendario Personalizado (DatePicker)
+   =================================================== */
+.erp-datepicker-container {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.erp-datepicker-container.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.erp-datepicker-trigger {
+  background-color: #1e387599;
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.12));
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 6px);
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--color-text-primary, #F8FAFC);
+  font-size: 0.875rem;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.erp-datepicker-trigger:hover,
+.erp-datepicker-trigger.active,
+.erp-datepicker-trigger:focus {
+  border-color: var(--color-accent, #2563EB);
+  box-shadow: 0 0 0 2px rgba(66, 118, 230, 0.35);
+}
+
+.erp-datepicker-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.erp-datepicker-text.placeholder {
+  color: #94A3B8;
+}
+
+.erp-datepicker-clear-btn {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.erp-datepicker-clear-btn:hover {
+  color: #EF4444;
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+.erp-datepicker-icon {
+  width: 16px;
+  height: 16px;
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+/* Popover Card */
+.erp-calendar-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 99999;
+  width: 320px;
+  box-sizing: border-box;
+  background: #09122f;
+  background: radial-gradient(circle at 50% 10%, rgba(37, 99, 235, 0.4) 0%, transparent 60%), linear-gradient(180deg, #0e1a47 0%, #060e29 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  padding: 22px 18px 18px 18px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75), 0 0 25px rgba(37, 99, 235, 0.2);
+  color: #FFFFFF;
+  user-select: none;
+  animation: erpCalendarFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes erpCalendarFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Top Blue Pill Accent */
+.erp-calendar-top-pill {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #2563EB;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.9);
+}
+
+/* Header */
+.erp-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.erp-calendar-nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.erp-calendar-nav-btn:hover {
+  background: rgba(37, 99, 235, 0.4);
+  border-color: #2563EB;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+}
+
+.erp-calendar-header-title {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #FFFFFF;
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.erp-calendar-header-title:hover,
+.erp-calendar-header-title.open {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Sub Dropdowns (Month & Year) */
+.erp-calendar-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: 1000;
+  background: #0c173f;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.erp-calendar-dropdown.month-dropdown {
+  left: 0;
+  min-width: 125px;
+}
+
+.erp-calendar-dropdown.year-dropdown {
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 90px;
+}
+
+.erp-calendar-dropdown::-webkit-scrollbar {
+  width: 5px;
+}
+
+.erp-calendar-dropdown::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.erp-calendar-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.erp-calendar-dropdown-item {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  color: #FFFFFF;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.erp-calendar-dropdown-item:hover {
+  background: rgba(37, 99, 235, 0.35);
+}
+
+.erp-calendar-dropdown-item.selected {
+  background: rgba(37, 99, 235, 0.2);
+  color: #3B82F6;
+  font-weight: 700;
+}
+
+/* Weekday Labels */
+.erp-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.erp-calendar-weekday {
+  font-size: 0.78rem;
+  color: #8C9CB8;
+  font-weight: 500;
+}
+
+/* Days Grid */
+.erp-calendar-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px 2px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.erp-calendar-day-cell {
+  width: 34px;
+  height: 34px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.92rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #FFFFFF;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.erp-calendar-day-cell.other-month {
+  color: #556582;
+  font-weight: 500;
+}
+
+.erp-calendar-day-cell:hover:not(.selected) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.erp-calendar-day-cell.today:not(.selected) {
+  border: 1px solid #3B82F6;
+}
+
+.erp-calendar-day-cell.selected {
+  background: #2563EB;
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.8);
+}
+
+/* Time Picker Section (Hora 00:00 AM/PM) */
+.erp-calendar-time-bar {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.erp-calendar-time-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.erp-calendar-time-input-box {
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.45);
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.erp-calendar-time-subinput {
+  width: 22px;
+  background: transparent;
+  border: none;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+  outline: none;
+  padding: 0;
+}
+
+.erp-calendar-time-colon {
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.erp-calendar-period-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.erp-calendar-period-btn {
+  background: transparent;
+  border: none;
+  color: #8C9CB8;
+  font-weight: 600;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.erp-calendar-period-btn.active {
+  background: #3B82F6;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+/* Date-only Footer */
+.erp-calendar-footer {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.erp-calendar-today-btn {
+  background: rgba(37, 99, 235, 0.25);
+  border: 1px solid #2563EB;
+  color: #FFFFFF;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.erp-calendar-today-btn:hover {
+  background: #2563EB;
+}
+
+.erp-calendar-done-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94A3B8;
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.erp-calendar-done-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.15);
 }
