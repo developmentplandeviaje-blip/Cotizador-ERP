@@ -21,6 +21,22 @@ import {
   VaciarProductosModal,
 } from './modals';
 
+export const PRODUCT_TABS = [
+  { id: 'hotel', label: 'Hoteles', icon: imgHoteles, color: '#E87217', rgb: '232, 114, 23' },
+  { id: 'vuelo', label: 'Vuelos', icon: imgAerolineas, color: '#38BDF8', rgb: '56, 189, 248' },
+  { id: 'traslado', label: 'Traslados', icon: imgTraslados, color: '#10B981', rgb: '16, 185, 129' },
+  { id: 'excursion', label: 'Excursiones', icon: imgExcursiones, color: '#A855F7', rgb: '168, 85, 247' },
+  { id: 'paquete', label: 'Paquetes', icon: imgPaquetes, color: '#EC4899', rgb: '236, 72, 153' },
+  { id: 'vehiculo', label: 'Vehículos', icon: imgVehiculos, color: '#EAB308', rgb: '234, 179, 8' },
+  { id: 'ferry', label: 'Ferries', icon: '⛴️', color: '#06B6D4', rgb: '6, 182, 212' },
+  { id: 'otro', label: 'Otros', icon: imgAgregar, color: '#6366F1', rgb: '99, 102, 241' },
+];
+
+export const PRODUCT_COLOR_MAP = PRODUCT_TABS.reduce((acc, tab) => {
+  acc[tab.id] = tab;
+  return acc;
+}, {});
+
 export default function NuevaCotizacion({ user }) {
   // Catalogs
   const [catalogos, setCatalogos] = useState({
@@ -354,15 +370,112 @@ export default function NuevaCotizacion({ user }) {
     }
   }, [selectedHabitacion]);
 
-  // Add Item to cart
-  const handleAddItem = (tipo) => {
-    let newItem = null;
-    const uid = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+  // Reset form for product type after adding
+  const resetFormForTipo = (tipo) => {
+    switch (tipo) {
+      case 'hotel':
+        setHotelForm({
+          id_ubicacion: '',
+          id_hotel: '',
+          id_habitacion: '',
+          noches: 4,
+          precio_noche_adulto: 0,
+          precio_noche_adolescente: 0,
+          precio_noche_nino: 0,
+          costo_noche_adulto: 0,
+          costo_noche_adolescente: 0,
+          costo_noche_nino: 0,
+        });
+        break;
+      case 'vuelo':
+        setVueloForm({
+          id_aerolinea: '',
+          itinerario: '',
+          fecha_vuelo: '',
+          precio_adulto: 0,
+          precio_nino: 0,
+          precio_infante: 0,
+          costo_adulto: 0,
+          costo_nino: 0,
+          costo_infante: 0,
+        });
+        break;
+      case 'traslado':
+        setTrasladoForm({
+          id_traslado: '',
+          fecha_traslado: '',
+          precio: 0,
+          costo: 0,
+          observacion: '',
+          tipo_asignacion: 'todos',
+          pax_individual_id: 0,
+          pax_seleccionados: [],
+        });
+        break;
+      case 'excursion':
+        setExcursionForm({
+          id_excursion: '',
+          fecha: '',
+          precio_adulto: 0,
+          precio_nino: 0,
+          costo_adulto: 0,
+          costo_nino: 0,
+        });
+        break;
+      case 'paquete':
+        setPaqueteForm({
+          id_paquete: '',
+          fecha: '',
+          precio_adulto: 0,
+          precio_nino: 0,
+          costo_adulto: 0,
+          costo_nino: 0,
+        });
+        break;
+      case 'vehiculo':
+        setVehiculoForm({
+          id_vehiculo: '',
+          desde: '',
+          hasta: '',
+          dias: 1,
+          precio_unitario: 0,
+          costo: 0,
+          observacion: '',
+        });
+        break;
+      case 'ferry':
+        setFerryForm({
+          ruta: '',
+          clase: 'Playa',
+          itinerario: '',
+          vehiculos: 0,
+          precio_adulto: 0,
+          precio_nino: 0,
+          precio_infante: 0,
+          precio_vehiculo: 0,
+        });
+        break;
+      case 'otro':
+        setOtroForm({
+          descripcion: '',
+          fecha: '',
+          costo: 0,
+          precio: 0,
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Build item object from draft form
+  const buildItemFromDraft = (tipo, showErrors = false) => {
+    const uid = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
 
     if (tipo === 'hotel') {
       if (!hotelForm.id_hotel) {
-        alert('Seleccione un hotel');
-        return;
+        if (showErrors) alert('Seleccione un hotel');
+        return null;
       }
       const hotelObj = selectedHotel || {};
       const habObj = selectedHabitacion || {};
@@ -371,7 +484,7 @@ export default function NuevaCotizacion({ user }) {
       const subtotalNinos = pax.ninos * hotelForm.precio_noche_nino * hotelForm.noches;
       const totalItem = subtotalAdultos + subtotalAdol + subtotalNinos;
 
-      newItem = {
+      return {
         uid,
         tipo: 'hotel',
         titulo: `${hotelObj.nombre || 'Hotel'} (${habObj.habitacion || 'Habitación'})`,
@@ -395,15 +508,17 @@ export default function NuevaCotizacion({ user }) {
           fecha_checkout: fechasViaje.checkout,
         },
       };
-    } else if (tipo === 'vuelo') {
+    }
+
+    if (tipo === 'vuelo') {
       if (!vueloForm.id_aerolinea) {
-        alert('Seleccione una aerolínea');
-        return;
+        if (showErrors) alert('Seleccione una aerolínea');
+        return null;
       }
       const aeroObj = (catalogos.aerolineas || []).find(a => String(a.id) === String(vueloForm.id_aerolinea)) || {};
       const totalItem = (pax.adultos * vueloForm.precio_adulto) + (pax.ninos * vueloForm.precio_nino) + (pax.infantes * vueloForm.precio_infante);
 
-      newItem = {
+      return {
         uid,
         tipo: 'vuelo',
         titulo: `${aeroObj.nombre || 'Aerolínea'} - ${vueloForm.itinerario || 'Ruta'}`,
@@ -424,10 +539,12 @@ export default function NuevaCotizacion({ user }) {
           costo_infante: vueloForm.costo_infante,
         },
       };
-    } else if (tipo === 'traslado') {
+    }
+
+    if (tipo === 'traslado') {
       if (!trasladoForm.id_traslado) {
-        alert('Por favor seleccione un servicio de traslado.');
-        return;
+        if (showErrors) alert('Por favor seleccione un servicio de traslado.');
+        return null;
       }
 
       const trasObj = (catalogos.traslados || []).find(t => String(t.id) === String(trasladoForm.id_traslado)) || {};
@@ -453,8 +570,8 @@ export default function NuevaCotizacion({ user }) {
         } else if (trasladoForm.tipo_asignacion === 'grupo') {
           const selectedList = allPassengers.filter(p => (trasladoForm.pax_seleccionados || []).includes(p.id));
           if (selectedList.length === 0) {
-            alert('Por favor seleccione al menos un pasajero para el traslado grupal.');
-            return;
+            if (showErrors) alert('Por favor seleccione al menos un pasajero para el traslado grupal.');
+            return null;
           }
           const nombres = selectedList.map(p => p.nombreCorto).join(', ');
           titulo += ` (Grupo - ${selectedList.length} pax)`;
@@ -466,7 +583,7 @@ export default function NuevaCotizacion({ user }) {
         }
       }
 
-      newItem = {
+      return {
         uid,
         tipo: 'traslado',
         titulo,
@@ -487,16 +604,16 @@ export default function NuevaCotizacion({ user }) {
           pax_seleccionados: trasladoForm.pax_seleccionados,
         },
       };
+    }
 
-      setTrasladoForm(prev => ({
-        ...prev,
-        observacion: '',
-        pax_seleccionados: [],
-      }));
-    } else if (tipo === 'excursion') {
+    if (tipo === 'excursion') {
+      if (!excursionForm.id_excursion) {
+        if (showErrors) alert('Seleccione una excursión');
+        return null;
+      }
       const excObj = (catalogos.excursiones || []).find(e => String(e.id) === String(excursionForm.id_excursion)) || {};
       const totalItem = (pax.adultos * excursionForm.precio_adulto) + (pax.ninos * excursionForm.precio_nino);
-      newItem = {
+      return {
         uid,
         tipo: 'excursion',
         titulo: `${excObj.tipo_excursion || 'Excursión'}`,
@@ -514,10 +631,16 @@ export default function NuevaCotizacion({ user }) {
           costo_nino: excursionForm.costo_nino,
         },
       };
-    } else if (tipo === 'paquete') {
+    }
+
+    if (tipo === 'paquete') {
+      if (!paqueteForm.id_paquete) {
+        if (showErrors) alert('Seleccione un paquete turístico');
+        return null;
+      }
       const paqObj = (catalogos.paquetes || []).find(p => String(p.id) === String(paqueteForm.id_paquete)) || {};
       const totalItem = (pax.adultos * paqueteForm.precio_adulto) + (pax.ninos * paqueteForm.precio_nino);
-      newItem = {
+      return {
         uid,
         tipo: 'paquete',
         titulo: `${paqObj.paquete || 'Paquete Turístico'}`,
@@ -535,14 +658,20 @@ export default function NuevaCotizacion({ user }) {
           costo_nino: paqueteForm.costo_nino,
         },
       };
-    } else if (tipo === 'vehiculo') {
+    }
+
+    if (tipo === 'vehiculo') {
+      if (!vehiculoForm.id_vehiculo) {
+        if (showErrors) alert('Seleccione un vehículo');
+        return null;
+      }
       const vehObj = (catalogos.vehiculos || []).find(v => String(v.id) === String(vehiculoForm.id_vehiculo)) || {};
       const totalItem = Number(vehiculoForm.dias || 1) * Number(vehiculoForm.precio_unitario || 0);
-      newItem = {
+      return {
         uid,
         tipo: 'vehiculo',
         titulo: `${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`,
-        detalle: `${vehiculoForm.dias} días • Desde: ${vehiculoForm.desde} hasta: ${vehiculoForm.hasta}`,
+        detalle: `${vehiculoForm.dias} días • Desde: ${vehiculoForm.desde || 'Por definir'} hasta: ${vehiculoForm.hasta || 'Por definir'}`,
         precio: totalItem,
         data: {
           id_vehiculo: Number(vehiculoForm.id_vehiculo),
@@ -554,9 +683,16 @@ export default function NuevaCotizacion({ user }) {
           observacion: vehiculoForm.observacion,
         },
       };
-    } else if (tipo === 'ferry') {
+    }
+
+    if (tipo === 'ferry') {
+      const hasFerryData = (ferryForm.ruta && ferryForm.ruta.trim() !== '') || (ferryForm.itinerario && ferryForm.itinerario.trim() !== '') || Number(ferryForm.precio_adulto) > 0;
+      if (!hasFerryData) {
+        if (showErrors) alert('Complete los datos del ferry');
+        return null;
+      }
       const totalItem = (pax.adultos * ferryForm.precio_adulto) + (pax.ninos * ferryForm.precio_nino) + (ferryForm.vehiculos * ferryForm.precio_vehiculo);
-      newItem = {
+      return {
         uid,
         tipo: 'ferry',
         titulo: `${ferryForm.ruta || 'Ruta'} (${ferryForm.clase})`,
@@ -576,8 +712,15 @@ export default function NuevaCotizacion({ user }) {
           precio_vehiculo: ferryForm.precio_vehiculo,
         },
       };
-    } else if (tipo === 'otro') {
-      newItem = {
+    }
+
+    if (tipo === 'otro') {
+      const hasOtroData = (otroForm.descripcion && otroForm.descripcion.trim() !== '') || Number(otroForm.precio) > 0;
+      if (!hasOtroData) {
+        if (showErrors) alert('Ingrese una descripción o precio del servicio');
+        return null;
+      }
+      return {
         uid,
         tipo: 'otro',
         titulo: `${otroForm.descripcion || 'Servicio Personalizado'}`,
@@ -595,8 +738,62 @@ export default function NuevaCotizacion({ user }) {
       };
     }
 
+    return null;
+  };
+
+  // Helper to determine if a product draft is ready to be added
+  const isDraftReady = useCallback((tabId) => {
+    switch (tabId) {
+      case 'hotel':
+        return Boolean(hotelForm.id_hotel);
+      case 'vuelo':
+        return Boolean(vueloForm.id_aerolinea);
+      case 'traslado':
+        return Boolean(trasladoForm.id_traslado) && (trasladoForm.tipo_asignacion !== 'grupo' || (trasladoForm.pax_seleccionados || []).length > 0);
+      case 'excursion':
+        return Boolean(excursionForm.id_excursion);
+      case 'paquete':
+        return Boolean(paqueteForm.id_paquete);
+      case 'vehiculo':
+        return Boolean(vehiculoForm.id_vehiculo);
+      case 'ferry':
+        return Boolean((ferryForm.ruta && ferryForm.ruta.trim() !== '') || (ferryForm.itinerario && ferryForm.itinerario.trim() !== '') || Number(ferryForm.precio_adulto) > 0);
+      case 'otro':
+        return Boolean((otroForm.descripcion && otroForm.descripcion.trim() !== '') || Number(otroForm.precio) > 0);
+      default:
+        return false;
+    }
+  }, [hotelForm, vueloForm, trasladoForm, excursionForm, paqueteForm, vehiculoForm, ferryForm, otroForm]);
+
+  // List of product types that currently have reserved / ready draft info
+  const readyDraftTypes = useMemo(() => {
+    const allTypes = ['hotel', 'vuelo', 'traslado', 'excursion', 'paquete', 'vehiculo', 'ferry', 'otro'];
+    return allTypes.filter(t => isDraftReady(t));
+  }, [isDraftReady]);
+
+  // Add Item to cart individually
+  const handleAddItem = (tipo) => {
+    const newItem = buildItemFromDraft(tipo, true);
     if (newItem) {
       setItems(prev => [...prev, newItem]);
+      resetFormForTipo(tipo);
+    }
+  };
+
+  // Add all products with reserved information in a single click
+  const handleAddAllReadyProducts = () => {
+    if (readyDraftTypes.length <= 1) return;
+    const newItems = [];
+    readyDraftTypes.forEach(tipo => {
+      const item = buildItemFromDraft(tipo, false);
+      if (item) {
+        newItems.push(item);
+        resetFormForTipo(tipo);
+      }
+    });
+
+    if (newItems.length > 0) {
+      setItems(prev => [...prev, ...newItems]);
     }
   };
 
@@ -1300,26 +1497,41 @@ export default function NuevaCotizacion({ user }) {
         padding: '20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-          <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
+          <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img src={imgServicios} alt="Servicios" style={{ width: '24px', height: '24px' }} /> Agregar Productos y Servicios al Viaje
           </h2>
-          {catalogos.is_freelancer && (
-            <Badge status="activo">Modalidad Freelancer (Costos Ocultos US-03)</Badge>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {catalogos.is_freelancer && (
+              <Badge status="activo">Modalidad Freelancer (Costos Ocultos US-03)</Badge>
+            )}
+            {readyDraftTypes.length > 1 && (
+              <button
+                type="button"
+                onClick={handleAddAllReadyProducts}
+                className="btn-primary"
+                style={{
+                  padding: '7px 16px',
+                  borderRadius: '10px',
+                  fontSize: '0.8125rem',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 14px rgba(232, 114, 23, 0.4)',
+                  cursor: 'pointer',
+                  border: 'none',
+                }}
+              >
+                <span>⚡</span>
+                Agregar Todos ({readyDraftTypes.length})
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tab Buttons */}
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          {[
-            { id: 'hotel', label: 'Hoteles', icon: imgHoteles },
-            { id: 'vuelo', label: 'Vuelos', icon: imgAerolineas },
-            { id: 'traslado', label: 'Traslados', icon: imgTraslados },
-            { id: 'excursion', label: 'Excursiones', icon: imgExcursiones },
-            { id: 'paquete', label: 'Paquetes', icon: imgPaquetes },
-            { id: 'vehiculo', label: 'Vehículos', icon: imgVehiculos },
-            { id: 'ferry', label: 'Ferries', icon: '⛴️' },
-            { id: 'otro', label: 'Otros', icon: imgAgregar },
-          ].map(tab => {
+          {PRODUCT_TABS.map(tab => {
             const isActive = activeTab === tab.id;
             const hasInfo = checkTabHasInfo(tab.id);
             return (
@@ -1334,24 +1546,24 @@ export default function NuevaCotizacion({ user }) {
                   padding: '8px 16px',
                   borderRadius: '10px',
                   border: isActive
-                    ? '1px solid #E87217'
+                    ? `1px solid ${tab.color}`
                     : hasInfo
-                    ? '1px solid rgba(232, 114, 23, 0.45)'
+                    ? `1px solid rgba(${tab.rgb}, 0.5)`
                     : '1px solid rgba(255,255,255,0.18)',
                   background: isActive
-                    ? 'rgba(232, 114, 23, 0.25)'
+                    ? `rgba(${tab.rgb}, 0.22)`
                     : hasInfo
-                    ? 'rgba(232, 114, 23, 0.12)'
+                    ? `rgba(${tab.rgb}, 0.12)`
                     : 'rgba(255, 255, 255, 0.05)',
                   boxShadow: isActive
-                    ? '0 0 12px rgba(232, 114, 23, 0.35)'
+                    ? `0 0 12px rgba(${tab.rgb}, 0.45)`
                     : hasInfo
-                    ? '0 0 8px rgba(232, 114, 23, 0.2)'
+                    ? `0 0 8px rgba(${tab.rgb}, 0.25)`
                     : 'none',
                   color: isActive
-                    ? '#E87217'
+                    ? tab.color
                     : hasInfo
-                    ? '#FFF7ED'
+                    ? '#FFF'
                     : '#b9c8ddff',
                   fontWeight: isActive ? '600' : hasInfo ? '500' : '400',
                   cursor: 'pointer',
@@ -1382,8 +1594,8 @@ export default function NuevaCotizacion({ user }) {
                       width: '6px',
                       height: '6px',
                       borderRadius: '50%',
-                      backgroundColor: '#E87217',
-                      boxShadow: '0 0 6px #E87217',
+                      backgroundColor: tab.color,
+                      boxShadow: `0 0 6px ${tab.color}`,
                       display: 'inline-block',
                       marginLeft: '2px',
                     }}
@@ -1393,6 +1605,78 @@ export default function NuevaCotizacion({ user }) {
             );
           })}
         </div>
+
+        {/* Banner visible cuando más de 1 producto tiene información reservada */}
+        {readyDraftTypes.length > 1 && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'linear-gradient(90deg, rgba(232, 114, 23, 0.15) 0%, rgba(56, 189, 248, 0.15) 100%)',
+            border: '1px solid rgba(232, 114, 23, 0.45)',
+            borderRadius: '12px',
+            padding: '12px 18px',
+            marginTop: '14px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '1.35rem' }}>⚡</span>
+              <div>
+                <div style={{ color: '#FFF', fontWeight: '600', fontSize: '0.875rem' }}>
+                  Hay <strong>{readyDraftTypes.length} productos</strong> con información reservada lista:
+                </div>
+                <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                  {readyDraftTypes.map(t => {
+                    const tabObj = PRODUCT_COLOR_MAP[t];
+                    return (
+                      <span
+                        key={t}
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '2px 9px',
+                          borderRadius: '6px',
+                          background: `rgba(${tabObj?.rgb || '255,255,255'}, 0.2)`,
+                          border: `1px solid ${tabObj?.color || '#E87217'}`,
+                          color: tabObj?.color || '#FFF',
+                          fontWeight: '600',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: tabObj?.color || '#E87217' }} />
+                        {tabObj?.label || t}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddAllReadyProducts}
+              className="btn-primary"
+              style={{
+                padding: '9px 20px',
+                borderRadius: '10px',
+                fontSize: '0.875rem',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(232, 114, 23, 0.4)',
+                border: 'none',
+              }}
+            >
+              <img src={imgAgregar} alt="+" style={{ width: '15px', height: '15px' }} />
+              Agregar con 1 Click ({readyDraftTypes.length} productos)
+            </button>
+          </div>
+        )}
 
         {/* Dynamic Form per Tab */}
         <div style={{ marginTop: '20px' }}>
@@ -2093,7 +2377,7 @@ export default function NuevaCotizacion({ user }) {
                 {items.map(item => (
                   <tr key={item.uid} style={{ borderBottom: '1px solid rgba(255,255,255,0.51)', color: '#FFF', fontSize: '0.875rem' }}>
                     <td style={{ padding: '12px' }}>
-                      <span style={{ textTransform: 'capitalize', fontWeight: '600', color: '#E87217' }}>{item.tipo}</span>
+                      <span style={{ textTransform: 'capitalize', fontWeight: '600', color: PRODUCT_COLOR_MAP[item.tipo]?.color || '#E87217' }}>{item.tipo}</span>
                     </td>
                     <td style={{ padding: '12px', fontWeight: '500' }}>{item.titulo}</td>
                     <td style={{ padding: '12px', color: '#F8FAFC', fontSize: '0.8125rem' }}>{item.detalle}</td>
