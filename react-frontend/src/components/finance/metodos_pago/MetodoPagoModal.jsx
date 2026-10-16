@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
 
 const LOGOS = [
   { value: '', label: 'Sin logo / Genérico' },
@@ -285,18 +286,17 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
                     Logo Identificador
                   </label>
-                  <select
+                  <CustomSelect
                     value={logo}
                     onChange={(e) => setLogo(e.target.value)}
-                    className="erp-input"
                     style={{ width: '100%' }}
                   >
                     {LOGOS.map((lg) => (
-                      <option key={lg.value} value={lg.value} style={{ backgroundColor: '#1E293B', color: '#FFF' }}>
+                      <option key={lg.value} value={lg.value}>
                         {lg.label}
                       </option>
                     ))}
-                  </select>
+                  </CustomSelect>
                 </div>
 
                 <div>
@@ -354,18 +354,17 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
                         Tipo Doc. <span style={{ color: '#EF4444' }}>*</span>
                       </label>
-                      <select
+                      <CustomSelect
                         value={tipoDocumento}
                         onChange={(e) => setTipoDocumento(e.target.value)}
-                        className="erp-input"
                         style={{ width: '100%' }}
                       >
                         {['J', 'V', 'E', 'G', 'Rif'].map((td) => (
-                          <option key={td} value={td} style={{ backgroundColor: '#1E293B', color: '#FFF' }}>
+                          <option key={td} value={td}>
                             {td}
                           </option>
                         ))}
-                      </select>
+                      </CustomSelect>
                     </div>
 
                     <div>
@@ -404,15 +403,14 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
                         Tipo de Cuenta
                       </label>
-                      <select
+                      <CustomSelect
                         value={tipoCuenta}
                         onChange={(e) => setTipoCuenta(e.target.value)}
-                        className="erp-input"
                         style={{ width: '100%' }}
                       >
-                        <option value="Corriente" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Corriente</option>
-                        <option value="Ahorros" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Ahorros</option>
-                      </select>
+                        <option value="Corriente">Corriente</option>
+                        <option value="Ahorros">Ahorros</option>
+                      </CustomSelect>
                     </div>
 
                     <div>
@@ -469,16 +467,15 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
                         Tipo de Comisión
                       </label>
-                      <select
+                      <CustomSelect
                         value={tipoComision}
                         onChange={(e) => setTipoComision(e.target.value)}
-                        className="erp-input"
                         style={{ width: '100%' }}
                       >
-                        <option value="porcentaje" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Porcentaje (%)</option>
-                        <option value="fijo" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Fijo ($)</option>
-                        <option value="mixto" style={{ backgroundColor: '#1E293B', color: '#FFF' }}>Mixto</option>
-                      </select>
+                        <option value="porcentaje">Porcentaje (%)</option>
+                        <option value="fijo">Fijo ($)</option>
+                        <option value="mixto">Mixto</option>
+                      </CustomSelect>
                     </div>
 
                     <div>
