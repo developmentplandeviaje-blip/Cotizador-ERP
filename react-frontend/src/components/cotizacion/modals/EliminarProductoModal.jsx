@@ -1,5 +1,6 @@
 import React from 'react';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
+import { PRODUCT_COLOR_MAP } from '../NuevaCotizacion';
 
 export default function EliminarProductoModal({
   isOpen,
@@ -18,7 +19,7 @@ export default function EliminarProductoModal({
         <div style={{ color: '#E2E8F0', fontSize: '0.875rem' }}>
           <p style={{ margin: '4px 0' }}>
             <strong>Tipo:</strong>{' '}
-            <span style={{ textTransform: 'capitalize', color: '#E87217' }}>{item.tipo}</span>
+            <span style={{ textTransform: 'capitalize', fontWeight: '700', color: PRODUCT_COLOR_MAP?.[item.tipo]?.color || '#E87217' }}>{item.tipo}</span>
           </p>
           <p style={{ margin: '4px 0' }}><strong>Producto:</strong> {item.titulo}</p>
           <p style={{ margin: '4px 0' }}><strong>Detalle:</strong> {item.detalle}</p>

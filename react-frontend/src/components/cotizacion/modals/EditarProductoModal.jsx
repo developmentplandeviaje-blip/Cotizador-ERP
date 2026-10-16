@@ -3,6 +3,7 @@ import Modal from '../../common/Modal';
 import Badge from '../../common/Badge';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
+import { PRODUCT_COLOR_MAP } from '../NuevaCotizacion';
 
 export default function EditarProductoModal({
   isOpen,
@@ -223,7 +224,7 @@ export default function EditarProductoModal({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Badge status="badge-primary">
-              <span style={{ textTransform: 'capitalize', fontWeight: '700' }}>{tipo}</span>
+              <span style={{ textTransform: 'capitalize', fontWeight: '700', color: PRODUCT_COLOR_MAP?.[tipo]?.color || '#E87217' }}>{tipo}</span>
             </Badge>
             <span style={{ color: '#E2E8F0', fontSize: '0.875rem' }}>{item.titulo}</span>
           </div>
