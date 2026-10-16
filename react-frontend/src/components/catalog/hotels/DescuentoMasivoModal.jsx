@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
 import { showToast } from '../../../utils/toast';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import axios from 'axios';
@@ -117,7 +118,7 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
 
                 <div style={{ marginBottom: '24px' }}>
                     <label className="erp-label">Ubicación: </label>
-                    <select
+                    <CustomSelect
                         value={ubicacionId}
                         onChange={(e) => setUbicacionId(e.target.value)}
                         className="erp-select"
@@ -127,7 +128,7 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
                         {ubicaciones.map(ub => (
                             <option key={ub.id} value={ub.id}>{ub.ubicacion}</option>
                         ))}
-                    </select>
+                    </CustomSelect>
                 </div>
 
                 <div style={{ marginBottom: '16px' }}>

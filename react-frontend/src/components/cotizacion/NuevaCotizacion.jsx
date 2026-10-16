@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+
 import axios from 'axios';
 import imgNuevaCotizacion from '../../assets/NuevaCotizacion.svg';
 import imgSearch from '../../assets/lupa.svg';
@@ -10,6 +11,8 @@ import imgPaquetes from '../../assets/Paqueteria.svg';
 import imgVehiculos from '../../assets/Vehiculos.svg';
 import imgAgregar from '../../assets/Agregar.svg';
 import Badge from '../common/Badge';
+import CustomSelect from '../common/CustomSelect';
+import CustomDatePicker from '../common/CustomDatePicker';
 import imgUsuario from '../../assets/Usuario.svg';
 import imgServicios from '../../assets/Servicios.svg';
 import {
@@ -180,7 +183,10 @@ export default function NuevaCotizacion({ user }) {
   // Submit / Result state
   const [submitting, setSubmitting] = useState(false);
   const [submittingRapida, setSubmittingRapida] = useState(false);
+  const isSubmittingRef = useRef(false);
+  const isProcessing = submitting || submittingRapida;
   const [feedback, setFeedback] = useState(null); // { type: 'success'|'error', message, data }
+
 
   // Exchange rate referential VES
   const tasaReferencialVES = 62.50;
@@ -732,6 +738,7 @@ export default function NuevaCotizacion({ user }) {
 
   // Submit Formal Quote
   const handleSubmitCotizacion = async () => {
+    if (isSubmittingRef.current || isProcessing) return;
     if (!cliente.nombres.trim() || !cliente.apellidos.trim()) {
       alert('Por favor ingrese el nombre y el apellido del cliente principal.');
       return;
@@ -741,6 +748,7 @@ export default function NuevaCotizacion({ user }) {
       return;
     }
 
+    isSubmittingRef.current = true;
     setSubmitting(true);
     setFeedback(null);
 
@@ -792,17 +800,20 @@ export default function NuevaCotizacion({ user }) {
         message: err.response?.data?.message || 'Error al persistir la cotización. Revise los datos requeridos.',
       });
     } finally {
+      isSubmittingRef.current = false;
       setSubmitting(false);
     }
   };
 
   // Submit Quick Quote
   const handleSubmitRapida = async () => {
+    if (isSubmittingRef.current || isProcessing) return;
     if (items.length === 0) {
       alert('Debe agregar al menos un producto para guardar como cotización rápida.');
       return;
     }
 
+    isSubmittingRef.current = true;
     setSubmittingRapida(true);
     setFeedback(null);
 
@@ -830,9 +841,11 @@ export default function NuevaCotizacion({ user }) {
         message: 'Error al registrar la cotización rápida.',
       });
     } finally {
+      isSubmittingRef.current = false;
       setSubmittingRapida(false);
     }
   };
+
 
   if (loadingCatalogs) {
     return (
@@ -967,13 +980,11 @@ export default function NuevaCotizacion({ user }) {
 
           {/* Autocomplete Lookup Bar (US-04) */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-            <select
+            <CustomSelect
               value={cliente.tipo_documento}
               onChange={e => setCliente({ ...cliente, tipo_documento: e.target.value })}
-              className='erp-select'
               style={{
-                width: '70px',
-
+                width: '80px',
               }}
             >
               <option value="V">V-</option>
@@ -981,7 +992,7 @@ export default function NuevaCotizacion({ user }) {
               <option value="J">J-</option>
               <option value="P">P-</option>
               <option value="G">G-</option>
-            </select>
+            </CustomSelect>
             <input
               type="text"
               placeholder="Número de Cédula / Documento (Opcional)..."
@@ -1074,20 +1085,16 @@ export default function NuevaCotizacion({ user }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
             <div>
               <label className='erp-label'>Fecha Check-in</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={fechasViaje.checkin}
                 onChange={e => setFechasViaje({ ...fechasViaje, checkin: e.target.value })}
-                className='erp-input'
               />
             </div>
             <div>
               <label className='erp-label'>Fecha Check-out</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={fechasViaje.checkout}
                 onChange={e => setFechasViaje({ ...fechasViaje, checkout: e.target.value })}
-                className='erp-input'
               />
             </div>
           </div>
@@ -1184,13 +1191,11 @@ export default function NuevaCotizacion({ user }) {
                   />
                 </div>
                 <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
-                  <select
+                  <CustomSelect
                     value={p.tipo_documento}
                     onChange={e => handleUpdatePasajero(idx, 'tipo_documento', e.target.value)}
-                    className='erp-select'
                     style={{
-                      width: '70px',
-
+                      width: '80px',
                     }}
                   >
                     <option value="V">V-</option>
@@ -1198,7 +1203,7 @@ export default function NuevaCotizacion({ user }) {
                     <option value="J">J-</option>
                     <option value="P">P-</option>
                     <option value="G">G-</option>
-                  </select>
+                  </CustomSelect>
                   <input
                     type="text"
                     placeholder="Cédula / Documento"
@@ -1288,44 +1293,41 @@ export default function NuevaCotizacion({ user }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
                 <label className='erp-label'>Ubicación</label>
-                <select
+                <CustomSelect
                   value={hotelForm.id_ubicacion}
                   onChange={e => setHotelForm({ ...hotelForm, id_ubicacion: e.target.value, id_hotel: '', id_habitacion: '' })}
-                  className="erp-select"
                 >
                   <option value="">Todas las ubicaciones</option>
                   {(catalogos.ubicaciones || []).map(u => (
                     <option key={u.id} value={u.id}>{u.ubicacion}</option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div>
                 <label className='erp-label'>Hotel</label>
-                <select
+                <CustomSelect
                   value={hotelForm.id_hotel}
                   onChange={e => setHotelForm({ ...hotelForm, id_hotel: e.target.value, id_habitacion: '' })}
-                  className="erp-select"
                 >
                   <option value="">Seleccione un hotel...</option>
                   {filteredHoteles.map(h => (
                     <option key={h.id} value={h.id}>{h.nombre}</option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div>
                 <label className='erp-label'>Habitación</label>
-                <select
+                <CustomSelect
                   value={hotelForm.id_habitacion}
                   onChange={e => setHotelForm({ ...hotelForm, id_habitacion: e.target.value })}
-                  className="erp-select"
                 >
                   <option value="">Seleccione habitación...</option>
                   {(selectedHotel?.habitaciones || []).map(hab => (
                     <option key={hab.id} value={hab.id}>{hab.habitacion} (Cap: {hab.cantidad_personas})</option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div>
@@ -1369,16 +1371,15 @@ export default function NuevaCotizacion({ user }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
                 <label className='erp-label'>Aerolínea</label>
-                <select
+                <CustomSelect
                   value={vueloForm.id_aerolinea}
                   onChange={e => setVueloForm({ ...vueloForm, id_aerolinea: e.target.value })}
-                  className="erp-select"
                 >
                   <option value="">Seleccione aerolínea...</option>
                   {(catalogos.aerolineas || []).map(a => (
                     <option key={a.id} value={a.id}>{a.nombre} ({a.codigo})</option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div>
@@ -1394,11 +1395,10 @@ export default function NuevaCotizacion({ user }) {
 
               <div>
                 <label className='erp-label'>Fecha Vuelo</label>
-                <input
+                <CustomDatePicker
                   type="datetime-local"
                   value={vueloForm.fecha_vuelo}
                   onChange={e => setVueloForm({ ...vueloForm, fecha_vuelo: e.target.value })}
-                  className="erp-input"
                 />
               </div>
 
@@ -1433,7 +1433,7 @@ export default function NuevaCotizacion({ user }) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
                 <div>
                   <label className='erp-label'>Servicio de Traslado</label>
-                  <select
+                  <CustomSelect
                     value={trasladoForm.id_traslado}
                     onChange={e => {
                       const id = e.target.value;
@@ -1444,22 +1444,20 @@ export default function NuevaCotizacion({ user }) {
                         precio: found ? Number(found.precio_publico) : 0,
                       });
                     }}
-                    className="erp-select"
                   >
                     <option value="">Seleccione traslado...</option>
                     {(catalogos.traslados || []).map(t => (
                       <option key={t.id} value={t.id}>{t.ruta_origen} (${t.precio_publico})</option>
                     ))}
-                  </select>
+                  </CustomSelect>
                 </div>
 
                 <div>
                   <label className='erp-label'>Fecha y Hora</label>
-                  <input
+                  <CustomDatePicker
                     type="datetime-local"
                     value={trasladoForm.fecha_traslado}
                     onChange={e => setTrasladoForm({ ...trasladoForm, fecha_traslado: e.target.value })}
-                    className="erp-input"
                   />
                 </div>
 
@@ -1564,17 +1562,16 @@ export default function NuevaCotizacion({ user }) {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', alignItems: 'center' }}>
                       <div>
                         <label className='erp-label'>Seleccione el Pasajero para este traslado individual</label>
-                        <select
+                        <CustomSelect
                           value={trasladoForm.pax_individual_id ?? 0}
                           onChange={e => setTrasladoForm({ ...trasladoForm, pax_individual_id: Number(e.target.value) })}
-                          className="erp-select"
                         >
                           {allPassengers.map(p => (
                             <option key={p.id} value={p.id}>
                               {p.nombre} {p.documento ? `(Doc: ${p.documento})` : ''}
                             </option>
                           ))}
-                        </select>
+                        </CustomSelect>
                       </div>
                       <div style={{ fontSize: '0.8125rem', color: '#10B981', paddingTop: '16px' }}>
                         ✓ Traslado individual asignado a: <strong>{allPassengers.find(p => p.id === Number(trasladoForm.pax_individual_id ?? 0))?.nombreCorto || 'Pasajero'}</strong>
@@ -1691,7 +1688,7 @@ export default function NuevaCotizacion({ user }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
                 <label className='erp-label'>Excursión</label>
-                <select
+                <CustomSelect
                   value={excursionForm.id_excursion}
                   onChange={e => {
                     const id = e.target.value;
@@ -1703,22 +1700,19 @@ export default function NuevaCotizacion({ user }) {
                       precio_nino: found ? Number(found.precio_nino) : 0,
                     });
                   }}
-                  className="erp-select"
                 >
                   <option value="">Seleccione excursión...</option>
                   {(catalogos.excursiones || []).map(ex => (
                     <option key={ex.id} value={ex.id}>{ex.tipo_excursion} (${ex.precio_adulto})</option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div>
                 <label className='erp-label'>Fecha</label>
-                <input
-                  type="date"
+                <CustomDatePicker
                   value={excursionForm.fecha}
                   onChange={e => setExcursionForm({ ...excursionForm, fecha: e.target.value })}
-                  className="erp-input"
                 />
               </div>
 
@@ -1752,7 +1746,7 @@ export default function NuevaCotizacion({ user }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
                 <label className='erp-label'>Paquete Turístico</label>
-                <select
+                <CustomSelect
                   value={paqueteForm.id_paquete}
                   onChange={e => {
                     const id = e.target.value;
@@ -1764,22 +1758,19 @@ export default function NuevaCotizacion({ user }) {
                       precio_nino: found ? Number(found.precio_nino) : 0,
                     });
                   }}
-                  className="erp-select"
                 >
                   <option value="">Seleccione paquete...</option>
                   {(catalogos.paquetes || []).map(p => (
                     <option key={p.id} value={p.id}>{p.paquete} (${p.precio_adulto})</option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div>
                 <label className='erp-label'>Fecha</label>
-                <input
-                  type="date"
+                <CustomDatePicker
                   value={paqueteForm.fecha}
                   onChange={e => setPaqueteForm({ ...paqueteForm, fecha: e.target.value })}
-                  className="erp-input"
                 />
               </div>
 
@@ -1813,16 +1804,15 @@ export default function NuevaCotizacion({ user }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
               <div>
                 <label className='erp-label'>Vehículo</label>
-                <select
+                <CustomSelect
                   value={vehiculoForm.id_vehiculo}
                   onChange={e => setVehiculoForm({ ...vehiculoForm, id_vehiculo: e.target.value })}
-                  className="erp-select"
                 >
                   <option value="">Seleccione vehículo...</option>
                   {(catalogos.vehiculos || []).map(v => (
                     <option key={v.id} value={v.id}>{v.marca} {v.modelo} ({v.categoria})</option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               <div>
@@ -2108,14 +2098,13 @@ export default function NuevaCotizacion({ user }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label className="erp-label">Modo de Pago Inicial</label>
-                  <select
+                  <CustomSelect
                     value={cuotasConfig.modo}
                     onChange={e => setCuotasConfig({ ...cuotasConfig, modo: e.target.value })}
-                    className="erp-select"
                   >
                     <option value="monto">Monto Fijo ($)</option>
                     <option value="porcentaje">Porcentaje (%)</option>
-                  </select>
+                  </CustomSelect>
                 </div>
 
                 <div>
@@ -2134,15 +2123,14 @@ export default function NuevaCotizacion({ user }) {
 
               <div>
                 <label className="erp-label">Número de Cuotas (1 a 12)</label>
-                <select
+                <CustomSelect
                   value={cuotasConfig.numero_cuotas}
                   onChange={e => setCuotasConfig({ ...cuotasConfig, numero_cuotas: parseInt(e.target.value) || 1 })}
-                  className="erp-select"
                 >
                   {[1, 2, 3, 4, 5, 6, 8, 10, 12].map(n => (
                     <option key={n} value={n}>{n} Cuotas mensuales</option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               {cuotasCalculadas && (
@@ -2246,17 +2234,16 @@ export default function NuevaCotizacion({ user }) {
                     placeholder="0"
                     title={tipoDescuento === 'Porcentaje' ? 'Porcentaje de descuento (máx. 2 dígitos y decimales, ej. 15.5%)' : 'Monto de descuento en USD (máx. 3 dígitos y decimales, ej. 250.00)'}
                   />
-                  <select
+                  <CustomSelect
                     value={tipoDescuento}
                     onChange={handleTipoDescuentoChange}
-                    className='erp-select'
                     style={{
-                      width: '85px',
+                      width: '100px',
                     }}
                   >
                     <option value="Porcentaje">%</option>
                     <option value="Monto">Monto ($)</option>
-                  </select>
+                  </CustomSelect>
                 </div>
               </div>
 
@@ -2284,8 +2271,9 @@ export default function NuevaCotizacion({ user }) {
           {/* Action Buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px' }}>
             <button
+              type="button"
               onClick={handleSubmitCotizacion}
-              disabled={submitting}
+              disabled={isProcessing}
               className="btn-primary"
               style={{
                 width: '100%',
@@ -2297,29 +2285,38 @@ export default function NuevaCotizacion({ user }) {
                 justifyContent: 'center',
                 gap: '8px',
                 borderRadius: '12px',
+                opacity: isProcessing ? 0.6 : 1,
+                cursor: isProcessing ? 'not-allowed' : 'pointer',
+                pointerEvents: isProcessing ? 'none' : 'auto',
+                transition: 'all 0.2s ease',
               }}
             >
               {submitting ? 'Creando Cotización...' : ' Crear Cotización'}
             </button>
 
             <button
+              type="button"
               onClick={handleSubmitRapida}
-              disabled={submittingRapida}
+              disabled={isProcessing}
               style={{
                 width: '100%',
                 padding: '12px',
-                background: 'rgba(37, 99, 235, 0.2)',
+                background: isProcessing ? 'rgba(37, 99, 235, 0.1)' : 'rgba(37, 99, 235, 0.2)',
                 border: '1px solid rgba(37, 99, 235, 0.4)',
                 color: 'white',
                 fontSize: '0.9375rem',
                 fontWeight: '600',
                 borderRadius: '12px',
-                cursor: 'pointer',
+                cursor: isProcessing ? 'not-allowed' : 'pointer',
+                opacity: isProcessing ? 0.6 : 1,
+                pointerEvents: isProcessing ? 'none' : 'auto',
+                transition: 'all 0.2s ease',
               }}
             >
               {submittingRapida ? 'Generando...' : ' Generar Cotización Rápida'}
             </button>
           </div>
+
         </div>
       </div>
 

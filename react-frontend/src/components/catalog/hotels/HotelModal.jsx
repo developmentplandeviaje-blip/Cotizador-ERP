@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { showToast } from '../../../utils/toast';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
+import CustomDatePicker from '../../common/CustomDatePicker';
 import TarifaModal from './TarifaModal';
 import axios from 'axios';
 
@@ -271,7 +273,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
               </div>
               <div>
                 <label className="erp-label">Tipo: <span className="req">*</span></label>
-                <select
+                <CustomSelect
                   className="erp-select"
                   value={hotelInfo.tipo}
                   onChange={(e) => setHotelInfo({ ...hotelInfo, tipo: e.target.value })}
@@ -280,7 +282,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   <option value="Pensión Completa">Pensión Completa</option>
                   <option value="Media Pensión">Media Pensión</option>
                   <option value="Solo Desayuno">Solo Desayuno</option>
-                </select>
+                </CustomSelect>
               </div>
             </div>
 
@@ -346,7 +348,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
                 <label className="erp-label">Ubicación: <span className="req">*</span></label>
-                <select
+                <CustomSelect
                   className="erp-select"
                   value={hotelInfo.id_ubicacion}
                   onChange={(e) => setHotelInfo({ ...hotelInfo, id_ubicacion: e.target.value })}
@@ -355,7 +357,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   {ubicaciones.map(u => (
                     <option key={u.id} value={u.id}>{u.ubicacion}</option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
               <div>
                 <label className="erp-label">Nota (opcional)</label>
@@ -375,9 +377,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
               <label className="erp-label" style={{ fontSize: '0.8125rem' }}>Fechas sin Habitaciones (Bloqueos)</label>
               {(hotelInfo.fechas_sin_disponibilidad || []).map((rango, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                  <input
-                    type="date"
-                    className="erp-input"
+                  <CustomDatePicker
                     value={rango.desde || ''}
                     onChange={(e) => {
                       const newFechas = [...(hotelInfo.fechas_sin_disponibilidad || [])];
@@ -386,9 +386,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                     }}
                   />
                   <span style={{ color: '#F8FAFC', fontSize: '0.875rem' }}>al</span>
-                  <input
-                    type="date"
-                    className="erp-input"
+                  <CustomDatePicker
                     value={rango.hasta || ''}
                     onChange={(e) => {
                       const newFechas = [...(hotelInfo.fechas_sin_disponibilidad || [])];
@@ -457,14 +455,15 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   <div>
                     <label className="erp-label">Desc. Al contado:</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <select
+                      <CustomSelect
                         className="erp-select"
+                        style={{ minWidth: '110px' }}
                         value={hotelInfo.desc_contado_status ? '1' : '0'}
                         onChange={(e) => setHotelInfo({ ...hotelInfo, desc_contado_status: e.target.value === '1' })}
                       >
                         <option value="0">Inactivo</option>
                         <option value="1">Activo</option>
-                      </select>
+                      </CustomSelect>
                       <input
                         type="number"
                         placeholder="Ej.: 10%"
@@ -479,14 +478,15 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   <div>
                     <label className="erp-label">Desc. Divisas:</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <select
+                      <CustomSelect
                         className="erp-select"
+                        style={{ minWidth: '110px' }}
                         value={hotelInfo.desc_divisas_status ? '1' : '0'}
                         onChange={(e) => setHotelInfo({ ...hotelInfo, desc_divisas_status: e.target.value === '1' })}
                       >
                         <option value="0">Inactivo</option>
                         <option value="1">Activo</option>
-                      </select>
+                      </CustomSelect>
                       <input
                         type="number"
                         placeholder="Ej.: 10%"

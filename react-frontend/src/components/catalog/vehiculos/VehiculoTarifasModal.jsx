@@ -3,6 +3,7 @@ import Modal from '../../common/Modal';
 import { showToast } from '../../../utils/toast';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import Badge from '../../common/Badge';
+import CustomDatePicker from '../../common/CustomDatePicker';
 import axios from 'axios';
 
 export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFreelancer = false }) {
@@ -157,9 +158,7 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '12px' }}>
               <div>
                 <label className="erp-label">Vigencia Desde <span className="req">*</span></label>
-                <input
-                  type="date"
-                  className="erp-input"
+                <CustomDatePicker
                   value={desde}
                   onChange={(e) => setDesde(e.target.value)}
                   required
@@ -169,9 +168,7 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
 
               <div>
                 <label className="erp-label">Vigencia Hasta <span className="req">*</span></label>
-                <input
-                  type="date"
-                  className="erp-input"
+                <CustomDatePicker
                   value={hasta}
                   onChange={(e) => setHasta(e.target.value)}
                   required
