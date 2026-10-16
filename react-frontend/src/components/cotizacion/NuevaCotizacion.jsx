@@ -1500,33 +1500,6 @@ export default function NuevaCotizacion({ user }) {
           <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img src={imgServicios} alt="Servicios" style={{ width: '24px', height: '24px' }} /> Agregar Productos y Servicios al Viaje
           </h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            {catalogos.is_freelancer && (
-              <Badge status="activo">Modalidad Freelancer (Costos Ocultos US-03)</Badge>
-            )}
-            {readyDraftTypes.length > 1 && (
-              <button
-                type="button"
-                onClick={handleAddAllReadyProducts}
-                className="btn-primary"
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: '10px',
-                  fontSize: '0.8125rem',
-                  fontWeight: '700',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 4px 14px rgba(232, 114, 23, 0.4)',
-                  cursor: 'pointer',
-                  border: 'none',
-                }}
-              >
-                <span>⚡</span>
-                Agregar Todos ({readyDraftTypes.length})
-              </button>
-            )}
-          </div>
         </div>
 
         {/* Tab Buttons */}
@@ -1548,23 +1521,23 @@ export default function NuevaCotizacion({ user }) {
                   border: isActive
                     ? `1px solid ${tab.color}`
                     : hasInfo
-                    ? `1px solid rgba(${tab.rgb}, 0.5)`
-                    : '1px solid rgba(255,255,255,0.18)',
+                      ? `1px solid rgba(${tab.rgb}, 0.5)`
+                      : '1px solid rgba(255,255,255,0.18)',
                   background: isActive
                     ? `rgba(${tab.rgb}, 0.22)`
                     : hasInfo
-                    ? `rgba(${tab.rgb}, 0.12)`
-                    : 'rgba(255, 255, 255, 0.05)',
+                      ? `rgba(${tab.rgb}, 0.12)`
+                      : 'rgba(255, 255, 255, 0.05)',
                   boxShadow: isActive
                     ? `0 0 12px rgba(${tab.rgb}, 0.45)`
                     : hasInfo
-                    ? `0 0 8px rgba(${tab.rgb}, 0.25)`
-                    : 'none',
+                      ? `0 0 8px rgba(${tab.rgb}, 0.25)`
+                      : 'none',
                   color: isActive
                     ? tab.color
                     : hasInfo
-                    ? '#FFF'
-                    : '#b9c8ddff',
+                      ? '#FFF'
+                      : '#b9c8ddff',
                   fontWeight: isActive ? '600' : hasInfo ? '500' : '400',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
@@ -1622,7 +1595,6 @@ export default function NuevaCotizacion({ user }) {
             gap: '12px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '1.35rem' }}>⚡</span>
               <div>
                 <div style={{ color: '#FFF', fontWeight: '600', fontSize: '0.875rem' }}>
                   Hay <strong>{readyDraftTypes.length} productos</strong> con información reservada lista:
@@ -1673,7 +1645,7 @@ export default function NuevaCotizacion({ user }) {
               }}
             >
               <img src={imgAgregar} alt="+" style={{ width: '15px', height: '15px' }} />
-              Agregar con 1 Click ({readyDraftTypes.length} productos)
+              Agregar todos ({readyDraftTypes.length})
             </button>
           </div>
         )}
@@ -2440,272 +2412,272 @@ export default function NuevaCotizacion({ user }) {
       {/* 4. Plan de Cuotas & Resumen Financiero */}
       {items.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
-        {/* Card: Plan de Pagos por Cuotas */}
-        <div style={{
-          background: 'rgb(6, 18, 81)',
-          borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
-          padding: '20px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
-              Financiamiento / Cuotas
-            </h2>
+          {/* Card: Plan de Pagos por Cuotas */}
+          <div style={{
+            background: 'rgb(6, 18, 81)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            padding: '20px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
+                Financiamiento / Cuotas
+              </h2>
 
-            <label style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              cursor: 'pointer',
-              fontSize: '0.8125rem',
-              fontWeight: '500',
-              color: enableCuotas ? '#E87217' : '#b9c8ddff',
-              padding: '10px 16px',
-              borderRadius: '12px',
-              background: 'rgb(30, 41, 59)',
-              transition: 'all 0.2s ease',
-              boxShadow: enableCuotas
-                ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
-                : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
-              border: enableCuotas ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
-              userSelect: 'none'
-            }}>
-              <input
-                type="checkbox"
-                checked={enableCuotas}
-                onChange={e => setEnableCuotas(e.target.checked)}
-                style={{ display: 'none' }}
-              />
-              Habilitar Cuotas
-            </label>
-          </div>
-
-          {enableCuotas ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label className="erp-label">Modo de Pago Inicial</label>
-                  <CustomSelect
-                    value={cuotasConfig.modo}
-                    onChange={e => setCuotasConfig({ ...cuotasConfig, modo: e.target.value })}
-                  >
-                    <option value="monto">Monto Fijo ($)</option>
-                    <option value="porcentaje">Porcentaje (%)</option>
-                  </CustomSelect>
-                </div>
-
-                <div>
-                  <label className="erp-label">
-                    {cuotasConfig.modo === 'monto' ? 'Monto Inicial ($)' : 'Porcentaje Inicial (%)'}
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={cuotasConfig.valor_inicial}
-                    onChange={e => setCuotasConfig({ ...cuotasConfig, valor_inicial: parseFloat(e.target.value) || 0 })}
-                    className="erp-input"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="erp-label">Número de Cuotas (1 a 12)</label>
-                <CustomSelect
-                  value={cuotasConfig.numero_cuotas}
-                  onChange={e => setCuotasConfig({ ...cuotasConfig, numero_cuotas: parseInt(e.target.value) || 1 })}
-                >
-                  {[1, 2, 3, 4, 5, 6, 8, 10, 12].map(n => (
-                    <option key={n} value={n}>{n} Cuotas mensuales</option>
-                  ))}
-                </CustomSelect>
-              </div>
-
-              {cuotasCalculadas && (
-                <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.18)' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Proyección Estimada:</span>
-                  <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF' }}>
-                      <span>Pago Inicial:</span>
-                      <strong style={{ color: '#10B981' }}>${cuotasCalculadas.montoInicial.toFixed(2)} USD</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fff' }}>
-                      <span>Monto Financiado:</span>
-                      <span style={{ color: '#E87217' }}>${cuotasCalculadas.montoRestante.toFixed(2)} USD</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF', borderTop: '1px solid rgba(255,255,255,0.51)', paddingTop: '6px' }}>
-                      <span>{cuotasCalculadas.numeroCuotas} cuotas iguales de:</span>
-                      <strong style={{ color: '#E87217' }}>${cuotasCalculadas.montoPorCuota.toFixed(2)} USD</strong>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <p style={{ color: '#b9c8ddff', fontSize: '0.875rem', margin: '8px 0 0 0' }}>
-              Pago único al contado. Active la casilla para configurar pagos fraccionados o financiamiento.
-            </p>
-          )}
-
-          {/* Observations */}
-          <div style={{ marginTop: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label className="erp-label" style={{ margin: 0 }}>Observaciones del Itinerario</label>
-              <span style={{ fontSize: '0.75rem', color: wordCount >= 500 ? '#EF4444' : '#b9c8ddff', fontWeight: wordCount >= 500 ? '700' : '400' }}>
-                {wordCount} / 500 palabras
-              </span>
-            </div>
-            <textarea
-              rows="3"
-              value={observacion}
-              onChange={handleObservacionChange}
-              onKeyDown={handleObservacionKeyDown}
-              placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 500 palabras)..."
-              className="erp-input"
-              style={{
-                resize: 'none',
-                height: '90px',
-                minHeight: '90px',
-                maxHeight: '90px',
-                overflowY: 'auto',
-                boxSizing: 'border-box',
-                width: '100%',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Card: Panel de Totales y Persistencia */}
-        <div style={{
-          background: 'rgb(6, 18, 81)',
-          borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}>
-          <div>
-            <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: '0 0 16px 0' }}>
-              Resumen Financiero
-            </h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b9c8ddff', fontSize: '0.9375rem' }}>
-                <span>Subtotal Servicios:</span>
-                <span style={{ color: '#FFF', fontWeight: '600' }}>${subtotalUSD.toFixed(2)} USD</span>
-              </div>
-
-              {referidoData && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10B981', fontSize: '0.9375rem' }}>
-                  <span>Descuento Referido ({referidoData.codigo}):</span>
-                  <span>-$0.00 USD</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#b9c8ddff', fontSize: '0.875rem' }}>
-                  Descuento Adicional:
-                  {tipoDescuento === 'Porcentaje' && (parseFloat(descuentoAdicional) || 0) > 0 && (
-                    <span style={{ display: 'block', fontSize: '0.75rem', color: '#10B981' }}>
-                      (-${descuentoCalculadoMonto.toFixed(2)} USD)
-                    </span>
-                  )}
-                </span>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={descuentoAdicional}
-                    onChange={handleDescuentoChange}
-                    className="erp-input"
-                    style={{ width: '100px', textAlign: 'right' }}
-                    placeholder="0"
-                    title={tipoDescuento === 'Porcentaje' ? 'Porcentaje de descuento (máx. 2 dígitos y decimales, ej. 15.5%)' : 'Monto de descuento en USD (máx. 3 dígitos y decimales, ej. 250.00)'}
-                  />
-                  <CustomSelect
-                    value={tipoDescuento}
-                    onChange={handleTipoDescuentoChange}
-                    style={{
-                      width: '100px',
-                    }}
-                  >
-                    <option value="Porcentaje">%</option>
-                    <option value="Monto">Monto ($)</option>
-                  </CustomSelect>
-                </div>
-              </div>
-
-              <div style={{
-                marginTop: '10px',
-                paddingTop: '14px',
-                borderTop: '1px solid rgba(255,255,255,0.12)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-              }}>
-                <span style={{ fontSize: '1.125rem', color: '#FFF', fontWeight: '700' }}>Total a Pagar:</span>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#E87217' }}>
-                    ${totalUSD.toFixed(2)} USD
-                  </div>
-                  <div style={{ fontSize: '0.8125rem', color: '#b9c8ddff' }}>
-                    Bs. {totalVES} (Ref. BCV)
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px' }}>
-            <button
-              type="button"
-              onClick={handleSubmitCotizacion}
-              disabled={isProcessing}
-              className="btn-primary"
-              style={{
-                width: '100%',
-                padding: '14px',
-                fontSize: '1rem',
-                fontWeight: '700',
+              <label style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
                 gap: '8px',
+                cursor: 'pointer',
+                fontSize: '0.8125rem',
+                fontWeight: '500',
+                color: enableCuotas ? '#E87217' : '#b9c8ddff',
+                padding: '10px 16px',
                 borderRadius: '12px',
-                opacity: isProcessing ? 0.6 : 1,
-                cursor: isProcessing ? 'not-allowed' : 'pointer',
-                pointerEvents: isProcessing ? 'none' : 'auto',
+                background: 'rgb(30, 41, 59)',
                 transition: 'all 0.2s ease',
-              }}
-            >
-              {submitting ? 'Creando Cotización...' : ' Crear Cotización'}
-            </button>
+                boxShadow: enableCuotas
+                  ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
+                  : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
+                border: enableCuotas ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+                userSelect: 'none'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={enableCuotas}
+                  onChange={e => setEnableCuotas(e.target.checked)}
+                  style={{ display: 'none' }}
+                />
+                Habilitar Cuotas
+              </label>
+            </div>
 
-            <button
-              type="button"
-              onClick={handleSubmitRapida}
-              disabled={isProcessing}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: isProcessing ? 'rgba(37, 99, 235, 0.1)' : 'rgba(37, 99, 235, 0.2)',
-                border: '1px solid rgba(37, 99, 235, 0.4)',
-                color: 'white',
-                fontSize: '0.9375rem',
-                fontWeight: '600',
-                borderRadius: '12px',
-                cursor: isProcessing ? 'not-allowed' : 'pointer',
-                opacity: isProcessing ? 0.6 : 1,
-                pointerEvents: isProcessing ? 'none' : 'auto',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {submittingRapida ? 'Generando...' : ' Generar Cotización Rápida'}
-            </button>
+            {enableCuotas ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label className="erp-label">Modo de Pago Inicial</label>
+                    <CustomSelect
+                      value={cuotasConfig.modo}
+                      onChange={e => setCuotasConfig({ ...cuotasConfig, modo: e.target.value })}
+                    >
+                      <option value="monto">Monto Fijo ($)</option>
+                      <option value="porcentaje">Porcentaje (%)</option>
+                    </CustomSelect>
+                  </div>
+
+                  <div>
+                    <label className="erp-label">
+                      {cuotasConfig.modo === 'monto' ? 'Monto Inicial ($)' : 'Porcentaje Inicial (%)'}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={cuotasConfig.valor_inicial}
+                      onChange={e => setCuotasConfig({ ...cuotasConfig, valor_inicial: parseFloat(e.target.value) || 0 })}
+                      className="erp-input"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="erp-label">Número de Cuotas (1 a 12)</label>
+                  <CustomSelect
+                    value={cuotasConfig.numero_cuotas}
+                    onChange={e => setCuotasConfig({ ...cuotasConfig, numero_cuotas: parseInt(e.target.value) || 1 })}
+                  >
+                    {[1, 2, 3, 4, 5, 6, 8, 10, 12].map(n => (
+                      <option key={n} value={n}>{n} Cuotas mensuales</option>
+                    ))}
+                  </CustomSelect>
+                </div>
+
+                {cuotasCalculadas && (
+                  <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.18)' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Proyección Estimada:</span>
+                    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF' }}>
+                        <span>Pago Inicial:</span>
+                        <strong style={{ color: '#10B981' }}>${cuotasCalculadas.montoInicial.toFixed(2)} USD</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fff' }}>
+                        <span>Monto Financiado:</span>
+                        <span style={{ color: '#E87217' }}>${cuotasCalculadas.montoRestante.toFixed(2)} USD</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF', borderTop: '1px solid rgba(255,255,255,0.51)', paddingTop: '6px' }}>
+                        <span>{cuotasCalculadas.numeroCuotas} cuotas iguales de:</span>
+                        <strong style={{ color: '#E87217' }}>${cuotasCalculadas.montoPorCuota.toFixed(2)} USD</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p style={{ color: '#b9c8ddff', fontSize: '0.875rem', margin: '8px 0 0 0' }}>
+                Pago único al contado. Active la casilla para configurar pagos fraccionados o financiamiento.
+              </p>
+            )}
+
+            {/* Observations */}
+            <div style={{ marginTop: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label className="erp-label" style={{ margin: 0 }}>Observaciones del Itinerario</label>
+                <span style={{ fontSize: '0.75rem', color: wordCount >= 500 ? '#EF4444' : '#b9c8ddff', fontWeight: wordCount >= 500 ? '700' : '400' }}>
+                  {wordCount} / 500 palabras
+                </span>
+              </div>
+              <textarea
+                rows="3"
+                value={observacion}
+                onChange={handleObservacionChange}
+                onKeyDown={handleObservacionKeyDown}
+                placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 500 palabras)..."
+                className="erp-input"
+                style={{
+                  resize: 'none',
+                  height: '90px',
+                  minHeight: '90px',
+                  maxHeight: '90px',
+                  overflowY: 'auto',
+                  boxSizing: 'border-box',
+                  width: '100%',
+                }}
+              />
+            </div>
           </div>
 
+          {/* Card: Panel de Totales y Persistencia */}
+          <div style={{
+            background: 'rgb(6, 18, 81)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}>
+            <div>
+              <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: '0 0 16px 0' }}>
+                Resumen Financiero
+              </h2>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b9c8ddff', fontSize: '0.9375rem' }}>
+                  <span>Subtotal Servicios:</span>
+                  <span style={{ color: '#FFF', fontWeight: '600' }}>${subtotalUSD.toFixed(2)} USD</span>
+                </div>
+
+                {referidoData && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10B981', fontSize: '0.9375rem' }}>
+                    <span>Descuento Referido ({referidoData.codigo}):</span>
+                    <span>-$0.00 USD</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#b9c8ddff', fontSize: '0.875rem' }}>
+                    Descuento Adicional:
+                    {tipoDescuento === 'Porcentaje' && (parseFloat(descuentoAdicional) || 0) > 0 && (
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: '#10B981' }}>
+                        (-${descuentoCalculadoMonto.toFixed(2)} USD)
+                      </span>
+                    )}
+                  </span>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={descuentoAdicional}
+                      onChange={handleDescuentoChange}
+                      className="erp-input"
+                      style={{ width: '100px', textAlign: 'right' }}
+                      placeholder="0"
+                      title={tipoDescuento === 'Porcentaje' ? 'Porcentaje de descuento (máx. 2 dígitos y decimales, ej. 15.5%)' : 'Monto de descuento en USD (máx. 3 dígitos y decimales, ej. 250.00)'}
+                    />
+                    <CustomSelect
+                      value={tipoDescuento}
+                      onChange={handleTipoDescuentoChange}
+                      style={{
+                        width: '100px',
+                      }}
+                    >
+                      <option value="Porcentaje">%</option>
+                      <option value="Monto">Monto ($)</option>
+                    </CustomSelect>
+                  </div>
+                </div>
+
+                <div style={{
+                  marginTop: '10px',
+                  paddingTop: '14px',
+                  borderTop: '1px solid rgba(255,255,255,0.12)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                }}>
+                  <span style={{ fontSize: '1.125rem', color: '#FFF', fontWeight: '700' }}>Total a Pagar:</span>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#E87217' }}>
+                      ${totalUSD.toFixed(2)} USD
+                    </div>
+                    <div style={{ fontSize: '0.8125rem', color: '#b9c8ddff' }}>
+                      Bs. {totalVES} (Ref. BCV)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px' }}>
+              <button
+                type="button"
+                onClick={handleSubmitCotizacion}
+                disabled={isProcessing}
+                className="btn-primary"
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  fontSize: '1rem',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  borderRadius: '12px',
+                  opacity: isProcessing ? 0.6 : 1,
+                  cursor: isProcessing ? 'not-allowed' : 'pointer',
+                  pointerEvents: isProcessing ? 'none' : 'auto',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {submitting ? 'Creando Cotización...' : ' Crear Cotización'}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSubmitRapida}
+                disabled={isProcessing}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: isProcessing ? 'rgba(37, 99, 235, 0.1)' : 'rgba(37, 99, 235, 0.2)',
+                  border: '1px solid rgba(37, 99, 235, 0.4)',
+                  color: 'white',
+                  fontSize: '0.9375rem',
+                  fontWeight: '600',
+                  borderRadius: '12px',
+                  cursor: isProcessing ? 'not-allowed' : 'pointer',
+                  opacity: isProcessing ? 0.6 : 1,
+                  pointerEvents: isProcessing ? 'none' : 'auto',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {submittingRapida ? 'Generando...' : ' Generar Cotización Rápida'}
+              </button>
+            </div>
+
+          </div>
         </div>
-      </div>
       )}
 
       {/* Modales del itinerario */}
