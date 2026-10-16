@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import logoinicio from '../../assets/logonaranjapdv.png';
+import logoinicio from '../../assets/logo-pdv-sin-letras.png';
 import nuevacotizacion from '../../assets/NuevaCotizacion.svg';
 import ventas from '../../assets/Ventas.svg';
 import ventasagencia from '../../assets/VentasAgencia.svg';

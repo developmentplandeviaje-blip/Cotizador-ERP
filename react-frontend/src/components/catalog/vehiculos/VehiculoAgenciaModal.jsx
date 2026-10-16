@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
 import { showToast } from '../../../utils/toast';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import axios from 'axios';
@@ -135,21 +136,18 @@ export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, z
 
             <div>
               <label className="erp-label">Ubicación <span className="req">*</span></label>
-              <select
-                className="erp-input"
+              <CustomSelect
                 value={idUbicacion}
                 onChange={(e) => setIdUbicacion(e.target.value)}
-                required
                 disabled={isSubmitting || loading}
-                style={{ cursor: 'pointer', color: idUbicacion ? '#FFFFFF' : '#94A3B8' }}
               >
-                <option value="" style={{ background: '#1e293b', color: '#94A3B8' }}>Seleccione ubicación...</option>
+                <option value="">Seleccione ubicación...</option>
                 {ubicaciones.map((u) => (
-                  <option key={u.id} value={u.id} style={{ background: '#1e293b', color: '#FFFFFF' }}>
+                  <option key={u.id} value={u.id}>
                     {u.ubicacion}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
           </div>
 

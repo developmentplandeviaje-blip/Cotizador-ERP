@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
 
 const SERVICIOS = [
   { id: 'hotel', label: 'Hotel', icon: '🏨' },
@@ -249,18 +250,17 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
                     Nivel / Rol <span style={{ color: '#EF4444' }}>*</span>
                   </label>
-                  <select
+                  <CustomSelect
                     value={level}
                     onChange={(e) => setLevel(e.target.value)}
-                    className="erp-input"
                     style={{ width: '100%' }}
                   >
                     {NIVELES.map((lvl) => (
-                      <option key={lvl} value={lvl} style={{ backgroundColor: '#1E293B', color: '#FFF' }}>
+                      <option key={lvl} value={lvl}>
                         {lvl}
                       </option>
                     ))}
-                  </select>
+                  </CustomSelect>
                   {errors.level && (
                     <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
                       {errors.level[0]}
