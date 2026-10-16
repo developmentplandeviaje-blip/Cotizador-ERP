@@ -1,5 +1,6 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
 import axios from 'axios';
 
 export default function AssignMetodosModal({ isOpen, onClose, onSaveSuccess }) {
@@ -96,18 +97,16 @@ export default function AssignMetodosModal({ isOpen, onClose, onSaveSuccess }) {
               <label style={{ display: 'block', fontSize: '0.8125rem', color: '#CBD5E1', marginBottom: '8px' }}>
                 Seleccione Asesor o Líder <span style={{ color: '#EF4444' }}>*</span>
               </label>
-              <select
-                className="erp-input"
+              <CustomSelect
                 style={{ width: '100%' }}
                 value={selectedAsesor}
                 onChange={(e) => handleAsesorChange(e.target.value)}
-                required
               >
                 <option value="">-- Seleccionar --</option>
                 {asesores.map(a => (
                   <option key={a.id} value={a.id}>{a.full_name} ({a.level})</option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
 
             {selectedAsesor && (
