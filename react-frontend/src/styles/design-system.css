@@ -61,6 +61,57 @@ body {
   padding: 0;
 }
 
+/* ==========================================================================
+   GLOBAL CUSTOM SCROLLBAR DESIGN
+   Aplica el diseño de scrollbar (píldora translúcida con track sutil oscuro)
+   a todos los contenedores con scroll vertical y horizontal en toda la aplicación.
+   ========================================================================== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.2);
+}
+
+*::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  transition: background-color 200ms ease;
+}
+
+*::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: #2563EB;
+}
+
+*::-webkit-scrollbar-thumb:active,
+::-webkit-scrollbar-thumb:active {
+  background: #38BDF8;
+}
+
+*::-webkit-scrollbar-corner,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-button,
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 /* Badges de Estado (Píldoras Completas) */
 .badge-pill {
   display: inline-flex;
@@ -393,6 +444,22 @@ body {
   pointer-events: auto;
 }
 
+.options.open-up {
+  top: auto;
+  bottom: calc(100% + 4px);
+  transform: translateY(8px);
+}
+
+.select:not(.temporarily-closed):hover>.options.open-up,
+.select.open>.options.open-up {
+  transform: translateY(0);
+}
+
+.select.open-up:not(.temporarily-closed):hover>.selected .arrow,
+.select.open-up.open>.selected .arrow {
+  transform: rotate(180deg);
+}
+
 .option {
   border-radius: 5px;
   padding: 8px 12px;
@@ -441,7 +508,11 @@ body {
 }
 
 .options::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: #2563EB;
+}
+
+.options::-webkit-scrollbar-thumb:active {
+  background: #38BDF8;
 }
 
 .erp-label {

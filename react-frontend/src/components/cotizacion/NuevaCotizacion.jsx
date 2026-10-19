@@ -1127,7 +1127,7 @@ export default function NuevaCotizacion({ user }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1280px', margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1280px', margin: '0 auto', paddingBottom: '20px' }}>
       {/* Header bar */}
       <div style={{
         display: 'flex',
@@ -1495,6 +1495,7 @@ export default function NuevaCotizacion({ user }) {
         borderRadius: '16px',
         border: '1px solid rgba(255, 255, 255, 0.18)',
         padding: '20px',
+        marginBottom: items.length === 0 ? '20px' : '0px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
           <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1503,7 +1504,7 @@ export default function NuevaCotizacion({ user }) {
         </div>
 
         {/* Tab Buttons */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="custom-scrollbar" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           {PRODUCT_TABS.map(tab => {
             const isActive = activeTab === tab.id;
             const hasInfo = checkTabHasInfo(tab.id);
@@ -2414,7 +2415,7 @@ export default function NuevaCotizacion({ user }) {
             </button>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
+          <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.51)', color: '#c7d4e7ff', fontSize: '0.75rem', textTransform: 'uppercase' }}>
@@ -2612,7 +2613,7 @@ export default function NuevaCotizacion({ user }) {
                 onChange={handleObservacionChange}
                 onKeyDown={handleObservacionKeyDown}
                 placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 500 palabras)..."
-                className="erp-input"
+                className="erp-input custom-scrollbar"
                 style={{
                   resize: 'none',
                   height: '90px',

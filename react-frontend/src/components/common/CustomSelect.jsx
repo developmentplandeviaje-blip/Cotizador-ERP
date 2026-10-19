@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 export default function CustomSelect({
   value,
@@ -14,6 +14,10 @@ export default function CustomSelect({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isTemporarilyClosed, setIsTemporarilyClosed] = useState(false);
+  const [placement, setPlacement] = useState({
+    openUp: false,
+    maxHeight: 240,
+  });
   const containerRef = useRef(null);
 
   // Parse options from either `options` prop or JSX `<option>` children
@@ -67,6 +71,42 @@ export default function CustomSelect({
     return parsedOptions[0]?.label || 'Seleccione...';
   }, [currentOption, parsedOptions, placeholder]);
 
+  // Dynamic positioning calculation for 20 points separation and upward flip
+  const updatePosition = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const scrollParent = containerRef.current.closest('main') || document.documentElement;
+    const scrollParentRect = scrollParent && scrollParent.getBoundingClientRect ? scrollParent.getBoundingClientRect() : null;
+
+    const viewportBottom = scrollParentRect
+      ? Math.min(window.innerHeight, scrollParentRect.bottom)
+      : window.innerHeight;
+    const viewportTop = scrollParentRect
+      ? Math.max(0, scrollParentRect.top)
+      : 0;
+
+    const spaceBelow = viewportBottom - rect.bottom;
+    const spaceAbove = rect.top - viewportTop;
+    const bottomSeparation = 20; // Exact 20 points separation from the bottom of the page
+
+    // If space below is less than 200px and space above is greater, flip upwards
+    const shouldOpenUp = spaceBelow < 200 && spaceAbove > spaceBelow;
+
+    if (shouldOpenUp) {
+      const maxH = Math.min(260, Math.max(120, spaceAbove - 20));
+      setPlacement({
+        openUp: true,
+        maxHeight: maxH,
+      });
+    } else {
+      const maxH = Math.min(260, Math.max(100, spaceBelow - bottomSeparation));
+      setPlacement({
+        openUp: false,
+        maxHeight: maxH,
+      });
+    }
+  }, []);
+
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -77,6 +117,24 @@ export default function CustomSelect({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Update position on mount and when open or scroll/resize occurs
+  useEffect(() => {
+    updatePosition();
+  }, [updatePosition]);
+
+  useEffect(() => {
+    if (isOpen) {
+      updatePosition();
+      const handleScrollOrResize = () => updatePosition();
+      window.addEventListener('resize', handleScrollOrResize);
+      window.addEventListener('scroll', handleScrollOrResize, true);
+      return () => {
+        window.removeEventListener('resize', handleScrollOrResize);
+        window.removeEventListener('scroll', handleScrollOrResize, true);
+      };
+    }
+  }, [isOpen, updatePosition]);
 
   const handleSelect = (optValue) => {
     if (disabled) return;
@@ -95,8 +153,9 @@ export default function CustomSelect({
   return (
     <div
       ref={containerRef}
-      className={`select erp-custom-select ${isOpen ? 'open' : ''} ${isTemporarilyClosed ? 'temporarily-closed' : ''} ${disabled ? 'disabled' : ''} ${className}`}
+      className={`select erp-custom-select ${isOpen ? 'open' : ''} ${placement.openUp ? 'open-up' : ''} ${isTemporarilyClosed ? 'temporarily-closed' : ''} ${disabled ? 'disabled' : ''} ${className}`}
       style={style}
+      onMouseEnter={updatePosition}
       onMouseLeave={() => setIsTemporarilyClosed(false)}
     >
       {name && <input type="hidden" name={name} value={normalizedValue} />}
@@ -104,6 +163,7 @@ export default function CustomSelect({
         className="selected"
         onClick={() => {
           if (!disabled) {
+            updatePosition();
             setIsTemporarilyClosed(false);
             setIsOpen(prev => !prev);
           }
@@ -113,6 +173,7 @@ export default function CustomSelect({
           if (disabled) return;
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
+            updatePosition();
             setIsTemporarilyClosed(false);
             setIsOpen(prev => !prev);
           } else if (e.key === 'Escape') {
@@ -133,7 +194,15 @@ export default function CustomSelect({
         </svg>
       </div>
 
-      <div className="options">
+      <div
+        className={`options ${placement.openUp ? 'open-up' : ''}`}
+        style={{
+          maxHeight: `${placement.maxHeight}px`,
+          ...(placement.openUp
+            ? { top: 'auto', bottom: 'calc(100% + 4px)' }
+            : { top: 'calc(100% + 4px)', bottom: 'auto' }),
+        }}
+      >
         {parsedOptions.map((opt, idx) => {
           const isSelected = String(opt.value) === String(normalizedValue);
           return (
