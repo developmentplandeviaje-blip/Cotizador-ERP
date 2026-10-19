@@ -360,13 +360,25 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                 </CustomSelect>
               </div>
               <div>
-                <label className="erp-label">Nota (opcional)</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label className="erp-label" style={{ margin: 0 }}>Nota (opcional)</label>
+                  <span style={{ fontSize: '0.75rem', color: (hotelInfo.nota?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
+                    {hotelInfo.nota?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+                  </span>
+                </div>
                 <textarea
-                  className="erp-input"
-                  style={{ height: '38px', resize: 'none' }}
-                  placeholder="Observación..."
+                  className="erp-input custom-scrollbar"
+                  style={{ height: '38px', minHeight: '38px', maxHeight: '38px', resize: 'none', overflowY: 'auto' }}
+                  placeholder="Observación... (máx. 50 palabras)"
                   value={hotelInfo.nota}
-                  onChange={(e) => setHotelInfo({ ...hotelInfo, nota: e.target.value })}
+                  onChange={(e) => {
+                    const words = e.target.value.trim().split(/\s+/).filter(Boolean);
+                    if (words.length > 50) {
+                      setHotelInfo({ ...hotelInfo, nota: words.slice(0, 50).join(' ') });
+                    } else {
+                      setHotelInfo({ ...hotelInfo, nota: e.target.value });
+                    }
+                  }}
                 />
               </div>
             </div>

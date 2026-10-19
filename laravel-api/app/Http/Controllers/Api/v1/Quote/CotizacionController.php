@@ -15,6 +15,12 @@ class CotizacionController extends Controller
         protected CotizacionService $service
     ) {}
 
+    public function index(Request $request): JsonResponse
+    {
+        $data = $this->service->listarCotizaciones($request->user());
+        return response()->json($data);
+    }
+
     public function catalogos(Request $request): JsonResponse
     {
         $data = $this->service->getCatalogos($request->user());

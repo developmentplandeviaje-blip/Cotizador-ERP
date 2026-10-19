@@ -299,6 +299,89 @@ body {
   background-color: var(--color-accent-hover);
 }
 
+/* ==========================================================================
+   BOTÓN CREAR COTIZACIÓN (From Uiverse.io by nikk7007, 100% Brand Orange)
+   ========================================================================== */
+.btn-crear-cotizacion,
+.btn {
+  --color: #E87217;
+  --color2: #FFFFFF;
+  padding: 0.8em 1.75em;
+  background-color: transparent;
+  border-radius: 12px;
+  border: 1.5px solid var(--color);
+  transition: .5s;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  z-index: 1;
+  font-weight: 700;
+  font-size: 1rem;
+  font-family: var(--font-family-tittle, 'Poppins', 'Segoe UI', sans-serif);
+  text-transform: uppercase;
+  color: var(--color);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  letter-spacing: 0.5px;
+}
+
+.btn-crear-cotizacion::after,
+.btn-crear-cotizacion::before,
+.btn::after,
+.btn::before {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: skew(90deg) translate(-50%, -50%);
+  position: absolute;
+  inset: 50%;
+  left: 25%;
+  z-index: -1;
+  transition: .5s ease-out;
+  background-color: var(--color);
+}
+
+.btn-crear-cotizacion::before,
+.btn::before {
+  top: -50%;
+  left: -25%;
+  transform: skew(90deg) rotate(180deg) translate(-50%, -50%);
+}
+
+.btn-crear-cotizacion:hover::before,
+.btn:hover::before {
+  transform: skew(45deg) rotate(180deg) translate(-50%, -50%);
+}
+
+.btn-crear-cotizacion:hover::after,
+.btn:hover::after {
+  transform: skew(45deg) translate(-50%, -50%);
+}
+
+.btn-crear-cotizacion:hover,
+.btn:hover {
+  color: var(--color2);
+  box-shadow: 0 4px 20px rgba(232, 114, 23, 0.45);
+}
+
+.btn-crear-cotizacion:active,
+.btn:active {
+  filter: brightness(.85);
+  transform: scale(.98);
+}
+
+.btn-crear-cotizacion:disabled,
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Inputs y Selects */
 .erp-input {
   background: #1e387599;
@@ -311,6 +394,11 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
   width: 100%;
+}
+
+textarea,
+textarea.erp-input {
+  resize: none !important;
 }
 
 .erp-select {

@@ -361,15 +361,27 @@ export default function VehiculoModal({
 
         {/* Notes Row */}
         <div>
-          <label className="erp-label">Observación / Notas (Opcional)</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+            <label className="erp-label" style={{ margin: 0 }}>Observación / Notas (Opcional)</label>
+            <span style={{ fontSize: '0.75rem', color: (nota?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
+              {nota?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+            </span>
+          </div>
           <textarea
-            className="erp-input"
+            className="erp-input custom-scrollbar"
             rows={2}
-            placeholder="Ej: Aire acondicionado, capacidad 5 pasajeros, sin límite de kilometraje"
+            placeholder="Ej: Aire acondicionado, capacidad 5 pasajeros, sin límite de kilometraje (máx. 50 palabras)"
             value={nota}
-            onChange={(e) => setNota(e.target.value)}
+            onChange={(e) => {
+              const words = e.target.value.trim().split(/\s+/).filter(Boolean);
+              if (words.length > 50) {
+                setNota(words.slice(0, 50).join(' '));
+              } else {
+                setNota(e.target.value);
+              }
+            }}
             disabled={isSubmitting}
-            style={{ resize: 'vertical' }}
+            style={{ resize: 'none', height: '65px', maxHeight: '65px', overflowY: 'auto' }}
           />
         </div>
 

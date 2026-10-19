@@ -493,13 +493,25 @@ export default function EditarProductoModal({
               </div>
 
               <div>
-                <label className="erp-label">Observaciones</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label className="erp-label" style={{ margin: 0 }}>Observaciones</label>
+                  <span style={{ fontSize: '0.75rem', color: (formData.observacion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 30 ? '#EF4444' : '#b9c8ddff' }}>
+                    {formData.observacion?.trim().split(/\s+/).filter(Boolean).length || 0} / 30 palabras
+                  </span>
+                </div>
                 <input
                   type="text"
                   value={formData.observacion || ''}
-                  onChange={e => setFormData({ ...formData, observacion: e.target.value })}
+                  onChange={e => {
+                    const words = e.target.value.trim().split(/\s+/).filter(Boolean);
+                    if (words.length > 30) {
+                      setFormData({ ...formData, observacion: words.slice(0, 30).join(' ') });
+                    } else {
+                      setFormData({ ...formData, observacion: e.target.value });
+                    }
+                  }}
                   className="erp-input"
-                  placeholder="Detalles del traslado..."
+                  placeholder="Detalles del traslado... (máx. 30 palabras)"
                 />
               </div>
             </div>
@@ -786,12 +798,25 @@ export default function EditarProductoModal({
             </div>
 
             <div style={{ gridColumn: '1 / -1' }}>
-              <label className="erp-label">Observaciones</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label className="erp-label" style={{ margin: 0 }}>Observaciones</label>
+                <span style={{ fontSize: '0.75rem', color: (formData.observacion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
+                  {formData.observacion?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+                </span>
+              </div>
               <input
                 type="text"
                 value={formData.observacion || ''}
-                onChange={e => setFormData({ ...formData, observacion: e.target.value })}
+                onChange={e => {
+                  const words = e.target.value.trim().split(/\s+/).filter(Boolean);
+                  if (words.length > 50) {
+                    setFormData({ ...formData, observacion: words.slice(0, 50).join(' ') });
+                  } else {
+                    setFormData({ ...formData, observacion: e.target.value });
+                  }
+                }}
                 className="erp-input"
+                placeholder="Detalles del alquiler o vehículo... (máx. 50 palabras)"
               />
             </div>
           </div>
@@ -895,13 +920,25 @@ export default function EditarProductoModal({
         {tipo === 'otro' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label className="erp-label">Descripción del Servicio</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label className="erp-label" style={{ margin: 0 }}>Descripción del Servicio</label>
+                <span style={{ fontSize: '0.75rem', color: (formData.descripcion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
+                  {formData.descripcion?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+                </span>
+              </div>
               <input
                 type="text"
                 value={formData.descripcion || ''}
-                onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
+                onChange={e => {
+                  const words = e.target.value.trim().split(/\s+/).filter(Boolean);
+                  if (words.length > 50) {
+                    setFormData({ ...formData, descripcion: words.slice(0, 50).join(' ') });
+                  } else {
+                    setFormData({ ...formData, descripcion: e.target.value });
+                  }
+                }}
                 className="erp-input"
-                placeholder="Nombre o detalle del servicio..."
+                placeholder="Nombre o detalle del servicio... (máx. 50 palabras)"
               />
             </div>
 

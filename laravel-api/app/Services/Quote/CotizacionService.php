@@ -359,6 +359,8 @@ class CotizacionService
             }
 
             return $venta->load([
+                'user',
+                'clientePrincipal',
                 'personas',
                 'hoteles.hotel',
                 'vuelos.aerolinea',
@@ -382,10 +384,243 @@ class CotizacionService
             ? $data['data']
             : json_encode($data);
 
-        return CotizacionRapida::create([
+        $rapida = CotizacionRapida::create([
             'id_asesor' => $user->id,
             'fecha' => now(),
             'data' => $payload,
         ]);
+
+        return $rapida->load('asesor');
+    }
+
+    /**
+     * Lista todas las cotizaciones guardadas (formales y rápidas) normalizadas para el registro de guardado.
+     */
+    public function listarCotizaciones(User $user): array
+    {
+        $isAdmin = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
+
+        $ventasQuery = Venta::with([
+            'user',
+            'clientePrincipal',
+            'personas',
+            'hoteles.hotel',
+            'vuelos.aerolinea',
+            'excursiones.excursion',
+            'paquetes.paquete',
+            'traslados.traslado',
+            'vehiculos.vehiculo',
+            'ferries',
+            'otros',
+            'referido',
+        ])
+        ->where('estado', 'Cotizacion')
+        ->latest('id');
+
+        $rapidasQuery = CotizacionRapida::with('asesor')
+            ->latest('id');
+
+        if (!$isAdmin) {
+            $ventasQuery->where('id_user', $user->id);
+            $rapidasQuery->where('id_asesor', $user->id);
+        }
+
+        $ventas = $ventasQuery->get();
+        $rapidas = $rapidasQuery->get();
+
+        $lista = [];
+
+        // Mapear ventas (Cotizaciones formales)
+        foreach ($ventas as $v) {
+            $clienteP = $v->clientePrincipal;
+            $nombreCliente = trim(($clienteP?->nombres ?? '') . ' ' . ($clienteP?->apellidos ?? ''));
+            if (empty($nombreCliente)) {
+                $nombreCliente = 'Sin cliente asignado';
+            }
+
+            $totalUSD = 0;
+            $items = [];
+
+            foreach ($v->hoteles as $h) {
+                $monto = ($h->precio_noche_adulto * max(1, (int)$h->adultos)
+                    + $h->precio_noche_adolescente * (int)($h->adolescente ?? 0)
+                    + $h->precio_noche_nino * (int)($h->ninos ?? 0)) * max(1, (int)$h->noches);
+                $totalUSD += $monto;
+                $items[] = [
+                    'tipo' => 'hotel',
+                    'titulo' => 'Hotel: ' . ($h->hotel?->nombre ?? 'Hotel'),
+                    'detalle' => "{$h->noches} noches • Habitación: " . ($h->tipo_habitacion ?? 'Estándar'),
+                    'precio' => $monto,
+                    'data' => $h,
+                ];
+            }
+
+            foreach ($v->vuelos as $vu) {
+                $monto = ($vu->precio_adulto * max(1, (int)$vu->adultos)
+                    + $vu->precio_nino * (int)($vu->ninos ?? 0)
+                    + $vu->precio_infante * (int)($vu->infantes ?? 0));
+                $totalUSD += $monto;
+                $items[] = [
+                    'tipo' => 'vuelo',
+                    'titulo' => 'Vuelo: ' . ($vu->aerolinea?->nombre ?? 'Aerolínea'),
+                    'detalle' => $vu->itinerario ?? 'Ruta aérea',
+                    'precio' => $monto,
+                    'data' => $vu,
+                ];
+            }
+
+            foreach ($v->traslados as $t) {
+                $monto = (float)($t->precio_historico ?? 0);
+                $totalUSD += $monto;
+                $items[] = [
+                    'tipo' => 'traslado',
+                    'titulo' => 'Traslado: ' . ($t->traslado?->ruta_origen ?? '') . ' - ' . ($t->traslado?->ruta_destino ?? ''),
+                    'detalle' => 'Fecha: ' . ($t->fecha_traslado ?? 'N/A'),
+                    'precio' => $monto,
+                    'data' => $t,
+                ];
+            }
+
+            foreach ($v->excursiones as $e) {
+                $monto = ($e->precio_adulto * max(1, (int)$e->adultos)
+                    + $e->precio_nino * (int)($e->ninos ?? 0));
+                $totalUSD += $monto;
+                $items[] = [
+                    'tipo' => 'excursion',
+                    'titulo' => 'Excursión: ' . ($e->excursion?->tipo_excursion ?? 'Excursión'),
+                    'detalle' => 'Fecha: ' . ($e->fecha ?? 'N/A'),
+                    'precio' => $monto,
+                    'data' => $e,
+                ];
+            }
+
+            foreach ($v->paquetes as $p) {
+                $monto = ($p->precio_adulto * max(1, (int)$p->adultos)
+                    + $p->precio_nino * (int)($p->ninos ?? 0));
+                $totalUSD += $monto;
+                $items[] = [
+                    'tipo' => 'paquete',
+                    'titulo' => 'Paquete: ' . ($p->paquete?->paquete ?? 'Paquete turístico'),
+                    'detalle' => 'Fecha: ' . ($p->fecha ?? 'N/A'),
+                    'precio' => $monto,
+                    'data' => $p,
+                ];
+            }
+
+            foreach ($v->vehiculos as $veh) {
+                $dias = max(1, (int)($veh->dias ?? 1));
+                $monto = (float)($veh->precio_unitario ?? 0) * $dias;
+                $totalUSD += $monto;
+                $items[] = [
+                    'tipo' => 'vehiculo',
+                    'titulo' => 'Vehículo: ' . ($veh->vehiculo?->marca ?? '') . ' ' . ($veh->vehiculo?->modelo ?? ''),
+                    'detalle' => "{$dias} días",
+                    'precio' => $monto,
+                    'data' => $veh,
+                ];
+            }
+
+            foreach ($v->ferries as $f) {
+                $monto = ($f->precio_adulto * max(1, (int)$f->adultos)
+                    + $f->precio_nino * (int)($f->ninos ?? 0)
+                    + $f->precio_vehiculo * (int)($f->vehiculos ?? 0));
+                $totalUSD += $monto;
+                $items[] = [
+                    'tipo' => 'ferry',
+                    'titulo' => 'Ferry: ' . ($f->ruta ?? 'Ruta marítima'),
+                    'detalle' => 'Itinerario: ' . ($f->itinerario ?? ''),
+                    'precio' => $monto,
+                    'data' => $f,
+                ];
+            }
+
+            foreach ($v->otros as $o) {
+                $monto = (float)($o->precio ?? 0);
+                $totalUSD += $monto;
+                $items[] = [
+                    'tipo' => 'otro',
+                    'titulo' => 'Servicio: ' . ($o->descripcion ?? 'Otro'),
+                    'detalle' => 'Fecha: ' . ($o->fecha ?? 'N/A'),
+                    'precio' => $monto,
+                    'data' => $o,
+                ];
+            }
+
+            $totalUSD = max(0, $totalUSD - (float)($v->descuento_monto ?? 0));
+            $totalPax = $v->personas->count();
+
+            $lista[] = [
+                'id' => $v->id,
+                'uid' => 'venta_' . $v->id,
+                'tipo_registro' => 'formal',
+                'tipo_label' => 'Cotización Formal',
+                'localizador' => $v->localizador,
+                'numero_ficha' => $v->numero_ficha,
+                'fecha' => $v->fecha_creacion,
+                'asesor' => $v->user?->name ?? 'Asesor',
+                'cliente' => [
+                    'nombres' => $clienteP?->nombres ?? '',
+                    'apellidos' => $clienteP?->apellidos ?? '',
+                    'nombre_completo' => $nombreCliente,
+                    'tipo_documento' => $clienteP?->tipo_documento ?? 'V',
+                    'documento' => $clienteP?->documento ?? '',
+                    'telefono' => $clienteP?->telefono ?? '',
+                    'correo' => $clienteP?->correo ?? '',
+                ],
+                'pasajeros' => $v->personas->where('principal', 0)->values(),
+                'pax' => [
+                    'total' => max(1, $totalPax),
+                ],
+                'fechas' => [
+                    'checkin' => $v->checkin ? date('Y-m-d', strtotime($v->checkin)) : null,
+                    'checkout' => $v->checkout ? date('Y-m-d', strtotime($v->checkout)) : null,
+                ],
+                'items' => $items,
+                'total_usd' => $totalUSD,
+                'descuento_monto' => (float)$v->descuento_monto,
+                'descuento_porcentaje' => $v->descuento_porcentaje,
+                'observacion' => $v->observacion,
+                'tipo_pago' => $v->tipo_pago,
+            ];
+        }
+
+        // Mapear cotizaciones rápidas
+        foreach ($rapidas as $r) {
+            $data = is_array($r->data) ? $r->data : json_decode($r->data, true);
+            $clienteRaw = $data['cliente'] ?? 'Cliente Rápido';
+            $pax = $data['pax'] ?? ['adultos' => 1, 'ninos' => 0, 'adolescentes' => 0, 'infantes' => 0];
+            $totalPax = ($pax['adultos'] ?? 1) + ($pax['adolescentes'] ?? 0) + ($pax['ninos'] ?? 0) + ($pax['infantes'] ?? 0);
+
+            $lista[] = [
+                'id' => $r->id,
+                'uid' => 'rapida_' . $r->id,
+                'tipo_registro' => 'rapida',
+                'tipo_label' => 'Cotización Rápida',
+                'localizador' => 'RAP-' . str_pad($r->id, 5, '0', STR_PAD_LEFT),
+                'numero_ficha' => $r->id,
+                'fecha' => $r->fecha,
+                'asesor' => $r->asesor?->name ?? 'Asesor',
+                'cliente' => [
+                    'nombre_completo' => is_string($clienteRaw) ? $clienteRaw : ($clienteRaw['nombres'] ?? 'Cliente Rápido'),
+                    'documento' => is_array($clienteRaw) ? ($clienteRaw['documento'] ?? '') : '',
+                    'telefono' => is_array($clienteRaw) ? ($clienteRaw['telefono'] ?? '') : '',
+                    'correo' => is_array($clienteRaw) ? ($clienteRaw['correo'] ?? '') : '',
+                ],
+                'pax' => array_merge($pax, ['total' => $totalPax]),
+                'fechas' => $data['fechas'] ?? [],
+                'items' => $data['items'] ?? [],
+                'total_usd' => (float)($data['total_estimado'] ?? 0),
+                'descuento_monto' => 0,
+                'observacion' => $data['observacion'] ?? null,
+                'tipo_pago' => 'Total',
+            ];
+        }
+
+        // Ordenar por fecha descendente
+        usort($lista, function ($a, $b) {
+            return strtotime($b['fecha']) <=> strtotime($a['fecha']);
+        });
+
+        return $lista;
     }
 }

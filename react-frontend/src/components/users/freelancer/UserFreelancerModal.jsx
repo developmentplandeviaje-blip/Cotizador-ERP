@@ -411,16 +411,28 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
 
               {/* Dirección */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
-                  Dirección Comercial
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '6px 0px 4px 0px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: 0 }}>
+                    Dirección Comercial
+                  </label>
+                  <span style={{ fontSize: '0.75rem', color: (freelancerDireccion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 40 ? '#EF4444' : '#b9c8ddff' }}>
+                    {freelancerDireccion?.trim().split(/\s+/).filter(Boolean).length || 0} / 40 palabras
+                  </span>
+                </div>
                 <textarea
                   value={freelancerDireccion}
-                  onChange={(e) => setFreelancerDireccion(e.target.value)}
-                  placeholder="Dirección fiscal o de oficinas..."
-                  className="erp-input"
+                  onChange={(e) => {
+                    const words = e.target.value.trim().split(/\s+/).filter(Boolean);
+                    if (words.length > 40) {
+                      setFreelancerDireccion(words.slice(0, 40).join(' '));
+                    } else {
+                      setFreelancerDireccion(e.target.value);
+                    }
+                  }}
+                  placeholder="Dirección fiscal o de oficinas... (máx. 40 palabras)"
+                  className="erp-input custom-scrollbar"
                   rows={2}
-                  style={{ width: '100%', resize: 'none' }}
+                  style={{ width: '100%', resize: 'none', height: '65px', maxHeight: '65px', overflowY: 'auto' }}
                 />
               </div>
 
