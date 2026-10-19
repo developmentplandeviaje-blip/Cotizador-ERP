@@ -1561,18 +1561,55 @@ export default function NuevaCotizacion({ user }) {
                 )}
                 <span>{tab.label}</span>
                 {hasInfo && !isActive && (
-                  <span
-                    title="Contiene información"
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      backgroundColor: tab.color,
-                      boxShadow: `0 0 6px ${tab.color}`,
-                      display: 'inline-block',
-                      marginLeft: '2px',
-                    }}
-                  />
+                  isDraftReady(tab.id) ? (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        resetFormForTipo(tab.id);
+                      }}
+                      title={`Eliminar información de ${tab.label} para no agregarlo`}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '16px',
+                        height: '16px',
+                        borderRadius: '50%',
+                        background: 'rgba(255, 255, 255, 0.12)',
+                        color: tab.color,
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        marginLeft: '3px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#bbbbbb2f';
+                        e.currentTarget.style.color = '#FFFFFF';
+                        e.currentTarget.style.transform = 'scale(1.2)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
+                        e.currentTarget.style.color = tab.color;
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      ✕
+                    </span>
+                  ) : (
+                    <span
+                      title="Producto agregado al itinerario"
+                      style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        backgroundColor: tab.color,
+                        boxShadow: `0 0 6px ${tab.color}`,
+                        display: 'inline-block',
+                        marginLeft: '2px',
+                      }}
+                    />
+                  )
                 )}
               </button>
             );
@@ -1607,7 +1644,7 @@ export default function NuevaCotizacion({ user }) {
                         key={t}
                         style={{
                           fontSize: '0.75rem',
-                          padding: '2px 9px',
+                          padding: '2px 8px 2px 5px',
                           borderRadius: '6px',
                           background: `rgba(${tabObj?.rgb || '255,255,255'}, 0.2)`,
                           border: `1px solid ${tabObj?.color || '#E87217'}`,
@@ -1615,11 +1652,54 @@ export default function NuevaCotizacion({ user }) {
                           fontWeight: '600',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '5px',
+                          transition: 'all 0.15s ease',
                         }}
                       >
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: tabObj?.color || '#E87217' }} />
-                        {tabObj?.label || t}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            resetFormForTipo(t);
+                          }}
+                          title={`Eliminar ${tabObj?.label || t} para no agregarlo`}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.15)',
+                            border: 'none',
+                            color: tabObj?.color || '#FFF',
+                            borderRadius: '50%',
+                            width: '16px',
+                            height: '16px',
+                            cursor: 'pointer',
+                            fontSize: '10px',
+                            fontWeight: 'bold',
+                            lineHeight: 1,
+                            padding: 0,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#bbbbbb2f';
+                            e.currentTarget.style.color = '#FFFFFF';
+                            e.currentTarget.style.transform = 'scale(1.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                            e.currentTarget.style.color = tabObj?.color || '#FFF';
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                        >
+                          ✕
+                        </button>
+                        <span
+                          onClick={() => setActiveTab(t)}
+                          style={{ cursor: 'pointer' }}
+                          title={`Ver / Editar ${tabObj?.label || t}`}
+                        >
+                          {tabObj?.label || t}
+                        </span>
                       </span>
                     );
                   })}
