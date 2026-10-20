@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { InformeCotizacionRapidaModal } from './modals';
 import imgSearch from '../../assets/lupa.svg';
+import imgAgregar from '../../assets/Agregar.svg';
 import Badge from '../common/Badge';
 
 export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
@@ -92,7 +93,6 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <span style={{ fontSize: '28px' }}>📋</span>
           <div>
             <h1
               style={{
@@ -106,23 +106,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
               }}
             >
               <span>Registro de Cotizaciones Guardadas</span>
-              <span
-                style={{
-                  fontSize: '0.8125rem',
-                  fontWeight: '600',
-                  color: '#E87217',
-                  background: 'rgba(232, 114, 23, 0.15)',
-                  padding: '2px 10px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(232, 114, 23, 0.3)',
-                }}
-              >
-                {totalCotizaciones} {totalCotizaciones === 1 ? 'registro' : 'registros'}
-              </span>
             </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#94A3B8' }}>
-              Historial de cotizaciones guardadas por primera vez. Puedes volver a generar el informe de cotización rápida en cualquier momento.
-            </p>
           </div>
         </div>
 
@@ -147,36 +131,8 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
             }}
             title="Recargar cotizaciones guardadas"
           >
-            <span style={{ display: 'inline-block', transform: loading ? 'rotate(180deg)' : 'none', transition: 'transform 0.5s' }}>
-              🔄
-            </span>
             <span>{loading ? 'Actualizando...' : 'Actualizar'}</span>
           </button>
-
-          {onNuevaCotizacion && (
-            <button
-              type="button"
-              onClick={onNuevaCotizacion}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '9px 18px',
-                background: '#E87217',
-                border: 'none',
-                borderRadius: '10px',
-                color: '#FFFFFF',
-                fontSize: '0.875rem',
-                fontWeight: '700',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(232, 114, 23, 0.35)',
-                transition: 'all 0.2s',
-              }}
-            >
-              <span>+</span>
-              <span>Nueva Cotización</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -190,8 +146,8 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
       >
         <div
           style={{
-            background: 'rgba(16, 28, 68, 0.55)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
+            background: 'rgb(6, 18, 81)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
             borderRadius: '12px',
             padding: '14px 18px',
           }}
@@ -204,8 +160,8 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
 
         <div
           style={{
-            background: 'rgba(16, 28, 68, 0.55)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
+            background: 'rgb(6, 18, 81)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
             borderRadius: '12px',
             padding: '14px 18px',
           }}
@@ -218,8 +174,8 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
 
         <div
           style={{
-            background: 'rgba(16, 28, 68, 0.55)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
+            background: 'rgb(6, 18, 81)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
             borderRadius: '12px',
             padding: '14px 18px',
           }}
@@ -232,8 +188,8 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
 
         <div
           style={{
-            background: 'rgba(16, 28, 68, 0.55)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
+            background: 'rgb(6, 18, 81)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
             borderRadius: '12px',
             padding: '14px 18px',
           }}
@@ -253,9 +209,9 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '12px',
-          background: 'rgba(13, 22, 45, 0.75)',
+          background: 'rgb(6, 18, 81)',
           borderRadius: '12px',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '12px 18px',
         }}
       >
@@ -350,9 +306,9 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
       <div
         className="custom-scrollbar"
         style={{
-          background: 'rgba(13, 22, 45, 0.85)',
+          background: 'rgba(188, 192, 215, 0.09)',
           borderRadius: '14px',
-          border: '1px solid rgba(255, 255, 255, 0.14)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
           overflow: 'hidden',
           boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
         }}
@@ -380,7 +336,6 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
           </div>
         ) : filteredCotizaciones.length === 0 ? (
           <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8' }}>
-            <div style={{ fontSize: '42px', marginBottom: '12px' }}>📂</div>
             <h3 style={{ margin: '0 0 6px 0', color: '#FFFFFF', fontSize: '1.1rem' }}>
               No se encontraron cotizaciones registradas
             </h3>
@@ -396,11 +351,11 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
               <thead>
                 <tr
                   style={{
-                    background: 'rgba(8, 14, 30, 0.95)',
-                    color: '#94A3B8',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+                    background: 'rgba(232, 114, 23, 0.15)',
+                    color: '#fff',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.18)',
                     textTransform: 'uppercase',
-                    fontSize: '0.75rem',
+                    fontSize: '0.735rem',
                     letterSpacing: '0.05em',
                   }}
                 >
@@ -425,7 +380,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                     <tr
                       key={cotiz.uid || cotiz.id || idx}
                       style={{
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.07)',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.22)',
                         background: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 0.03)',
                         transition: 'background 0.15s ease',
                       }}
@@ -446,7 +401,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                             {cotiz.localizador}
                           </span>
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#b9c8dd' }}>
                           Ficha #{cotiz.numero_ficha || cotiz.id}
                         </div>
                       </td>
@@ -454,7 +409,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                       {/* Fecha */}
                       <td style={{ padding: '14px 18px', color: '#CBD5E1', whiteSpace: 'nowrap' }}>
                         <div>{new Date(cotiz.fecha).toLocaleDateString('es-VE')}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#b9c8dd' }}>
                           {new Date(cotiz.fecha).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </td>
@@ -465,7 +420,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                           {clienteNombre}
                         </div>
                         {clienteDoc && (
-                          <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                          <div style={{ fontSize: '0.75rem', color: '#b9c8dd' }}>
                             {clienteDoc}
                           </div>
                         )}
@@ -486,7 +441,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                         <div style={{ fontWeight: '800', color: '#E87217', fontSize: '0.95rem' }}>
                           ${Number(cotiz.total_usd || 0).toFixed(2)} USD
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#b9c8dd' }}>
                           Ref. Bs. {(Number(cotiz.total_usd || 0) * 62.5).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
                       </td>
@@ -539,7 +494,6 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                             e.currentTarget.style.transform = 'translateY(0)';
                           }}
                         >
-                          <span>📄</span>
                           <span>Generar Cotización Rápida</span>
                         </button>
                       </td>

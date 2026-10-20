@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import CotizacionTabContent from './CotizacionTabContent';
 import RegistroCotizaciones from './RegistroCotizaciones';
+import imgAgregar from '../../assets/Agregar.svg';
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
 
 // Backward compatibility exports for modals
@@ -182,18 +183,18 @@ export default function NuevaCotizacion({ user }) {
                 gap: '10px',
                 padding: '8px 16px',
                 background: isActive
-                  ? 'linear-gradient(135deg, rgba(232, 114, 23, 0.22) 0%, rgba(37, 99, 235, 0.22) 100%)'
+                  ? 'linear-gradient(135deg, rgba(232, 158, 23, 0.22) 0%, rgba(235, 147, 37, 0.22) 100%)'
                   : 'rgba(255, 255, 255, 0.04)',
                 color: isActive ? '#FFFFFF' : '#94A3B8',
                 border: isActive
-                  ? '1px solid #E87217'
+                  ? '1px solid rgb(232, 114, 23, 0.50)'
                   : '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: '10px',
                 cursor: 'pointer',
                 userSelect: 'none',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                maxWidth: '240px',
-                minWidth: '150px',
+                maxWidth: '220px',
+                minWidth: '110px',
                 boxShadow: isActive ? '0 0 15px rgba(232, 114, 23, 0.25)' : 'none',
                 flexShrink: 0,
               }}
@@ -210,25 +211,6 @@ export default function NuevaCotizacion({ user }) {
                 }
               }}
             >
-              {/* Document Quote Icon */}
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '7px',
-                  background: isActive
-                    ? 'rgba(232, 114, 23, 0.25)'
-                    : 'rgba(255, 255, 255, 0.06)',
-                  color: isActive ? '#E87217' : '#94A3B8',
-                  fontSize: '12px',
-                  flexShrink: 0,
-                }}
-              >
-                📑
-              </span>
 
               {/* Tab Title (Cotización $i or Client Name) */}
               <span
@@ -290,11 +272,11 @@ export default function NuevaCotizacion({ user }) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '8px 16px',
-            background: 'rgba(232, 114, 23, 0.12)',
-            border: '1px dashed rgba(232, 114, 23, 0.45)',
-            borderRadius: '10px',
-            color: '#FDBA74',
+            padding: '8px 8px',
+            background: 'rgba(255, 255, 255, 0.12)',
+            border: '1px dashed rgba(255, 255, 255, 0.45)',
+            borderRadius: '100%',
+            color: 'rgb(255, 253, 251)',
             fontSize: '0.875rem',
             fontWeight: '600',
             cursor: 'pointer',
@@ -303,20 +285,19 @@ export default function NuevaCotizacion({ user }) {
             flexShrink: 0,
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(232, 114, 23, 0.25)';
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
             e.currentTarget.style.borderColor = '#E87217';
             e.currentTarget.style.color = '#FFFFFF';
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(232, 114, 23, 0.12)';
-            e.currentTarget.style.borderColor = 'rgba(232, 114, 23, 0.45)';
-            e.currentTarget.style.color = '#FDBA74';
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.45)';
+            e.currentTarget.style.color = 'rgb(255, 253, 251)';
             e.currentTarget.style.transform = 'translateY(0)';
           }}
         >
-          <span style={{ fontSize: '15px', fontWeight: '700', color: '#E87217' }}>+</span>
-          <span>Nueva Cotización</span>
+          <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
         </button>
 
         {/* Tab / Botón: Registro de Guardado */}
@@ -332,11 +313,11 @@ export default function NuevaCotizacion({ user }) {
               padding: '8px 16px',
               background:
                 activeTabId === 'registro'
-                  ? 'linear-gradient(135deg, rgba(232, 114, 23, 0.28) 0%, rgba(37, 99, 235, 0.28) 100%)'
+                  ? 'linear-gradient(135deg, rgba(232, 158, 23, 0.28) 0%, rgba(235, 147, 37, 0.28) 100%)'
                   : 'rgba(255, 255, 255, 0.06)',
               border:
                 activeTabId === 'registro'
-                  ? '1px solid #E87217'
+                  ? '1px solid rgb(232, 114, 23, 0.50)'
                   : '1px solid rgba(255, 255, 255, 0.14)',
               borderRadius: '10px',
               color: activeTabId === 'registro' ? '#FFFFFF' : '#CBD5E1',
@@ -361,7 +342,6 @@ export default function NuevaCotizacion({ user }) {
               }
             }}
           >
-            <span style={{ fontSize: '15px' }}>📋</span>
             <span>Registro de Guardado</span>
           </button>
         </div>

@@ -1163,9 +1163,6 @@ export default function CotizacionTabContent({
           <div>
             <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <span>Nueva Cotización</span>
-              <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#E87217', background: 'rgba(232, 114, 23, 0.15)', padding: '2px 10px', borderRadius: '8px', border: '1px solid rgba(232, 114, 23, 0.3)' }}>
-                {cliente.nombres ? `${cliente.nombres} ${cliente.apellidos}`.trim() : `Cotización ${tabNumber}`}
-              </span>
             </h1>
           </div>
         </div>
