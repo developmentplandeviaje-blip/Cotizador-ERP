@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { InformeCotizacionRapidaModal } from './modals';
 import imgSearch from '../../assets/lupa.svg';
-import imgAgregar from '../../assets/Agregar.svg';
+import imgreport from '../../assets/reportes.svg';
 import Badge from '../common/Badge';
 
 export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
@@ -167,7 +167,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
           }}
         >
           <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>Cotizaciones Formales</span>
-          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#38BDF8', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'rgb(232, 114, 23)', marginTop: '4px' }}>
             {totalFormales}
           </div>
         </div>
@@ -181,7 +181,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
           }}
         >
           <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>Cotizaciones Rápidas</span>
-          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#FB923C', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'rgb(232, 114, 23)', marginTop: '4px' }}>
             {totalRapidas}
           </div>
         </div>
@@ -195,67 +195,86 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
           }}
         >
           <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>Monto Total Cotizado</span>
-          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#4ADE80', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'rgb(0 211 77)', marginTop: '4px' }}>
             ${montoTotalCotizado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
           </div>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Filter and Search Bar (Image 1 Style) */}
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
           justifyContent: 'space-between',
+          alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '12px',
-          background: 'rgb(6, 18, 81)',
-          borderRadius: '12px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
-          padding: '12px 18px',
+          gap: '16px',
+          marginBottom: '10px',
+          padding: '0px 4px',
         }}
       >
-        {/* Search Input */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            borderRadius: '10px',
-            padding: '8px 14px',
-            flex: '1 1 320px',
-            maxWidth: '500px',
-          }}
-        >
-          <img src={imgSearch} alt="Buscar" style={{ width: '16px', height: '16px', opacity: 0.7 }} />
+        {/* Search bar with magnifying glass (Image 1 Style) */}
+        <div style={{ position: 'relative', width: '380px', maxWidth: '100%' }}>
+          <span
+            style={{
+              position: 'absolute',
+              left: '14px',
+              top: '50%',
+              transform: 'translateY(-40%)',
+              color: '#b9c8ddff',
+              fontSize: '1rem',
+              pointerEvents: 'none',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <img src={imgSearch} alt="" style={{ width: '20px', height: '20px' }} />
+          </span>
           <input
             type="text"
+            className="erp-input"
             placeholder="Buscar por cliente, cédula, localizador o asesor..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             style={{
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
+              paddingLeft: '38px',
+              paddingRight: searchTerm ? '34px' : '16px',
+              borderRadius: '9999px',
+              background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
+              height: '38px',
+              boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
+              border: '1px solid rgb(255 255 255 / 56%)',
               color: '#FFFFFF',
-              fontSize: '0.875rem',
-              width: '100%',
             }}
           />
           {searchTerm && (
             <button
+              type="button"
               onClick={() => setSearchTerm('')}
-              style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '14px' }}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'transparent',
+                border: 'none',
+                color: '#94A3B8',
+                cursor: 'pointer',
+                fontSize: '14px',
+                padding: '2px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Limpiar búsqueda"
             >
               ✕
             </button>
           )}
         </div>
 
-        {/* Filter Tabs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        {/* Filter Tabs (Image 1 Pill Style) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {[
             { id: 'todos', label: 'Todos' },
             { id: 'formal', label: 'Formales' },
@@ -268,15 +287,25 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                 type="button"
                 onClick={() => setFilterTipo(tab.id)}
                 style={{
-                  padding: '7px 16px',
-                  borderRadius: '8px',
-                  border: active ? '1px solid #E87217' : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: active ? 'rgba(232, 114, 23, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                  color: active ? '#FFFFFF' : '#94A3B8',
+                  height: '38px',
+                  padding: '0 20px',
+                  borderRadius: '9999px',
+                  border: active ? '1px solid rgb(201, 201, 201)' : '1px solid rgb(255 255 255 / 56%)',
+                  background: active
+                    ? 'linear-gradient(150deg, rgb(255 255 255 / 15%) 1%, rgb(182 183 185 / 20%) 73%, rgb(255 255 255 / 45%) 108%)'
+                    : 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
+                  color: active ? '#FFFFFF' : '#b9c8ddff',
                   fontSize: '0.8125rem',
                   fontWeight: active ? '700' : '500',
+                  boxShadow: active
+                    ? '0 0 12px rgba(103 136 255 / 45%), rgba(0, 0, 0, 0.4) 3px 3px 6px'
+                    : 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  fontFamily: 'inherit',
                 }}
               >
                 {tab.label}
@@ -384,7 +413,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                         background: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 0.03)',
                         transition: 'background 0.15s ease',
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(232, 114, 23, 0.08)'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
                       onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 0.03)'}
                     >
                       {/* Localizador */}
@@ -474,9 +503,9 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '6px',
-                            padding: '7px 14px',
-                            background: 'rgba(232, 114, 23, 0.15)',
-                            border: '1px solid rgba(232, 114, 23, 0.45)',
+                            padding: '4px 4px',
+                            background: 'transparent',
+                            border: 'transparent',
                             borderRadius: '8px',
                             color: '#FFFFFF',
                             fontSize: '0.8rem',
@@ -486,15 +515,15 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                             whiteSpace: 'nowrap',
                           }}
                           onMouseEnter={e => {
-                            e.currentTarget.style.background = '#E87217';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.22)';
                             e.currentTarget.style.transform = 'translateY(-1px)';
                           }}
                           onMouseLeave={e => {
-                            e.currentTarget.style.background = 'rgba(232, 114, 23, 0.15)';
+                            e.currentTarget.style.background = 'transparent';
                             e.currentTarget.style.transform = 'translateY(0)';
                           }}
                         >
-                          <span>Generar Cotización Rápida</span>
+                          <img src={imgreport} alt="" style={{ width: '18px', height: '18px' }} />
                         </button>
                       </td>
                     </tr>
