@@ -184,6 +184,17 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
           {openMenus.ventas && (
             <div className="submenu-container" style={submenuContainerStyle}>
               <button
+                title={isCollapsed ? 'Registro de Cotizaciones' : undefined} onClick={() => onNavigate('ventas_cotizaciones')}
+                style={{
+                  ...subnavButtonStyle,
+                  color: isRouteActive('ventas_cotizaciones') ? '#E87217' : '#FFFFFF',
+                }}
+              >
+                <span style={{ fontSize: '18px', width: '25px', textAlign: 'center', display: 'inline-block' }}>📋</span>
+                <span className="nav-text">Cotizaciones</span>
+              </button>
+
+              <button
                 title={isCollapsed ? 'Ventas Agencia' : undefined} onClick={() => onNavigate('ventas_agencia')}
                 style={{
                   ...subnavButtonStyle,

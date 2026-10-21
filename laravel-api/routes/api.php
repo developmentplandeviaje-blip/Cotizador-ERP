@@ -121,6 +121,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/finance/metodos-pago/{metodoPago}/asesores', [MetodoPagoController::class, 'assignAsesores']);
 
     // Quote: Cotizaciones
+    Route::get('/v1/cotizaciones', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@index');
     Route::get('/v1/cotizaciones/catalogos', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@catalogos');
     Route::post('/v1/cotizaciones/validar-referido', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@validarReferido');
     Route::get('/v1/cotizaciones/cliente/{documento}', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@buscarCliente');

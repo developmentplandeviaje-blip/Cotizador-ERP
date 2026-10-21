@@ -395,4 +395,13 @@ class CotizacionTest extends TestCase
         $response2->assertStatus(422)
             ->assertJsonValidationErrors(['cliente.nombres']);
     }
+
+    public function test_listar_cotizaciones_retorna_registro_de_guardado(): void
+    {
+        $response = $this->actingAs($this->adminUser, 'sanctum')
+            ->getJson('/api/v1/cotizaciones');
+
+        $response->assertStatus(200)
+            ->assertJsonIsArray();
+    }
 }

@@ -24,13 +24,16 @@ export default function MainLayout({ activeRoute, onNavigate, onLogout, user, ch
         user={user}
       />
 
-      <main style={{
-        flex: 1,
-        padding: '30px 40px',
-        overflowY: 'auto',
-        boxSizing: 'border-box',
-        maxHeight: '100vh',
-      }}>
+      <main
+        className="custom-scrollbar"
+        style={{
+          flex: 1,
+          padding: '30px 40px',
+          overflowY: 'auto',
+          boxSizing: 'border-box',
+          maxHeight: '100vh',
+        }}
+      >
         {children}
       </main>
     </div>

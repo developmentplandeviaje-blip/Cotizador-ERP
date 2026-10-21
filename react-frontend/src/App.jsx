@@ -15,6 +15,7 @@ import UserFreelancerList from './components/users/freelancer/UserFreelancerList
 import UserAliadoList from './components/users/aliados/UserAliadoList';
 import MetodoPagoList from './components/finance/metodos_pago/MetodoPagoList';
 import NuevaCotizacion from './components/cotizacion/NuevaCotizacion';
+import RegistroCotizaciones from './components/cotizacion/RegistroCotizaciones';
 
 // Configure default base URL for Axios
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -36,6 +37,7 @@ axios.interceptors.request.use(
 const routeTitles = {
   dashboard: { parent: 'General', title: 'Dashboard' },
   nueva_cotizacion: { parent: 'Cotizaciones', title: 'Nueva Cotización' },
+  ventas_cotizaciones: { parent: 'Ventas', title: 'Registro de Cotizaciones' },
   ventas_agencia: { parent: 'Ventas', title: 'Agencia' },
   ventas_freelancer: { parent: 'Ventas', title: 'Freelancer' },
   reportes_operativo: { parent: 'Reportes', title: 'Operativo' },
@@ -198,9 +200,10 @@ function App() {
       {activeRoute === 'usuarios_aliados' && <UserAliadoList user={user} />}
       {activeRoute === 'metodos_pago' && <MetodoPagoList user={user} />}
       {activeRoute === 'nueva_cotizacion' && <NuevaCotizacion user={user} />}
+      {activeRoute === 'ventas_cotizaciones' && <RegistroCotizaciones user={user} onNuevaCotizacion={() => setActiveRoute('nueva_cotizacion')} />}
       {activeRoute === 'dashboard' && renderDashboard()}
 
-      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'servicios_aerolineas' && activeRoute !== 'usuarios_agencia' && activeRoute !== 'usuarios_freelancer' && activeRoute !== 'usuarios_aliados' && activeRoute !== 'metodos_pago' && activeRoute !== 'nueva_cotizacion' && activeRoute !== 'dashboard' && (
+      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'servicios_aerolineas' && activeRoute !== 'usuarios_agencia' && activeRoute !== 'usuarios_freelancer' && activeRoute !== 'usuarios_aliados' && activeRoute !== 'metodos_pago' && activeRoute !== 'nueva_cotizacion' && activeRoute !== 'ventas_cotizaciones' && activeRoute !== 'dashboard' && (
         <div style={{
           background: 'rgba(30, 41, 59, 0.72)',
           border: '1px solid rgba(255, 255, 255, 0.12)',

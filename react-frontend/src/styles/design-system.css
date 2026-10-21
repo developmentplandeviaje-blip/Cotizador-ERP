@@ -61,6 +61,57 @@ body {
   padding: 0;
 }
 
+/* ==========================================================================
+   GLOBAL CUSTOM SCROLLBAR DESIGN
+   Aplica el diseño de scrollbar (píldora translúcida con track sutil oscuro)
+   a todos los contenedores con scroll vertical y horizontal en toda la aplicación.
+   ========================================================================== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.2);
+}
+
+*::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  transition: background-color 200ms ease;
+}
+
+*::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: #2563EB;
+}
+
+*::-webkit-scrollbar-thumb:active,
+::-webkit-scrollbar-thumb:active {
+  background: #38BDF8;
+}
+
+*::-webkit-scrollbar-corner,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-button,
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 /* Badges de Estado (Píldoras Completas) */
 .badge-pill {
   display: inline-flex;
@@ -248,6 +299,89 @@ body {
   background-color: var(--color-accent-hover);
 }
 
+/* ==========================================================================
+   BOTÓN CREAR COTIZACIÓN (From Uiverse.io by nikk7007, 100% Brand Orange)
+   ========================================================================== */
+.btn-crear-cotizacion,
+.btn {
+  --color: #E87217;
+  --color2: #FFFFFF;
+  padding: 0.8em 1.75em;
+  background-color: transparent;
+  border-radius: 12px;
+  border: 1.5px solid var(--color);
+  transition: .5s;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  z-index: 1;
+  font-weight: 700;
+  font-size: 1rem;
+  font-family: var(--font-family-tittle, 'Poppins', 'Segoe UI', sans-serif);
+  text-transform: uppercase;
+  color: var(--color);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  letter-spacing: 0.5px;
+}
+
+.btn-crear-cotizacion::after,
+.btn-crear-cotizacion::before,
+.btn::after,
+.btn::before {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: skew(90deg) translate(-50%, -50%);
+  position: absolute;
+  inset: 50%;
+  left: 25%;
+  z-index: -1;
+  transition: .5s ease-out;
+  background-color: var(--color);
+}
+
+.btn-crear-cotizacion::before,
+.btn::before {
+  top: -50%;
+  left: -25%;
+  transform: skew(90deg) rotate(180deg) translate(-50%, -50%);
+}
+
+.btn-crear-cotizacion:hover::before,
+.btn:hover::before {
+  transform: skew(45deg) rotate(180deg) translate(-50%, -50%);
+}
+
+.btn-crear-cotizacion:hover::after,
+.btn:hover::after {
+  transform: skew(45deg) translate(-50%, -50%);
+}
+
+.btn-crear-cotizacion:hover,
+.btn:hover {
+  color: var(--color2);
+  box-shadow: 0 4px 20px rgba(232, 114, 23, 0.45);
+}
+
+.btn-crear-cotizacion:active,
+.btn:active {
+  filter: brightness(.85);
+  transform: scale(.98);
+}
+
+.btn-crear-cotizacion:disabled,
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Inputs y Selects */
 .erp-input {
   background: #1e387599;
@@ -260,6 +394,11 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
   width: 100%;
+}
+
+textarea,
+textarea.erp-input {
+  resize: none !important;
 }
 
 .erp-select {
@@ -393,6 +532,22 @@ body {
   pointer-events: auto;
 }
 
+.options.open-up {
+  top: auto;
+  bottom: calc(100% + 4px);
+  transform: translateY(8px);
+}
+
+.select:not(.temporarily-closed):hover>.options.open-up,
+.select.open>.options.open-up {
+  transform: translateY(0);
+}
+
+.select.open-up:not(.temporarily-closed):hover>.selected .arrow,
+.select.open-up.open>.selected .arrow {
+  transform: rotate(180deg);
+}
+
 .option {
   border-radius: 5px;
   padding: 8px 12px;
@@ -441,7 +596,11 @@ body {
 }
 
 .options::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: #2563EB;
+}
+
+.options::-webkit-scrollbar-thumb:active {
+  background: #38BDF8;
 }
 
 .erp-label {
