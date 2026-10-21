@@ -13,6 +13,7 @@ import imgAgregar from '../../assets/Agregar.svg';
 import Badge from '../common/Badge';
 import CustomSelect from '../common/CustomSelect';
 import CustomDatePicker from '../common/CustomDatePicker';
+import CustomNumberInput from '../common/CustomNumberInput';
 import imgUsuario from '../../assets/Usuario.svg';
 import imgServicios from '../../assets/Servicios.svg';
 import {
@@ -1147,84 +1148,61 @@ export default function CotizacionTabContent({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1280px', margin: '0 auto', paddingBottom: '20px' }}>
       {/* Header bar */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '16px',
-        padding: '20px 24px',
-        background: 'rgba(16, 28, 68, 0.72)',
-        borderRadius: '16px',
-        border: '1px solid rgba(255, 255, 255, 0.18)',
-      }}>
+      <div className="cotizacion-header-bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <img src={imgNuevaCotizacion} alt="Cotizador" style={{ width: '28px', height: '28px' }} />
           <div>
             <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <span>Nueva Cotización</span>
-              <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#E87217', background: 'rgba(232, 114, 23, 0.15)', padding: '2px 10px', borderRadius: '8px', border: '1px solid rgba(232, 114, 23, 0.3)' }}>
-                {cliente.nombres ? `${cliente.nombres} ${cliente.apellidos}`.trim() : `Cotización ${tabNumber}`}
-              </span>
             </h1>
           </div>
         </div>
 
         {/* Pax Selector Header Pill */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-          background: 'rgb(10 54 151 / 30%)',
-          padding: '8px 18px',
-          borderRadius: '12px',
-          border: '1px solid rgb(71, 113, 207)',
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', display: 'block' }}>Adultos</span>
-            <input
-              type="number"
-              min="1"
+        <div className="pax-header-pill">
+          <div className="pax-item">
+            <span className="pax-label">Adultos</span>
+            <CustomNumberInput
+              min={1}
               value={pax.adultos}
               onChange={e => setPax({ ...pax, adultos: Math.max(1, parseInt(e.target.value) || 1) })}
-              style={{ width: '50px', background: 'transparent', border: 'none', color: '#FFF', fontWeight: '700', textAlign: 'center' }}
+              size="sm"
             />
           </div>
-          <div style={{ width: '1px', height: '24px', background: 'rgb(37, 99, 235)' }} />
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', display: 'block' }}>Adolescentes</span>
-            <input
-              type="number"
-              min="0"
+          <div className="pax-divider" />
+          <div className="pax-item">
+            <span className="pax-label">Adolescentes</span>
+            <CustomNumberInput
+              min={0}
               value={pax.adolescentes}
               onChange={e => setPax({ ...pax, adolescentes: Math.max(0, parseInt(e.target.value) || 0) })}
-              style={{ width: '50px', background: 'transparent', border: 'none', color: '#FFF', fontWeight: '700', textAlign: 'center' }}
+              size="sm"
             />
           </div>
-          <div style={{ width: '1px', height: '24px', background: 'rgb(37, 99, 235)' }} />
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', display: 'block' }}>Niños</span>
-            <input
-              type="number"
-              min="0"
+          <div className="pax-divider" />
+          <div className="pax-item">
+            <span className="pax-label">Niños</span>
+            <CustomNumberInput
+              min={0}
               value={pax.ninos}
               onChange={e => setPax({ ...pax, ninos: Math.max(0, parseInt(e.target.value) || 0) })}
-              style={{ width: '50px', background: 'transparent', border: 'none', color: '#FFF', fontWeight: '700', textAlign: 'center' }}
+              size="sm"
             />
           </div>
-          <div style={{ width: '1px', height: '24px', background: 'rgb(37, 99, 235)' }} />
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: '#b9c8ddff', display: 'block' }}>Infantes</span>
-            <input
-              type="number"
-              min="0"
+          <div className="pax-divider" />
+          <div className="pax-item">
+            <span className="pax-label">Infantes</span>
+            <CustomNumberInput
+              min={0}
               value={pax.infantes}
               onChange={e => setPax({ ...pax, infantes: Math.max(0, parseInt(e.target.value) || 0) })}
-              style={{ width: '50px', background: 'transparent', border: 'none', color: '#FFF', fontWeight: '700', textAlign: 'center' }}
+              size="sm"
             />
           </div>
-          <div style={{ width: '1px', height: '24px', background: 'rgb(37, 99, 235)' }} />
-          <Badge status="badge-neutral">{totalPax} Pax</Badge>
+          <div className="pax-divider" />
+          <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <Badge status="badge-neutral">{totalPax} Pax</Badge>
+          </div>
         </div>
       </div>
 
