@@ -573,7 +573,7 @@ input[type="number"]::-webkit-outer-spin-button:active {
 
 .pax-header-pill .pax-divider {
   width: 1px;
-  height: 28px;
+  height: 38px;
   background: rgb(37, 99, 235);
   flex-shrink: 0;
 }

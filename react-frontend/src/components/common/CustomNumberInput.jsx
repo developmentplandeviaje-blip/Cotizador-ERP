@@ -317,7 +317,7 @@ export default function CustomNumberInput({
             onMouseEnter={(e) => {
               if (!isMinReached) {
                 e.currentTarget.style.color = '#E87217';
-                e.currentTarget.style.background = 'rgba(232, 114, 23, 0.2)';
+                e.currentTarget.style.background = 'transparent';
               }
             }}
             onMouseLeave={(e) => {
