@@ -1475,13 +1475,32 @@ export default function CotizacionTabContent({
           borderRadius: '16px',
           border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '20px',
+          width: 'fit-content',
+          maxWidth: '100%',
+          alignSelf: 'flex-start',
+          boxSizing: 'border-box',
         }}>
           <h2 style={{ fontSize: '1rem', color: '#FFF', margin: '0 0 12px 0' }}>
             <img src={imgUsuario} style={{ width: '18px', height: '18px' }} alt="" /> Pasajeros Acompañantes ({pasajeros.length})
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 420px))',
+            gap: '12px',
+          }}>
             {pasajeros.map((p, idx) => (
-              <div key={idx} style={{ background: 'rgba(255,255,250, 0.03)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.18)' }}>
+              <div
+                key={idx}
+                style={{
+                  background: 'rgba(255,255,250, 0.03)',
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255,255,255,0.18)',
+                  width: '420px',
+                  maxWidth: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
                 <span style={{ fontSize: '0.75rem', color: '#E87217', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
                   Acompañante #{idx + 2}
                 </span>
