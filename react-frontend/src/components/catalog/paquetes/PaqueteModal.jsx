@@ -215,9 +215,10 @@ export default function PaqueteModal({ isOpen, onClose, onSaveSuccess, paqueteTo
             <input
               type="text"
               className="erp-input"
+              maxLength={150}
               placeholder="Ej: Aventura Canaima 3D/2N"
               value={nombrePaquete}
-              onChange={(e) => setNombrePaquete(e.target.value)}
+              onChange={(e) => setNombrePaquete(e.target.value.slice(0, 150))}
               required
               disabled={isSubmitting}
             />

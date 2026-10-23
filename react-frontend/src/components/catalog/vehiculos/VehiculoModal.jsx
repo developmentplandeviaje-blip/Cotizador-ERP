@@ -278,9 +278,10 @@ export default function VehiculoModal({
               type="text"
               className="erp-input"
               list="marcas-list"
+              maxLength={50}
               placeholder="Ej: Toyota, Hyundai, Chevrolet"
               value={marca}
-              onChange={(e) => setMarca(e.target.value)}
+              onChange={(e) => setMarca(e.target.value.slice(0, 50))}
               required
               disabled={isSubmitting}
             />
@@ -298,9 +299,10 @@ export default function VehiculoModal({
             <input
               type="text"
               className="erp-input"
+              maxLength={50}
               placeholder="Ej: Yaris, Tucson, Spark"
               value={vehiculo}
-              onChange={(e) => setVehiculo(e.target.value)}
+              onChange={(e) => setVehiculo(e.target.value.slice(0, 50))}
               required
               disabled={isSubmitting}
             />
@@ -316,9 +318,10 @@ export default function VehiculoModal({
             <input
               type="text"
               className="erp-input"
+              maxLength={4}
               placeholder="Ej: 2024"
               value={ano}
-              onChange={(e) => setAno(e.target.value)}
+              onChange={(e) => setAno(e.target.value.replace(/\D/g, '').slice(0, 4))}
               required
               disabled={isSubmitting}
             />
@@ -363,25 +366,19 @@ export default function VehiculoModal({
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <label className="erp-label" style={{ margin: 0 }}>Observación / Notas (Opcional)</label>
-            <span style={{ fontSize: '0.75rem', color: (nota?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
-              {nota?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+            <span style={{ fontSize: '0.75rem', color: (nota || '').length >= 300 ? '#EF4444' : '#b9c8ddff' }}>
+              {(nota || '').length} / 300 caracteres
             </span>
           </div>
           <textarea
             className="erp-input custom-scrollbar"
             rows={2}
-            placeholder="Ej: Aire acondicionado, capacidad 5 pasajeros, sin límite de kilometraje (máx. 50 palabras)"
+            placeholder="Ej: Aire acondicionado, capacidad 5 pasajeros, sin límite de kilometraje (máx. 300 caracteres)"
             value={nota}
-            onChange={(e) => {
-              const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-              if (words.length > 50) {
-                setNota(words.slice(0, 50).join(' '));
-              } else {
-                setNota(e.target.value);
-              }
-            }}
+            onChange={(e) => setNota(e.target.value.slice(0, 300))}
+            maxLength={300}
             disabled={isSubmitting}
-            style={{ resize: 'none', height: '65px', maxHeight: '65px', overflowY: 'auto' }}
+            style={{ resize: 'none', height: '65px', maxHeight: '65px', overflowY: 'auto', wordBreak: 'break-word', overflowWrap: 'break-word' }}
           />
         </div>
 

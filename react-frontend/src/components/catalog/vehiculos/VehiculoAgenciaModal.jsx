@@ -128,7 +128,8 @@ export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, z
                 className="erp-input"
                 placeholder="Ej: Hertz Margarita"
                 value={nombreAgencia}
-                onChange={(e) => setNombreAgencia(e.target.value)}
+                onChange={(e) => setNombreAgencia(e.target.value.slice(0, 100))}
+                maxLength={100}
                 required
                 disabled={isSubmitting}
               />
@@ -158,7 +159,8 @@ export default function VehiculoAgenciaModal({ isOpen, onClose, onSaveSuccess, z
               className="erp-input"
               placeholder="Ej: Entrega en aeropuerto o terminal"
               value={nota}
-              onChange={(e) => setNota(e.target.value)}
+              onChange={(e) => setNota(e.target.value.slice(0, 300))}
+              maxLength={300}
               disabled={isSubmitting}
             />
           </div>

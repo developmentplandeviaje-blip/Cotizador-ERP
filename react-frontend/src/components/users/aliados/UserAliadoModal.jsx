@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
+import { formatEmail, validateEmail, formatTelefono, formatCedula } from '../../../utils/validation';
 
 export default function UserAliadoModal({ isOpen, onClose, onSave, aliadoToEdit = null }) {
   const [razonSocial, setRazonSocial] = useState('');
@@ -43,6 +44,15 @@ export default function UserAliadoModal({ isOpen, onClose, onSave, aliadoToEdit 
     setSaving(true);
     setErrorMessage('');
     setErrors({});
+
+    if (correo && correo.trim()) {
+      const emailCheck = validateEmail(correo);
+      if (!emailCheck.isValid) {
+        setErrorMessage(`Correo inválido: ${emailCheck.message}`);
+        setSaving(false);
+        return;
+      }
+    }
 
     const payload = {
       razon_social: razonSocial,
@@ -90,30 +100,37 @@ export default function UserAliadoModal({ isOpen, onClose, onSave, aliadoToEdit 
 
         <div>
           <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>Razón Social <span style={{ color: '#EF4444' }}>*</span></label>
-          <input type="text" required value={razonSocial} onChange={(e) => setRazonSocial(e.target.value)} className="erp-input" style={{ width: '100%', borderColor: errors.razon_social ? '#EF4444' : undefined }} />
+          <input type="text" required maxLength={100} value={razonSocial} onChange={(e) => setRazonSocial(e.target.value.slice(0, 100))} className="erp-input" style={{ width: '100%', borderColor: errors.razon_social ? '#EF4444' : undefined }} />
           {errors.razon_social && <span style={{ fontSize: '0.75rem', color: '#EF4444' }}>{errors.razon_social[0]}</span>}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>RIF / Identificación</label>
-            <input type="text" value={rif} onChange={(e) => setRif(e.target.value)} className="erp-input" style={{ width: '100%', borderColor: errors.rif ? '#EF4444' : undefined }} />
+            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>RIF / Identificación (máx. 12 dígitos)</label>
+            <input type="text" maxLength={12} value={rif} onChange={(e) => setRif(formatCedula(e.target.value))} placeholder="12345678" className="erp-input" style={{ width: '100%', borderColor: errors.rif ? '#EF4444' : undefined }} />
             {errors.rif && <span style={{ fontSize: '0.75rem', color: '#EF4444' }}>{errors.rif[0]}</span>}
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>Contacto Principal</label>
-            <input type="text" value={contactoPrincipal} onChange={(e) => setContactoPrincipal(e.target.value)} className="erp-input" style={{ width: '100%' }} />
+            <input type="text" maxLength={60} value={contactoPrincipal} onChange={(e) => setContactoPrincipal(e.target.value.slice(0, 60))} placeholder="Nombre del contacto" className="erp-input" style={{ width: '100%' }} />
           </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>Teléfono</label>
-            <input type="text" value={telefono} onChange={(e) => setTelefono(e.target.value)} className="erp-input" style={{ width: '100%' }} />
+            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>Teléfono (máx. 15 dígitos)</label>
+            <input type="text" maxLength={15} value={telefono} onChange={(e) => setTelefono(formatTelefono(e.target.value))} placeholder="+584121234567" className="erp-input" style={{ width: '100%' }} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>Correo Electrónico</label>
-            <input type="email" value={correo} onChange={(e) => setCorreo(e.target.value)} className="erp-input" style={{ width: '100%' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: 0 }}>Correo Electrónico</label>
+              {correo && (
+                <span style={{ fontSize: '0.7rem', color: validateEmail(correo).isValid ? '#10B981' : '#F59E0B' }}>
+                  {validateEmail(correo).isValid ? '✓ Válido' : validateEmail(correo).message}
+                </span>
+              )}
+            </div>
+            <input type="email" maxLength={50} value={correo} onChange={(e) => setCorreo(formatEmail(e.target.value))} placeholder="aliado@correo.com" className="erp-input" style={{ width: '100%' }} />
           </div>
         </div>
 

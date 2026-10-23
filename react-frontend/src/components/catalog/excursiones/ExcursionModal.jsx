@@ -225,11 +225,11 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
               placeholder="Ej: Full Day Coche Catamarán..."
               value={tipoExcursion}
               onChange={(e) => {
-                setTipoExcursion(e.target.value);
+                setTipoExcursion(e.target.value.slice(0, 150));
                 if (errorMessage) setErrorMessage('');
               }}
               required
-              maxLength={200}
+              maxLength={150}
               disabled={isSubmitting}
             />
           </div>

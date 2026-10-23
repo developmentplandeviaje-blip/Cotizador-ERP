@@ -24,6 +24,13 @@ import {
 } from './modals';
 
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
+import {
+  formatEmail,
+  validateEmail,
+  formatTelefono,
+  formatCedula,
+  formatCodigoReferido,
+} from '../../utils/validation';
 
 export default function CotizacionTabContent({
   user,
@@ -242,6 +249,23 @@ export default function CotizacionTabContent({
     }
   };
 
+  // Manejadores de formatos y validaciones centralizados
+  const handleDocumentoClienteChange = (e) => {
+    setCliente(prev => ({ ...prev, documento: formatCedula(e.target.value) }));
+  };
+
+  const handleTelefonoClienteChange = (e) => {
+    setCliente(prev => ({ ...prev, telefono: formatTelefono(e.target.value) }));
+  };
+
+  const handleCorreoClienteChange = (e) => {
+    setCliente(prev => ({ ...prev, correo: formatEmail(e.target.value) }));
+  };
+
+  const handleCodigoReferidoChange = (e) => {
+    setCodigoReferido(formatCodigoReferido(e.target.value));
+  };
+
   // Validate Referral Code (US-01)
   const handleValidarReferido = async () => {
     const code = codigoReferido.trim();
@@ -286,9 +310,17 @@ export default function CotizacionTabContent({
   }, [totalPax]);
 
   const handleUpdatePasajero = (index, field, val) => {
+    let sanitizedVal = val;
+    if (field === 'documento') {
+      // Cédula de acompañante: máx 12 dígitos, solo números
+      sanitizedVal = val.replace(/\D/g, '').slice(0, 12);
+    } else if (field === 'nombres' || field === 'apellidos') {
+      // Nombres y apellidos: máx 50 caracteres
+      sanitizedVal = val.slice(0, 50);
+    }
     setPasajeros(prev => {
       const copy = [...prev];
-      copy[index] = { ...copy[index], [field]: val };
+      copy[index] = { ...copy[index], [field]: sanitizedVal };
       return copy;
     });
   };
@@ -862,28 +894,16 @@ export default function CotizacionTabContent({
     }
   };
 
-  // Word count for itinerary observations (max 300 words)
-  const wordCount = useMemo(() => {
-    const trimmed = observacion.trim();
-    return trimmed ? trimmed.split(/\s+/).filter(Boolean).length : 0;
-  }, [observacion]);
-
+  // Character count limit for itinerary observations (max 3500 chars)
   const handleObservacionKeyDown = (e) => {
-    // Si ya alcanzó 300 palabras, prevenir agregar nuevas palabras con espacio o enter
-    if (wordCount >= 300 && (e.key === ' ' || e.key === 'Enter')) {
+    // Límite de 3500 caracteres
+    if (observacion.length >= 3500 && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
     }
   };
 
   const handleObservacionChange = (e) => {
-    const val = e.target.value;
-    const words = val.trim() ? val.trim().split(/\s+/).filter(Boolean) : [];
-    if (words.length > 300) {
-      const truncated = words.slice(0, 300).join(' ');
-      setObservacion(truncated);
-    } else {
-      setObservacion(val);
-    }
+    setObservacion(e.target.value.slice(0, 3500));
   };
 
   // Financial Computations
@@ -992,6 +1012,13 @@ export default function CotizacionTabContent({
       alert('Por favor ingrese el nombre y el apellido del cliente principal.');
       return;
     }
+    if (cliente.correo && cliente.correo.trim() !== '') {
+      const emailCheck = validateEmail(cliente.correo);
+      if (!emailCheck.isValid) {
+        alert(`Correo electrónico inválido: ${emailCheck.message}`);
+        return;
+      }
+    }
     if (items.length === 0) {
       alert('Debe agregar al menos un producto o servicio a la cotización.');
       return;
@@ -1081,6 +1108,13 @@ export default function CotizacionTabContent({
       alert('Debe agregar al menos un producto para guardar como cotización rápida.');
       return;
     }
+    if (cliente.correo && cliente.correo.trim() !== '') {
+      const emailCheck = validateEmail(cliente.correo);
+      if (!emailCheck.isValid) {
+        alert(`Correo electrónico inválido: ${emailCheck.message}`);
+        return;
+      }
+    }
 
     isSubmittingRef.current = true;
     setSubmittingRapida(true);
@@ -1164,8 +1198,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Adultos</span>
             <CustomNumberInput
               min={1}
+              max={999}
+              maxDigits={3}
               value={pax.adultos}
-              onChange={e => setPax({ ...pax, adultos: Math.max(1, parseInt(e.target.value) || 1) })}
+              onChange={e => setPax({ ...pax, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
               size="sm"
             />
           </div>
@@ -1174,8 +1210,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Adolescentes</span>
             <CustomNumberInput
               min={0}
+              max={999}
+              maxDigits={3}
               value={pax.adolescentes}
-              onChange={e => setPax({ ...pax, adolescentes: Math.max(0, parseInt(e.target.value) || 0) })}
+              onChange={e => setPax({ ...pax, adolescentes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               size="sm"
             />
           </div>
@@ -1184,8 +1222,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Niños</span>
             <CustomNumberInput
               min={0}
+              max={999}
+              maxDigits={3}
               value={pax.ninos}
-              onChange={e => setPax({ ...pax, ninos: Math.max(0, parseInt(e.target.value) || 0) })}
+              onChange={e => setPax({ ...pax, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               size="sm"
             />
           </div>
@@ -1194,8 +1234,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Infantes</span>
             <CustomNumberInput
               min={0}
+              max={999}
+              maxDigits={3}
               value={pax.infantes}
-              onChange={e => setPax({ ...pax, infantes: Math.max(0, parseInt(e.target.value) || 0) })}
+              onChange={e => setPax({ ...pax, infantes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               size="sm"
             />
           </div>
@@ -1308,8 +1350,10 @@ export default function CotizacionTabContent({
               type="text"
               placeholder="Número de Cédula / Documento (Opcional)..."
               value={cliente.documento}
-              onChange={e => setCliente({ ...cliente, documento: e.target.value })}
+              onChange={handleDocumentoClienteChange}
               onKeyDown={e => e.key === 'Enter' && handleBuscarCliente()}
+              maxLength={12}
+              inputMode="numeric"
               className='erp-input'
             />
             <button
@@ -1344,8 +1388,9 @@ export default function CotizacionTabContent({
               <input
                 type="text"
                 value={cliente.nombres}
-                onChange={e => setCliente({ ...cliente, nombres: e.target.value })}
+                onChange={e => setCliente({ ...cliente, nombres: e.target.value.slice(0, 50) })}
                 placeholder="Nombre(s)"
+                maxLength={50}
                 className='erp-input'
               />
             </div>
@@ -1354,8 +1399,9 @@ export default function CotizacionTabContent({
               <input
                 type="text"
                 value={cliente.apellidos}
-                onChange={e => setCliente({ ...cliente, apellidos: e.target.value })}
+                onChange={e => setCliente({ ...cliente, apellidos: e.target.value.slice(0, 50) })}
                 placeholder="Apellido(s)"
+                maxLength={50}
                 className='erp-input'
               />
             </div>
@@ -1364,19 +1410,36 @@ export default function CotizacionTabContent({
               <input
                 type="text"
                 value={cliente.telefono}
-                onChange={e => setCliente({ ...cliente, telefono: e.target.value })}
-                placeholder="+58 412 0000000"
+                onChange={handleTelefonoClienteChange}
+                placeholder="+584120000000"
+                maxLength={15}
+                inputMode="tel"
                 className='erp-input'
               />
             </div>
             <div>
-              <label className='erp-label'>Correo Electrónico </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label className='erp-label' style={{ margin: 0 }}>Correo Electrónico </label>
+                {cliente.correo && (
+                  <span style={{
+                    fontSize: '0.7rem',
+                    color: validateEmail(cliente.correo).isValid ? '#10B981' : '#F59E0B'
+                  }}>
+                    {validateEmail(cliente.correo).isValid ? '✓ Válido' : validateEmail(cliente.correo).message}
+                  </span>
+                )}
+              </div>
               <input
                 type="email"
                 value={cliente.correo}
-                onChange={e => setCliente({ ...cliente, correo: e.target.value })}
+                onChange={handleCorreoClienteChange}
                 placeholder="cliente@correo.com"
+                maxLength={50}
                 className='erp-input'
+                style={{
+                  marginTop: '4px',
+                  borderColor: cliente.correo && !validateEmail(cliente.correo).isValid ? '#F59E0B' : undefined
+                }}
               />
             </div>
           </div>
@@ -1418,10 +1481,11 @@ export default function CotizacionTabContent({
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
-                placeholder="Ej. EMB-EJEMPLO"
+                placeholder="Ej. REF-12345"
                 value={codigoReferido}
                 disabled={!!referidoData}
-                onChange={e => setCodigoReferido(e.target.value.toUpperCase())}
+                onChange={handleCodigoReferidoChange}
+                maxLength={12}
                 className='erp-input'
               />
               {!referidoData ? (
@@ -1510,6 +1574,7 @@ export default function CotizacionTabContent({
                     placeholder="Nombres"
                     value={p.nombres}
                     onChange={e => handleUpdatePasajero(idx, 'nombres', e.target.value)}
+                    maxLength={50}
                     className='erp-input'
                   />
                   <input
@@ -1517,6 +1582,7 @@ export default function CotizacionTabContent({
                     placeholder="Apellidos"
                     value={p.apellidos}
                     onChange={e => handleUpdatePasajero(idx, 'apellidos', e.target.value)}
+                    maxLength={50}
                     className='erp-input'
                   />
                 </div>
@@ -1539,6 +1605,8 @@ export default function CotizacionTabContent({
                     placeholder="Cédula / Documento"
                     value={p.documento}
                     onChange={e => handleUpdatePasajero(idx, 'documento', e.target.value)}
+                    maxLength={12}
+                    inputMode="numeric"
                     className='erp-input'
                   />
                 </div>
@@ -1839,8 +1907,15 @@ export default function CotizacionTabContent({
                 <input
                   type="number"
                   min="1"
+                  max="999"
                   value={hotelForm.noches}
-                  onChange={e => setHotelForm({ ...hotelForm, noches: Math.max(1, parseInt(e.target.value) || 1) })}
+                  onInput={e => {
+                    if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
+                  }}
+                  onChange={e => {
+                    const val = String(e.target.value).slice(0, 3);
+                    setHotelForm({ ...hotelForm, noches: Math.max(1, Math.min(999, parseInt(val) || 1)) });
+                  }}
                   className="erp-input"
                 />
               </div>
@@ -1892,7 +1967,8 @@ export default function CotizacionTabContent({
                   type="text"
                   placeholder="Ej. CCS - PMV - CCS"
                   value={vueloForm.itinerario}
-                  onChange={e => setVueloForm({ ...vueloForm, itinerario: e.target.value })}
+                  onChange={e => setVueloForm({ ...vueloForm, itinerario: e.target.value.slice(0, 100) })}
+                  maxLength={100}
                   className="erp-input"
                 />
               </div>
@@ -1979,22 +2055,16 @@ export default function CotizacionTabContent({
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                     <label className='erp-label' style={{ margin: 0 }}>Observación (Opcional)</label>
-                    <span style={{ fontSize: '0.75rem', color: (trasladoForm.observacion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 30 ? '#EF4444' : '#b9c8ddff' }}>
-                      {trasladoForm.observacion?.trim().split(/\s+/).filter(Boolean).length || 0} / 30 palabras
+                    <span style={{ fontSize: '0.75rem', color: (trasladoForm.observacion || '').length >= 300 ? '#EF4444' : '#b9c8ddff' }}>
+                      {(trasladoForm.observacion || '').length} / 300 caracteres
                     </span>
                   </div>
                   <input
                     type="text"
                     value={trasladoForm.observacion}
-                    onChange={e => {
-                      const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-                      if (words.length > 30) {
-                        setTrasladoForm({ ...trasladoForm, observacion: words.slice(0, 30).join(' ') });
-                      } else {
-                        setTrasladoForm({ ...trasladoForm, observacion: e.target.value });
-                      }
-                    }}
-                    placeholder="Ej: Vuelo Laser 912, equipaje extra... (máx. 30 palabras)"
+                    onChange={e => setTrasladoForm({ ...trasladoForm, observacion: e.target.value.slice(0, 300) })}
+                    placeholder="Ej: Vuelo Laser 912, equipaje extra... (máx. 300 caracteres)"
+                    maxLength={300}
                     className="erp-input"
                   />
                 </div>
@@ -2336,8 +2406,15 @@ export default function CotizacionTabContent({
                 <input
                   type="number"
                   min="1"
+                  max="999"
                   value={vehiculoForm.dias}
-                  onChange={e => setVehiculoForm({ ...vehiculoForm, dias: Math.max(1, parseInt(e.target.value) || 1) })}
+                  onInput={e => {
+                    if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
+                  }}
+                  onChange={e => {
+                    const val = String(e.target.value).slice(0, 3);
+                    setVehiculoForm({ ...vehiculoForm, dias: Math.max(1, Math.min(999, parseInt(val) || 1)) });
+                  }}
                   className="erp-input"
                 />
               </div>
@@ -2376,7 +2453,8 @@ export default function CotizacionTabContent({
                   type="text"
                   placeholder="Ej. Puerto La Cruz - Punta de Piedras"
                   value={ferryForm.ruta}
-                  onChange={e => setFerryForm({ ...ferryForm, ruta: e.target.value })}
+                  onChange={e => setFerryForm({ ...ferryForm, ruta: e.target.value.slice(0, 100) })}
+                  maxLength={100}
                   className="erp-input"
                 />
               </div>
@@ -2423,22 +2501,16 @@ export default function CotizacionTabContent({
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <label className='erp-label' style={{ margin: 0 }}>Descripción del Servicio</label>
-                  <span style={{ fontSize: '0.75rem', color: (otroForm.descripcion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
-                    {otroForm.descripcion?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+                  <span style={{ fontSize: '0.75rem', color: (otroForm.descripcion || '').length >= 500 ? '#EF4444' : '#b9c8ddff' }}>
+                    {(otroForm.descripcion || '').length} / 500 caracteres
                   </span>
                 </div>
                 <input
                   type="text"
-                  placeholder="Ej. Seguro de Viaje, Asistencia Médica... (máx. 50 palabras)"
+                  placeholder="Ej. Seguro de Viaje, Asistencia Médica... (máx. 500 caracteres)"
                   value={otroForm.descripcion}
-                  onChange={e => {
-                    const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-                    if (words.length > 50) {
-                      setOtroForm({ ...otroForm, descripcion: words.slice(0, 50).join(' ') });
-                    } else {
-                      setOtroForm({ ...otroForm, descripcion: e.target.value });
-                    }
-                  }}
+                  onChange={e => setOtroForm({ ...otroForm, descripcion: e.target.value.slice(0, 500) })}
+                  maxLength={500}
                   className="erp-input"
                 />
               </div>
@@ -2686,8 +2758,8 @@ export default function CotizacionTabContent({
             <div style={{ marginTop: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <label className="erp-label" style={{ margin: 0 }}>Observaciones del Itinerario</label>
-                <span style={{ fontSize: '0.75rem', color: wordCount >= 300 ? '#EF4444' : '#b9c8ddff', fontWeight: wordCount >= 300 ? '700' : '400' }}>
-                  {wordCount} / 300 palabras
+                <span style={{ fontSize: '0.75rem', color: (observacion || '').length >= 3500 ? '#EF4444' : '#b9c8ddff', fontWeight: (observacion || '').length >= 3500 ? '700' : '400' }}>
+                  {(observacion || '').length} / 3500 caracteres
                 </span>
               </div>
               <textarea
@@ -2695,7 +2767,8 @@ export default function CotizacionTabContent({
                 value={observacion}
                 onChange={handleObservacionChange}
                 onKeyDown={handleObservacionKeyDown}
-                placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 300 palabras)..."
+                placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 3500 caracteres)..."
+                maxLength={3500}
                 className="erp-input custom-scrollbar"
                 style={{
                   resize: 'none',
@@ -2705,6 +2778,8 @@ export default function CotizacionTabContent({
                   overflowY: 'auto',
                   boxSizing: 'border-box',
                   width: '100%',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
                 }}
               />
             </div>

@@ -116,9 +116,10 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             <input
               type="number"
               min="0"
+              max="999"
               className="erp-input"
               value={formData.ninos_gratis}
-              onChange={(e) => handleChange('ninos_gratis', e.target.value)}
+              onChange={(e) => handleChange('ninos_gratis', e.target.value.slice(0, 3))}
             />
           </div>
           <div>
@@ -126,9 +127,10 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             <input
               type="number"
               min="0"
+              max="999"
               className="erp-input"
               value={formData.noches_gratis}
-              onChange={(e) => handleChange('noches_gratis', e.target.value)}
+              onChange={(e) => handleChange('noches_gratis', e.target.value.slice(0, 3))}
             />
           </div>
         </div>

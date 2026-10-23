@@ -267,7 +267,8 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   className="erp-input"
                   placeholder="Nombre del hotel"
                   value={hotelInfo.nombre}
-                  onChange={(e) => setHotelInfo({ ...hotelInfo, nombre: e.target.value })}
+                  maxLength={150}
+                  onChange={(e) => setHotelInfo({ ...hotelInfo, nombre: e.target.value.slice(0, 150) })}
                   required
                 />
               </div>
@@ -294,15 +295,17 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   <input
                     type="text"
                     className="erp-input"
+                    maxLength={2}
                     value={hotelInfo.edad_adolescentes_desde}
-                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_adolescentes_desde: e.target.value })}
+                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_adolescentes_desde: e.target.value.replace(/\D/g, '').slice(0, 2) })}
                   />
                   <span>-</span>
                   <input
                     type="text"
                     className="erp-input"
+                    maxLength={2}
                     value={hotelInfo.edad_adolescentes_hasta}
-                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_adolescentes_hasta: e.target.value })}
+                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_adolescentes_hasta: e.target.value.replace(/\D/g, '').slice(0, 2) })}
                   />
                 </div>
               </div>
@@ -312,15 +315,17 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   <input
                     type="text"
                     className="erp-input"
+                    maxLength={2}
                     value={hotelInfo.edad_ninos_desde}
-                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_ninos_desde: e.target.value })}
+                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_ninos_desde: e.target.value.replace(/\D/g, '').slice(0, 2) })}
                   />
                   <span>-</span>
                   <input
                     type="text"
                     className="erp-input"
+                    maxLength={2}
                     value={hotelInfo.edad_ninos_hasta}
-                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_ninos_hasta: e.target.value })}
+                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_ninos_hasta: e.target.value.replace(/\D/g, '').slice(0, 2) })}
                   />
                 </div>
               </div>
@@ -330,15 +335,17 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   <input
                     type="text"
                     className="erp-input"
+                    maxLength={2}
                     value={hotelInfo.edad_infantes_desde}
-                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_infantes_desde: e.target.value })}
+                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_infantes_desde: e.target.value.replace(/\D/g, '').slice(0, 2) })}
                   />
                   <span>-</span>
                   <input
                     type="text"
                     className="erp-input"
+                    maxLength={2}
                     value={hotelInfo.edad_infantes_hasta}
-                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_infantes_hasta: e.target.value })}
+                    onChange={(e) => setHotelInfo({ ...hotelInfo, edad_infantes_hasta: e.target.value.replace(/\D/g, '').slice(0, 2) })}
                   />
                 </div>
               </div>
@@ -362,23 +369,17 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <label className="erp-label" style={{ margin: 0 }}>Nota (opcional)</label>
-                  <span style={{ fontSize: '0.75rem', color: (hotelInfo.nota?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
-                    {hotelInfo.nota?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+                  <span style={{ fontSize: '0.75rem', color: (hotelInfo.nota || '').length >= 300 ? '#EF4444' : '#b9c8ddff' }}>
+                    {(hotelInfo.nota || '').length} / 300 caracteres
                   </span>
                 </div>
                 <textarea
                   className="erp-input custom-scrollbar"
-                  style={{ height: '38px', minHeight: '38px', maxHeight: '38px', resize: 'none', overflowY: 'auto' }}
-                  placeholder="Observación... (máx. 50 palabras)"
+                  style={{ height: '38px', minHeight: '38px', maxHeight: '38px', resize: 'none', overflowY: 'auto', wordBreak: 'break-word', overflowWrap: 'break-word' }}
+                  placeholder="Observación... (máx. 300 caracteres)"
+                  maxLength={300}
                   value={hotelInfo.nota}
-                  onChange={(e) => {
-                    const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-                    if (words.length > 50) {
-                      setHotelInfo({ ...hotelInfo, nota: words.slice(0, 50).join(' ') });
-                    } else {
-                      setHotelInfo({ ...hotelInfo, nota: e.target.value });
-                    }
-                  }}
+                  onChange={(e) => setHotelInfo({ ...hotelInfo, nota: e.target.value.slice(0, 300) })}
                 />
               </div>
             </div>

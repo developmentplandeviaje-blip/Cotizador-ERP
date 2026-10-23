@@ -22,6 +22,7 @@ export default function CustomNumberInput({
   className = '',
   id,
   width,
+  maxDigits = 3,
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -31,12 +32,19 @@ export default function CustomNumberInput({
   // Normalizar valor numérico
   const numericVal = value !== undefined && value !== null && value !== '' ? Number(value) : '';
 
+  // Límite estricto de dígitos (por defecto 3 dígitos = 999)
+  const maxDigitsLimit = Math.max(1, maxDigits);
+  const maxPossibleValue = Math.pow(10, maxDigitsLimit) - 1;
+  const effectiveMax = max !== undefined ? Math.min(max, maxPossibleValue) : maxPossibleValue;
+
   // Generar evento sintético compatible con onChange estándar
   const triggerChange = useCallback((newVal) => {
     if (disabled || readOnly) return;
     let clamped = newVal;
-    if (min !== undefined && clamped < min) clamped = min;
-    if (max !== undefined && clamped > max) clamped = max;
+    if (clamped !== '') {
+      if (min !== undefined && clamped < min) clamped = min;
+      if (effectiveMax !== undefined && clamped > effectiveMax) clamped = effectiveMax;
+    }
 
     if (onChange) {
       const syntheticEvent = {
@@ -53,15 +61,15 @@ export default function CustomNumberInput({
       };
       onChange(syntheticEvent);
     }
-  }, [disabled, readOnly, min, max, name, onChange]);
+  }, [disabled, readOnly, min, effectiveMax, name, onChange]);
 
   // Manejar incremento y decremento
   const handleIncrement = useCallback(() => {
     const current = numericVal === '' ? (min !== undefined ? min : 0) : numericVal;
     const next = current + step;
-    if (max !== undefined && next > max) return;
+    if (effectiveMax !== undefined && next > effectiveMax) return;
     triggerChange(next);
-  }, [numericVal, min, max, step, triggerChange]);
+  }, [numericVal, min, effectiveMax, step, triggerChange]);
 
   const handleDecrement = useCallback(() => {
     const current = numericVal === '' ? (min !== undefined ? min : 0) : numericVal;
@@ -93,7 +101,7 @@ export default function CustomNumberInput({
     };
   }, []);
 
-  // Manejo de teclado (flechas arriba/abajo)
+  // Manejo de teclado (flechas arriba/abajo y bloqueo de más de maxDigits dígitos)
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -101,16 +109,33 @@ export default function CustomNumberInput({
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       handleDecrement();
+    } else if (
+      /^\d$/.test(e.key) &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey
+    ) {
+      const selStart = e.target.selectionStart;
+      const selEnd = e.target.selectionEnd;
+      const hasSelection = selStart !== null && selEnd !== null && selStart !== selEnd;
+      const currentDigits = String(value ?? '').replace(/\D/g, '');
+      if (!hasSelection && currentDigits.length >= maxDigitsLimit) {
+        e.preventDefault();
+      }
     }
   };
 
   const handleInputChange = (e) => {
-    const val = e.target.value;
-    if (val === '') {
+    let rawVal = e.target.value;
+    if (rawVal === '') {
       triggerChange('');
       return;
     }
-    const parsed = parseFloat(val);
+    let digits = rawVal.replace(/\D/g, '');
+    if (digits.length > maxDigitsLimit) {
+      digits = digits.slice(0, maxDigitsLimit);
+    }
+    const parsed = parseInt(digits, 10);
     if (!isNaN(parsed)) {
       triggerChange(parsed);
     }
@@ -152,7 +177,7 @@ export default function CustomNumberInput({
   };
 
   const isMinReached = min !== undefined && numericVal !== '' && numericVal <= min;
-  const isMaxReached = max !== undefined && numericVal !== '' && numericVal >= max;
+  const isMaxReached = effectiveMax !== undefined && numericVal !== '' && numericVal >= effectiveMax;
 
   return (
     <div
@@ -198,8 +223,9 @@ export default function CustomNumberInput({
         id={id}
         name={name}
         type="text"
-        inputMode="decimal"
+        inputMode="numeric"
         pattern="[0-9]*"
+        maxLength={maxDigitsLimit}
         value={value ?? ''}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
@@ -317,7 +343,7 @@ export default function CustomNumberInput({
             onMouseEnter={(e) => {
               if (!isMinReached) {
                 e.currentTarget.style.color = '#E87217';
-                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.background = 'rgba(232, 114, 23, 0.2)';
               }
             }}
             onMouseLeave={(e) => {

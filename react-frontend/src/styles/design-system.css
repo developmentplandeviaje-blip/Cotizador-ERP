@@ -392,13 +392,24 @@ body {
   font-size: 0.875rem;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
   width: 100%;
+  max-width: 100% !important;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 textarea,
-textarea.erp-input {
+textarea.erp-input,
+.erp-textarea {
   resize: none !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: pre-wrap !important;
+  overflow-y: auto !important;
 }
 
 .erp-select {
@@ -573,7 +584,7 @@ input[type="number"]::-webkit-outer-spin-button:active {
 
 .pax-header-pill .pax-divider {
   width: 1px;
-  height: 38px;
+  height: 28px;
   background: rgb(37, 99, 235);
   flex-shrink: 0;
 }

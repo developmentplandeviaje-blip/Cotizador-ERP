@@ -242,11 +242,11 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
               placeholder="Ej: Aeropuerto / Hotel 15- 20 Pax-- Hotel / Aeropuerto"
               value={rutaOrigen}
               onChange={(e) => {
-                setRutaOrigen(e.target.value);
+                setRutaOrigen(e.target.value.slice(0, 150));
                 if (errorMessage) setErrorMessage('');
               }}
               required
-              maxLength={255}
+              maxLength={150}
               disabled={isSubmitting}
             />
           </div>

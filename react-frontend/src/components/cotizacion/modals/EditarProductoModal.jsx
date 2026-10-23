@@ -269,8 +269,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="1"
+                max="999"
                 value={formData.noches || 1}
-                onChange={e => setFormData({ ...formData, noches: Math.max(1, parseInt(e.target.value) || 1) })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, noches: Math.max(1, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 1)) })}
                 className="erp-input"
               />
             </div>
@@ -280,8 +282,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="1"
+                max="999"
                 value={formData.adultos ?? 1}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(1, parseInt(e.target.value) || 1) })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 1)) })}
                 className="erp-input"
               />
             </div>
@@ -291,8 +295,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="0"
+                max="999"
                 value={formData.adolescente ?? 0}
-                onChange={e => setFormData({ ...formData, adolescente: Math.max(0, parseInt(e.target.value) || 0) })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, adolescente: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
                 className="erp-input"
               />
             </div>
@@ -302,8 +308,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="0"
+                max="999"
                 value={formData.ninos ?? 0}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, parseInt(e.target.value) || 0) })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
                 className="erp-input"
               />
             </div>
@@ -367,8 +375,9 @@ export default function EditarProductoModal({
               <label className="erp-label">Itinerario / Ruta</label>
               <input
                 type="text"
+                maxLength={100}
                 value={formData.itinerario || ''}
-                onChange={e => setFormData({ ...formData, itinerario: e.target.value })}
+                onChange={e => setFormData({ ...formData, itinerario: e.target.value.slice(0, 100) })}
                 className="erp-input"
                 placeholder="Ej. CCS - PMV / PMV - CCS"
               />
@@ -387,8 +396,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="1"
+                max="999"
                 value={formData.adultos ?? 1}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(1, parseInt(e.target.value) || 1) })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 1)) })}
                 className="erp-input"
               />
             </div>
@@ -398,8 +409,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="0"
+                max="999"
                 value={formData.ninos ?? 0}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, parseInt(e.target.value) || 0) })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
                 className="erp-input"
               />
             </div>
@@ -409,8 +422,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="0"
+                max="999"
                 value={formData.infantes ?? 0}
-                onChange={e => setFormData({ ...formData, infantes: Math.max(0, parseInt(e.target.value) || 0) })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, infantes: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
                 className="erp-input"
               />
             </div>
@@ -495,23 +510,17 @@ export default function EditarProductoModal({
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <label className="erp-label" style={{ margin: 0 }}>Observaciones</label>
-                  <span style={{ fontSize: '0.75rem', color: (formData.observacion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 30 ? '#EF4444' : '#b9c8ddff' }}>
-                    {formData.observacion?.trim().split(/\s+/).filter(Boolean).length || 0} / 30 palabras
+                  <span style={{ fontSize: '0.75rem', color: (formData.observacion || '').length >= 300 ? '#EF4444' : '#b9c8ddff' }}>
+                    {(formData.observacion || '').length} / 300 caracteres
                   </span>
                 </div>
                 <input
                   type="text"
                   value={formData.observacion || ''}
-                  onChange={e => {
-                    const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-                    if (words.length > 30) {
-                      setFormData({ ...formData, observacion: words.slice(0, 30).join(' ') });
-                    } else {
-                      setFormData({ ...formData, observacion: e.target.value });
-                    }
-                  }}
+                  onChange={e => setFormData({ ...formData, observacion: e.target.value.slice(0, 300) })}
+                  maxLength={300}
                   className="erp-input"
-                  placeholder="Detalles del traslado... (máx. 30 palabras)"
+                  placeholder="Detalles del traslado... (máx. 300 caracteres)"
                 />
               </div>
             </div>
@@ -698,8 +707,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="1"
+                max="999"
                 value={formData.adultos ?? 1}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(1, parseInt(e.target.value) || 1) })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 1)) })}
                 className="erp-input"
               />
             </div>
@@ -709,8 +720,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="0"
+                max="999"
                 value={formData.ninos ?? 0}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, parseInt(e.target.value) || 0) })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
                 className="erp-input"
               />
             </div>
@@ -763,8 +776,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="1"
+                max="999"
                 value={formData.dias || 1}
-                onChange={e => setFormData({ ...formData, dias: Math.max(1, parseInt(e.target.value) || 1) })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, dias: Math.max(1, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 1)) })}
                 className="erp-input"
               />
             </div>
@@ -800,23 +815,17 @@ export default function EditarProductoModal({
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                 <label className="erp-label" style={{ margin: 0 }}>Observaciones</label>
-                <span style={{ fontSize: '0.75rem', color: (formData.observacion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
-                  {formData.observacion?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+                <span style={{ fontSize: '0.75rem', color: (formData.observacion || '').length >= 300 ? '#EF4444' : '#b9c8ddff' }}>
+                  {(formData.observacion || '').length} / 300 caracteres
                 </span>
               </div>
               <input
                 type="text"
                 value={formData.observacion || ''}
-                onChange={e => {
-                  const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-                  if (words.length > 50) {
-                    setFormData({ ...formData, observacion: words.slice(0, 50).join(' ') });
-                  } else {
-                    setFormData({ ...formData, observacion: e.target.value });
-                  }
-                }}
+                onChange={e => setFormData({ ...formData, observacion: e.target.value.slice(0, 300) })}
+                maxLength={300}
                 className="erp-input"
-                placeholder="Detalles del alquiler o vehículo... (máx. 50 palabras)"
+                placeholder="Detalles del alquiler o vehículo... (máx. 300 caracteres)"
               />
             </div>
           </div>
@@ -829,8 +838,9 @@ export default function EditarProductoModal({
               <label className="erp-label">Ruta</label>
               <input
                 type="text"
+                maxLength={100}
                 value={formData.ruta || ''}
-                onChange={e => setFormData({ ...formData, ruta: e.target.value })}
+                onChange={e => setFormData({ ...formData, ruta: e.target.value.slice(0, 100) })}
                 className="erp-input"
               />
             </div>
@@ -839,8 +849,9 @@ export default function EditarProductoModal({
               <label className="erp-label">Clase</label>
               <input
                 type="text"
+                maxLength={50}
                 value={formData.clase || ''}
-                onChange={e => setFormData({ ...formData, clase: e.target.value })}
+                onChange={e => setFormData({ ...formData, clase: e.target.value.slice(0, 50) })}
                 className="erp-input"
               />
             </div>
@@ -850,8 +861,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="0"
+                max="999"
                 value={formData.adultos ?? 0}
-                onChange={e => setFormData({ ...formData, adultos: parseInt(e.target.value) || 0 })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, adultos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
                 className="erp-input"
               />
             </div>
@@ -861,8 +874,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="0"
+                max="999"
                 value={formData.ninos ?? 0}
-                onChange={e => setFormData({ ...formData, ninos: parseInt(e.target.value) || 0 })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
                 className="erp-input"
               />
             </div>
@@ -872,8 +887,10 @@ export default function EditarProductoModal({
               <input
                 type="number"
                 min="0"
+                max="999"
                 value={formData.vehiculos ?? 0}
-                onChange={e => setFormData({ ...formData, vehiculos: parseInt(e.target.value) || 0 })}
+                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
+                onChange={e => setFormData({ ...formData, vehiculos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
                 className="erp-input"
               />
             </div>
@@ -922,23 +939,17 @@ export default function EditarProductoModal({
             <div style={{ gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                 <label className="erp-label" style={{ margin: 0 }}>Descripción del Servicio</label>
-                <span style={{ fontSize: '0.75rem', color: (formData.descripcion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
-                  {formData.descripcion?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+                <span style={{ fontSize: '0.75rem', color: (formData.descripcion || '').length >= 500 ? '#EF4444' : '#b9c8ddff' }}>
+                  {(formData.descripcion || '').length} / 500 caracteres
                 </span>
               </div>
               <input
                 type="text"
                 value={formData.descripcion || ''}
-                onChange={e => {
-                  const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-                  if (words.length > 50) {
-                    setFormData({ ...formData, descripcion: words.slice(0, 50).join(' ') });
-                  } else {
-                    setFormData({ ...formData, descripcion: e.target.value });
-                  }
-                }}
+                onChange={e => setFormData({ ...formData, descripcion: e.target.value.slice(0, 500) })}
+                maxLength={500}
                 className="erp-input"
-                placeholder="Nombre o detalle del servicio... (máx. 50 palabras)"
+                placeholder="Nombre o detalle del servicio... (máx. 500 caracteres)"
               />
             </div>
 
