@@ -139,7 +139,14 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
                         max="100"
                         step="0.01"
                         value={cantidad}
-                        onChange={(e) => setCantidad(e.target.value)}
+                        onInput={(e) => {
+                          if (parseFloat(e.target.value) > 100) e.target.value = 100;
+                        }}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          if (isNaN(val)) setCantidad('');
+                          else setCantidad(Math.min(100, Math.max(0, val)));
+                        }}
                         className="erp-input"
                         disabled={isSubmitting}
                     />

@@ -181,7 +181,7 @@ export default function CustomSelect({
           }
         }}
       >
-        <span className="selected-text">{currentLabel}</span>
+        <span className="selected-text" title={currentLabel}>{currentLabel}</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           height="1em"
@@ -198,6 +198,7 @@ export default function CustomSelect({
         className={`options ${placement.openUp ? 'open-up' : ''}`}
         style={{
           maxHeight: `${placement.maxHeight}px`,
+          overflowX: 'hidden',
           ...(placement.openUp
             ? { top: 'auto', bottom: 'calc(100% + 4px)' }
             : { top: 'calc(100% + 4px)', bottom: 'auto' }),

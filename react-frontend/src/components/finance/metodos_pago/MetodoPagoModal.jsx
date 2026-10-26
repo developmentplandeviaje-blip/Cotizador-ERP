@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
+import { formatEmail, validateEmail, formatTelefono, formatCedula, handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
 const LOGOS = [
   { value: '', label: 'Sin logo / Genérico' },
@@ -133,6 +134,15 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
     setErrorMessage('');
     setErrors({});
 
+    if (tipo === 'digital') {
+      const emailCheck = validateEmail(correoCuenta);
+      if (!emailCheck.isValid) {
+        setErrorMessage(`Correo inválido: ${emailCheck.message}`);
+        setSaving(false);
+        return;
+      }
+    }
+
     const payload = {
       nombre,
       nombre_publico: nombrePublico,
@@ -246,8 +256,9 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                   <input
                     type="text"
                     required
+                    maxLength={100}
                     value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
+                    onChange={(e) => setNombre(e.target.value.slice(0, 100))}
                     placeholder="Ej. Banesco Cuenta Corriente"
                     className="erp-input"
                     style={{ width: '100%' }}
@@ -266,8 +277,9 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                   <input
                     type="text"
                     required
+                    maxLength={100}
                     value={nombrePublico}
-                    onChange={(e) => setNombrePublico(e.target.value)}
+                    onChange={(e) => setNombrePublico(e.target.value.slice(0, 100))}
                     placeholder="Ej. Banesco Banco Universal (Bs.)"
                     className="erp-input"
                     style={{ width: '100%' }}
@@ -342,8 +354,9 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                       <input
                         type="text"
                         required
+                        maxLength={100}
                         value={titular}
-                        onChange={(e) => setTitular(e.target.value)}
+                        onChange={(e) => setTitular(e.target.value.slice(0, 100))}
                         placeholder="Viajes Plan de Viaje C.A."
                         className="erp-input"
                         style={{ width: '100%' }}
@@ -369,13 +382,14 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                        Documento / RIF <span style={{ color: '#EF4444' }}>*</span>
+                        Documento / RIF (máx. 12 dígitos) <span style={{ color: '#EF4444' }}>*</span>
                       </label>
                       <input
                         type="text"
                         required
+                        maxLength={12}
                         value={documento}
-                        onChange={(e) => setDocumento(e.target.value)}
+                        onChange={(e) => setDocumento(formatCedula(e.target.value))}
                         placeholder="501234567"
                         className="erp-input"
                         style={{ width: '100%' }}
@@ -392,7 +406,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                         type="text"
                         maxLength={20}
                         value={numeroCuenta}
-                        onChange={(e) => setNumeroCuenta(e.target.value)}
+                        onChange={(e) => setNumeroCuenta(e.target.value.replace(/\D/g, '').slice(0, 20))}
                         placeholder="01340001000000123456"
                         className="erp-input"
                         style={{ width: '100%' }}
@@ -415,13 +429,14 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                        Teléfono Pago Móvil
+                        Teléfono Pago Móvil (máx. 15 dígitos)
                       </label>
                       <input
                         type="text"
+                        maxLength={15}
                         value={pagoMovilTelefono}
-                        onChange={(e) => setPagoMovilTelefono(e.target.value)}
-                        placeholder="0414-1234567"
+                        onChange={(e) => setPagoMovilTelefono(formatTelefono(e.target.value))}
+                        placeholder="+584141234567"
                         className="erp-input"
                         style={{ width: '100%' }}
                       />
@@ -449,14 +464,22 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
 
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                        Correo Electrónico Asociado <span style={{ color: '#EF4444' }}>*</span>
-                      </label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <label style={{ fontSize: '0.75rem', color: '#CBD5E1', margin: 0 }}>
+                          Correo Electrónico Asociado <span style={{ color: '#EF4444' }}>*</span>
+                        </label>
+                        {correoCuenta && (
+                          <span style={{ fontSize: '0.65rem', color: validateEmail(correoCuenta).isValid ? '#10B981' : '#F59E0B' }}>
+                            {validateEmail(correoCuenta).isValid ? '✓ Válido' : validateEmail(correoCuenta).message}
+                          </span>
+                        )}
+                      </div>
                       <input
                         type="email"
                         required
+                        maxLength={50}
                         value={correoCuenta}
-                        onChange={(e) => setCorreoCuenta(e.target.value)}
+                        onChange={(e) => setCorreoCuenta(formatEmail(e.target.value))}
                         placeholder="pagos@plandeviaje.com"
                         className="erp-input"
                         style={{ width: '100%' }}
@@ -480,15 +503,27 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                        Valor Comisión
+                        Valor Comisión {tipoComision === 'porcentaje' ? '(%)' : '($)'}
                       </label>
                       <input
                         type="number"
                         step="0.01"
                         min="0"
-                        max="100"
+                        max={tipoComision === 'porcentaje' ? 100 : 99999.99}
                         value={comisionValor}
-                        onChange={(e) => setComisionValor(e.target.value)}
+                        onInput={tipoComision === 'porcentaje' ? (e => {
+                          if (parseFloat(e.target.value) > 100) e.target.value = 100;
+                        }) : handlePriceInputKeyClamp}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (tipoComision === 'porcentaje') {
+                            const val = parseFloat(raw);
+                            if (isNaN(val)) setComisionValor('');
+                            else setComisionValor(Math.min(100, Math.max(0, val)));
+                          } else {
+                            setComisionValor(formatPrecioCosto(raw));
+                          }
+                        }}
                         className="erp-input"
                         style={{ width: '100%' }}
                       />
@@ -502,8 +537,9 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                       </label>
                       <input
                         type="text"
+                        maxLength={10}
                         value={codigoPostal}
-                        onChange={(e) => setCodigoPostal(e.target.value)}
+                        onChange={(e) => setCodigoPostal(e.target.value.slice(0, 10))}
                         placeholder="33101"
                         className="erp-input"
                         style={{ width: '100%' }}
@@ -512,12 +548,13 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                        Dirección de Facturación
+                        Dirección de Facturación (máx. 300 caracteres)
                       </label>
                       <input
                         type="text"
+                        maxLength={300}
                         value={direccionFacturacion}
-                        onChange={(e) => setDireccionFacturacion(e.target.value)}
+                        onChange={(e) => setDireccionFacturacion(e.target.value.slice(0, 300))}
                         placeholder="Miami, FL, USA"
                         className="erp-input"
                         style={{ width: '100%' }}

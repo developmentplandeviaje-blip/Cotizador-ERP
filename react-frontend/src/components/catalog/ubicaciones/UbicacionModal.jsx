@@ -86,12 +86,12 @@ export default function UbicacionModal({ isOpen, onClose, onSaveSuccess, ubicaci
             placeholder="Ej: Isla de Margarita, Los Roques, Canaima..."
             value={nombre}
             onChange={(e) => {
-              setNombre(e.target.value);
+              setNombre(e.target.value.slice(0, 100));
               if (errorMessage) setErrorMessage('');
             }}
             autoFocus
             required
-            maxLength={200}
+            maxLength={100}
             disabled={isSubmitting}
           />
           <span style={{ display: 'block', fontSize: '0.75rem', color: '#94A3B8', marginTop: '6px' }}>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
+import { formatEmail, validateEmail } from '../../../utils/validation';
 
 const SERVICIOS = [
   { id: 'hotel', label: 'Hotel', icon: '🏨' },
@@ -87,7 +88,9 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
   if (!isOpen) return null;
 
   const handleComisionChange = (servicioKey, value) => {
-    const numVal = value === '' ? '' : parseFloat(value);
+    let numVal = value === '' ? '' : parseFloat(value);
+    if (typeof numVal === 'number' && numVal > 100) numVal = 100;
+    if (typeof numVal === 'number' && numVal < 0) numVal = 0;
     setComisiones((prev) => ({
       ...prev,
       [servicioKey]: numVal,
@@ -99,6 +102,13 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
     setSaving(true);
     setErrorMessage('');
     setErrors({});
+
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.isValid) {
+      setErrorMessage(`Correo inválido: ${emailCheck.message}`);
+      setSaving(false);
+      return;
+    }
 
     // Prepare payload
     const payload = {
@@ -178,8 +188,9 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                   <input
                     type="text"
                     required
+                    maxLength={50}
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={(e) => setFirstName(e.target.value.slice(0, 50))}
                     placeholder="Ej. Carlos"
                     className="erp-input"
                     style={{
@@ -202,8 +213,9 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                   <input
                     type="text"
                     required
+                    maxLength={50}
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={(e) => setLastName(e.target.value.slice(0, 50))}
                     placeholder="Ej. Pérez"
                     className="erp-input"
                     style={{
@@ -221,19 +233,27 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
 
               {/* Email */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
-                  Correo Electrónico <span style={{ color: '#EF4444' }}>*</span>
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '6px 0px 4px 0px' }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: 0 }}>
+                    Correo Electrónico <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  {email && (
+                    <span style={{ fontSize: '0.7rem', color: validateEmail(email).isValid ? '#10B981' : '#F59E0B' }}>
+                      {validateEmail(email).isValid ? '✓ Válido' : validateEmail(email).message}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="email"
                   required
+                  maxLength={50}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(formatEmail(e.target.value))}
                   placeholder="asesor@plandeviaje.com"
                   className="erp-input"
                   style={{
                     width: '100%',
-                    borderColor: errors.email ? '#EF4444' : undefined,
+                    borderColor: errors.email || (email && !validateEmail(email).isValid) ? '#EF4444' : undefined,
                   }}
                 />
                 {errors.email && (
@@ -299,8 +319,9 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                 </label>
                 <input
                   type="password"
+                  maxLength={50}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value.slice(0, 50))}
                   placeholder={userToEdit ? '••••••••' : 'Mínimo 6 caracteres'}
                   className="erp-input"
                   style={{

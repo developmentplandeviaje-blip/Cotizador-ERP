@@ -5,6 +5,7 @@ import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import Badge from '../../common/Badge';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import axios from 'axios';
+import { handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
 export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFreelancer = false }) {
   const [tarifas, setTarifas] = useState([]);
@@ -55,11 +56,12 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
   };
 
   const handleCostoChange = (val) => {
-    setCosto(val);
-    const c = parseFloat(val);
+    const clean = formatPrecioCosto(val);
+    setCosto(clean);
+    const c = parseFloat(clean);
     const m = parseFloat(porcentaje);
     if (!isNaN(c) && c > 0 && !isNaN(m)) {
-      setPrecio((c * (1 + m / 100)).toFixed(2));
+      setPrecio(String(Math.min(99999.99, Number((c * (1 + m / 100)).toFixed(2)))));
     }
   };
 
@@ -68,14 +70,15 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
     const c = parseFloat(costo);
     const m = parseFloat(val);
     if (!isNaN(c) && c > 0 && !isNaN(m)) {
-      setPrecio((c * (1 + m / 100)).toFixed(2));
+      setPrecio(String(Math.min(99999.99, Number((c * (1 + m / 100)).toFixed(2)))));
     }
   };
 
   const handlePrecioChange = (val) => {
-    setPrecio(val);
+    const clean = formatPrecioCosto(val);
+    setPrecio(clean);
     const c = parseFloat(costo);
-    const p = parseFloat(val);
+    const p = parseFloat(clean);
     if (!isNaN(c) && c > 0 && !isNaN(p)) {
       setPorcentaje((((p - c) / c) * 100).toFixed(2));
     }
@@ -182,6 +185,8 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
                   type="number"
                   step="0.01"
                   min="0"
+                  max="99999.99"
+                  onInput={handlePriceInputKeyClamp}
                   className="erp-input"
                   placeholder="0.00"
                   value={costo}
@@ -210,6 +215,8 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
                   type="number"
                   step="0.01"
                   min="0"
+                  max="99999.99"
+                  onInput={handlePriceInputKeyClamp}
                   className="erp-input"
                   placeholder="0.00"
                   value={precio}

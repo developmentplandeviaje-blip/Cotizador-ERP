@@ -24,6 +24,15 @@ import {
 } from './modals';
 
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
+import {
+  formatEmail,
+  validateEmail,
+  formatTelefono,
+  formatCedula,
+  formatCodigoReferido,
+  handlePriceInputKeyClamp,
+  sanitizePrecioCostoValue,
+} from '../../utils/validation';
 
 export default function CotizacionTabContent({
   user,
@@ -35,9 +44,23 @@ export default function CotizacionTabContent({
   onCloseTab,
   onVerRegistro,
 }) {
+  const storageDraftKey = tabId
+    ? (user?.id ? `cotizador_draft_${user.id}_${tabId}` : `cotizador_draft_${tabId}`)
+    : null;
+
+  // Read stored draft if present
+  const initialDraft = useMemo(() => {
+    if (!storageDraftKey) return null;
+    try {
+      const raw = localStorage.getItem(storageDraftKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, [storageDraftKey]);
 
   // General Trip Information
-  const [pax, setPax] = useState({
+  const [pax, setPax] = useState(() => initialDraft?.pax || {
     adultos: 2,
     adolescentes: 0,
     ninos: 0,
@@ -45,13 +68,13 @@ export default function CotizacionTabContent({
   });
   const totalPax = pax.adultos + pax.adolescentes + pax.ninos + pax.infantes;
 
-  const [fechasViaje, setFechasViaje] = useState({
+  const [fechasViaje, setFechasViaje] = useState(() => initialDraft?.fechasViaje || {
     checkin: new Date().toISOString().split('T')[0],
     checkout: new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0],
   });
 
   // Client Data (US-04)
-  const [cliente, setCliente] = useState({
+  const [cliente, setCliente] = useState(() => initialDraft?.cliente || {
     tipo_documento: 'V',
     documento: '',
     nombres: '',
@@ -61,7 +84,7 @@ export default function CotizacionTabContent({
     correo: '',
   });
   const [searchingClient, setSearchingClient] = useState(false);
-    const [clientStatusMsg, setClientStatusMsg] = useState(null);
+  const [clientStatusMsg, setClientStatusMsg] = useState(null);
 
   // Inform parent tabs of client name in real time
   useEffect(() => {
@@ -72,22 +95,22 @@ export default function CotizacionTabContent({
   }, [cliente.nombres, cliente.apellidos, onUpdateClientName]);
 
   // Additional passengers list
-  const [pasajeros, setPasajeros] = useState([]);
+  const [pasajeros, setPasajeros] = useState(() => initialDraft?.pasajeros || []);
 
   // Referral Code (US-01)
-  const [codigoReferido, setCodigoReferido] = useState('');
+  const [codigoReferido, setCodigoReferido] = useState(() => initialDraft?.codigoReferido || '');
   const [validatingReferido, setValidatingReferido] = useState(false);
-  const [referidoData, setReferidoData] = useState(null);
+  const [referidoData, setReferidoData] = useState(() => initialDraft?.referidoData || null);
   const [referidoError, setReferidoError] = useState('');
 
   // Cart / Added Items
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(() => initialDraft?.items || []);
 
   // Active Service Tab for adding items
-  const [activeTab, setActiveTab] = useState('hotel');
+  const [activeTab, setActiveTab] = useState(() => initialDraft?.activeTab || 'hotel');
 
   // Form states for each service
-  const [hotelForm, setHotelForm] = useState({
+  const [hotelForm, setHotelForm] = useState(() => initialDraft?.hotelForm || {
     id_ubicacion: '',
     id_hotel: '',
     id_habitacion: '',
@@ -100,7 +123,7 @@ export default function CotizacionTabContent({
     costo_noche_nino: 0,
   });
 
-  const [vueloForm, setVueloForm] = useState({
+  const [vueloForm, setVueloForm] = useState(() => initialDraft?.vueloForm || {
     id_aerolinea: '',
     itinerario: '',
     fecha_vuelo: '',
@@ -112,7 +135,7 @@ export default function CotizacionTabContent({
     costo_infante: 0,
   });
 
-  const [trasladoForm, setTrasladoForm] = useState({
+  const [trasladoForm, setTrasladoForm] = useState(() => initialDraft?.trasladoForm || {
     id_traslado: '',
     fecha_traslado: '',
     precio: 0,
@@ -123,7 +146,7 @@ export default function CotizacionTabContent({
     pax_seleccionados: [],
   });
 
-  const [excursionForm, setExcursionForm] = useState({
+  const [excursionForm, setExcursionForm] = useState(() => initialDraft?.excursionForm || {
     id_excursion: '',
     fecha: '',
     precio_adulto: 0,
@@ -132,7 +155,7 @@ export default function CotizacionTabContent({
     costo_nino: 0,
   });
 
-  const [paqueteForm, setPaqueteForm] = useState({
+  const [paqueteForm, setPaqueteForm] = useState(() => initialDraft?.paqueteForm || {
     id_paquete: '',
     fecha: '',
     precio_adulto: 0,
@@ -141,7 +164,7 @@ export default function CotizacionTabContent({
     costo_nino: 0,
   });
 
-  const [vehiculoForm, setVehiculoForm] = useState({
+  const [vehiculoForm, setVehiculoForm] = useState(() => initialDraft?.vehiculoForm || {
     id_vehiculo: '',
     desde: '',
     hasta: '',
@@ -151,7 +174,7 @@ export default function CotizacionTabContent({
     observacion: '',
   });
 
-  const [ferryForm, setFerryForm] = useState({
+  const [ferryForm, setFerryForm] = useState(() => initialDraft?.ferryForm || {
     ruta: '',
     clase: 'Playa',
     itinerario: '',
@@ -162,7 +185,7 @@ export default function CotizacionTabContent({
     precio_vehiculo: 0,
   });
 
-  const [otroForm, setOtroForm] = useState({
+  const [otroForm, setOtroForm] = useState(() => initialDraft?.otroForm || {
     descripcion: '',
     fecha: '',
     costo: 0,
@@ -170,17 +193,76 @@ export default function CotizacionTabContent({
   });
 
   // Installment Plan
-  const [enableCuotas, setEnableCuotas] = useState(false);
-  const [cuotasConfig, setCuotasConfig] = useState({
+  const [enableCuotas, setEnableCuotas] = useState(() => initialDraft?.enableCuotas ?? false);
+  const [cuotasConfig, setCuotasConfig] = useState(() => initialDraft?.cuotasConfig || {
     modo: 'monto', // 'monto' o 'porcentaje'
     valor_inicial: 0,
     numero_cuotas: 3,
   });
 
   // General observations & discount
-  const [descuentoAdicional, setDescuentoAdicional] = useState('0');
-  const [tipoDescuento, setTipoDescuento] = useState('Porcentaje');
-  const [observacion, setObservacion] = useState('');
+  const [descuentoAdicional, setDescuentoAdicional] = useState(() => initialDraft?.descuentoAdicional ?? '0');
+  const [tipoDescuento, setTipoDescuento] = useState(() => initialDraft?.tipoDescuento || 'Porcentaje');
+  const [observacion, setObservacion] = useState(() => initialDraft?.observacion || '');
+
+  // Persist quotation draft to localStorage whenever fields change
+  useEffect(() => {
+    if (!storageDraftKey) return;
+    const timer = setTimeout(() => {
+      try {
+        const draft = {
+          pax,
+          fechasViaje,
+          cliente,
+          pasajeros,
+          codigoReferido,
+          referidoData,
+          items,
+          activeTab,
+          hotelForm,
+          vueloForm,
+          trasladoForm,
+          excursionForm,
+          paqueteForm,
+          vehiculoForm,
+          ferryForm,
+          otroForm,
+          enableCuotas,
+          cuotasConfig,
+          descuentoAdicional,
+          tipoDescuento,
+          observacion,
+        };
+        localStorage.setItem(storageDraftKey, JSON.stringify(draft));
+      } catch (err) {
+        console.warn('Error saving quotation draft:', err);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [
+    storageDraftKey,
+    pax,
+    fechasViaje,
+    cliente,
+    pasajeros,
+    codigoReferido,
+    referidoData,
+    items,
+    activeTab,
+    hotelForm,
+    vueloForm,
+    trasladoForm,
+    excursionForm,
+    paqueteForm,
+    vehiculoForm,
+    ferryForm,
+    otroForm,
+    enableCuotas,
+    cuotasConfig,
+    descuentoAdicional,
+    tipoDescuento,
+    observacion,
+  ]);
 
   // Cart item delete confirmation modal state
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -242,6 +324,23 @@ export default function CotizacionTabContent({
     }
   };
 
+  // Manejadores de formatos y validaciones centralizados
+  const handleDocumentoClienteChange = (e) => {
+    setCliente(prev => ({ ...prev, documento: formatCedula(e.target.value) }));
+  };
+
+  const handleTelefonoClienteChange = (e) => {
+    setCliente(prev => ({ ...prev, telefono: formatTelefono(e.target.value) }));
+  };
+
+  const handleCorreoClienteChange = (e) => {
+    setCliente(prev => ({ ...prev, correo: formatEmail(e.target.value) }));
+  };
+
+  const handleCodigoReferidoChange = (e) => {
+    setCodigoReferido(formatCodigoReferido(e.target.value));
+  };
+
   // Validate Referral Code (US-01)
   const handleValidarReferido = async () => {
     const code = codigoReferido.trim();
@@ -286,9 +385,17 @@ export default function CotizacionTabContent({
   }, [totalPax]);
 
   const handleUpdatePasajero = (index, field, val) => {
+    let sanitizedVal = val;
+    if (field === 'documento') {
+      // Cédula de acompañante: máx 12 dígitos, solo números
+      sanitizedVal = val.replace(/\D/g, '').slice(0, 12);
+    } else if (field === 'nombres' || field === 'apellidos') {
+      // Nombres y apellidos: máx 50 caracteres
+      sanitizedVal = val.slice(0, 50);
+    }
     setPasajeros(prev => {
       const copy = [...prev];
-      copy[index] = { ...copy[index], [field]: val };
+      copy[index] = { ...copy[index], [field]: sanitizedVal };
       return copy;
     });
   };
@@ -862,28 +969,16 @@ export default function CotizacionTabContent({
     }
   };
 
-  // Word count for itinerary observations (max 300 words)
-  const wordCount = useMemo(() => {
-    const trimmed = observacion.trim();
-    return trimmed ? trimmed.split(/\s+/).filter(Boolean).length : 0;
-  }, [observacion]);
-
+  // Character count limit for itinerary observations (max 3500 chars)
   const handleObservacionKeyDown = (e) => {
-    // Si ya alcanzó 300 palabras, prevenir agregar nuevas palabras con espacio o enter
-    if (wordCount >= 300 && (e.key === ' ' || e.key === 'Enter')) {
+    // Límite de 3500 caracteres
+    if (observacion.length >= 3500 && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
     }
   };
 
   const handleObservacionChange = (e) => {
-    const val = e.target.value;
-    const words = val.trim() ? val.trim().split(/\s+/).filter(Boolean) : [];
-    if (words.length > 300) {
-      const truncated = words.slice(0, 300).join(' ');
-      setObservacion(truncated);
-    } else {
-      setObservacion(val);
-    }
+    setObservacion(e.target.value.slice(0, 3500));
   };
 
   // Financial Computations
@@ -992,6 +1087,13 @@ export default function CotizacionTabContent({
       alert('Por favor ingrese el nombre y el apellido del cliente principal.');
       return;
     }
+    if (cliente.correo && cliente.correo.trim() !== '') {
+      const emailCheck = validateEmail(cliente.correo);
+      if (!emailCheck.isValid) {
+        alert(`Correo electrónico inválido: ${emailCheck.message}`);
+        return;
+      }
+    }
     if (items.length === 0) {
       alert('Debe agregar al menos un producto o servicio a la cotización.');
       return;
@@ -1062,6 +1164,11 @@ export default function CotizacionTabContent({
       setDescuentoAdicional('0');
       setTipoDescuento('Porcentaje');
       setObservacion('');
+
+      // Limpiar borrador persistente de esta cotización formalmente guardada
+      try {
+        if (storageDraftKey) localStorage.removeItem(storageDraftKey);
+      } catch {}
     } catch (err) {
       console.error('Error creando cotización:', err);
       setFeedback({
@@ -1080,6 +1187,13 @@ export default function CotizacionTabContent({
     if (items.length === 0) {
       alert('Debe agregar al menos un producto para guardar como cotización rápida.');
       return;
+    }
+    if (cliente.correo && cliente.correo.trim() !== '') {
+      const emailCheck = validateEmail(cliente.correo);
+      if (!emailCheck.isValid) {
+        alert(`Correo electrónico inválido: ${emailCheck.message}`);
+        return;
+      }
     }
 
     isSubmittingRef.current = true;
@@ -1164,8 +1278,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Adultos</span>
             <CustomNumberInput
               min={1}
+              max={999}
+              maxDigits={3}
               value={pax.adultos}
-              onChange={e => setPax({ ...pax, adultos: Math.max(1, parseInt(e.target.value) || 1) })}
+              onChange={e => setPax({ ...pax, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
               size="sm"
             />
           </div>
@@ -1174,8 +1290,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Adolescentes</span>
             <CustomNumberInput
               min={0}
+              max={999}
+              maxDigits={3}
               value={pax.adolescentes}
-              onChange={e => setPax({ ...pax, adolescentes: Math.max(0, parseInt(e.target.value) || 0) })}
+              onChange={e => setPax({ ...pax, adolescentes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               size="sm"
             />
           </div>
@@ -1184,8 +1302,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Niños</span>
             <CustomNumberInput
               min={0}
+              max={999}
+              maxDigits={3}
               value={pax.ninos}
-              onChange={e => setPax({ ...pax, ninos: Math.max(0, parseInt(e.target.value) || 0) })}
+              onChange={e => setPax({ ...pax, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               size="sm"
             />
           </div>
@@ -1194,8 +1314,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Infantes</span>
             <CustomNumberInput
               min={0}
+              max={999}
+              maxDigits={3}
               value={pax.infantes}
-              onChange={e => setPax({ ...pax, infantes: Math.max(0, parseInt(e.target.value) || 0) })}
+              onChange={e => setPax({ ...pax, infantes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               size="sm"
             />
           </div>
@@ -1308,8 +1430,10 @@ export default function CotizacionTabContent({
               type="text"
               placeholder="Número de Cédula / Documento (Opcional)..."
               value={cliente.documento}
-              onChange={e => setCliente({ ...cliente, documento: e.target.value })}
+              onChange={handleDocumentoClienteChange}
               onKeyDown={e => e.key === 'Enter' && handleBuscarCliente()}
+              maxLength={12}
+              inputMode="numeric"
               className='erp-input'
             />
             <button
@@ -1344,8 +1468,9 @@ export default function CotizacionTabContent({
               <input
                 type="text"
                 value={cliente.nombres}
-                onChange={e => setCliente({ ...cliente, nombres: e.target.value })}
+                onChange={e => setCliente({ ...cliente, nombres: e.target.value.slice(0, 50) })}
                 placeholder="Nombre(s)"
+                maxLength={50}
                 className='erp-input'
               />
             </div>
@@ -1354,8 +1479,9 @@ export default function CotizacionTabContent({
               <input
                 type="text"
                 value={cliente.apellidos}
-                onChange={e => setCliente({ ...cliente, apellidos: e.target.value })}
+                onChange={e => setCliente({ ...cliente, apellidos: e.target.value.slice(0, 50) })}
                 placeholder="Apellido(s)"
+                maxLength={50}
                 className='erp-input'
               />
             </div>
@@ -1364,19 +1490,36 @@ export default function CotizacionTabContent({
               <input
                 type="text"
                 value={cliente.telefono}
-                onChange={e => setCliente({ ...cliente, telefono: e.target.value })}
-                placeholder="+58 412 0000000"
+                onChange={handleTelefonoClienteChange}
+                placeholder="+584120000000"
+                maxLength={15}
+                inputMode="tel"
                 className='erp-input'
               />
             </div>
             <div>
-              <label className='erp-label'>Correo Electrónico </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label className='erp-label' style={{ margin: 0 }}>Correo Electrónico </label>
+                {cliente.correo && (
+                  <span style={{
+                    fontSize: '0.7rem',
+                    color: validateEmail(cliente.correo).isValid ? '#10B981' : '#F59E0B'
+                  }}>
+                    {validateEmail(cliente.correo).isValid ? '✓ Válido' : validateEmail(cliente.correo).message}
+                  </span>
+                )}
+              </div>
               <input
                 type="email"
                 value={cliente.correo}
-                onChange={e => setCliente({ ...cliente, correo: e.target.value })}
+                onChange={handleCorreoClienteChange}
                 placeholder="cliente@correo.com"
+                maxLength={50}
                 className='erp-input'
+                style={{
+                  marginTop: '4px',
+                  borderColor: cliente.correo && !validateEmail(cliente.correo).isValid ? '#F59E0B' : undefined
+                }}
               />
             </div>
           </div>
@@ -1418,10 +1561,11 @@ export default function CotizacionTabContent({
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
-                placeholder="Ej. EMB-EJEMPLO"
+                placeholder="Ej. REF-12345"
                 value={codigoReferido}
                 disabled={!!referidoData}
-                onChange={e => setCodigoReferido(e.target.value.toUpperCase())}
+                onChange={handleCodigoReferidoChange}
+                maxLength={12}
                 className='erp-input'
               />
               {!referidoData ? (
@@ -1475,57 +1619,60 @@ export default function CotizacionTabContent({
           borderRadius: '16px',
           border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '20px',
-          width: 'fit-content',
-          maxWidth: '100%',
-          alignSelf: 'flex-start',
+          width: '100%',
           boxSizing: 'border-box',
         }}>
-          <h2 style={{ fontSize: '1rem', color: '#FFF', margin: '0 0 12px 0' }}>
+          <h2 style={{ fontSize: '1rem', color: '#FFF', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img src={imgUsuario} style={{ width: '18px', height: '18px' }} alt="" /> Pasajeros Acompañantes ({pasajeros.length})
           </h2>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 420px))',
-            gap: '12px',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
+            gap: '14px',
+            width: '100%',
           }}>
             {pasajeros.map((p, idx) => (
               <div
                 key={idx}
                 style={{
                   background: 'rgba(255,255,250, 0.03)',
-                  padding: '12px',
+                  padding: '14px',
                   borderRadius: '10px',
                   border: '1px solid rgba(255,255,255,0.18)',
-                  width: '420px',
-                  maxWidth: '100%',
+                  width: '100%',
                   boxSizing: 'border-box',
                 }}
               >
-                <span style={{ fontSize: '0.75rem', color: '#E87217', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
+                <span style={{ fontSize: '0.8rem', color: '#E87217', fontWeight: '600', display: 'block', marginBottom: '8px' }}>
                   Acompañante #{idx + 2}
                 </span>
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                   <input
                     type="text"
                     placeholder="Nombres"
                     value={p.nombres}
                     onChange={e => handleUpdatePasajero(idx, 'nombres', e.target.value)}
+                    maxLength={50}
                     className='erp-input'
+                    style={{ flex: 1 }}
                   />
                   <input
                     type="text"
                     placeholder="Apellidos"
                     value={p.apellidos}
                     onChange={e => handleUpdatePasajero(idx, 'apellidos', e.target.value)}
+                    maxLength={50}
                     className='erp-input'
+                    style={{ flex: 1 }}
                   />
                 </div>
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <CustomSelect
                     value={p.tipo_documento}
                     onChange={e => handleUpdatePasajero(idx, 'tipo_documento', e.target.value)}
                     style={{
                       width: '80px',
+                      flexShrink: 0,
                     }}
                   >
                     <option value="V">V-</option>
@@ -1539,7 +1686,10 @@ export default function CotizacionTabContent({
                     placeholder="Cédula / Documento"
                     value={p.documento}
                     onChange={e => handleUpdatePasajero(idx, 'documento', e.target.value)}
+                    maxLength={12}
+                    inputMode="numeric"
                     className='erp-input'
+                    style={{ flex: 1 }}
                   />
                 </div>
               </div>
@@ -1836,24 +1986,33 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Noches</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={hotelForm.noches}
-                  onChange={e => setHotelForm({ ...hotelForm, noches: Math.max(1, parseInt(e.target.value) || 1) })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    min={1}
+                    max={999}
+                    maxDigits={3}
+                    value={hotelForm.noches}
+                    onChange={e => {
+                      const val = String(e.target.value).slice(0, 3);
+                      setHotelForm({ ...hotelForm, noches: Math.max(1, Math.min(999, parseInt(val) || 1)) });
+                    }}
+                  />
+                </div>
               </div>
 
               <div>
                 <label className='erp-label'>Tarifa Adulto ($/noche)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={hotelForm.precio_noche_adulto}
-                  onChange={e => setHotelForm({ ...hotelForm, precio_noche_adulto: parseFloat(e.target.value) || 0 })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={hotelForm.precio_noche_adulto}
+                    onChange={e => setHotelForm({ ...hotelForm, precio_noche_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -1892,7 +2051,8 @@ export default function CotizacionTabContent({
                   type="text"
                   placeholder="Ej. CCS - PMV - CCS"
                   value={vueloForm.itinerario}
-                  onChange={e => setVueloForm({ ...vueloForm, itinerario: e.target.value })}
+                  onChange={e => setVueloForm({ ...vueloForm, itinerario: e.target.value.slice(0, 100) })}
+                  maxLength={100}
                   className="erp-input"
                 />
               </div>
@@ -1908,13 +2068,17 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Tarifa Adulto ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={vueloForm.precio_adulto}
-                  onChange={e => setVueloForm({ ...vueloForm, precio_adulto: parseFloat(e.target.value) || 0 })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={vueloForm.precio_adulto}
+                    onChange={e => setVueloForm({ ...vueloForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -1967,34 +2131,32 @@ export default function CotizacionTabContent({
 
                 <div>
                   <label className='erp-label'>Precio Total ($)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={trasladoForm.precio}
-                    onChange={e => setTrasladoForm({ ...trasladoForm, precio: parseFloat(e.target.value) || 0 })}
-                    className="erp-input"
-                  />
+                  <div style={{ display: 'flex' }}>
+                    <CustomNumberInput
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      width="115px"
+                      value={trasladoForm.precio}
+                      onChange={e => setTrasladoForm({ ...trasladoForm, precio: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                     <label className='erp-label' style={{ margin: 0 }}>Observación (Opcional)</label>
-                    <span style={{ fontSize: '0.75rem', color: (trasladoForm.observacion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 30 ? '#EF4444' : '#b9c8ddff' }}>
-                      {trasladoForm.observacion?.trim().split(/\s+/).filter(Boolean).length || 0} / 30 palabras
+                    <span style={{ fontSize: '0.75rem', color: (trasladoForm.observacion || '').length >= 300 ? '#EF4444' : '#b9c8ddff' }}>
+                      {(trasladoForm.observacion || '').length} / 300 caracteres
                     </span>
                   </div>
                   <input
                     type="text"
                     value={trasladoForm.observacion}
-                    onChange={e => {
-                      const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-                      if (words.length > 30) {
-                        setTrasladoForm({ ...trasladoForm, observacion: words.slice(0, 30).join(' ') });
-                      } else {
-                        setTrasladoForm({ ...trasladoForm, observacion: e.target.value });
-                      }
-                    }}
-                    placeholder="Ej: Vuelo Laser 912, equipaje extra... (máx. 30 palabras)"
+                    onChange={e => setTrasladoForm({ ...trasladoForm, observacion: e.target.value.slice(0, 300) })}
+                    placeholder="Ej: Vuelo Laser 912, equipaje extra... (máx. 300 caracteres)"
+                    maxLength={300}
                     className="erp-input"
                   />
                 </div>
@@ -2234,13 +2396,17 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Precio Adulto ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={excursionForm.precio_adulto}
-                  onChange={e => setExcursionForm({ ...excursionForm, precio_adulto: parseFloat(e.target.value) || 0 })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={excursionForm.precio_adulto}
+                    onChange={e => setExcursionForm({ ...excursionForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2292,13 +2458,17 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Precio Adulto ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={paqueteForm.precio_adulto}
-                  onChange={e => setPaqueteForm({ ...paqueteForm, precio_adulto: parseFloat(e.target.value) || 0 })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={paqueteForm.precio_adulto}
+                    onChange={e => setPaqueteForm({ ...paqueteForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2333,24 +2503,33 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Días de Alquiler</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={vehiculoForm.dias}
-                  onChange={e => setVehiculoForm({ ...vehiculoForm, dias: Math.max(1, parseInt(e.target.value) || 1) })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    min={1}
+                    max={999}
+                    maxDigits={3}
+                    value={vehiculoForm.dias}
+                    onChange={e => {
+                      const val = String(e.target.value).slice(0, 3);
+                      setVehiculoForm({ ...vehiculoForm, dias: Math.max(1, Math.min(999, parseInt(val) || 1)) });
+                    }}
+                  />
+                </div>
               </div>
 
               <div>
                 <label className='erp-label'>Tarifa Diaria ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={vehiculoForm.precio_unitario}
-                  onChange={e => setVehiculoForm({ ...vehiculoForm, precio_unitario: parseFloat(e.target.value) || 0 })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={vehiculoForm.precio_unitario}
+                    onChange={e => setVehiculoForm({ ...vehiculoForm, precio_unitario: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2376,31 +2555,40 @@ export default function CotizacionTabContent({
                   type="text"
                   placeholder="Ej. Puerto La Cruz - Punta de Piedras"
                   value={ferryForm.ruta}
-                  onChange={e => setFerryForm({ ...ferryForm, ruta: e.target.value })}
+                  onChange={e => setFerryForm({ ...ferryForm, ruta: e.target.value.slice(0, 100) })}
+                  maxLength={100}
                   className="erp-input"
                 />
               </div>
 
               <div>
                 <label className='erp-label'>Tarifa Adulto ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={ferryForm.precio_adulto}
-                  onChange={e => setFerryForm({ ...ferryForm, precio_adulto: parseFloat(e.target.value) || 0 })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={ferryForm.precio_adulto}
+                    onChange={e => setFerryForm({ ...ferryForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
                 <label className='erp-label'>Vehículos adicionales ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={ferryForm.precio_vehiculo}
-                  onChange={e => setFerryForm({ ...ferryForm, precio_vehiculo: parseFloat(e.target.value) || 0 })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={ferryForm.precio_vehiculo}
+                    onChange={e => setFerryForm({ ...ferryForm, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2423,35 +2611,33 @@ export default function CotizacionTabContent({
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <label className='erp-label' style={{ margin: 0 }}>Descripción del Servicio</label>
-                  <span style={{ fontSize: '0.75rem', color: (otroForm.descripcion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
-                    {otroForm.descripcion?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+                  <span style={{ fontSize: '0.75rem', color: (otroForm.descripcion || '').length >= 500 ? '#EF4444' : '#b9c8ddff' }}>
+                    {(otroForm.descripcion || '').length} / 500 caracteres
                   </span>
                 </div>
                 <input
                   type="text"
-                  placeholder="Ej. Seguro de Viaje, Asistencia Médica... (máx. 50 palabras)"
+                  placeholder="Ej. Seguro de Viaje, Asistencia Médica... (máx. 500 caracteres)"
                   value={otroForm.descripcion}
-                  onChange={e => {
-                    const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-                    if (words.length > 50) {
-                      setOtroForm({ ...otroForm, descripcion: words.slice(0, 50).join(' ') });
-                    } else {
-                      setOtroForm({ ...otroForm, descripcion: e.target.value });
-                    }
-                  }}
+                  onChange={e => setOtroForm({ ...otroForm, descripcion: e.target.value.slice(0, 500) })}
+                  maxLength={500}
                   className="erp-input"
                 />
               </div>
 
               <div>
                 <label className='erp-label'>Precio Venta ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={otroForm.precio}
-                  onChange={e => setOtroForm({ ...otroForm, precio: parseFloat(e.target.value) || 0 })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={otroForm.precio}
+                    onChange={e => setOtroForm({ ...otroForm, precio: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2634,13 +2820,25 @@ export default function CotizacionTabContent({
                     <label className="erp-label">
                       {cuotasConfig.modo === 'monto' ? 'Monto Inicial ($)' : 'Porcentaje Inicial (%)'}
                     </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={cuotasConfig.valor_inicial}
-                      onChange={e => setCuotasConfig({ ...cuotasConfig, valor_inicial: parseFloat(e.target.value) || 0 })}
-                      className="erp-input"
-                    />
+                    <div style={{ display: 'flex' }}>
+                      <CustomNumberInput
+                        step={0.01}
+                        min={0}
+                        max={cuotasConfig.modo === 'porcentaje' ? 100 : 99999.99}
+                        allowDecimals
+                        width="115px"
+                        value={cuotasConfig.valor_inicial}
+                        onChange={e => {
+                          const raw = e.target.value;
+                          if (cuotasConfig.modo === 'porcentaje') {
+                            const val = parseFloat(raw) || 0;
+                            setCuotasConfig({ ...cuotasConfig, valor_inicial: Math.min(100, Math.max(0, val)) });
+                          } else {
+                            setCuotasConfig({ ...cuotasConfig, valor_inicial: sanitizePrecioCostoValue(raw) });
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -2686,8 +2884,8 @@ export default function CotizacionTabContent({
             <div style={{ marginTop: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <label className="erp-label" style={{ margin: 0 }}>Observaciones del Itinerario</label>
-                <span style={{ fontSize: '0.75rem', color: wordCount >= 300 ? '#EF4444' : '#b9c8ddff', fontWeight: wordCount >= 300 ? '700' : '400' }}>
-                  {wordCount} / 300 palabras
+                <span style={{ fontSize: '0.75rem', color: (observacion || '').length >= 3500 ? '#EF4444' : '#b9c8ddff', fontWeight: (observacion || '').length >= 3500 ? '700' : '400' }}>
+                  {(observacion || '').length} / 3500 caracteres
                 </span>
               </div>
               <textarea
@@ -2695,7 +2893,8 @@ export default function CotizacionTabContent({
                 value={observacion}
                 onChange={handleObservacionChange}
                 onKeyDown={handleObservacionKeyDown}
-                placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 300 palabras)..."
+                placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 3500 caracteres)..."
+                maxLength={3500}
                 className="erp-input custom-scrollbar"
                 style={{
                   resize: 'none',
@@ -2705,6 +2904,8 @@ export default function CotizacionTabContent({
                   overflowY: 'auto',
                   boxSizing: 'border-box',
                   width: '100%',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
                 }}
               />
             </div>

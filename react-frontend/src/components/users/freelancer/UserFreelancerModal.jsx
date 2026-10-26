@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
+import { formatEmail, validateEmail, formatTelefono, formatCedula } from '../../../utils/validation';
 
 const SERVICIOS = [
   { id: 'hotel', label: 'Hotel', icon: '🏨' },
@@ -109,7 +110,9 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
   if (!isOpen) return null;
 
   const handleComisionChange = (servicioKey, value) => {
-    const numVal = value === '' ? '' : parseFloat(value);
+    let numVal = value === '' ? '' : parseFloat(value);
+    if (typeof numVal === 'number' && numVal > 100) numVal = 100;
+    if (typeof numVal === 'number' && numVal < 0) numVal = 0;
     setComisiones((prev) => ({
       ...prev,
       [servicioKey]: numVal,
@@ -121,6 +124,13 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
     setSaving(true);
     setErrorMessage('');
     setErrors({});
+
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.isValid) {
+      setErrorMessage(`Correo inválido: ${emailCheck.message}`);
+      setSaving(false);
+      return;
+    }
 
     // Prepare payload
     const payload = {
@@ -207,8 +217,9 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   <input
                     type="text"
                     required
+                    maxLength={50}
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={(e) => setFirstName(e.target.value.slice(0, 50))}
                     placeholder="Ej. Carlos"
                     className="erp-input"
                     style={{
@@ -231,8 +242,9 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   <input
                     type="text"
                     required
+                    maxLength={50}
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={(e) => setLastName(e.target.value.slice(0, 50))}
                     placeholder="Ej. Pérez"
                     className="erp-input"
                     style={{
@@ -250,19 +262,27 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
 
               {/* Email */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
-                  Correo Electrónico de Acceso <span style={{ color: '#EF4444' }}>*</span>
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '6px 0px 4px 0px' }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: 0 }}>
+                    Correo Electrónico de Acceso <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  {email && (
+                    <span style={{ fontSize: '0.7rem', color: validateEmail(email).isValid ? '#10B981' : '#F59E0B' }}>
+                      {validateEmail(email).isValid ? '✓ Válido' : validateEmail(email).message}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="email"
                   required
+                  maxLength={50}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(formatEmail(e.target.value))}
                   placeholder="usuario@freelancer.com"
                   className="erp-input"
                   style={{
                     width: '100%',
-                    borderColor: errors.email ? '#EF4444' : undefined,
+                    borderColor: errors.email || (email && !validateEmail(email).isValid) ? '#EF4444' : undefined,
                   }}
                 />
                 {errors.email && (
@@ -280,8 +300,9 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   </label>
                   <input
                     type="password"
+                    maxLength={50}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value.slice(0, 50))}
                     placeholder={userToEdit ? '••••••••' : 'Mínimo 6 caracteres'}
                     className="erp-input"
                     style={{
@@ -338,8 +359,9 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   <input
                     type="text"
                     required
+                    maxLength={100}
                     value={freelancerNombre}
-                    onChange={(e) => setFreelancerNombre(e.target.value)}
+                    onChange={(e) => setFreelancerNombre(e.target.value.slice(0, 100))}
                     placeholder="Ej. Viajes Carlos"
                     className="erp-input"
                     style={{
@@ -357,13 +379,14 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                 {/* RIF */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>
-                    RIF / Documento
+                    RIF / Documento (máx. 12 dígitos)
                   </label>
                   <input
                     type="text"
+                    maxLength={12}
                     value={freelancerRif}
-                    onChange={(e) => setFreelancerRif(e.target.value)}
-                    placeholder="J-12345678"
+                    onChange={(e) => setFreelancerRif(formatCedula(e.target.value))}
+                    placeholder="12345678"
                     className="erp-input"
                     style={{
                       width: '100%',
@@ -382,13 +405,14 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                 {/* Teléfono 1 */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
-                    Teléfono Principal
+                    Teléfono Principal (máx. 15 dígitos)
                   </label>
                   <input
                     type="text"
+                    maxLength={15}
                     value={freelancerTelefono1}
-                    onChange={(e) => setFreelancerTelefono1(e.target.value)}
-                    placeholder="+58 412-1234567"
+                    onChange={(e) => setFreelancerTelefono1(formatTelefono(e.target.value))}
+                    placeholder="+584121234567"
                     className="erp-input"
                     style={{ width: '100%' }}
                   />
@@ -396,13 +420,14 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                 {/* Teléfono 2 */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
-                    Teléfono Alternativo
+                    Teléfono Alternativo (máx. 15 dígitos)
                   </label>
                   <input
                     type="text"
+                    maxLength={15}
                     value={freelancerTelefono2}
-                    onChange={(e) => setFreelancerTelefono2(e.target.value)}
-                    placeholder="+58 212-1234567"
+                    onChange={(e) => setFreelancerTelefono2(formatTelefono(e.target.value))}
+                    placeholder="+582121234567"
                     className="erp-input"
                     style={{ width: '100%' }}
                   />
@@ -415,24 +440,18 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: 0 }}>
                     Dirección Comercial
                   </label>
-                  <span style={{ fontSize: '0.75rem', color: (freelancerDireccion?.trim().split(/\s+/).filter(Boolean).length || 0) >= 40 ? '#EF4444' : '#b9c8ddff' }}>
-                    {freelancerDireccion?.trim().split(/\s+/).filter(Boolean).length || 0} / 40 palabras
+                  <span style={{ fontSize: '0.75rem', color: (freelancerDireccion || '').length >= 300 ? '#EF4444' : '#b9c8ddff' }}>
+                    {(freelancerDireccion || '').length} / 300 caracteres
                   </span>
                 </div>
                 <textarea
                   value={freelancerDireccion}
-                  onChange={(e) => {
-                    const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-                    if (words.length > 40) {
-                      setFreelancerDireccion(words.slice(0, 40).join(' '));
-                    } else {
-                      setFreelancerDireccion(e.target.value);
-                    }
-                  }}
-                  placeholder="Dirección fiscal o de oficinas... (máx. 40 palabras)"
+                  onChange={(e) => setFreelancerDireccion(e.target.value.slice(0, 300))}
+                  placeholder="Dirección fiscal o de oficinas... (máx. 300 caracteres)"
+                  maxLength={300}
                   className="erp-input custom-scrollbar"
                   rows={2}
-                  style={{ width: '100%', resize: 'none', height: '65px', maxHeight: '65px', overflowY: 'auto' }}
+                  style={{ width: '100%', resize: 'none', height: '65px', maxHeight: '65px', overflowY: 'auto', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                 />
               </div>
 

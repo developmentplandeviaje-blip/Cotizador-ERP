@@ -86,12 +86,12 @@ export default function AerolineaModal({ isOpen, onClose, onSaveSuccess, aerolin
             placeholder="Ej: Laser Airlines, Rutaca, Conviasa..."
             value={nombre}
             onChange={(e) => {
-              setNombre(e.target.value);
+              setNombre(e.target.value.slice(0, 80));
               if (errorMessage) setErrorMessage('');
             }}
             autoFocus
             required
-            maxLength={200}
+            maxLength={80}
             disabled={isSubmitting}
           />
           <span style={{ display: 'block', fontSize: '0.75rem', color: '#b9c8ddff', marginTop: '6px' }}>

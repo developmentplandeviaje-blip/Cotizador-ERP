@@ -4,6 +4,7 @@ import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import { showToast } from '../../../utils/toast';
+import { handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
 export default function VehiculoModal({
   isOpen,
@@ -108,12 +109,13 @@ export default function VehiculoModal({
 
   // Pricing calculations
   const handleCostoChange = (val) => {
-    setCosto(val);
-    const costVal = parseFloat(val);
+    const clean = formatPrecioCosto(val);
+    setCosto(clean);
+    const costVal = parseFloat(clean);
     const marginVal = parseFloat(porcentaje);
     if (!isNaN(costVal) && costVal > 0 && !isNaN(marginVal)) {
-      const calculatedPrice = (costVal * (1 + marginVal / 100)).toFixed(2);
-      setPrecio(calculatedPrice);
+      const calculatedPrice = Math.min(99999.99, Number((costVal * (1 + marginVal / 100)).toFixed(2)));
+      setPrecio(String(calculatedPrice));
     }
   };
 
@@ -122,15 +124,16 @@ export default function VehiculoModal({
     const costVal = parseFloat(costo);
     const marginVal = parseFloat(val);
     if (!isNaN(costVal) && costVal > 0 && !isNaN(marginVal)) {
-      const calculatedPrice = (costVal * (1 + marginVal / 100)).toFixed(2);
-      setPrecio(calculatedPrice);
+      const calculatedPrice = Math.min(99999.99, Number((costVal * (1 + marginVal / 100)).toFixed(2)));
+      setPrecio(String(calculatedPrice));
     }
   };
 
   const handlePrecioChange = (val) => {
-    setPrecio(val);
+    const clean = formatPrecioCosto(val);
+    setPrecio(clean);
     const costVal = parseFloat(costo);
-    const priceVal = parseFloat(val);
+    const priceVal = parseFloat(clean);
     if (!isNaN(costVal) && costVal > 0 && !isNaN(priceVal)) {
       const calculatedMargin = (((priceVal - costVal) / costVal) * 100).toFixed(2);
       setPorcentaje(calculatedMargin);
@@ -278,9 +281,10 @@ export default function VehiculoModal({
               type="text"
               className="erp-input"
               list="marcas-list"
+              maxLength={50}
               placeholder="Ej: Toyota, Hyundai, Chevrolet"
               value={marca}
-              onChange={(e) => setMarca(e.target.value)}
+              onChange={(e) => setMarca(e.target.value.slice(0, 50))}
               required
               disabled={isSubmitting}
             />
@@ -298,9 +302,10 @@ export default function VehiculoModal({
             <input
               type="text"
               className="erp-input"
+              maxLength={50}
               placeholder="Ej: Yaris, Tucson, Spark"
               value={vehiculo}
-              onChange={(e) => setVehiculo(e.target.value)}
+              onChange={(e) => setVehiculo(e.target.value.slice(0, 50))}
               required
               disabled={isSubmitting}
             />
@@ -316,9 +321,10 @@ export default function VehiculoModal({
             <input
               type="text"
               className="erp-input"
+              maxLength={4}
               placeholder="Ej: 2024"
               value={ano}
-              onChange={(e) => setAno(e.target.value)}
+              onChange={(e) => setAno(e.target.value.replace(/\D/g, '').slice(0, 4))}
               required
               disabled={isSubmitting}
             />
@@ -363,25 +369,19 @@ export default function VehiculoModal({
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <label className="erp-label" style={{ margin: 0 }}>Observación / Notas (Opcional)</label>
-            <span style={{ fontSize: '0.75rem', color: (nota?.trim().split(/\s+/).filter(Boolean).length || 0) >= 50 ? '#EF4444' : '#b9c8ddff' }}>
-              {nota?.trim().split(/\s+/).filter(Boolean).length || 0} / 50 palabras
+            <span style={{ fontSize: '0.75rem', color: (nota || '').length >= 300 ? '#EF4444' : '#b9c8ddff' }}>
+              {(nota || '').length} / 300 caracteres
             </span>
           </div>
           <textarea
             className="erp-input custom-scrollbar"
             rows={2}
-            placeholder="Ej: Aire acondicionado, capacidad 5 pasajeros, sin límite de kilometraje (máx. 50 palabras)"
+            placeholder="Ej: Aire acondicionado, capacidad 5 pasajeros, sin límite de kilometraje (máx. 300 caracteres)"
             value={nota}
-            onChange={(e) => {
-              const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-              if (words.length > 50) {
-                setNota(words.slice(0, 50).join(' '));
-              } else {
-                setNota(e.target.value);
-              }
-            }}
+            onChange={(e) => setNota(e.target.value.slice(0, 300))}
+            maxLength={300}
             disabled={isSubmitting}
-            style={{ resize: 'none', height: '65px', maxHeight: '65px', overflowY: 'auto' }}
+            style={{ resize: 'none', height: '65px', maxHeight: '65px', overflowY: 'auto', wordBreak: 'break-word', overflowWrap: 'break-word' }}
           />
         </div>
 
@@ -430,6 +430,9 @@ export default function VehiculoModal({
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
+                      max="99999.99"
+                      onInput={handlePriceInputKeyClamp}
                       className="erp-input"
                       placeholder="0.00"
                       value={costo}
@@ -452,6 +455,9 @@ export default function VehiculoModal({
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
+                      max="99999.99"
+                      onInput={handlePriceInputKeyClamp}
                       className="erp-input"
                       placeholder="0.00"
                       value={precio}

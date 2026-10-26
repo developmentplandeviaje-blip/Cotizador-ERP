@@ -70,6 +70,22 @@ function App() {
     return window.location.hash ? window.location.hash.substring(1) : 'dashboard';
   });
 
+  const [hasVisitedCotizador, setHasVisitedCotizador] = useState(() => {
+    try {
+      const hash = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
+      if (hash === 'nueva_cotizacion') return true;
+      const saved = localStorage.getItem('cotizador_open_tabs');
+      if (saved) return true;
+    } catch {}
+    return false;
+  });
+
+  useEffect(() => {
+    if (activeRoute === 'nueva_cotizacion') {
+      setHasVisitedCotizador(true);
+    }
+  }, [activeRoute]);
+
   const setActiveRoute = (route) => {
     window.location.hash = route;
   };
@@ -86,6 +102,101 @@ function App() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // Validaciones y límites globales de caracteres y formatos según contexto
+  useEffect(() => {
+    const handleGlobalInputRules = (e) => {
+      const target = e.target;
+      if (!target || !target.tagName) return;
+
+      const tagName = target.tagName.toUpperCase();
+      const type = (target.type || '').toLowerCase();
+      const placeholder = (target.placeholder || '').toLowerCase();
+      const name = (target.name || '').toLowerCase();
+      const id = (target.id || '').toLowerCase();
+
+      // 1. Inputs tipo number (límite de 3 dígitos enteros)
+      if (tagName === 'INPUT' && type === 'number') {
+        const step = target.getAttribute('step');
+        const hasDecimals = step && (step === 'any' || step.includes('.'));
+        if (!hasDecimals && target.value && target.value.length > 3) {
+          target.value = target.value.slice(0, 3);
+        }
+      }
+
+      // 2. Input de Email: antes de '@' máx. 30 chars, después de '.' máx. 4 chars
+      else if (tagName === 'INPUT' && (type === 'email' || name.includes('correo') || placeholder.includes('correo') || placeholder.includes('@'))) {
+        let val = target.value;
+        if (val.includes('@')) {
+          const atIndex = val.indexOf('@');
+          let userPart = val.slice(0, atIndex);
+          let domainPart = val.slice(atIndex + 1);
+
+          if (userPart.length > 30) userPart = userPart.slice(0, 30);
+          domainPart = domainPart.replace(/@/g, '');
+
+          if (domainPart.includes('.')) {
+            const lastDotIndex = domainPart.lastIndexOf('.');
+            let preDot = domainPart.slice(0, lastDotIndex);
+            let ext = domainPart.slice(lastDotIndex + 1);
+            if (ext.length > 4) ext = ext.slice(0, 4);
+            domainPart = preDot + '.' + ext;
+          }
+          val = userPart + '@' + domainPart;
+        } else {
+          if (val.length > 30) val = val.slice(0, 30);
+        }
+        if (val.length > 50) val = val.slice(0, 50);
+        if (target.value !== val) target.value = val;
+      }
+
+      // 3. Teléfono: máx. 15 dígitos, solo números y signo '+'
+      else if (tagName === 'INPUT' && (type === 'tel' || name.includes('telefono') || id.includes('telefono') || placeholder.includes('telefono') || placeholder.includes('+58'))) {
+        let val = target.value.replace(/[^0-9+]/g, '');
+        if (val.includes('+')) {
+          const hasLeadingPlus = val.startsWith('+');
+          val = (hasLeadingPlus ? '+' : '') + val.replace(/\+/g, '');
+        }
+        val = val.slice(0, 15);
+        if (target.value !== val) target.value = val;
+      }
+
+      // 4. Cédula / Documento: máx. 12 dígitos y solo números
+      else if (tagName === 'INPUT' && (name.includes('documento') || name.includes('cedula') || id.includes('documento') || id.includes('cedula') || placeholder.includes('cédula') || placeholder.includes('cedula') || placeholder.includes('documento'))) {
+        let val = target.value.replace(/\D/g, '').slice(0, 12);
+        if (target.value !== val) target.value = val;
+      }
+
+      // 5. Código de Referido: máx. 12 caracteres y acepta '-' después de los primeros 3 caracteres
+      else if (tagName === 'INPUT' && (name.includes('referido') || id.includes('referido') || placeholder.includes('referido') || placeholder.includes('emb-') || placeholder.includes('ref-'))) {
+        let val = target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+        let prefix = val.slice(0, 3).replace(/-/g, '');
+        let rest = val.slice(prefix.length);
+        let combined = (prefix + rest).slice(0, 12);
+        if (target.value !== combined) target.value = combined;
+      }
+
+      // 6. Límites generales de texto de 50 a 3500 según contexto
+      else if (tagName === 'INPUT' && type === 'text') {
+        const currentMax = target.maxLength > 0 ? target.maxLength : 255;
+        const clampedMax = Math.min(3500, Math.max(50, currentMax));
+        if (target.value && target.value.length > clampedMax) {
+          target.value = target.value.slice(0, clampedMax);
+        }
+      } else if (tagName === 'TEXTAREA') {
+        const currentMax = target.maxLength > 0 ? target.maxLength : 3500;
+        const clampedMax = Math.min(3500, Math.max(50, currentMax));
+        if (target.value && target.value.length > clampedMax) {
+          target.value = target.value.slice(0, clampedMax);
+        }
+      }
+    };
+
+    document.addEventListener('input', handleGlobalInputRules, true);
+    return () => {
+      document.removeEventListener('input', handleGlobalInputRules, true);
+    };
+  }, []);;
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -199,7 +310,11 @@ function App() {
       {activeRoute === 'usuarios_freelancer' && <UserFreelancerList user={user} />}
       {activeRoute === 'usuarios_aliados' && <UserAliadoList user={user} />}
       {activeRoute === 'metodos_pago' && <MetodoPagoList user={user} />}
-      {activeRoute === 'nueva_cotizacion' && <NuevaCotizacion user={user} />}
+      {hasVisitedCotizador && (
+        <div style={{ display: activeRoute === 'nueva_cotizacion' ? 'block' : 'none', width: '100%' }}>
+          <NuevaCotizacion user={user} />
+        </div>
+      )}
       {activeRoute === 'ventas_cotizaciones' && <RegistroCotizaciones user={user} onNuevaCotizacion={() => setActiveRoute('nueva_cotizacion')} />}
       {activeRoute === 'dashboard' && renderDashboard()}
 

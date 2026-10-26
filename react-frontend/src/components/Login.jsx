@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import logoinicio from '../assets/logoinicio.png';
+import { formatEmail, validateEmail } from '../utils/validation';
 
 const LogoSvg = () => (
   <img src={logoinicio} alt="Plan de Viaje Logo" style={{ maxHeight: '50px', width: 'auto' }} />
@@ -25,9 +26,9 @@ export default function Login({ onLoginSuccess }) {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError('Por favor, ingrese un correo electrónico válido.');
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.isValid) {
+      setError(`Correo electrónico inválido: ${emailCheck.message}`);
       return;
     }
 
@@ -90,8 +91,9 @@ export default function Login({ onLoginSuccess }) {
                 type="email"
                 id="email"
                 className="login-input"
+                maxLength={50}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(formatEmail(e.target.value))}
                 disabled={loading}
                 autoComplete="email"
                 required
@@ -106,10 +108,11 @@ export default function Login({ onLoginSuccess }) {
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   className="login-input"
+                  maxLength={50}
                   style={{ paddingRight: '48px' }}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value.slice(0, 50))}
                   disabled={loading}
                   autoComplete="current-password"
                   required
