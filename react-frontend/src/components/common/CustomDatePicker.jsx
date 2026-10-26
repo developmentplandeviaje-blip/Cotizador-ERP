@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 const MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -28,8 +28,13 @@ export default function CustomDatePicker({
   const [isOpen, setIsOpen] = useState(false);
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
+  const [placement, setPlacement] = useState({
+    openUp: false,
+    alignRight: false,
+  });
 
   const containerRef = useRef(null);
+  const popoverRef = useRef(null);
   const monthDropdownRef = useRef(null);
   const yearDropdownRef = useRef(null);
 
@@ -96,6 +101,71 @@ export default function CustomDatePicker({
       });
     }
   }, [parsedValue]);
+
+  // Dynamic positioning calculation for upward flip when space below is insufficient
+  const updatePosition = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+
+    // Find closest scrollable ancestor (e.g. modal body, main, or document)
+    let scrollParent = containerRef.current.parentElement;
+    while (scrollParent && scrollParent !== document.body && scrollParent !== document.documentElement) {
+      const style = window.getComputedStyle(scrollParent);
+      const overflowY = style.overflowY;
+      if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') {
+        break;
+      }
+      scrollParent = scrollParent.parentElement;
+    }
+    if (!scrollParent || scrollParent === document.body) {
+      scrollParent = document.documentElement;
+    }
+
+    const scrollParentRect = scrollParent && scrollParent.getBoundingClientRect ? scrollParent.getBoundingClientRect() : null;
+
+    const viewportBottom = scrollParentRect
+      ? Math.min(window.innerHeight, scrollParentRect.bottom)
+      : window.innerHeight;
+    const viewportTop = scrollParentRect
+      ? Math.max(0, scrollParentRect.top)
+      : 0;
+
+    const spaceBelow = viewportBottom - rect.bottom;
+    const spaceAbove = rect.top - viewportTop;
+
+    // Calendar needs approx 365px (date) or 400px (datetime-local)
+    const neededHeight = isDateTime ? 400 : 365;
+
+    // Flip upwards if space below is insufficient and space above is greater
+    const shouldOpenUp = spaceBelow < neededHeight && spaceAbove > spaceBelow;
+
+    // Check if horizontal space to the right is tight (popover is 320px wide)
+    const spaceRight = window.innerWidth - rect.left;
+    const shouldAlignRight = spaceRight < 330 && rect.right >= 320;
+
+    setPlacement({
+      openUp: shouldOpenUp,
+      alignRight: shouldAlignRight,
+    });
+  }, [isDateTime]);
+
+  // Update position on mount and whenever open or resize/scroll occurs
+  useEffect(() => {
+    updatePosition();
+  }, [updatePosition]);
+
+  useEffect(() => {
+    if (isOpen) {
+      updatePosition();
+      const handleScrollOrResize = () => updatePosition();
+      window.addEventListener('resize', handleScrollOrResize);
+      window.addEventListener('scroll', handleScrollOrResize, true);
+      return () => {
+        window.removeEventListener('resize', handleScrollOrResize);
+        window.removeEventListener('scroll', handleScrollOrResize, true);
+      };
+    }
+  }, [isOpen, updatePosition]);
 
   // Close calendar or sub-dropdowns on click outside
   useEffect(() => {
@@ -357,6 +427,7 @@ export default function CustomDatePicker({
       ref={containerRef}
       className={`erp-datepicker-container ${disabled ? 'disabled' : ''} ${className}`}
       style={{ position: 'relative', width: '100%', ...style }}
+      onMouseEnter={updatePosition}
     >
       {/* Hidden input for standard HTML forms / form submission */}
       {name && <input type="hidden" name={name} value={value || ''} />}
@@ -366,6 +437,7 @@ export default function CustomDatePicker({
         className={`erp-datepicker-trigger ${isOpen ? 'active' : ''}`}
         onClick={() => {
           if (!disabled) {
+            updatePosition();
             setIsOpen(prev => !prev);
             setShowMonthDropdown(false);
             setShowYearDropdown(false);
@@ -376,6 +448,7 @@ export default function CustomDatePicker({
           if (disabled) return;
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
+            updatePosition();
             setIsOpen(prev => !prev);
           } else if (e.key === 'Escape') {
             setIsOpen(false);
@@ -419,7 +492,18 @@ export default function CustomDatePicker({
 
       {/* Calendar Popover */}
       {isOpen && (
-        <div className="erp-calendar-popover">
+        <div
+          ref={popoverRef}
+          className={`erp-calendar-popover ${placement.openUp ? 'open-up' : ''} ${placement.alignRight ? 'align-right' : ''}`}
+          style={{
+            ...(placement.openUp
+              ? { top: 'auto', bottom: 'calc(100% + 8px)' }
+              : { top: 'calc(100% + 8px)', bottom: 'auto' }),
+            ...(placement.alignRight
+              ? { left: 'auto', right: 0 }
+              : { left: 0, right: 'auto' }),
+          }}
+        >
           {/* Top Blue Pill Accent */}
           <div className="erp-calendar-top-pill" />
 

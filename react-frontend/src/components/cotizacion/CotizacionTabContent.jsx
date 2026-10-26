@@ -1408,7 +1408,7 @@ export default function CotizacionTabContent({
           padding: '20px',
         }}>
           <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={imgUsuario} style={{ width: '20px', height: '20px' }} alt="" /> Cliente Principal (Pasajero Titular)
+            <img src={imgUsuario} style={{ width: '20px', height: '20px' }} alt="" />Pasajero Titular
           </h2>
 
           {/* Autocomplete Lookup Bar (US-04) */}
@@ -1468,9 +1468,9 @@ export default function CotizacionTabContent({
               <input
                 type="text"
                 value={cliente.nombres}
-                onChange={e => setCliente({ ...cliente, nombres: e.target.value.slice(0, 50) })}
+                onChange={e => setCliente({ ...cliente, nombres: e.target.value.slice(0, 35) })}
                 placeholder="Nombre(s)"
-                maxLength={50}
+                maxLength={35}
                 className='erp-input'
               />
             </div>
@@ -1479,9 +1479,9 @@ export default function CotizacionTabContent({
               <input
                 type="text"
                 value={cliente.apellidos}
-                onChange={e => setCliente({ ...cliente, apellidos: e.target.value.slice(0, 50) })}
+                onChange={e => setCliente({ ...cliente, apellidos: e.target.value.slice(0, 25) })}
                 placeholder="Apellido(s)"
-                maxLength={50}
+                maxLength={25}
                 className='erp-input'
               />
             </div>
@@ -1514,7 +1514,7 @@ export default function CotizacionTabContent({
                 value={cliente.correo}
                 onChange={handleCorreoClienteChange}
                 placeholder="cliente@correo.com"
-                maxLength={50}
+                maxLength={20}
                 className='erp-input'
                 style={{
                   marginTop: '4px',
@@ -1986,34 +1986,33 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Noches</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="999"
-                  value={hotelForm.noches}
-                  onInput={e => {
-                    if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
-                  }}
-                  onChange={e => {
-                    const val = String(e.target.value).slice(0, 3);
-                    setHotelForm({ ...hotelForm, noches: Math.max(1, Math.min(999, parseInt(val) || 1)) });
-                  }}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    min={1}
+                    max={999}
+                    maxDigits={3}
+                    value={hotelForm.noches}
+                    onChange={e => {
+                      const val = String(e.target.value).slice(0, 3);
+                      setHotelForm({ ...hotelForm, noches: Math.max(1, Math.min(999, parseInt(val) || 1)) });
+                    }}
+                  />
+                </div>
               </div>
 
               <div>
                 <label className='erp-label'>Tarifa Adulto ($/noche)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  value={hotelForm.precio_noche_adulto}
-                  onInput={handlePriceInputKeyClamp}
-                  onChange={e => setHotelForm({ ...hotelForm, precio_noche_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={hotelForm.precio_noche_adulto}
+                    onChange={e => setHotelForm({ ...hotelForm, precio_noche_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2069,16 +2068,17 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Tarifa Adulto ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  value={vueloForm.precio_adulto}
-                  onInput={handlePriceInputKeyClamp}
-                  onChange={e => setVueloForm({ ...vueloForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={vueloForm.precio_adulto}
+                    onChange={e => setVueloForm({ ...vueloForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2131,16 +2131,17 @@ export default function CotizacionTabContent({
 
                 <div>
                   <label className='erp-label'>Precio Total ($)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="99999.99"
-                    value={trasladoForm.precio}
-                    onInput={handlePriceInputKeyClamp}
-                    onChange={e => setTrasladoForm({ ...trasladoForm, precio: sanitizePrecioCostoValue(e.target.value) })}
-                    className="erp-input"
-                  />
+                  <div style={{ display: 'flex' }}>
+                    <CustomNumberInput
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      width="115px"
+                      value={trasladoForm.precio}
+                      onChange={e => setTrasladoForm({ ...trasladoForm, precio: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -2395,16 +2396,17 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Precio Adulto ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  value={excursionForm.precio_adulto}
-                  onInput={handlePriceInputKeyClamp}
-                  onChange={e => setExcursionForm({ ...excursionForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={excursionForm.precio_adulto}
+                    onChange={e => setExcursionForm({ ...excursionForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2456,16 +2458,17 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Precio Adulto ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  value={paqueteForm.precio_adulto}
-                  onInput={handlePriceInputKeyClamp}
-                  onChange={e => setPaqueteForm({ ...paqueteForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={paqueteForm.precio_adulto}
+                    onChange={e => setPaqueteForm({ ...paqueteForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2500,34 +2503,33 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Días de Alquiler</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="999"
-                  value={vehiculoForm.dias}
-                  onInput={e => {
-                    if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3);
-                  }}
-                  onChange={e => {
-                    const val = String(e.target.value).slice(0, 3);
-                    setVehiculoForm({ ...vehiculoForm, dias: Math.max(1, Math.min(999, parseInt(val) || 1)) });
-                  }}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    min={1}
+                    max={999}
+                    maxDigits={3}
+                    value={vehiculoForm.dias}
+                    onChange={e => {
+                      const val = String(e.target.value).slice(0, 3);
+                      setVehiculoForm({ ...vehiculoForm, dias: Math.max(1, Math.min(999, parseInt(val) || 1)) });
+                    }}
+                  />
+                </div>
               </div>
 
               <div>
                 <label className='erp-label'>Tarifa Diaria ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  value={vehiculoForm.precio_unitario}
-                  onInput={handlePriceInputKeyClamp}
-                  onChange={e => setVehiculoForm({ ...vehiculoForm, precio_unitario: sanitizePrecioCostoValue(e.target.value) })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={vehiculoForm.precio_unitario}
+                    onChange={e => setVehiculoForm({ ...vehiculoForm, precio_unitario: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2561,30 +2563,32 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Tarifa Adulto ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  value={ferryForm.precio_adulto}
-                  onInput={handlePriceInputKeyClamp}
-                  onChange={e => setFerryForm({ ...ferryForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={ferryForm.precio_adulto}
+                    onChange={e => setFerryForm({ ...ferryForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
                 <label className='erp-label'>Vehículos adicionales ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  value={ferryForm.precio_vehiculo}
-                  onInput={handlePriceInputKeyClamp}
-                  onChange={e => setFerryForm({ ...ferryForm, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={ferryForm.precio_vehiculo}
+                    onChange={e => setFerryForm({ ...ferryForm, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2623,16 +2627,17 @@ export default function CotizacionTabContent({
 
               <div>
                 <label className='erp-label'>Precio Venta ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  value={otroForm.precio}
-                  onInput={handlePriceInputKeyClamp}
-                  onChange={e => setOtroForm({ ...otroForm, precio: sanitizePrecioCostoValue(e.target.value) })}
-                  className="erp-input"
-                />
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={otroForm.precio}
+                    onChange={e => setOtroForm({ ...otroForm, precio: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
@@ -2815,26 +2820,25 @@ export default function CotizacionTabContent({
                     <label className="erp-label">
                       {cuotasConfig.modo === 'monto' ? 'Monto Inicial ($)' : 'Porcentaje Inicial (%)'}
                     </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max={cuotasConfig.modo === 'porcentaje' ? 100 : 99999.99}
-                      value={cuotasConfig.valor_inicial}
-                      onInput={cuotasConfig.modo === 'porcentaje' ? (e => {
-                        if (parseFloat(e.target.value) > 100) e.target.value = 100;
-                      }) : handlePriceInputKeyClamp}
-                      onChange={e => {
-                        const raw = e.target.value;
-                        if (cuotasConfig.modo === 'porcentaje') {
-                          const val = parseFloat(raw) || 0;
-                          setCuotasConfig({ ...cuotasConfig, valor_inicial: Math.min(100, Math.max(0, val)) });
-                        } else {
-                          setCuotasConfig({ ...cuotasConfig, valor_inicial: sanitizePrecioCostoValue(raw) });
-                        }
-                      }}
-                      className="erp-input"
-                    />
+                    <div style={{ display: 'flex' }}>
+                      <CustomNumberInput
+                        step={0.01}
+                        min={0}
+                        max={cuotasConfig.modo === 'porcentaje' ? 100 : 99999.99}
+                        allowDecimals
+                        width="115px"
+                        value={cuotasConfig.valor_inicial}
+                        onChange={e => {
+                          const raw = e.target.value;
+                          if (cuotasConfig.modo === 'porcentaje') {
+                            const val = parseFloat(raw) || 0;
+                            setCuotasConfig({ ...cuotasConfig, valor_inicial: Math.min(100, Math.max(0, val)) });
+                          } else {
+                            setCuotasConfig({ ...cuotasConfig, valor_inicial: sanitizePrecioCostoValue(raw) });
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
 

@@ -3,6 +3,7 @@ import Modal from '../../common/Modal';
 import Badge from '../../common/Badge';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
+import CustomNumberInput from '../../common/CustomNumberInput';
 import { PRODUCT_COLOR_MAP } from '../NuevaCotizacion';
 import { handlePriceInputKeyClamp, sanitizePrecioCostoValue } from '../../../utils/validation';
 
@@ -267,95 +268,80 @@ export default function EditarProductoModal({
 
             <div>
               <label className="erp-label">Noches</label>
-              <input
-                type="number"
-                min="1"
-                max="999"
+              <CustomNumberInput
+                min={1}
+                max={999}
                 value={formData.noches || 1}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, noches: Math.max(1, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 1)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, noches: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Adultos</label>
-              <input
-                type="number"
-                min="1"
-                max="999"
+              <CustomNumberInput
+                min={1}
+                max={999}
                 value={formData.adultos ?? 1}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 1)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Adolescentes</label>
-              <input
-                type="number"
-                min="0"
-                max="999"
+              <CustomNumberInput
+                min={0}
+                max={999}
                 value={formData.adolescente ?? 0}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, adolescente: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, adolescente: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Niños</label>
-              <input
-                type="number"
-                min="0"
-                max="999"
+              <CustomNumberInput
+                min={0}
+                max={999}
                 value={formData.ninos ?? 0}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Noche Adulto ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_noche_adulto ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_noche_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Noche Adol ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_noche_adolescente ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_noche_adolescente: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Noche Niño ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_noche_nino ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_noche_nino: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
           </div>
@@ -400,82 +386,70 @@ export default function EditarProductoModal({
 
             <div>
               <label className="erp-label">Adultos</label>
-              <input
-                type="number"
-                min="1"
-                max="999"
+              <CustomNumberInput
+                min={1}
+                max={999}
                 value={formData.adultos ?? 1}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 1)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Niños</label>
-              <input
-                type="number"
-                min="0"
-                max="999"
+              <CustomNumberInput
+                min={0}
+                max={999}
                 value={formData.ninos ?? 0}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Infantes</label>
-              <input
-                type="number"
-                min="0"
-                max="999"
+              <CustomNumberInput
+                min={0}
+                max={999}
                 value={formData.infantes ?? 0}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, infantes: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, infantes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Adulto ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_adulto ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Niño ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_nino ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Infante ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_infante ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
           </div>
@@ -510,18 +484,17 @@ export default function EditarProductoModal({
 
               <div>
                 <label className="erp-label">Precio Total ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
+                <CustomNumberInput
+                  min={0}
+                  max={99999.99}
+                  step={0.01}
+                  allowDecimals
+                  width="115px"
                   value={formData.precio_historico ?? formData.precio ?? 0}
-                  onInput={handlePriceInputKeyClamp}
                   onChange={e => {
                     const cleanVal = sanitizePrecioCostoValue(e.target.value);
                     setFormData({ ...formData, precio_historico: cleanVal, precio: cleanVal });
                   }}
-                  className="erp-input"
                 />
               </div>
 
@@ -722,55 +695,47 @@ export default function EditarProductoModal({
 
             <div>
               <label className="erp-label">Adultos</label>
-              <input
-                type="number"
-                min="1"
-                max="999"
+              <CustomNumberInput
+                min={1}
+                max={999}
                 value={formData.adultos ?? 1}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 1)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Niños</label>
-              <input
-                type="number"
-                min="0"
-                max="999"
+              <CustomNumberInput
+                min={0}
+                max={999}
                 value={formData.ninos ?? 0}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Adulto ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_adulto ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Niño ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_nino ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
           </div>
@@ -795,28 +760,24 @@ export default function EditarProductoModal({
 
             <div>
               <label className="erp-label">Días de Alquiler</label>
-              <input
-                type="number"
-                min="1"
-                max="999"
+              <CustomNumberInput
+                min={1}
+                max={999}
                 value={formData.dias || 1}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, dias: Math.max(1, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 1)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, dias: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Precio por Día ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_unitario ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_unitario: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
 
@@ -882,82 +843,70 @@ export default function EditarProductoModal({
 
             <div>
               <label className="erp-label">Adultos</label>
-              <input
-                type="number"
-                min="0"
-                max="999"
+              <CustomNumberInput
+                min={0}
+                max={999}
                 value={formData.adultos ?? 0}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, adultos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Niños</label>
-              <input
-                type="number"
-                min="0"
-                max="999"
+              <CustomNumberInput
+                min={0}
+                max={999}
                 value={formData.ninos ?? 0}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Vehículos</label>
-              <input
-                type="number"
-                min="0"
-                max="999"
+              <CustomNumberInput
+                min={0}
+                max={999}
                 value={formData.vehiculos ?? 0}
-                onInput={e => { if (e.target.value.length > 3) e.target.value = e.target.value.slice(0, 3); }}
-                onChange={e => setFormData({ ...formData, vehiculos: Math.max(0, Math.min(999, parseInt(e.target.value.slice(0, 3)) || 0)) })}
-                className="erp-input"
+                onChange={e => setFormData({ ...formData, vehiculos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Adulto ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_adulto ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Niño ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_nino ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
 
             <div>
               <label className="erp-label">Precio Vehículo ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio_vehiculo ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
           </div>
@@ -993,15 +942,14 @@ export default function EditarProductoModal({
 
             <div>
               <label className="erp-label">Precio Venta ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
+              <CustomNumberInput
+                min={0}
+                max={99999.99}
+                step={0.01}
+                allowDecimals
+                width="115px"
                 value={formData.precio ?? 0}
-                onInput={handlePriceInputKeyClamp}
                 onChange={e => setFormData({ ...formData, precio: sanitizePrecioCostoValue(e.target.value) })}
-                className="erp-input"
               />
             </div>
           </div>
