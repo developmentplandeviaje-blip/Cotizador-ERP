@@ -4,6 +4,7 @@ import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import { showToast } from '../../../utils/toast';
+import { handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
 export default function VehiculoModal({
   isOpen,
@@ -108,12 +109,13 @@ export default function VehiculoModal({
 
   // Pricing calculations
   const handleCostoChange = (val) => {
-    setCosto(val);
-    const costVal = parseFloat(val);
+    const clean = formatPrecioCosto(val);
+    setCosto(clean);
+    const costVal = parseFloat(clean);
     const marginVal = parseFloat(porcentaje);
     if (!isNaN(costVal) && costVal > 0 && !isNaN(marginVal)) {
-      const calculatedPrice = (costVal * (1 + marginVal / 100)).toFixed(2);
-      setPrecio(calculatedPrice);
+      const calculatedPrice = Math.min(99999.99, Number((costVal * (1 + marginVal / 100)).toFixed(2)));
+      setPrecio(String(calculatedPrice));
     }
   };
 
@@ -122,15 +124,16 @@ export default function VehiculoModal({
     const costVal = parseFloat(costo);
     const marginVal = parseFloat(val);
     if (!isNaN(costVal) && costVal > 0 && !isNaN(marginVal)) {
-      const calculatedPrice = (costVal * (1 + marginVal / 100)).toFixed(2);
-      setPrecio(calculatedPrice);
+      const calculatedPrice = Math.min(99999.99, Number((costVal * (1 + marginVal / 100)).toFixed(2)));
+      setPrecio(String(calculatedPrice));
     }
   };
 
   const handlePrecioChange = (val) => {
-    setPrecio(val);
+    const clean = formatPrecioCosto(val);
+    setPrecio(clean);
     const costVal = parseFloat(costo);
-    const priceVal = parseFloat(val);
+    const priceVal = parseFloat(clean);
     if (!isNaN(costVal) && costVal > 0 && !isNaN(priceVal)) {
       const calculatedMargin = (((priceVal - costVal) / costVal) * 100).toFixed(2);
       setPorcentaje(calculatedMargin);
@@ -427,6 +430,9 @@ export default function VehiculoModal({
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
+                      max="99999.99"
+                      onInput={handlePriceInputKeyClamp}
                       className="erp-input"
                       placeholder="0.00"
                       value={costo}
@@ -449,6 +455,9 @@ export default function VehiculoModal({
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
+                      max="99999.99"
+                      onInput={handlePriceInputKeyClamp}
                       className="erp-input"
                       placeholder="0.00"
                       value={precio}

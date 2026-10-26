@@ -70,6 +70,22 @@ function App() {
     return window.location.hash ? window.location.hash.substring(1) : 'dashboard';
   });
 
+  const [hasVisitedCotizador, setHasVisitedCotizador] = useState(() => {
+    try {
+      const hash = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
+      if (hash === 'nueva_cotizacion') return true;
+      const saved = localStorage.getItem('cotizador_open_tabs');
+      if (saved) return true;
+    } catch {}
+    return false;
+  });
+
+  useEffect(() => {
+    if (activeRoute === 'nueva_cotizacion') {
+      setHasVisitedCotizador(true);
+    }
+  }, [activeRoute]);
+
   const setActiveRoute = (route) => {
     window.location.hash = route;
   };
@@ -294,7 +310,11 @@ function App() {
       {activeRoute === 'usuarios_freelancer' && <UserFreelancerList user={user} />}
       {activeRoute === 'usuarios_aliados' && <UserAliadoList user={user} />}
       {activeRoute === 'metodos_pago' && <MetodoPagoList user={user} />}
-      {activeRoute === 'nueva_cotizacion' && <NuevaCotizacion user={user} />}
+      {hasVisitedCotizador && (
+        <div style={{ display: activeRoute === 'nueva_cotizacion' ? 'block' : 'none', width: '100%' }}>
+          <NuevaCotizacion user={user} />
+        </div>
+      )}
       {activeRoute === 'ventas_cotizaciones' && <RegistroCotizaciones user={user} onNuevaCotizacion={() => setActiveRoute('nueva_cotizacion')} />}
       {activeRoute === 'dashboard' && renderDashboard()}
 

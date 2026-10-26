@@ -3,6 +3,7 @@ import { showToast } from '../../../utils/toast';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
+import { handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
 export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = false, showAdolescentes = true, tarifaToEdit = null }) {
   const initialFormState = {
@@ -157,12 +158,16 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
               <input
                 type="number"
                 step="0.01"
+                min="0"
+                max="99999.99"
+                onInput={handlePriceInputKeyClamp}
                 className="erp-input"
                 placeholder="0.00"
                 value={formData.costo_noche_adulto}
                 onChange={(e) => {
-                  handleChange('costo_noche_adulto', e.target.value);
-                  handleCalculatePercent('costo_noche_adulto', 'precio_noche_adulto', 'porcentaje_adulto', e.target.value, formData.precio_noche_adulto);
+                  const val = formatPrecioCosto(e.target.value);
+                  handleChange('costo_noche_adulto', val);
+                  handleCalculatePercent('costo_noche_adulto', 'precio_noche_adulto', 'porcentaje_adulto', val, formData.precio_noche_adulto);
                 }}
               />
             </div>
@@ -172,12 +177,16 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             <input
               type="number"
               step="0.01"
+              min="0"
+              max="99999.99"
+              onInput={handlePriceInputKeyClamp}
               className="erp-input"
               placeholder="0.00"
               value={formData.precio_noche_adulto}
               onChange={(e) => {
-                handleChange('precio_noche_adulto', e.target.value);
-                handleCalculatePercent('costo_noche_adulto', 'precio_noche_adulto', 'porcentaje_adulto', formData.costo_noche_adulto, e.target.value);
+                const val = formatPrecioCosto(e.target.value);
+                handleChange('precio_noche_adulto', val);
+                handleCalculatePercent('costo_noche_adulto', 'precio_noche_adulto', 'porcentaje_adulto', formData.costo_noche_adulto, val);
               }}
               required
             />
@@ -205,12 +214,16 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
+                  max="99999.99"
+                  onInput={handlePriceInputKeyClamp}
                   className="erp-input"
                   placeholder="0.00"
                   value={formData.costo_noche_adolescente}
                   onChange={(e) => {
-                    handleChange('costo_noche_adolescente', e.target.value);
-                    handleCalculatePercent('costo_noche_adolescente', 'precio_noche_adolescente', 'porcentaje_adolescente', e.target.value, formData.precio_noche_adolescente);
+                    const val = formatPrecioCosto(e.target.value);
+                    handleChange('costo_noche_adolescente', val);
+                    handleCalculatePercent('costo_noche_adolescente', 'precio_noche_adolescente', 'porcentaje_adolescente', val, formData.precio_noche_adolescente);
                   }}
                 />
               </div>
@@ -220,12 +233,16 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
               <input
                 type="number"
                 step="0.01"
+                min="0"
+                max="99999.99"
+                onInput={handlePriceInputKeyClamp}
                 className="erp-input"
                 placeholder="0.00"
                 value={formData.precio_noche_adolescente}
                 onChange={(e) => {
-                  handleChange('precio_noche_adolescente', e.target.value);
-                  handleCalculatePercent('costo_noche_adolescente', 'precio_noche_adolescente', 'porcentaje_adolescente', formData.costo_noche_adolescente, e.target.value);
+                  const val = formatPrecioCosto(e.target.value);
+                  handleChange('precio_noche_adolescente', val);
+                  handleCalculatePercent('costo_noche_adolescente', 'precio_noche_adolescente', 'porcentaje_adolescente', formData.costo_noche_adolescente, val);
                 }}
               />
             </div>
@@ -252,12 +269,16 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
               <input
                 type="number"
                 step="0.01"
+                min="0"
+                max="99999.99"
+                onInput={handlePriceInputKeyClamp}
                 className="erp-input"
                 placeholder="0.00"
                 value={formData.costo_noche_nino}
                 onChange={(e) => {
-                  handleChange('costo_noche_nino', e.target.value);
-                  handleCalculatePercent('costo_noche_nino', 'precio_noche_nino', 'porcentaje_nino', e.target.value, formData.precio_noche_nino);
+                  const val = formatPrecioCosto(e.target.value);
+                  handleChange('costo_noche_nino', val);
+                  handleCalculatePercent('costo_noche_nino', 'precio_noche_nino', 'porcentaje_nino', val, formData.precio_noche_nino);
                 }}
               />
             </div>
@@ -267,12 +288,16 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             <input
               type="number"
               step="0.01"
+              min="0"
+              max="99999.99"
+              onInput={handlePriceInputKeyClamp}
               className="erp-input"
               placeholder="0.00"
               value={formData.precio_noche_nino}
               onChange={(e) => {
-                handleChange('precio_noche_nino', e.target.value);
-                handleCalculatePercent('costo_noche_nino', 'precio_noche_nino', 'porcentaje_nino', formData.costo_noche_nino, e.target.value);
+                const val = formatPrecioCosto(e.target.value);
+                handleChange('precio_noche_nino', val);
+                handleCalculatePercent('costo_noche_nino', 'precio_noche_nino', 'porcentaje_nino', formData.costo_noche_nino, val);
               }}
             />
           </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
 import axios from 'axios';
+import { handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
 export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, trasladoToEdit = null }) {
   const [ubicaciones, setUbicaciones] = useState([]);
@@ -63,12 +64,13 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
 
   // Reactive price & margin calculations
   const handleCostoChange = (val) => {
-    setCosto(val);
-    const cost = parseFloat(val);
+    const clean = formatPrecioCosto(val);
+    setCosto(clean);
+    const cost = parseFloat(clean);
     const margin = parseFloat(porcentaje);
     if (!isNaN(cost) && cost > 0 && !isNaN(margin)) {
-      const calculatedPrice = (cost * (1 + margin / 100)).toFixed(2);
-      setPrecioPublico(calculatedPrice);
+      const calculatedPrice = Math.min(99999.99, Number((cost * (1 + margin / 100)).toFixed(2)));
+      setPrecioPublico(String(calculatedPrice));
     }
   };
 
@@ -77,15 +79,16 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
     const cost = parseFloat(costo);
     const margin = parseFloat(val);
     if (!isNaN(cost) && cost > 0 && !isNaN(margin)) {
-      const calculatedPrice = (cost * (1 + margin / 100)).toFixed(2);
-      setPrecioPublico(calculatedPrice);
+      const calculatedPrice = Math.min(99999.99, Number((cost * (1 + margin / 100)).toFixed(2)));
+      setPrecioPublico(String(calculatedPrice));
     }
   };
 
   const handlePrecioPublicoChange = (val) => {
-    setPrecioPublico(val);
+    const clean = formatPrecioCosto(val);
+    setPrecioPublico(clean);
     const cost = parseFloat(costo);
-    const price = parseFloat(val);
+    const price = parseFloat(clean);
     if (!isNaN(cost) && cost > 0 && !isNaN(price)) {
       const calculatedMargin = (((price - cost) / cost) * 100).toFixed(2);
       setPorcentaje(calculatedMargin);
@@ -272,6 +275,8 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
+                onInput={handlePriceInputKeyClamp}
                 className="erp-input"
                 placeholder="0.00"
                 value={costo}
@@ -298,6 +303,8 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
+                onInput={handlePriceInputKeyClamp}
                 className="erp-input"
                 placeholder="0.00"
                 value={precioPublico}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
 import axios from 'axios';
+import { handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
 export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursionToEdit = null }) {
   const [ubicaciones, setUbicaciones] = useState([]);
@@ -79,12 +80,13 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
 
   // Reactive price & margin calculations for Adult
   const handleCostoAdultoChange = (val) => {
-    setCostoAdulto(val);
-    const cost = parseFloat(val);
+    const clean = formatPrecioCosto(val);
+    setCostoAdulto(clean);
+    const cost = parseFloat(clean);
     const margin = parseFloat(porcentajeAdulto);
     if (!isNaN(cost) && cost > 0 && !isNaN(margin)) {
-      const calculatedPrice = (cost * (1 + margin / 100)).toFixed(2);
-      setPrecioAdulto(calculatedPrice);
+      const calculatedPrice = Math.min(99999.99, Number((cost * (1 + margin / 100)).toFixed(2)));
+      setPrecioAdulto(String(calculatedPrice));
     }
   };
 
@@ -93,15 +95,16 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
     const cost = parseFloat(costoAdulto);
     const margin = parseFloat(val);
     if (!isNaN(cost) && cost > 0 && !isNaN(margin)) {
-      const calculatedPrice = (cost * (1 + margin / 100)).toFixed(2);
-      setPrecioAdulto(calculatedPrice);
+      const calculatedPrice = Math.min(99999.99, Number((cost * (1 + margin / 100)).toFixed(2)));
+      setPrecioAdulto(String(calculatedPrice));
     }
   };
 
   const handlePrecioAdultoChange = (val) => {
-    setPrecioAdulto(val);
+    const clean = formatPrecioCosto(val);
+    setPrecioAdulto(clean);
     const cost = parseFloat(costoAdulto);
-    const price = parseFloat(val);
+    const price = parseFloat(clean);
     if (!isNaN(cost) && cost > 0 && !isNaN(price)) {
       const calculatedMargin = (((price - cost) / cost) * 100).toFixed(2);
       setPorcentajeAdulto(calculatedMargin);
@@ -110,12 +113,13 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
 
   // Reactive price & margin calculations for Child
   const handleCostoNinoChange = (val) => {
-    setCostoNino(val);
-    const cost = parseFloat(val);
+    const clean = formatPrecioCosto(val);
+    setCostoNino(clean);
+    const cost = parseFloat(clean);
     const margin = parseFloat(porcentajeNino);
     if (!isNaN(cost) && cost > 0 && !isNaN(margin)) {
-      const calculatedPrice = (cost * (1 + margin / 100)).toFixed(2);
-      setPrecioNino(calculatedPrice);
+      const calculatedPrice = Math.min(99999.99, Number((cost * (1 + margin / 100)).toFixed(2)));
+      setPrecioNino(String(calculatedPrice));
     }
   };
 
@@ -124,15 +128,16 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
     const cost = parseFloat(costoNino);
     const margin = parseFloat(val);
     if (!isNaN(cost) && cost > 0 && !isNaN(margin)) {
-      const calculatedPrice = (cost * (1 + margin / 100)).toFixed(2);
-      setPrecioNino(calculatedPrice);
+      const calculatedPrice = Math.min(99999.99, Number((cost * (1 + margin / 100)).toFixed(2)));
+      setPrecioNino(String(calculatedPrice));
     }
   };
 
   const handlePrecioNinoChange = (val) => {
-    setPrecioNino(val);
+    const clean = formatPrecioCosto(val);
+    setPrecioNino(clean);
     const cost = parseFloat(costoNino);
-    const price = parseFloat(val);
+    const price = parseFloat(clean);
     if (!isNaN(cost) && cost > 0 && !isNaN(price)) {
       const calculatedMargin = (((price - cost) / cost) * 100).toFixed(2);
       setPorcentajeNino(calculatedMargin);
@@ -276,6 +281,8 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
+                onInput={handlePriceInputKeyClamp}
                 className="erp-input"
                 placeholder="0.00"
                 value={costoAdulto}
@@ -302,6 +309,8 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
+                onInput={handlePriceInputKeyClamp}
                 className="erp-input"
                 placeholder="0.00"
                 value={precioAdulto}
@@ -331,6 +340,8 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
+                onInput={handlePriceInputKeyClamp}
                 className="erp-input"
                 placeholder="0.00"
                 value={costoNino}
@@ -357,6 +368,8 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
+                onInput={handlePriceInputKeyClamp}
                 className="erp-input"
                 placeholder="0.00"
                 value={precioNino}
@@ -436,10 +449,12 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
+                onInput={handlePriceInputKeyClamp}
                 className="erp-input"
                 placeholder="0.00"
                 value={tasaPortuariaMonto}
-                onChange={(e) => setTasaPortuariaMonto(e.target.value)}
+                onChange={(e) => setTasaPortuariaMonto(formatPrecioCosto(e.target.value))}
                 disabled={isSubmitting}
               />
             </div>

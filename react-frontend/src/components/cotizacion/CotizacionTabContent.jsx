@@ -30,6 +30,8 @@ import {
   formatTelefono,
   formatCedula,
   formatCodigoReferido,
+  handlePriceInputKeyClamp,
+  sanitizePrecioCostoValue,
 } from '../../utils/validation';
 
 export default function CotizacionTabContent({
@@ -42,9 +44,23 @@ export default function CotizacionTabContent({
   onCloseTab,
   onVerRegistro,
 }) {
+  const storageDraftKey = tabId
+    ? (user?.id ? `cotizador_draft_${user.id}_${tabId}` : `cotizador_draft_${tabId}`)
+    : null;
+
+  // Read stored draft if present
+  const initialDraft = useMemo(() => {
+    if (!storageDraftKey) return null;
+    try {
+      const raw = localStorage.getItem(storageDraftKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, [storageDraftKey]);
 
   // General Trip Information
-  const [pax, setPax] = useState({
+  const [pax, setPax] = useState(() => initialDraft?.pax || {
     adultos: 2,
     adolescentes: 0,
     ninos: 0,
@@ -52,13 +68,13 @@ export default function CotizacionTabContent({
   });
   const totalPax = pax.adultos + pax.adolescentes + pax.ninos + pax.infantes;
 
-  const [fechasViaje, setFechasViaje] = useState({
+  const [fechasViaje, setFechasViaje] = useState(() => initialDraft?.fechasViaje || {
     checkin: new Date().toISOString().split('T')[0],
     checkout: new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0],
   });
 
   // Client Data (US-04)
-  const [cliente, setCliente] = useState({
+  const [cliente, setCliente] = useState(() => initialDraft?.cliente || {
     tipo_documento: 'V',
     documento: '',
     nombres: '',
@@ -68,7 +84,7 @@ export default function CotizacionTabContent({
     correo: '',
   });
   const [searchingClient, setSearchingClient] = useState(false);
-    const [clientStatusMsg, setClientStatusMsg] = useState(null);
+  const [clientStatusMsg, setClientStatusMsg] = useState(null);
 
   // Inform parent tabs of client name in real time
   useEffect(() => {
@@ -79,22 +95,22 @@ export default function CotizacionTabContent({
   }, [cliente.nombres, cliente.apellidos, onUpdateClientName]);
 
   // Additional passengers list
-  const [pasajeros, setPasajeros] = useState([]);
+  const [pasajeros, setPasajeros] = useState(() => initialDraft?.pasajeros || []);
 
   // Referral Code (US-01)
-  const [codigoReferido, setCodigoReferido] = useState('');
+  const [codigoReferido, setCodigoReferido] = useState(() => initialDraft?.codigoReferido || '');
   const [validatingReferido, setValidatingReferido] = useState(false);
-  const [referidoData, setReferidoData] = useState(null);
+  const [referidoData, setReferidoData] = useState(() => initialDraft?.referidoData || null);
   const [referidoError, setReferidoError] = useState('');
 
   // Cart / Added Items
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(() => initialDraft?.items || []);
 
   // Active Service Tab for adding items
-  const [activeTab, setActiveTab] = useState('hotel');
+  const [activeTab, setActiveTab] = useState(() => initialDraft?.activeTab || 'hotel');
 
   // Form states for each service
-  const [hotelForm, setHotelForm] = useState({
+  const [hotelForm, setHotelForm] = useState(() => initialDraft?.hotelForm || {
     id_ubicacion: '',
     id_hotel: '',
     id_habitacion: '',
@@ -107,7 +123,7 @@ export default function CotizacionTabContent({
     costo_noche_nino: 0,
   });
 
-  const [vueloForm, setVueloForm] = useState({
+  const [vueloForm, setVueloForm] = useState(() => initialDraft?.vueloForm || {
     id_aerolinea: '',
     itinerario: '',
     fecha_vuelo: '',
@@ -119,7 +135,7 @@ export default function CotizacionTabContent({
     costo_infante: 0,
   });
 
-  const [trasladoForm, setTrasladoForm] = useState({
+  const [trasladoForm, setTrasladoForm] = useState(() => initialDraft?.trasladoForm || {
     id_traslado: '',
     fecha_traslado: '',
     precio: 0,
@@ -130,7 +146,7 @@ export default function CotizacionTabContent({
     pax_seleccionados: [],
   });
 
-  const [excursionForm, setExcursionForm] = useState({
+  const [excursionForm, setExcursionForm] = useState(() => initialDraft?.excursionForm || {
     id_excursion: '',
     fecha: '',
     precio_adulto: 0,
@@ -139,7 +155,7 @@ export default function CotizacionTabContent({
     costo_nino: 0,
   });
 
-  const [paqueteForm, setPaqueteForm] = useState({
+  const [paqueteForm, setPaqueteForm] = useState(() => initialDraft?.paqueteForm || {
     id_paquete: '',
     fecha: '',
     precio_adulto: 0,
@@ -148,7 +164,7 @@ export default function CotizacionTabContent({
     costo_nino: 0,
   });
 
-  const [vehiculoForm, setVehiculoForm] = useState({
+  const [vehiculoForm, setVehiculoForm] = useState(() => initialDraft?.vehiculoForm || {
     id_vehiculo: '',
     desde: '',
     hasta: '',
@@ -158,7 +174,7 @@ export default function CotizacionTabContent({
     observacion: '',
   });
 
-  const [ferryForm, setFerryForm] = useState({
+  const [ferryForm, setFerryForm] = useState(() => initialDraft?.ferryForm || {
     ruta: '',
     clase: 'Playa',
     itinerario: '',
@@ -169,7 +185,7 @@ export default function CotizacionTabContent({
     precio_vehiculo: 0,
   });
 
-  const [otroForm, setOtroForm] = useState({
+  const [otroForm, setOtroForm] = useState(() => initialDraft?.otroForm || {
     descripcion: '',
     fecha: '',
     costo: 0,
@@ -177,17 +193,76 @@ export default function CotizacionTabContent({
   });
 
   // Installment Plan
-  const [enableCuotas, setEnableCuotas] = useState(false);
-  const [cuotasConfig, setCuotasConfig] = useState({
+  const [enableCuotas, setEnableCuotas] = useState(() => initialDraft?.enableCuotas ?? false);
+  const [cuotasConfig, setCuotasConfig] = useState(() => initialDraft?.cuotasConfig || {
     modo: 'monto', // 'monto' o 'porcentaje'
     valor_inicial: 0,
     numero_cuotas: 3,
   });
 
   // General observations & discount
-  const [descuentoAdicional, setDescuentoAdicional] = useState('0');
-  const [tipoDescuento, setTipoDescuento] = useState('Porcentaje');
-  const [observacion, setObservacion] = useState('');
+  const [descuentoAdicional, setDescuentoAdicional] = useState(() => initialDraft?.descuentoAdicional ?? '0');
+  const [tipoDescuento, setTipoDescuento] = useState(() => initialDraft?.tipoDescuento || 'Porcentaje');
+  const [observacion, setObservacion] = useState(() => initialDraft?.observacion || '');
+
+  // Persist quotation draft to localStorage whenever fields change
+  useEffect(() => {
+    if (!storageDraftKey) return;
+    const timer = setTimeout(() => {
+      try {
+        const draft = {
+          pax,
+          fechasViaje,
+          cliente,
+          pasajeros,
+          codigoReferido,
+          referidoData,
+          items,
+          activeTab,
+          hotelForm,
+          vueloForm,
+          trasladoForm,
+          excursionForm,
+          paqueteForm,
+          vehiculoForm,
+          ferryForm,
+          otroForm,
+          enableCuotas,
+          cuotasConfig,
+          descuentoAdicional,
+          tipoDescuento,
+          observacion,
+        };
+        localStorage.setItem(storageDraftKey, JSON.stringify(draft));
+      } catch (err) {
+        console.warn('Error saving quotation draft:', err);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [
+    storageDraftKey,
+    pax,
+    fechasViaje,
+    cliente,
+    pasajeros,
+    codigoReferido,
+    referidoData,
+    items,
+    activeTab,
+    hotelForm,
+    vueloForm,
+    trasladoForm,
+    excursionForm,
+    paqueteForm,
+    vehiculoForm,
+    ferryForm,
+    otroForm,
+    enableCuotas,
+    cuotasConfig,
+    descuentoAdicional,
+    tipoDescuento,
+    observacion,
+  ]);
 
   // Cart item delete confirmation modal state
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -1089,6 +1164,11 @@ export default function CotizacionTabContent({
       setDescuentoAdicional('0');
       setTipoDescuento('Porcentaje');
       setObservacion('');
+
+      // Limpiar borrador persistente de esta cotización formalmente guardada
+      try {
+        if (storageDraftKey) localStorage.removeItem(storageDraftKey);
+      } catch {}
     } catch (err) {
       console.error('Error creando cotización:', err);
       setFeedback({
@@ -1539,36 +1619,34 @@ export default function CotizacionTabContent({
           borderRadius: '16px',
           border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '20px',
-          width: 'fit-content',
-          maxWidth: '100%',
-          alignSelf: 'flex-start',
+          width: '100%',
           boxSizing: 'border-box',
         }}>
-          <h2 style={{ fontSize: '1rem', color: '#FFF', margin: '0 0 12px 0' }}>
+          <h2 style={{ fontSize: '1rem', color: '#FFF', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img src={imgUsuario} style={{ width: '18px', height: '18px' }} alt="" /> Pasajeros Acompañantes ({pasajeros.length})
           </h2>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 420px))',
-            gap: '12px',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
+            gap: '14px',
+            width: '100%',
           }}>
             {pasajeros.map((p, idx) => (
               <div
                 key={idx}
                 style={{
                   background: 'rgba(255,255,250, 0.03)',
-                  padding: '12px',
+                  padding: '14px',
                   borderRadius: '10px',
                   border: '1px solid rgba(255,255,255,0.18)',
-                  width: '420px',
-                  maxWidth: '100%',
+                  width: '100%',
                   boxSizing: 'border-box',
                 }}
               >
-                <span style={{ fontSize: '0.75rem', color: '#E87217', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
+                <span style={{ fontSize: '0.8rem', color: '#E87217', fontWeight: '600', display: 'block', marginBottom: '8px' }}>
                   Acompañante #{idx + 2}
                 </span>
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                   <input
                     type="text"
                     placeholder="Nombres"
@@ -1576,6 +1654,7 @@ export default function CotizacionTabContent({
                     onChange={e => handleUpdatePasajero(idx, 'nombres', e.target.value)}
                     maxLength={50}
                     className='erp-input'
+                    style={{ flex: 1 }}
                   />
                   <input
                     type="text"
@@ -1584,14 +1663,16 @@ export default function CotizacionTabContent({
                     onChange={e => handleUpdatePasajero(idx, 'apellidos', e.target.value)}
                     maxLength={50}
                     className='erp-input'
+                    style={{ flex: 1 }}
                   />
                 </div>
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <CustomSelect
                     value={p.tipo_documento}
                     onChange={e => handleUpdatePasajero(idx, 'tipo_documento', e.target.value)}
                     style={{
                       width: '80px',
+                      flexShrink: 0,
                     }}
                   >
                     <option value="V">V-</option>
@@ -1608,6 +1689,7 @@ export default function CotizacionTabContent({
                     maxLength={12}
                     inputMode="numeric"
                     className='erp-input'
+                    style={{ flex: 1 }}
                   />
                 </div>
               </div>
@@ -1925,8 +2007,11 @@ export default function CotizacionTabContent({
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
+                  max="99999.99"
                   value={hotelForm.precio_noche_adulto}
-                  onChange={e => setHotelForm({ ...hotelForm, precio_noche_adulto: parseFloat(e.target.value) || 0 })}
+                  onInput={handlePriceInputKeyClamp}
+                  onChange={e => setHotelForm({ ...hotelForm, precio_noche_adulto: sanitizePrecioCostoValue(e.target.value) })}
                   className="erp-input"
                 />
               </div>
@@ -1987,8 +2072,11 @@ export default function CotizacionTabContent({
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
+                  max="99999.99"
                   value={vueloForm.precio_adulto}
-                  onChange={e => setVueloForm({ ...vueloForm, precio_adulto: parseFloat(e.target.value) || 0 })}
+                  onInput={handlePriceInputKeyClamp}
+                  onChange={e => setVueloForm({ ...vueloForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
                   className="erp-input"
                 />
               </div>
@@ -2046,8 +2134,11 @@ export default function CotizacionTabContent({
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
+                    max="99999.99"
                     value={trasladoForm.precio}
-                    onChange={e => setTrasladoForm({ ...trasladoForm, precio: parseFloat(e.target.value) || 0 })}
+                    onInput={handlePriceInputKeyClamp}
+                    onChange={e => setTrasladoForm({ ...trasladoForm, precio: sanitizePrecioCostoValue(e.target.value) })}
                     className="erp-input"
                   />
                 </div>
@@ -2307,8 +2398,11 @@ export default function CotizacionTabContent({
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
+                  max="99999.99"
                   value={excursionForm.precio_adulto}
-                  onChange={e => setExcursionForm({ ...excursionForm, precio_adulto: parseFloat(e.target.value) || 0 })}
+                  onInput={handlePriceInputKeyClamp}
+                  onChange={e => setExcursionForm({ ...excursionForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
                   className="erp-input"
                 />
               </div>
@@ -2365,8 +2459,11 @@ export default function CotizacionTabContent({
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
+                  max="99999.99"
                   value={paqueteForm.precio_adulto}
-                  onChange={e => setPaqueteForm({ ...paqueteForm, precio_adulto: parseFloat(e.target.value) || 0 })}
+                  onInput={handlePriceInputKeyClamp}
+                  onChange={e => setPaqueteForm({ ...paqueteForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
                   className="erp-input"
                 />
               </div>
@@ -2424,8 +2521,11 @@ export default function CotizacionTabContent({
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
+                  max="99999.99"
                   value={vehiculoForm.precio_unitario}
-                  onChange={e => setVehiculoForm({ ...vehiculoForm, precio_unitario: parseFloat(e.target.value) || 0 })}
+                  onInput={handlePriceInputKeyClamp}
+                  onChange={e => setVehiculoForm({ ...vehiculoForm, precio_unitario: sanitizePrecioCostoValue(e.target.value) })}
                   className="erp-input"
                 />
               </div>
@@ -2464,8 +2564,11 @@ export default function CotizacionTabContent({
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
+                  max="99999.99"
                   value={ferryForm.precio_adulto}
-                  onChange={e => setFerryForm({ ...ferryForm, precio_adulto: parseFloat(e.target.value) || 0 })}
+                  onInput={handlePriceInputKeyClamp}
+                  onChange={e => setFerryForm({ ...ferryForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
                   className="erp-input"
                 />
               </div>
@@ -2475,8 +2578,11 @@ export default function CotizacionTabContent({
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
+                  max="99999.99"
                   value={ferryForm.precio_vehiculo}
-                  onChange={e => setFerryForm({ ...ferryForm, precio_vehiculo: parseFloat(e.target.value) || 0 })}
+                  onInput={handlePriceInputKeyClamp}
+                  onChange={e => setFerryForm({ ...ferryForm, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
                   className="erp-input"
                 />
               </div>
@@ -2520,8 +2626,11 @@ export default function CotizacionTabContent({
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
+                  max="99999.99"
                   value={otroForm.precio}
-                  onChange={e => setOtroForm({ ...otroForm, precio: parseFloat(e.target.value) || 0 })}
+                  onInput={handlePriceInputKeyClamp}
+                  onChange={e => setOtroForm({ ...otroForm, precio: sanitizePrecioCostoValue(e.target.value) })}
                   className="erp-input"
                 />
               </div>
@@ -2709,8 +2818,21 @@ export default function CotizacionTabContent({
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
+                      max={cuotasConfig.modo === 'porcentaje' ? 100 : 99999.99}
                       value={cuotasConfig.valor_inicial}
-                      onChange={e => setCuotasConfig({ ...cuotasConfig, valor_inicial: parseFloat(e.target.value) || 0 })}
+                      onInput={cuotasConfig.modo === 'porcentaje' ? (e => {
+                        if (parseFloat(e.target.value) > 100) e.target.value = 100;
+                      }) : handlePriceInputKeyClamp}
+                      onChange={e => {
+                        const raw = e.target.value;
+                        if (cuotasConfig.modo === 'porcentaje') {
+                          const val = parseFloat(raw) || 0;
+                          setCuotasConfig({ ...cuotasConfig, valor_inicial: Math.min(100, Math.max(0, val)) });
+                        } else {
+                          setCuotasConfig({ ...cuotasConfig, valor_inicial: sanitizePrecioCostoValue(raw) });
+                        }
+                      }}
                       className="erp-input"
                     />
                   </div>

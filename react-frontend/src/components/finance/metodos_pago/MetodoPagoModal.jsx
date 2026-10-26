@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
-import { formatEmail, validateEmail, formatTelefono, formatCedula } from '../../../utils/validation';
+import { formatEmail, validateEmail, formatTelefono, formatCedula, handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
 const LOGOS = [
   { value: '', label: 'Sin logo / Genérico' },
@@ -503,18 +503,26 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                        Valor Comisión
+                        Valor Comisión {tipoComision === 'porcentaje' ? '(%)' : '($)'}
                       </label>
                       <input
                         type="number"
                         step="0.01"
                         min="0"
-                        max="100"
+                        max={tipoComision === 'porcentaje' ? 100 : 99999.99}
                         value={comisionValor}
+                        onInput={tipoComision === 'porcentaje' ? (e => {
+                          if (parseFloat(e.target.value) > 100) e.target.value = 100;
+                        }) : handlePriceInputKeyClamp}
                         onChange={(e) => {
-                          const val = parseFloat(e.target.value);
-                          if (isNaN(val)) setComisionValor('');
-                          else setComisionValor(Math.min(100, Math.max(0, val)));
+                          const raw = e.target.value;
+                          if (tipoComision === 'porcentaje') {
+                            const val = parseFloat(raw);
+                            if (isNaN(val)) setComisionValor('');
+                            else setComisionValor(Math.min(100, Math.max(0, val)));
+                          } else {
+                            setComisionValor(formatPrecioCosto(raw));
+                          }
                         }}
                         className="erp-input"
                         style={{ width: '100%' }}

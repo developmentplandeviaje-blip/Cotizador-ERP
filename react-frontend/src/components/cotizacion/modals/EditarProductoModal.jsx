@@ -4,6 +4,7 @@ import Badge from '../../common/Badge';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import { PRODUCT_COLOR_MAP } from '../NuevaCotizacion';
+import { handlePriceInputKeyClamp, sanitizePrecioCostoValue } from '../../../utils/validation';
 
 export default function EditarProductoModal({
   isOpen,
@@ -322,8 +323,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_noche_adulto ?? 0}
-                onChange={e => setFormData({ ...formData, precio_noche_adulto: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_noche_adulto: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -334,8 +337,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_noche_adolescente ?? 0}
-                onChange={e => setFormData({ ...formData, precio_noche_adolescente: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_noche_adolescente: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -346,8 +351,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_noche_nino ?? 0}
-                onChange={e => setFormData({ ...formData, precio_noche_nino: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_noche_nino: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -436,8 +443,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_adulto ?? 0}
-                onChange={e => setFormData({ ...formData, precio_adulto: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -448,8 +457,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_nino ?? 0}
-                onChange={e => setFormData({ ...formData, precio_nino: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -460,8 +471,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_infante ?? 0}
-                onChange={e => setFormData({ ...formData, precio_infante: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -501,8 +514,13 @@ export default function EditarProductoModal({
                   type="number"
                   step="0.01"
                   min="0"
+                  max="99999.99"
                   value={formData.precio_historico ?? formData.precio ?? 0}
-                  onChange={e => setFormData({ ...formData, precio_historico: parseFloat(e.target.value) || 0, precio: parseFloat(e.target.value) || 0 })}
+                  onInput={handlePriceInputKeyClamp}
+                  onChange={e => {
+                    const cleanVal = sanitizePrecioCostoValue(e.target.value);
+                    setFormData({ ...formData, precio_historico: cleanVal, precio: cleanVal });
+                  }}
                   className="erp-input"
                 />
               </div>
@@ -734,8 +752,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_adulto ?? 0}
-                onChange={e => setFormData({ ...formData, precio_adulto: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -746,8 +766,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_nino ?? 0}
-                onChange={e => setFormData({ ...formData, precio_nino: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -790,8 +812,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_unitario ?? 0}
-                onChange={e => setFormData({ ...formData, precio_unitario: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_unitario: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -901,8 +925,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_adulto ?? 0}
-                onChange={e => setFormData({ ...formData, precio_adulto: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -913,8 +939,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_nino ?? 0}
-                onChange={e => setFormData({ ...formData, precio_nino: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -925,8 +953,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio_vehiculo ?? 0}
-                onChange={e => setFormData({ ...formData, precio_vehiculo: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>
@@ -967,8 +997,10 @@ export default function EditarProductoModal({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999.99"
                 value={formData.precio ?? 0}
-                onChange={e => setFormData({ ...formData, precio: parseFloat(e.target.value) || 0 })}
+                onInput={handlePriceInputKeyClamp}
+                onChange={e => setFormData({ ...formData, precio: sanitizePrecioCostoValue(e.target.value) })}
                 className="erp-input"
               />
             </div>

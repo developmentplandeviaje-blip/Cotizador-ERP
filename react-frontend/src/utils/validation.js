@@ -110,3 +110,44 @@ export const formatNumberDigits = (val, maxDigits = 3) => {
   const digitsOnly = String(val).replace(/\D/g, '');
   return digitsOnly.slice(0, maxDigits);
 };
+
+/**
+ * Formato y límite de precios y costos:
+ * - Máximo 5 dígitos enteros (hasta 99.999)
+ * - Máximo 2 dígitos decimales (.99)
+ * - Valor máximo: 99999.99
+ * - Valor mínimo: 0
+ */
+export const formatPrecioCosto = (val) => {
+  if (val === '' || val === null || val === undefined) return '';
+  const str = String(val).replace(/,/g, '.');
+  const parts = str.split('.');
+  let intPart = parts[0].replace(/\D/g, '').slice(0, 5);
+  if (parts.length > 1) {
+    let decPart = parts.slice(1).join('').replace(/\D/g, '').slice(0, 2);
+    return `${intPart}.${decPart}`;
+  }
+  return intPart;
+};
+
+export const sanitizePrecioCostoValue = (val) => {
+  if (val === '' || val === null || val === undefined) return 0;
+  const formatted = formatPrecioCosto(val);
+  const num = parseFloat(formatted);
+  if (isNaN(num)) return 0;
+  return Math.min(99999.99, Math.max(0, num));
+};
+
+export const handlePriceInputKeyClamp = (e) => {
+  if (e.target.value) {
+    const parts = e.target.value.split('.');
+    if (parts[0].length > 5) parts[0] = parts[0].slice(0, 5);
+    if (parts[1] && parts[1].length > 2) parts[1] = parts[1].slice(0, 2);
+    const clamped = parts.length > 1 ? `${parts[0]}.${parts[1]}` : parts[0];
+    if (parseFloat(clamped) > 99999.99) {
+      e.target.value = '99999.99';
+    } else {
+      e.target.value = clamped;
+    }
+  }
+};
