@@ -110,6 +110,8 @@ export default function CotizacionTabContent({
   // Modal para agrupar productos a un hotel registrado
   const [hotelToGroup, setHotelToGroup] = useState(null);
   const [viewMode, setViewMode] = useState('agrupado'); // 'agrupado' | 'plano'
+  const [selectedGroupingHotelUid, setSelectedGroupingHotelUid] = useState('');
+  const [tabSelectedHotelUid, setTabSelectedHotelUid] = useState('');
 
   // Hoteles registrados actualmente en la cotización
   const registeredHotels = useMemo(() => items.filter(it => it.tipo === 'hotel'), [items]);
@@ -892,22 +894,34 @@ export default function CotizacionTabContent({
     return allTypes.filter(t => isDraftReady(t));
   }, [isDraftReady]);
 
-  // Add Item to cart individually
-  const handleAddItem = (tipo) => {
+  // Add Item to cart individually (con opción de agrupar directamente a un hotel)
+  const handleAddItem = (tipo, targetHotelUid = null) => {
     const newItem = buildItemFromDraft(tipo, true);
     if (newItem) {
+      if (targetHotelUid) {
+        newItem.hotel_item_uid = targetHotelUid;
+        if (newItem.data) newItem.data.hotel_item_uid = targetHotelUid;
+        setViewMode('agrupado');
+      } else if (tipo !== 'hotel') {
+        newItem.hotel_item_uid = null;
+        if (newItem.data) newItem.data.hotel_item_uid = null;
+      }
       setItems(prev => [...prev, newItem]);
       resetFormForTipo(tipo);
     }
   };
 
-  // Add all products with reserved information in a single click
+  // Add all products with reserved information in a single click (independientes / sin agrupar)
   const handleAddAllReadyProducts = () => {
     if (readyDraftTypes.length <= 1) return;
     const newItems = [];
     readyDraftTypes.forEach(tipo => {
       const item = buildItemFromDraft(tipo, false);
       if (item) {
+        if (tipo !== 'hotel') {
+          item.hotel_item_uid = null;
+          if (item.data) item.data.hotel_item_uid = null;
+        }
         newItems.push(item);
         resetFormForTipo(tipo);
       }
@@ -916,6 +930,110 @@ export default function CotizacionTabContent({
     if (newItems.length > 0) {
       setItems(prev => [...prev, ...newItems]);
     }
+  };
+
+  // Agregar y agrupar automáticamente todos los servicios listos al hotel
+  const handleGroupAllReadyProducts = (explicitHotelUid = null) => {
+    if (readyDraftTypes.length <= 1) return;
+    const newItems = [];
+    let destinationHotelUid = explicitHotelUid;
+
+    // 1. Si el hotel está en el borrador listo actual, lo agregamos primero para obtener su uid
+    if (readyDraftTypes.includes('hotel')) {
+      const hotelItem = buildItemFromDraft('hotel', false);
+      if (hotelItem) {
+        newItems.push(hotelItem);
+        resetFormForTipo('hotel');
+        destinationHotelUid = hotelItem.uid;
+      }
+    } else if (!destinationHotelUid && registeredHotels.length > 0) {
+      destinationHotelUid = registeredHotels[0].uid;
+    }
+
+    // 2. Agregar todos los demás servicios listos vinculados a ese hotel
+    readyDraftTypes.filter(t => t !== 'hotel').forEach(tipo => {
+      const item = buildItemFromDraft(tipo, false);
+      if (item) {
+        if (destinationHotelUid) {
+          item.hotel_item_uid = destinationHotelUid;
+          if (item.data) item.data.hotel_item_uid = destinationHotelUid;
+        }
+        newItems.push(item);
+        resetFormForTipo(tipo);
+      }
+    });
+
+    if (newItems.length > 0) {
+      setItems(prev => [...prev, ...newItems]);
+      setViewMode('agrupado');
+    }
+  };
+
+  // Componente de botones de acción para cada pestaña: Elegir entre Agregar o Agrupar al Hotel
+  const renderTabActionButtons = (tipo, label) => {
+    const hasHotel = registeredHotels.length > 0;
+    const targetUid = tabSelectedHotelUid || registeredHotels[0]?.uid || '';
+
+    return (
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', width: '100%' }}>
+        <button
+          type="button"
+          onClick={() => handleAddItem(tipo, null)}
+          className="btn-form-nxt"
+          style={{
+            padding: '9px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            fontSize: '0.8125rem',
+          }}
+          title={`Agregar ${label} como servicio independiente / general`}
+        >
+          <img src={imgAgregar} alt="Agregar" style={{ width: '15px', height: '15px' }} />
+          Agregar {label}
+        </button>
+
+        {hasHotel && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {registeredHotels.length > 1 && (
+              <CustomSelect
+                value={targetUid}
+                onChange={e => setTabSelectedHotelUid(e.target.value)}
+                style={{ padding: '6px 8px', fontSize: '0.78rem', maxWidth: '170px' }}
+              >
+                {registeredHotels.map(h => (
+                  <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+                ))}
+              </CustomSelect>
+            )}
+            <button
+              type="button"
+              onClick={() => handleAddItem(tipo, targetUid)}
+              style={{
+                padding: '9px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                background: 'rgba(232, 114, 23, 0.25)',
+                border: '1px solid #E87217',
+                color: '#FDBA74',
+                borderRadius: '10px',
+                fontWeight: '600',
+                fontSize: '0.8125rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title={`Agregar y agrupar ${label} al hotel`}
+            >
+              <span>🔗</span>
+              Agrupar {label} al Hotel
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const handleRemoveItem = (uid) => {
@@ -1920,118 +2038,180 @@ export default function CotizacionTabContent({
         </div>
 
         {/* Banner visible cuando más de 1 producto tiene información reservada */}
-        {readyDraftTypes.length > 1 && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            background: 'linear-gradient(90deg, rgba(232, 114, 23, 0.15) 0%, rgba(56, 189, 248, 0.15) 100%)',
-            border: '1px solid rgba(232, 114, 23, 0.45)',
-            borderRadius: '12px',
-            padding: '12px 18px',
-            marginTop: '14px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-            flexWrap: 'wrap',
-            gap: '12px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ color: '#FFF', fontWeight: '600', fontSize: '0.875rem' }}>
-                  Hay <strong>{readyDraftTypes.length} productos</strong> con información reservada lista:
-                </div>
-                <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
-                  {readyDraftTypes.map(t => {
-                    const tabObj = PRODUCT_COLOR_MAP[t];
-                    return (
-                      <span
-                        key={t}
-                        style={{
-                          fontSize: '0.75rem',
-                          padding: '2px 8px 2px 5px',
-                          borderRadius: '6px',
-                          background: `rgba(${tabObj?.rgb || '255,255,255'}, 0.2)`,
-                          border: `1px solid ${tabObj?.color || '#E87217'}`,
-                          color: tabObj?.color || '#FFF',
-                          fontWeight: '600',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            resetFormForTipo(t);
-                          }}
-                          title={`Eliminar ${tabObj?.label || t} para no agregarlo`}
+        {readyDraftTypes.length > 1 && (() => {
+          const hotelInDraft = readyDraftTypes.includes('hotel');
+          const hasHotelsForGrouping = hotelInDraft || registeredHotels.length > 0;
+          const nonHotelDrafts = readyDraftTypes.filter(t => t !== 'hotel');
+          const groupTargetUid = selectedGroupingHotelUid || registeredHotels[0]?.uid || '';
+
+          return (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'linear-gradient(90deg, rgba(232, 114, 23, 0.15) 0%, rgba(56, 189, 248, 0.15) 100%)',
+              border: '1px solid rgba(232, 114, 23, 0.45)',
+              borderRadius: '12px',
+              padding: '12px 18px',
+              marginTop: '14px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ color: '#FFF', fontWeight: '600', fontSize: '0.875rem' }}>
+                    Hay <strong>{readyDraftTypes.length} productos</strong> con información reservada lista:
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                    {readyDraftTypes.map(t => {
+                      const tabObj = PRODUCT_COLOR_MAP[t];
+                      return (
+                        <span
+                          key={t}
                           style={{
-                            background: 'rgba(255, 255, 255, 0.15)',
-                            border: 'none',
+                            fontSize: '0.75rem',
+                            padding: '2px 8px 2px 5px',
+                            borderRadius: '6px',
+                            background: `rgba(${tabObj?.rgb || '255,255,255'}, 0.2)`,
+                            border: `1px solid ${tabObj?.color || '#E87217'}`,
                             color: tabObj?.color || '#FFF',
-                            borderRadius: '50%',
-                            width: '16px',
-                            height: '16px',
-                            cursor: 'pointer',
-                            fontSize: '10px',
-                            fontWeight: 'bold',
-                            lineHeight: 1,
-                            padding: 0,
+                            fontWeight: '600',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
+                            gap: '5px',
                             transition: 'all 0.15s ease',
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#bbbbbb2f';
-                            e.currentTarget.style.color = '#FFFFFF';
-                            e.currentTarget.style.transform = 'scale(1.15)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-                            e.currentTarget.style.color = tabObj?.color || '#FFF';
-                            e.currentTarget.style.transform = 'scale(1)';
-                          }}
                         >
-                          ✕
-                        </button>
-                        <span
-                          onClick={() => setActiveTab(t)}
-                          style={{ cursor: 'pointer' }}
-                          title={`Ver / Editar ${tabObj?.label || t}`}
-                        >
-                          {tabObj?.label || t}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              resetFormForTipo(t);
+                            }}
+                            title={`Eliminar ${tabObj?.label || t} para no agregarlo`}
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.15)',
+                              border: 'none',
+                              color: tabObj?.color || '#FFF',
+                              borderRadius: '50%',
+                              width: '16px',
+                              height: '16px',
+                              cursor: 'pointer',
+                              fontSize: '10px',
+                              fontWeight: 'bold',
+                              lineHeight: 1,
+                              padding: 0,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#bbbbbb2f';
+                              e.currentTarget.style.color = '#FFFFFF';
+                              e.currentTarget.style.transform = 'scale(1.15)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                              e.currentTarget.style.color = tabObj?.color || '#FFF';
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                          >
+                            ✕
+                          </button>
+                          <span
+                            onClick={() => setActiveTab(t)}
+                            style={{ cursor: 'pointer' }}
+                            title={`Ver / Editar ${tabObj?.label || t}`}
+                          >
+                            {tabObj?.label || t}
+                          </span>
                         </span>
-                      </span>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <button
-              type="button"
-              onClick={handleAddAllReadyProducts}
-              className="btn-primary"
-              style={{
-                padding: '9px 20px',
-                borderRadius: '10px',
-                fontSize: '0.875rem',
-                fontWeight: '700',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(232, 114, 23, 0.4)',
-                border: 'none',
-              }}
-            >
-              <img src={imgAgregar} alt="+" style={{ width: '15px', height: '15px' }} />
-              Agregar todos ({readyDraftTypes.length})
-            </button>
-          </div>
-        )}
+              {/* Acciones: Elección entre Agregar los servicios o Agrupar los servicios */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleAddAllReadyProducts}
+                  className={hasHotelsForGrouping && nonHotelDrafts.length > 0 ? '' : 'btn-primary'}
+                  style={hasHotelsForGrouping && nonHotelDrafts.length > 0 ? {
+                    padding: '9px 18px',
+                    borderRadius: '10px',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    color: '#FFFFFF',
+                    transition: 'all 0.15s ease',
+                  } : {
+                    padding: '9px 20px',
+                    borderRadius: '10px',
+                    fontSize: '0.875rem',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(232, 114, 23, 0.4)',
+                    border: 'none',
+                  }}
+                  title="Agregar todos los productos como servicios independientes / generales"
+                >
+                  <img src={imgAgregar} alt="+" style={{ width: '15px', height: '15px' }} />
+                  Agregar los servicios ({readyDraftTypes.length})
+                </button>
+
+                {hasHotelsForGrouping && nonHotelDrafts.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    {!hotelInDraft && registeredHotels.length > 1 && (
+                      <CustomSelect
+                        value={groupTargetUid}
+                        onChange={e => setSelectedGroupingHotelUid(e.target.value)}
+                        style={{ padding: '7px 10px', fontSize: '0.8125rem', maxWidth: '200px' }}
+                      >
+                        {registeredHotels.map(h => (
+                          <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+                        ))}
+                      </CustomSelect>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleGroupAllReadyProducts(hotelInDraft ? null : groupTargetUid)}
+                      className="btn-primary"
+                      style={{
+                        padding: '9px 20px',
+                        borderRadius: '10px',
+                        fontSize: '0.875rem',
+                        fontWeight: '700',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 14px rgba(232, 114, 23, 0.4)',
+                        border: 'none',
+                      }}
+                      title="Agregar y agrupar automáticamente todos los servicios al hotel"
+                    >
+                      <span style={{ fontSize: '1rem' }}>🔗</span>
+                      Agrupar los servicios ({nonHotelDrafts.length})
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Dynamic Form per Tab */}
         <div style={{ marginTop: '20px' }}>
@@ -2176,31 +2356,8 @@ export default function CotizacionTabContent({
                 </div>
               </div>
 
-              {registeredHotels.length > 0 && (
-                <div>
-                  <label className='erp-label'>Agrupar a Hotel</label>
-                  <CustomSelect
-                    value={vueloForm.hotel_item_uid || ''}
-                    onChange={e => setVueloForm({ ...vueloForm, hotel_item_uid: e.target.value })}
-                  >
-                    <option value="">Servicio General / Sin Hotel</option>
-                    {registeredHotels.map(h => (
-                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
-                    ))}
-                  </CustomSelect>
-                </div>
-              )}
-
-              <div>
-                <button
-                  type="button"
-                  onClick={() => handleAddItem('vuelo')}
-                  className="btn-form-nxt"
-                  style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  Agregar Vuelo
-                </button>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                {renderTabActionButtons('vuelo', 'Vuelo')}
               </div>
             </div>
           )}
@@ -2270,21 +2427,6 @@ export default function CotizacionTabContent({
                     className="erp-input"
                   />
                 </div>
-
-                {registeredHotels.length > 0 && (
-                  <div>
-                    <label className='erp-label'>Agrupar a Hotel</label>
-                    <CustomSelect
-                      value={trasladoForm.hotel_item_uid || ''}
-                      onChange={e => setTrasladoForm({ ...trasladoForm, hotel_item_uid: e.target.value })}
-                    >
-                      <option value="">Servicio General / Sin Hotel</option>
-                      {registeredHotels.map(h => (
-                        <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
-                      ))}
-                    </CustomSelect>
-                  </div>
-                )}
               </div>
 
               {/* Personalización de Pasajeros si totalPax > 1 */}
@@ -2472,15 +2614,7 @@ export default function CotizacionTabContent({
               )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
-                <button
-                  type="button"
-                  onClick={() => handleAddItem('traslado')}
-                  className="btn-form-nxt"
-                  style={{ padding: '9px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                >
-                  <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  Agregar Traslado
-                </button>
+                {renderTabActionButtons('traslado', 'Traslado')}
               </div>
             </div>
           )}
@@ -2518,46 +2652,8 @@ export default function CotizacionTabContent({
                 />
               </div>
 
-              {registeredHotels.length > 0 && (
-                <div>
-                  <label className='erp-label'>Agrupar a Hotel</label>
-                  <CustomSelect
-                    value={excursionForm.hotel_item_uid || ''}
-                    onChange={e => setExcursionForm({ ...excursionForm, hotel_item_uid: e.target.value })}
-                  >
-                    <option value="">Servicio General / Sin Hotel</option>
-                    {registeredHotels.map(h => (
-                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
-                    ))}
-                  </CustomSelect>
-                </div>
-              )}
-{/*
-              <div>
-                <label className='erp-label'>Precio Adulto ($)</label>
-                <div style={{ display: 'flex' }}>
-                  <CustomNumberInput
-                    step={0.01}
-                    min={0}
-                    max={99999.99}
-                    allowDecimals
-                    width="115px"
-                    value={excursionForm.precio_adulto}
-                    onChange={e => setExcursionForm({ ...excursionForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  />
-                </div>
-              </div>
-          */}
-              <div>
-                <button
-                  type="button"
-                  onClick={() => handleAddItem('excursion')}
-                  className="btn-form-nxt"
-                  style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  Agregar Excursión
-                </button>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                {renderTabActionButtons('excursion', 'Excursión')}
               </div>
             </div>
           )}
@@ -2595,46 +2691,8 @@ export default function CotizacionTabContent({
                 />
               </div>
 
-              {registeredHotels.length > 0 && (
-                <div>
-                  <label className='erp-label'>Agrupar a Hotel</label>
-                  <CustomSelect
-                    value={paqueteForm.hotel_item_uid || ''}
-                    onChange={e => setPaqueteForm({ ...paqueteForm, hotel_item_uid: e.target.value })}
-                  >
-                    <option value="">Servicio General / Sin Hotel</option>
-                    {registeredHotels.map(h => (
-                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
-                    ))}
-                  </CustomSelect>
-                </div>
-              )}
-{/*
-              <div>
-                <label className='erp-label'>Precio Adulto ($)</label>
-                <div style={{ display: 'flex' }}>
-                  <CustomNumberInput
-                    step={0.01}
-                    min={0}
-                    max={99999.99}
-                    allowDecimals
-                    width="115px"
-                    value={paqueteForm.precio_adulto}
-                    onChange={e => setPaqueteForm({ ...paqueteForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  />
-                </div>
-              </div>
-*/}
-              <div>
-                <button
-                  type="button"
-                  onClick={() => handleAddItem('paquete')}
-                  className="btn-form-nxt"
-                  style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  Agregar Paquete
-                </button>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                {renderTabActionButtons('paquete', 'Paquete')}
               </div>
             </div>
           )}
@@ -2671,47 +2729,8 @@ export default function CotizacionTabContent({
                 </div>
               </div>
 
-              {registeredHotels.length > 0 && (
-                <div>
-                  <label className='erp-label'>Agrupar a Hotel</label>
-                  <CustomSelect
-                    value={vehiculoForm.hotel_item_uid || ''}
-                    onChange={e => setVehiculoForm({ ...vehiculoForm, hotel_item_uid: e.target.value })}
-                  >
-                    <option value="">Servicio General / Sin Hotel</option>
-                    {registeredHotels.map(h => (
-                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
-                    ))}
-                  </CustomSelect>
-                </div>
-              )}
-{/*
-              <div>
-                <label className='erp-label'>Tarifa Diaria ($)</label>
-                <div style={{ display: 'flex' }}>
-                  <CustomNumberInput
-                    step={0.01}
-                    min={0}
-                    max={99999.99}
-                    allowDecimals
-                    width="115px"
-                    value={vehiculoForm.precio_unitario}
-                    onChange={e => setVehiculoForm({ ...vehiculoForm, precio_unitario: sanitizePrecioCostoValue(e.target.value) })}
-                  />
-                </div>
-              </div>
-          */}
-
-              <div>
-                <button
-                  type="button"
-                  onClick={() => handleAddItem('vehiculo')}
-                  className="btn-form-nxt"
-                  style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  Agregar Vehículo
-                </button>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                {renderTabActionButtons('vehiculo', 'Vehículo')}
               </div>
             </div>
           )}
@@ -2761,31 +2780,8 @@ export default function CotizacionTabContent({
                 </div>
               </div>
 
-              {registeredHotels.length > 0 && (
-                <div>
-                  <label className='erp-label'>Agrupar a Hotel</label>
-                  <CustomSelect
-                    value={ferryForm.hotel_item_uid || ''}
-                    onChange={e => setFerryForm({ ...ferryForm, hotel_item_uid: e.target.value })}
-                  >
-                    <option value="">Servicio General / Sin Hotel</option>
-                    {registeredHotels.map(h => (
-                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
-                    ))}
-                  </CustomSelect>
-                </div>
-              )}
-
-              <div>
-                <button
-                  type="button"
-                  onClick={() => handleAddItem('ferry')}
-                  className="btn-form-nxt"
-                  style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  Agregar Ferry
-                </button>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                {renderTabActionButtons('ferry', 'Ferry')}
               </div>
             </div>
           )}
@@ -2825,31 +2821,8 @@ export default function CotizacionTabContent({
                 </div>
               </div>
 
-              {registeredHotels.length > 0 && (
-                <div>
-                  <label className='erp-label'>Agrupar a Hotel</label>
-                  <CustomSelect
-                    value={otroForm.hotel_item_uid || ''}
-                    onChange={e => setOtroForm({ ...otroForm, hotel_item_uid: e.target.value })}
-                  >
-                    <option value="">Servicio General / Sin Hotel</option>
-                    {registeredHotels.map(h => (
-                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
-                    ))}
-                  </CustomSelect>
-                </div>
-              )}
-
-              <div>
-                <button
-                  type="button"
-                  onClick={() => handleAddItem('otro')}
-                  className="btn-form-nxt"
-                  style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  Agregar Servicio
-                </button>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                {renderTabActionButtons('otro', 'Servicio')}
               </div>
             </div>
           )}
