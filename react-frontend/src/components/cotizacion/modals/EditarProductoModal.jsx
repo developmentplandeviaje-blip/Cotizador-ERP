@@ -114,8 +114,9 @@ export default function EditarProductoModal({
     if (tipo === 'ferry') {
       const subAd = Number(d.adultos || 0) * Number(d.precio_adulto || 0);
       const subNi = Number(d.ninos || 0) * Number(d.precio_nino || 0);
+      const subInf = Number(d.infantes || 0) * Number(d.precio_infante || 0);
       const subVeh = Number(d.vehiculos || 0) * Number(d.precio_vehiculo || 0);
-      return Math.max(0, subAd + subNi + subVeh);
+      return Math.max(0, subAd + subNi + subInf + subVeh);
     }
     if (tipo === 'otro') {
       return Math.max(0, Number(d.precio || 0));
@@ -138,11 +139,17 @@ export default function EditarProductoModal({
       finalData.id_hotel = Number(formData.id_hotel);
       finalData.id_habitacion = Number(formData.id_habitacion || 0);
       finalData.noches = Number(formData.noches);
+      finalData.precio_noche_adulto = Number(formData.precio_noche_adulto || 0);
+      finalData.precio_noche_adolescente = Number(formData.precio_noche_adolescente || 0);
+      finalData.precio_noche_nino = Number(formData.precio_noche_nino || 0);
     } else if (tipo === 'vuelo') {
       const aeroObj = (catalogos.aerolineas || []).find(a => String(a.id) === String(formData.id_aerolinea)) || {};
       updatedTitulo = `${aeroObj.nombre || 'Aerolínea'} - ${formData.itinerario || 'Ruta'}`;
-      updatedDetalle = `Fecha: ${formData.fecha_vuelo || 'Por definir'} • ${formData.adultos} ad, ${formData.ninos} niños, ${formData.infantes} inf`;
+      updatedDetalle = `Fecha: ${formData.fecha_vuelo || 'Por definir'} • ${formData.adultos} ad${(formData.ninos || 0) > 0 ? `, ${formData.ninos} niños` : ''}${(formData.infantes || 0) > 0 ? `, ${formData.infantes} inf` : ''}`;
       finalData.id_aerolinea = Number(formData.id_aerolinea);
+      finalData.precio_adulto = Number(formData.precio_adulto || 0);
+      finalData.precio_nino = Number(formData.precio_nino || 0);
+      finalData.precio_infante = Number(formData.precio_infante || 0);
     } else if (tipo === 'traslado') {
       const trasObj = (catalogos.traslados || []).find(t => String(t.id) === String(formData.id_traslado)) || {};
       let titulo = `${trasObj.ruta_origen || item.titulo || 'Servicio de Traslado'}`;
@@ -184,11 +191,15 @@ export default function EditarProductoModal({
       updatedTitulo = `Excusión: ${excObj.tipo_excursion || item.titulo}`;
       updatedDetalle = `Fecha: ${formData.fecha || 'Por definir'} • ${formData.adultos} ad, ${formData.ninos} niños`;
       finalData.id_excursion = Number(formData.id_excursion);
+      finalData.precio_adulto = Number(formData.precio_adulto || 0);
+      finalData.precio_nino = Number(formData.precio_nino || 0);
     } else if (tipo === 'paquete') {
       const paqObj = (catalogos.paquetes || []).find(p => String(p.id) === String(formData.id_paquete)) || {};
       updatedTitulo = `Paquete: ${paqObj.paquete || item.titulo}`;
       updatedDetalle = `Fecha: ${formData.fecha || 'Por definir'} • ${formData.adultos} ad, ${formData.ninos} niños`;
       finalData.id_paquete = Number(formData.id_paquete);
+      finalData.precio_adulto = Number(formData.precio_adulto || 0);
+      finalData.precio_nino = Number(formData.precio_nino || 0);
     } else if (tipo === 'vehiculo') {
       const vehObj = (catalogos.vehiculos || []).find(v => String(v.id) === String(formData.id_vehiculo)) || {};
       updatedTitulo = `${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`;
@@ -198,7 +209,15 @@ export default function EditarProductoModal({
       finalData.precio_unitario = Number(formData.precio_unitario);
     } else if (tipo === 'ferry') {
       updatedTitulo = `${formData.ruta || 'Ruta'} (${formData.clase || 'Clase'})`;
-      updatedDetalle = `${formData.adultos} ad, ${formData.ninos} niños, ${formData.vehiculos || 0} veh • Itinerario: ${formData.itinerario || 'N/A'}`;
+      updatedDetalle = `${formData.adultos} ad${(formData.ninos || 0) > 0 ? `, ${formData.ninos} niños` : ''}${(formData.infantes || 0) > 0 ? `, ${formData.infantes} inf` : ''}, ${formData.vehiculos || 0} veh • Itinerario: ${formData.itinerario || 'N/A'}`;
+      finalData.adultos = Number(formData.adultos || 1);
+      finalData.ninos = Number(formData.ninos || 0);
+      finalData.infantes = Number(formData.infantes || 0);
+      finalData.vehiculos = Number(formData.vehiculos || 0);
+      finalData.precio_adulto = Number(formData.precio_adulto || 0);
+      finalData.precio_nino = Number(formData.precio_nino || 0);
+      finalData.precio_infante = Number(formData.precio_infante || 0);
+      finalData.precio_vehiculo = Number(formData.precio_vehiculo || 0);
     } else if (tipo === 'otro') {
       updatedTitulo = `Otro: ${formData.descripcion || 'Servicio Personalizado'}`;
       updatedDetalle = `Fecha: ${formData.fecha || 'Por definir'}`;
@@ -349,31 +368,35 @@ export default function EditarProductoModal({
               />
             </div>
 
-            <div>
-              <label className="erp-label">Precio Noche Adol ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_noche_adolescente ?? 0}
-                onChange={e => setFormData({ ...formData, precio_noche_adolescente: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
+            {(formData.adolescente ?? 0) > 0 && (
+              <div>
+                <label className="erp-label">Precio Noche Adol ($)</label>
+                <CustomNumberInput
+                  min={0}
+                  max={99999.99}
+                  step={0.01}
+                  allowDecimals
+                  width="115px"
+                  value={formData.precio_noche_adolescente ?? 0}
+                  onChange={e => setFormData({ ...formData, precio_noche_adolescente: sanitizePrecioCostoValue(e.target.value) })}
+                />
+              </div>
+            )}
 
-            <div>
-              <label className="erp-label">Precio Noche Niño ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_noche_nino ?? 0}
-                onChange={e => setFormData({ ...formData, precio_noche_nino: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
+            {(formData.ninos ?? 0) > 0 && (
+              <div>
+                <label className="erp-label">Precio Noche Niño ($)</label>
+                <CustomNumberInput
+                  min={0}
+                  max={99999.99}
+                  step={0.01}
+                  allowDecimals
+                  width="115px"
+                  value={formData.precio_noche_nino ?? 0}
+                  onChange={e => setFormData({ ...formData, precio_noche_nino: sanitizePrecioCostoValue(e.target.value) })}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -457,31 +480,35 @@ export default function EditarProductoModal({
               />
             </div>
 
-            <div>
-              <label className="erp-label">Precio Niño ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_nino ?? 0}
-                onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
+            {(formData.ninos ?? 0) > 0 && (
+              <div>
+                <label className="erp-label">Precio Niño ($)</label>
+                <CustomNumberInput
+                  min={0}
+                  max={99999.99}
+                  step={0.01}
+                  allowDecimals
+                  width="115px"
+                  value={formData.precio_nino ?? 0}
+                  onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                />
+              </div>
+            )}
 
-            <div>
-              <label className="erp-label">Precio Infante ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_infante ?? 0}
-                onChange={e => setFormData({ ...formData, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
+            {(formData.infantes ?? 0) > 0 && (
+              <div>
+                <label className="erp-label">Precio Infante ($)</label>
+                <CustomNumberInput
+                  min={0}
+                  max={99999.99}
+                  step={0.01}
+                  allowDecimals
+                  width="115px"
+                  value={formData.precio_infante ?? 0}
+                  onChange={e => setFormData({ ...formData, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -756,18 +783,20 @@ export default function EditarProductoModal({
               />
             </div>
 
-            <div>
-              <label className="erp-label">Precio Niño ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_nino ?? 0}
-                onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
+            {(formData.ninos ?? 0) > 0 && (
+              <div>
+                <label className="erp-label">Precio Niño ($)</label>
+                <CustomNumberInput
+                  min={0}
+                  max={99999.99}
+                  step={0.01}
+                  allowDecimals
+                  width="115px"
+                  value={formData.precio_nino ?? 0}
+                  onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -892,6 +921,16 @@ export default function EditarProductoModal({
             </div>
 
             <div>
+              <label className="erp-label">Infantes</label>
+              <CustomNumberInput
+                min={0}
+                max={999}
+                value={formData.infantes ?? 0}
+                onChange={e => setFormData({ ...formData, infantes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+              />
+            </div>
+
+            <div>
               <label className="erp-label">Vehículos</label>
               <CustomNumberInput
                 min={0}
@@ -914,18 +953,35 @@ export default function EditarProductoModal({
               />
             </div>
 
-            <div>
-              <label className="erp-label">Precio Niño ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_nino ?? 0}
-                onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
+            {(formData.ninos ?? 0) > 0 && (
+              <div>
+                <label className="erp-label">Precio Niño ($)</label>
+                <CustomNumberInput
+                  min={0}
+                  max={99999.99}
+                  step={0.01}
+                  allowDecimals
+                  width="115px"
+                  value={formData.precio_nino ?? 0}
+                  onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                />
+              </div>
+            )}
+
+            {(formData.infantes ?? 0) > 0 && (
+              <div>
+                <label className="erp-label">Precio Infante ($)</label>
+                <CustomNumberInput
+                  min={0}
+                  max={99999.99}
+                  step={0.01}
+                  allowDecimals
+                  width="115px"
+                  value={formData.precio_infante ?? 0}
+                  onChange={e => setFormData({ ...formData, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
+                />
+              </div>
+            )}
 
             <div>
               <label className="erp-label">Precio Vehículo ($)</label>

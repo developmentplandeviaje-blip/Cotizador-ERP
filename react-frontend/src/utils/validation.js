@@ -120,7 +120,8 @@ export const formatNumberDigits = (val, maxDigits = 3) => {
  */
 export const formatPrecioCosto = (val) => {
   if (val === '' || val === null || val === undefined) return '';
-  const str = String(val).replace(/,/g, '.');
+  let str = String(val).replace(/,/g, '.');
+  if (str === '.') return '0.';
   const parts = str.split('.');
   let intPart = parts[0].replace(/\D/g, '').slice(0, 5);
   if (parts.length > 1) {
@@ -131,10 +132,14 @@ export const formatPrecioCosto = (val) => {
 };
 
 export const sanitizePrecioCostoValue = (val) => {
-  if (val === '' || val === null || val === undefined) return 0;
+  if (val === '' || val === null || val === undefined) return '';
   const formatted = formatPrecioCosto(val);
+  // Preservar si el usuario está tipeando el punto decimal o ceros decimales (ej: "5466.", "5466.0")
+  if (typeof formatted === 'string' && (formatted.endsWith('.') || /\.\d*0$/.test(formatted))) {
+    return formatted;
+  }
   const num = parseFloat(formatted);
-  if (isNaN(num)) return 0;
+  if (isNaN(num)) return '';
   return Math.min(99999.99, Math.max(0, num));
 };
 

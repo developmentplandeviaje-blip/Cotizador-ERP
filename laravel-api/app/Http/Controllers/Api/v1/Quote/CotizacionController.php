@@ -60,4 +60,35 @@ class CotizacionController extends Controller
             'data' => $rapida,
         ], 201);
     }
+
+    public function getConfiguracionCierre(): JsonResponse
+    {
+        $config = $this->service->getConfiguracionCierre();
+        return response()->json($config);
+    }
+
+    public function guardarConfiguracionCierre(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $userLevel = strtolower($user->level ?? '');
+        if (!in_array($userLevel, ['admin', 'gerente'])) {
+            return response()->json([
+                'message' => 'No tiene permisos suficientes para modificar esta configuración. Se requiere nivel Administrador o Gerente.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'activo' => 'required|boolean',
+            'hora' => 'required|string',
+            'dias' => 'required|in:todos,laborales',
+            'forzar_limpieza_ahora' => 'nullable|boolean',
+        ]);
+
+        $updated = $this->service->guardarConfiguracionCierre($validated);
+
+        return response()->json([
+            'message' => 'Configuración de horario de cierre guardada exitosamente.',
+            'data' => $updated,
+        ]);
+    }
 }

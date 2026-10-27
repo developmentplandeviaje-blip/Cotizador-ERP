@@ -28,6 +28,7 @@ export default function CustomNumberInput({
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [displayValue, setDisplayValue] = useState(() => (value !== undefined && value !== null && value !== '' ? String(value) : ''));
   const holdIntervalRef = useRef(null);
   const holdTimeoutRef = useRef(null);
 
@@ -37,10 +38,23 @@ export default function CustomNumberInput({
     ? Math.pow(10, maxDigitsLimit) - (1 / Math.pow(10, decimals))
     : Math.pow(10, maxDigitsLimit) - 1;
   const effectiveMax = max !== undefined ? Math.min(max, maxPossibleValue) : maxPossibleValue;
-
-  // Normalizar valor numérico
-  const numericVal = value !== undefined && value !== null && value !== '' ? Number(value) : '';
   const precision = isDecimal ? decimals : 0;
+
+  // Sincronizar displayValue con value cuando el input no tiene el foco
+  useEffect(() => {
+    if (!isFocused) {
+      setDisplayValue(value !== undefined && value !== null && value !== '' ? String(value) : '');
+    }
+  }, [value, isFocused]);
+
+  // Obtener valor numérico actual para cálculo de steppers y límites
+  const getNumericValue = useCallback(() => {
+    if (isFocused && displayValue !== '') {
+      const parsed = parseFloat(displayValue);
+      return !isNaN(parsed) ? parsed : '';
+    }
+    return value !== undefined && value !== null && value !== '' ? Number(value) : '';
+  }, [isFocused, displayValue, value]);
 
   // Generar evento sintético compatible con onChange estándar
   const triggerChange = useCallback((newVal) => {
@@ -72,24 +86,28 @@ export default function CustomNumberInput({
 
   // Manejar incremento y decremento
   const handleIncrement = useCallback(() => {
-    const current = numericVal === '' ? (min !== undefined ? min : 0) : numericVal;
-    let next = current + step;
+    const current = getNumericValue();
+    const base = current === '' || isNaN(current) ? (min !== undefined ? min : 0) : current;
+    let next = base + step;
     if (isDecimal) {
       next = Number(next.toFixed(precision));
     }
     if (effectiveMax !== undefined && next > effectiveMax) return;
+    setDisplayValue(String(next));
     triggerChange(next);
-  }, [numericVal, min, effectiveMax, step, isDecimal, precision, triggerChange]);
+  }, [getNumericValue, min, effectiveMax, step, isDecimal, precision, triggerChange]);
 
   const handleDecrement = useCallback(() => {
-    const current = numericVal === '' ? (min !== undefined ? min : 0) : numericVal;
-    let next = current - step;
+    const current = getNumericValue();
+    const base = current === '' || isNaN(current) ? (min !== undefined ? min : 0) : current;
+    let next = base - step;
     if (isDecimal) {
       next = Number(next.toFixed(precision));
     }
     if (min !== undefined && next < min) return;
+    setDisplayValue(String(next));
     triggerChange(next);
-  }, [numericVal, min, step, isDecimal, precision, triggerChange]);
+  }, [getNumericValue, min, step, isDecimal, precision, triggerChange]);
 
   // Soporte de mantener pulsado (hold to increment/decrement)
   const startHold = (action) => {
@@ -122,9 +140,19 @@ export default function CustomNumberInput({
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       handleDecrement();
-    } else if (isDecimal && (e.key === '.' || e.key === ',')) {
-      const currentValStr = String(value ?? '');
-      if (currentValStr.includes('.')) {
+    } else if (e.key === '.' || e.key === ',') {
+      if (!isDecimal) {
+        e.preventDefault();
+        return;
+      }
+      const currentValStr = String(displayValue ?? '');
+      const selStart = e.target.selectionStart;
+      const selEnd = e.target.selectionEnd;
+      const hasSelection = selStart !== null && selEnd !== null && selStart !== selEnd;
+      const selectedText = hasSelection ? currentValStr.substring(selStart, selEnd) : '';
+
+      // Si ya contiene punto y no está seleccionando el punto para sobrescribirlo, prevenir
+      if (currentValStr.includes('.') && !selectedText.includes('.')) {
         e.preventDefault();
       }
     } else if (
@@ -137,14 +165,23 @@ export default function CustomNumberInput({
       const selEnd = e.target.selectionEnd;
       const hasSelection = selStart !== null && selEnd !== null && selStart !== selEnd;
       if (!hasSelection) {
-        const currentStr = String(value ?? '');
+        const currentStr = String(displayValue ?? '');
         if (isDecimal) {
-          const parts = currentStr.split('.');
-          const isBeforeDot = selStart !== null && selStart <= (parts[0] || '').length;
-          if (isBeforeDot && (parts[0] || '').length >= maxDigitsLimit) {
-            e.preventDefault();
-          } else if (!isBeforeDot && (parts[1] || '').length >= decimals) {
-            e.preventDefault();
+          const dotIndex = currentStr.indexOf('.');
+          if (dotIndex === -1) {
+            if (currentStr.length >= maxDigitsLimit) {
+              e.preventDefault();
+            }
+          } else {
+            const isBeforeDot = selStart !== null && selStart <= dotIndex;
+            const parts = currentStr.split('.');
+            const intPart = parts[0] || '';
+            const decPart = parts[1] || '';
+            if (isBeforeDot && intPart.length >= maxDigitsLimit) {
+              e.preventDefault();
+            } else if (!isBeforeDot && decPart.length >= decimals) {
+              e.preventDefault();
+            }
           }
         } else {
           const currentDigits = currentStr.replace(/\D/g, '');
@@ -159,25 +196,32 @@ export default function CustomNumberInput({
   const handleInputChange = (e) => {
     let rawVal = e.target.value;
     if (rawVal === '') {
+      setDisplayValue('');
       triggerChange('');
       return;
     }
 
     if (isDecimal) {
-      rawVal = rawVal.replace(',', '.');
+      rawVal = rawVal.replace(/,/g, '.');
+      if (rawVal.startsWith('.')) {
+        rawVal = '0' + rawVal;
+      }
+
       const parts = rawVal.split('.');
       let intPart = (parts[0] || '').replace(/\D/g, '');
       if (intPart.length > maxDigitsLimit) {
         intPart = intPart.slice(0, maxDigitsLimit);
       }
+
       if (parts.length > 1) {
         let decPart = parts.slice(1).join('').replace(/\D/g, '').slice(0, decimals);
-        if (rawVal.endsWith('.') && decPart.length === 0) {
-          triggerChange(`${intPart}.`);
-          return;
-        }
-        triggerChange(`${intPart}.${decPart}`);
+        const formatted = (rawVal.endsWith('.') && decPart.length === 0)
+          ? `${intPart}.`
+          : `${intPart}.${decPart}`;
+        setDisplayValue(formatted);
+        triggerChange(formatted);
       } else {
+        setDisplayValue(intPart);
         triggerChange(intPart);
       }
     } else {
@@ -185,14 +229,47 @@ export default function CustomNumberInput({
       if (digits.length > maxDigitsLimit) {
         digits = digits.slice(0, maxDigitsLimit);
       }
-      const parsed = parseInt(digits, 10);
-      if (!isNaN(parsed)) {
-        triggerChange(parsed);
-      } else {
-        triggerChange('');
-      }
+      setDisplayValue(digits);
+      const parsed = digits !== '' ? parseInt(digits, 10) : '';
+      triggerChange(parsed);
     }
   };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    let trimmed = String(displayValue || '').trim();
+    if (trimmed === '' || trimmed === '.') {
+      setDisplayValue('');
+      triggerChange('');
+      return;
+    }
+
+    if (trimmed.endsWith('.')) {
+      trimmed = trimmed.slice(0, -1);
+    }
+
+    let num = parseFloat(trimmed);
+    if (isNaN(num)) {
+      setDisplayValue('');
+      triggerChange('');
+      return;
+    }
+
+    if (min !== undefined && num < min) num = min;
+    if (effectiveMax !== undefined && num > effectiveMax) num = effectiveMax;
+
+    if (isDecimal) {
+      num = Number(num.toFixed(precision));
+    } else {
+      num = Math.round(num);
+    }
+    setDisplayValue(String(num));
+    triggerChange(num);
+  };
+
+  const currentNumeric = getNumericValue();
+  const isMinReached = min !== undefined && currentNumeric !== '' && !isNaN(currentNumeric) && currentNumeric <= min;
+  const isMaxReached = effectiveMax !== undefined && currentNumeric !== '' && !isNaN(currentNumeric) && currentNumeric >= effectiveMax;
 
   const defaultWidth = isDecimal
     ? (size === 'sm' ? '85px' : size === 'lg' ? '125px' : '105px')
@@ -232,9 +309,6 @@ export default function CustomNumberInput({
     borderRadius: '8px',
     padding: '0 4px',
   };
-
-  const isMinReached = min !== undefined && numericVal !== '' && numericVal <= min;
-  const isMaxReached = effectiveMax !== undefined && numericVal !== '' && numericVal >= effectiveMax;
 
   return (
     <div
@@ -283,11 +357,14 @@ export default function CustomNumberInput({
         inputMode={isDecimal ? "decimal" : "numeric"}
         pattern={isDecimal ? "[0-9]*[.]?[0-9]*" : "[0-9]*"}
         maxLength={isDecimal ? maxDigitsLimit + decimals + 1 : maxDigitsLimit}
-        value={value ?? ''}
+        value={isFocused ? displayValue : (value !== undefined && value !== null && value !== '' ? String(value) : '')}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        onFocus={() => {
+          setIsFocused(true);
+          setDisplayValue(value !== undefined && value !== null && value !== '' ? String(value) : '');
+        }}
+        onBlur={handleBlur}
         disabled={disabled}
         readOnly={readOnly}
         placeholder={placeholder}

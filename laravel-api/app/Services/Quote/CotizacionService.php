@@ -21,6 +21,7 @@ use App\Models\Quote\TrasladoVenta;
 use App\Models\Quote\VehiculoVenta;
 use App\Models\Quote\Venta;
 use App\Models\Quote\VueloVenta;
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -83,7 +84,53 @@ class CotizacionService
             'traslados' => $traslados,
             'vehiculos' => $vehiculos,
             'is_freelancer' => $isFreelancer,
+            'configuracion_cierre' => $this->getConfiguracionCierre(),
         ];
+    }
+
+    /**
+     * Obtiene la configuración global de horario de cierre y limpieza de pestañas.
+     */
+    public function getConfiguracionCierre(): array
+    {
+        $raw = SiteSetting::get('cotizacion_horario_cierre', null);
+        if ($raw) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                return array_merge([
+                    'activo' => false,
+                    'hora' => '18:00',
+                    'dias' => 'todos',
+                    'manual_timestamp' => null,
+                ], $decoded);
+            }
+        }
+        return [
+            'activo' => false,
+            'hora' => '18:00',
+            'dias' => 'todos',
+            'manual_timestamp' => null,
+        ];
+    }
+
+    /**
+     * Guarda la configuración global de horario de cierre y limpieza de pestañas (Admin/Gerente).
+     */
+    public function guardarConfiguracionCierre(array $data): array
+    {
+        $current = $this->getConfiguracionCierre();
+        $updated = [
+            'activo' => isset($data['activo']) ? (bool) $data['activo'] : $current['activo'],
+            'hora' => !empty($data['hora']) ? trim($data['hora']) : $current['hora'],
+            'dias' => in_array($data['dias'] ?? '', ['todos', 'laborales']) ? $data['dias'] : $current['dias'],
+            'manual_timestamp' => !empty($data['forzar_limpieza_ahora'])
+                ? round(microtime(true) * 1000)
+                : ($current['manual_timestamp'] ?? null),
+            'updated_at' => now()->toIso8601String(),
+        ];
+
+        SiteSetting::set('cotizacion_horario_cierre', json_encode($updated));
+        return $updated;
     }
 
     /**

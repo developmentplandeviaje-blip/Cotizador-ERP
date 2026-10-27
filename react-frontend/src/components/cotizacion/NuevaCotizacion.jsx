@@ -5,6 +5,7 @@ import RegistroCotizaciones from './RegistroCotizaciones';
 import imgAgregar from '../../assets/Agregar.svg';
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
 import { showToast } from '../../utils/toast';
+import { ConfigurarHorarioCierreModal } from './modals';
 
 const MAX_TABS = 35;
 
@@ -101,11 +102,172 @@ export default function NuevaCotizacion({ user }) {
         tabs,
         activeTabId,
         nextTabNumber: nextTabNumberRef.current,
+        tabs_updated_at: Date.now(),
       }));
     } catch (err) {
       console.warn('Error persisting tabs:', err);
     }
   }, [storageTabsKey, tabs, activeTabId]);
+
+  // Horario de Cierre y Limpieza de Pestañas (Administración Global)
+  const isAdmin = ['admin', 'gerente'].includes((user?.level || '').toLowerCase());
+  const [configCierre, setConfigCierre] = useState(null);
+  const [showConfigCierreModal, setShowConfigCierreModal] = useState(false);
+
+  const storageCutoffKey = user?.id
+    ? `cotizador_ultimo_cierre_${user.id}`
+    : 'cotizador_ultimo_cierre';
+  const storageManualKey = user?.id
+    ? `cotizador_ultimo_cierre_manual_${user.id}`
+    : 'cotizador_ultimo_cierre_manual';
+
+  // Sincronizar configuración de cierre desde catálogos
+  useEffect(() => {
+    if (catalogos?.configuracion_cierre) {
+      setConfigCierre(catalogos.configuracion_cierre);
+    }
+  }, [catalogos?.configuracion_cierre]);
+
+  // Cargar configuración de cierre directamente al montar
+  useEffect(() => {
+    axios.get('/v1/cotizaciones/configuracion-cierre')
+      .then(res => {
+        if (res.data) setConfigCierre(res.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Función ejecutora de limpieza de pestañas:
+  // Cierra pestañas adicionales, limpia la pestaña restante y reinicia el contador a #1
+  const executeTabsCleanup = useCallback((reason = 'programado') => {
+    // 1. Limpiar todos los borradores en localStorage
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('cotizador_draft_') || key.startsWith('cotizador_open_tabs_') || key === 'cotizador_open_tabs')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+    } catch (err) {
+      console.warn('Error limpiando borradores en localStorage:', err);
+    }
+
+    // 2. Generar nueva pestaña limpia única con número inicial 1
+    const cleanTab = {
+      id: `cotiz_${Date.now()}_1`,
+      initialNumber: 1,
+      clientName: '',
+    };
+
+    // 3. Reiniciar contador a 2 (para que la siguiente creada sea Cotización 2)
+    nextTabNumberRef.current = 2;
+
+    // 4. Actualizar estados locales de NuevaCotizacion
+    setTabs([cleanTab]);
+    setActiveTabId(cleanTab.id);
+    setTabFilter('');
+
+    // 5. Persistir nuevo estado limpio
+    try {
+      localStorage.setItem(storageTabsKey, JSON.stringify({
+        tabs: [cleanTab],
+        activeTabId: cleanTab.id,
+        nextTabNumber: 2,
+        tabs_updated_at: Date.now(),
+      }));
+    } catch {}
+
+    // 6. Notificar al usuario
+    if (reason === 'manual') {
+      showToast('Limpieza de pestañas ejecutada: se cerraron pestañas adicionales, se borraron borradores y el contador se reinició a #1.', 'info');
+    } else {
+      showToast('Horario de cierre alcanzado: se han cerrado y limpiado las pestañas de cotización activas y el contador se reinició a #1.', 'warning');
+    }
+  }, [storageTabsKey]);
+
+  // Evaluador del horario de cierre y limpieza automática
+  const evaluateClosingSchedule = useCallback(() => {
+    if (!configCierre) return;
+
+    // A. Verificación de limpieza manual forzada global
+    if (configCierre.manual_timestamp) {
+      const lastManual = Number(localStorage.getItem(storageManualKey) || 0);
+      if (Number(configCierre.manual_timestamp) > lastManual) {
+        localStorage.setItem(storageManualKey, String(configCierre.manual_timestamp));
+        executeTabsCleanup('manual');
+        return;
+      }
+    }
+
+    // B. Verificación de corte programado
+    if (!configCierre.activo || !configCierre.hora) return;
+
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Dom, 1 = Lun, ..., 6 = Sab
+    if (configCierre.dias === 'laborales' && (dayOfWeek === 0 || dayOfWeek === 6)) {
+      return; // No se ejecuta fines de semana
+    }
+
+    const parts = configCierre.hora.split(':');
+    const targetHour = parseInt(parts[0], 10);
+    const targetMin = parseInt(parts[1], 10);
+    if (isNaN(targetHour) || isNaN(targetMin)) return;
+
+    const todayCutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate(), targetHour, targetMin, 0, 0);
+    const todayCutoffId = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${configCierre.hora}`;
+    const lastExecutedCutoffId = localStorage.getItem(storageCutoffKey);
+
+    // Condición 1: Ya se alcanzó o superó el horario de corte de hoy y hoy no se ha ejecutado
+    if (now >= todayCutoff && lastExecutedCutoffId !== todayCutoffId) {
+      localStorage.setItem(storageCutoffKey, todayCutoffId);
+      executeTabsCleanup('programado');
+      return;
+    }
+
+    // Condición 2: El usuario abre la app antes del corte de hoy, pero quedó pendiente el corte anterior
+    if (now < todayCutoff) {
+      const previousCutoff = new Date(todayCutoff);
+      if (configCierre.dias === 'laborales' && dayOfWeek === 1) {
+        previousCutoff.setDate(previousCutoff.getDate() - 3); // Viernes
+      } else {
+        previousCutoff.setDate(previousCutoff.getDate() - 1); // Ayer
+      }
+      const previousCutoffId = `${previousCutoff.getFullYear()}-${String(previousCutoff.getMonth() + 1).padStart(2, '0')}-${String(previousCutoff.getDate()).padStart(2, '0')}_${configCierre.hora}`;
+
+      if (lastExecutedCutoffId !== previousCutoffId && lastExecutedCutoffId !== todayCutoffId) {
+        localStorage.setItem(storageCutoffKey, previousCutoffId);
+        // Si hay más de 1 pestaña, o nombres de clientes cargados, o contador avanzado
+        if (tabs.length > 1 || tabs.some(t => t.clientName?.trim()) || nextTabNumberRef.current > 2) {
+          executeTabsCleanup('programado');
+        }
+      }
+    }
+  }, [configCierre, executeTabsCleanup, storageCutoffKey, storageManualKey, tabs]);
+
+  // Ejecutar verificación periódica (cada 25 segundos) y al ganar foco
+  useEffect(() => {
+    evaluateClosingSchedule();
+    const interval = setInterval(() => {
+      evaluateClosingSchedule();
+    }, 25000);
+
+    const handleFocusCheck = () => {
+      axios.get('/v1/cotizaciones/configuracion-cierre')
+        .then(res => {
+          if (res.data) setConfigCierre(res.data);
+        })
+        .catch(() => {});
+      evaluateClosingSchedule();
+    };
+
+    window.addEventListener('focus', handleFocusCheck);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocusCheck);
+    };
+  }, [evaluateClosingSchedule]);
 
   // Load catalogs on mount
   useEffect(() => {
@@ -517,10 +679,61 @@ export default function NuevaCotizacion({ user }) {
           flexShrink: 0,
           display: 'flex',
           alignItems: 'center',
+          gap: '8px',
           paddingLeft: '10px',
           borderLeft: '1px solid rgba(255, 255, 255, 0.14)',
         }}
       >
+        {/* Botón de Horario de Cierre para Administrador / Gerente */}
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => setShowConfigCierreModal(true)}
+            title="Configurar horario de cierre y limpieza de pestañas para todos los usuarios"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 10px',
+              background: configCierre?.activo ? 'rgba(232, 114, 23, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+              border: configCierre?.activo ? '1px solid rgba(232, 114, 23, 0.55)' : '1px solid rgba(255, 255, 255, 0.16)',
+              borderRadius: '8px',
+              color: configCierre?.activo ? '#FFA959' : '#CBD5E1',
+              fontSize: '0.8125rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(232, 114, 23, 0.3)';
+              e.currentTarget.style.borderColor = '#E87217';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = configCierre?.activo ? 'rgba(232, 114, 23, 0.2)' : 'rgba(255, 255, 255, 0.08)';
+              e.currentTarget.style.borderColor = configCierre?.activo ? '1px solid rgba(232, 114, 23, 0.55)' : '1px solid rgba(255, 255, 255, 0.16)';
+            }}
+          >
+            <span>🕒</span>
+            <span style={{ fontSize: '0.78rem' }}>Cierre</span>
+            {configCierre?.activo && configCierre?.hora && (
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  background: '#E87217',
+                  color: '#FFFFFF',
+                  padding: '1px 5px',
+                  borderRadius: '4px',
+                  fontWeight: '700',
+                }}
+              >
+                {configCierre.hora}
+              </span>
+            )}
+          </button>
+        )}
+
         <div
           style={{
             display: 'flex',
@@ -654,6 +867,16 @@ export default function NuevaCotizacion({ user }) {
           ))
         )}
       </div>
+      {/* Modal de Configuración de Horario de Cierre (Administrador / Gerente) */}
+      {isAdmin && (
+        <ConfigurarHorarioCierreModal
+          isOpen={showConfigCierreModal}
+          onClose={() => setShowConfigCierreModal(false)}
+          config={configCierre}
+          onConfigSaved={(updated) => setConfigCierre(updated)}
+          onManualCleanup={() => executeTabsCleanup('manual')}
+        />
+      )}
     </div>
   );
 }

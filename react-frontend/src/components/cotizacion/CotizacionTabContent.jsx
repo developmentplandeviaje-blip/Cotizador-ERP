@@ -383,38 +383,168 @@ export default function CotizacionTabContent({
     setReferidoError('');
   };
 
-  // Sync companions count when total pax increases
+  // Helper to get expected categories for companions based on pax counts
+  const getExpectedPaxCategories = useCallback(() => {
+    const categories = [];
+    const remainingAdults = Math.max(0, (pax.adultos || 1) - 1);
+    for (let i = 0; i < remainingAdults; i++) categories.push('adulto');
+    for (let i = 0; i < (pax.adolescentes || 0); i++) categories.push('adolescente');
+    for (let i = 0; i < (pax.ninos || 0); i++) categories.push('nino');
+    for (let i = 0; i < (pax.infantes || 0); i++) categories.push('infante');
+    return categories;
+  }, [pax.adultos, pax.adolescentes, pax.ninos, pax.infantes]);
+
+  // Sync companions count and default categories when pax changes
   useEffect(() => {
     const needed = Math.max(0, totalPax - 1);
+    const expected = getExpectedPaxCategories();
+
     setPasajeros(prev => {
-      if (prev.length === needed) return prev;
-      if (prev.length < needed) {
-        const added = Array.from({ length: needed - prev.length }, (_, i) => ({
-          nombres: '',
-          apellidos: '',
-          documento: '',
-          tipo_documento: 'V',
-        }));
-        return [...prev, ...added];
+      const next = [];
+      for (let i = 0; i < needed; i++) {
+        const existing = prev[i];
+        const category = existing?.tipo_pax || expected[i] || 'adulto';
+
+        let tipoDoc = existing?.tipo_documento;
+        if (category === 'infante') {
+          if (tipoDoc !== 'NAC' && tipoDoc !== 'P') {
+            tipoDoc = 'NAC';
+          }
+        } else if (category === 'nino') {
+          if (!['V', 'E', 'NAC', 'P'].includes(tipoDoc)) {
+            tipoDoc = 'NAC';
+          }
+        } else {
+          if (!['V', 'E', 'P', 'J', 'G'].includes(tipoDoc)) {
+            tipoDoc = 'V';
+          }
+        }
+
+        next.push({
+          nombres: existing?.nombres || '',
+          apellidos: existing?.apellidos || '',
+          documento: existing?.documento || '',
+          tipo_documento: tipoDoc,
+          tipo_pax: category,
+        });
       }
-      return prev.slice(0, needed);
+      return next;
     });
-  }, [totalPax]);
+  }, [totalPax, getExpectedPaxCategories, pax.adultos, pax.adolescentes, pax.ninos, pax.infantes]);
 
   const handleUpdatePasajero = (index, field, val) => {
-    let sanitizedVal = val;
-    if (field === 'documento') {
-      // Cédula de acompañante: máx 12 dígitos, solo números
-      sanitizedVal = val.replace(/\D/g, '').slice(0, 12);
-    } else if (field === 'nombres' || field === 'apellidos') {
-      // Nombres y apellidos: máx 50 caracteres
-      sanitizedVal = val.slice(0, 50);
-    }
     setPasajeros(prev => {
       const copy = [...prev];
-      copy[index] = { ...copy[index], [field]: sanitizedVal };
+      if (!copy[index]) return prev;
+
+      let currentItem = { ...copy[index] };
+
+      if (field === 'tipo_pax') {
+        const newCat = val;
+        let newTipoDoc = currentItem.tipo_documento;
+        let newDoc = currentItem.documento;
+
+        if (newCat === 'infante') {
+          if (newTipoDoc !== 'NAC' && newTipoDoc !== 'P') {
+            newTipoDoc = 'NAC';
+            newDoc = '';
+          }
+        } else if (newCat === 'nino') {
+          if (!['V', 'E', 'NAC', 'P'].includes(newTipoDoc)) {
+            newTipoDoc = 'NAC';
+            newDoc = '';
+          }
+        } else {
+          if (newTipoDoc === 'NAC') {
+            newTipoDoc = 'V';
+            newDoc = '';
+          }
+        }
+
+        currentItem = {
+          ...currentItem,
+          tipo_pax: newCat,
+          tipo_documento: newTipoDoc,
+          documento: newDoc,
+        };
+      } else if (field === 'tipo_documento') {
+        const newTipoDoc = val;
+        const oldTipoDoc = currentItem.tipo_documento;
+        let newDoc = currentItem.documento;
+
+        // Si se cambia entre fecha y documento de texto/número, limpiar el campo
+        if ((oldTipoDoc === 'NAC' && newTipoDoc !== 'NAC') || (oldTipoDoc !== 'NAC' && newTipoDoc === 'NAC')) {
+          newDoc = '';
+        }
+
+        currentItem = {
+          ...currentItem,
+          tipo_documento: newTipoDoc,
+          documento: newDoc,
+        };
+      } else if (field === 'documento') {
+        let sanitizedVal = val;
+        const docType = currentItem.tipo_documento;
+
+        if (docType === 'V' || docType === 'E') {
+          sanitizedVal = val.replace(/\D/g, '').slice(0, 12);
+        } else if (docType === 'P') {
+          sanitizedVal = val.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20);
+        } else if (docType === 'NAC') {
+          sanitizedVal = val.slice(0, 10);
+        }
+
+        currentItem = {
+          ...currentItem,
+          documento: sanitizedVal,
+        };
+      } else if (field === 'nombres' || field === 'apellidos') {
+        currentItem = {
+          ...currentItem,
+          [field]: val.slice(0, 50),
+        };
+      }
+
+      copy[index] = currentItem;
       return copy;
     });
+  };
+
+  const getBirthdateSummary = (birthdateStr) => {
+    if (!birthdateStr) return '';
+    const birth = new Date(birthdateStr);
+    if (isNaN(birth.getTime())) return '';
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    if (now.getDate() < birth.getDate()) {
+      months--;
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    if (years < 0) return '';
+    if (years === 0) {
+      return `${months} ${months === 1 ? 'mes' : 'meses'}`;
+    }
+    return `${years} ${years === 1 ? 'año' : 'años'}`;
+  };
+
+  const calculateAgeYears = (birthdateStr) => {
+    if (!birthdateStr) return 0;
+    const birth = new Date(birthdateStr);
+    if (isNaN(birth.getTime())) return 0;
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    if (now.getDate() < birth.getDate()) {
+      months--;
+    }
+    if (months < 0) {
+      years--;
+    }
+    return Math.max(0, years);
   };
 
   // Unified passenger list for individual/group customization
@@ -424,6 +554,7 @@ export default function CotizacionTabContent({
     list.push({
       id: 0,
       tipo: 'titular',
+      tipo_pax: 'adulto',
       nombre: clientFullName ? `${clientFullName} (Titular)` : 'Cliente Principal (Titular)',
       nombreCorto: clientFullName || 'Cliente Principal',
     });
@@ -431,11 +562,13 @@ export default function CotizacionTabContent({
     for (let idx = 0; idx < needed; idx++) {
       const p = pasajeros[idx];
       const pFullName = p ? `${p.nombres || ''} ${p.apellidos || ''}`.trim() : '';
+      const catLabel = p?.tipo_pax === 'infante' ? 'Infante' : p?.tipo_pax === 'nino' ? 'Niño' : p?.tipo_pax === 'adolescente' ? 'Adolescente' : 'Adulto';
       list.push({
         id: idx + 1,
         tipo: 'acompanante',
-        nombre: pFullName ? `${pFullName} (Acompañante ${idx + 1})` : `Pasajero ${idx + 2} (Acompañante)`,
-        nombreCorto: pFullName || `Pasajero ${idx + 2}`,
+        tipo_pax: p?.tipo_pax || 'adulto',
+        nombre: pFullName ? `${pFullName} (${catLabel} ${idx + 2})` : `Acompañante ${idx + 2} (${catLabel})`,
+        nombreCorto: pFullName || `Acompañante ${idx + 2}`,
       });
     }
     return list;
@@ -471,6 +604,23 @@ export default function CotizacionTabContent({
       }));
     }
   }, [selectedHabitacion]);
+
+  // Limpiar tarifas de categorías cuando la cantidad de pasajeros vuelve a 0
+  useEffect(() => {
+    if (pax.ninos === 0) {
+      setVueloForm(prev => (prev.precio_nino !== 0 ? { ...prev, precio_nino: 0 } : prev));
+      setFerryForm(prev => (prev.precio_nino !== 0 ? { ...prev, precio_nino: 0 } : prev));
+      setExcursionForm(prev => (prev.precio_nino !== 0 ? { ...prev, precio_nino: 0 } : prev));
+      setPaqueteForm(prev => (prev.precio_nino !== 0 ? { ...prev, precio_nino: 0 } : prev));
+    }
+  }, [pax.ninos]);
+
+  useEffect(() => {
+    if (pax.infantes === 0) {
+      setVueloForm(prev => (prev.precio_infante !== 0 ? { ...prev, precio_infante: 0 } : prev));
+      setFerryForm(prev => (prev.precio_infante !== 0 ? { ...prev, precio_infante: 0 } : prev));
+    }
+  }, [pax.infantes]);
 
   // Reset form for product type after adding
   const resetFormForTipo = (tipo) => {
@@ -625,13 +775,16 @@ export default function CotizacionTabContent({
         return null;
       }
       const aeroObj = (catalogos.aerolineas || []).find(a => String(a.id) === String(vueloForm.id_aerolinea)) || {};
-      const totalItem = (pax.adultos * vueloForm.precio_adulto) + (pax.ninos * vueloForm.precio_nino) + (pax.infantes * vueloForm.precio_infante);
+      const precioAd = Number(vueloForm.precio_adulto || 0);
+      const precioNi = Number(vueloForm.precio_nino || 0);
+      const precioInf = Number(vueloForm.precio_infante || 0);
+      const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi) + (pax.infantes * precioInf);
 
       return {
         uid,
         tipo: 'vuelo',
         titulo: `${aeroObj.nombre || 'Aerolínea'} - ${vueloForm.itinerario || 'Ruta'}`,
-        detalle: `Fecha: ${vueloForm.fecha_vuelo || 'Por definir'} • ${pax.adultos} ad, ${pax.ninos} niños, ${pax.infantes} inf`,
+        detalle: `Fecha: ${vueloForm.fecha_vuelo || 'Por definir'} • ${pax.adultos} ad${pax.ninos > 0 ? `, ${pax.ninos} niños` : ''}${pax.infantes > 0 ? `, ${pax.infantes} inf` : ''}`,
         precio: totalItem,
         hotel_item_uid: vueloForm.hotel_item_uid || null,
         data: {
@@ -641,12 +794,12 @@ export default function CotizacionTabContent({
           adultos: pax.adultos,
           ninos: pax.ninos,
           infantes: pax.infantes,
-          precio_adulto: vueloForm.precio_adulto,
-          precio_nino: vueloForm.precio_nino,
-          precio_infante: vueloForm.precio_infante,
-          costo_adulto: vueloForm.costo_adulto,
-          costo_nino: vueloForm.costo_nino,
-          costo_infante: vueloForm.costo_infante,
+          precio_adulto: precioAd,
+          precio_nino: precioNi,
+          precio_infante: precioInf,
+          costo_adulto: Number(vueloForm.costo_adulto || 0),
+          costo_nino: Number(vueloForm.costo_nino || 0),
+          costo_infante: Number(vueloForm.costo_infante || 0),
           hotel_item_uid: vueloForm.hotel_item_uid || null,
         },
       };
@@ -725,7 +878,9 @@ export default function CotizacionTabContent({
         return null;
       }
       const excObj = (catalogos.excursiones || []).find(e => String(e.id) === String(excursionForm.id_excursion)) || {};
-      const totalItem = (pax.adultos * excursionForm.precio_adulto) + (pax.ninos * excursionForm.precio_nino);
+      const precioAd = Number(excursionForm.precio_adulto || 0);
+      const precioNi = Number(excursionForm.precio_nino || 0);
+      const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi);
       return {
         uid,
         tipo: 'excursion',
@@ -739,10 +894,10 @@ export default function CotizacionTabContent({
           adultos: pax.adultos,
           ninos: pax.ninos,
           infantes: pax.infantes,
-          precio_adulto: excursionForm.precio_adulto,
-          precio_nino: excursionForm.precio_nino,
-          costo_adulto: excursionForm.costo_adulto,
-          costo_nino: excursionForm.costo_nino,
+          precio_adulto: precioAd,
+          precio_nino: precioNi,
+          costo_adulto: Number(excursionForm.costo_adulto || 0),
+          costo_nino: Number(excursionForm.costo_nino || 0),
           hotel_item_uid: excursionForm.hotel_item_uid || null,
         },
       };
@@ -754,7 +909,9 @@ export default function CotizacionTabContent({
         return null;
       }
       const paqObj = (catalogos.paquetes || []).find(p => String(p.id) === String(paqueteForm.id_paquete)) || {};
-      const totalItem = (pax.adultos * paqueteForm.precio_adulto) + (pax.ninos * paqueteForm.precio_nino);
+      const precioAd = Number(paqueteForm.precio_adulto || 0);
+      const precioNi = Number(paqueteForm.precio_nino || 0);
+      const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi);
       return {
         uid,
         tipo: 'paquete',
@@ -768,10 +925,10 @@ export default function CotizacionTabContent({
           adultos: pax.adultos,
           ninos: pax.ninos,
           infantes: pax.infantes,
-          precio_adulto: paqueteForm.precio_adulto,
-          precio_nino: paqueteForm.precio_nino,
-          costo_adulto: paqueteForm.costo_adulto,
-          costo_nino: paqueteForm.costo_nino,
+          precio_adulto: precioAd,
+          precio_nino: precioNi,
+          costo_adulto: Number(paqueteForm.costo_adulto || 0),
+          costo_nino: Number(paqueteForm.costo_nino || 0),
           hotel_item_uid: paqueteForm.hotel_item_uid || null,
         },
       };
@@ -810,12 +967,16 @@ export default function CotizacionTabContent({
         if (showErrors) alert('Complete los datos del ferry');
         return null;
       }
-      const totalItem = (pax.adultos * ferryForm.precio_adulto) + (pax.ninos * ferryForm.precio_nino) + (ferryForm.vehiculos * ferryForm.precio_vehiculo);
+      const precioAd = Number(ferryForm.precio_adulto || 0);
+      const precioNi = Number(ferryForm.precio_nino || 0);
+      const precioInf = Number(ferryForm.precio_infante || 0);
+      const precioVeh = Number(ferryForm.precio_vehiculo || 0);
+      const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi) + (pax.infantes * precioInf) + (ferryForm.vehiculos * precioVeh);
       return {
         uid,
         tipo: 'ferry',
         titulo: `${ferryForm.ruta || 'Ruta'} (${ferryForm.clase})`,
-        detalle: `${pax.adultos} adultos(ADL), ${pax.ninos} niños(CHD), ${ferryForm.vehiculos} veh • Itinerario: ${ferryForm.itinerario}`,
+        detalle: `${pax.adultos} adultos(ADL)${pax.ninos > 0 ? `, ${pax.ninos} niños(CHD)` : ''}${pax.infantes > 0 ? `, ${pax.infantes} infantes(INF)` : ''}, ${ferryForm.vehiculos} veh • Itinerario: ${ferryForm.itinerario}`,
         precio: totalItem,
         hotel_item_uid: ferryForm.hotel_item_uid || null,
         data: {
@@ -826,10 +987,10 @@ export default function CotizacionTabContent({
           ninos: pax.ninos,
           infantes: pax.infantes,
           vehiculos: Number(ferryForm.vehiculos),
-          precio_adulto: ferryForm.precio_adulto,
-          precio_nino: ferryForm.precio_nino,
-          precio_infante: ferryForm.precio_infante,
-          precio_vehiculo: ferryForm.precio_vehiculo,
+          precio_adulto: precioAd,
+          precio_nino: precioNi,
+          precio_infante: precioInf,
+          precio_vehiculo: precioVeh,
           hotel_item_uid: ferryForm.hotel_item_uid || null,
         },
       };
@@ -841,12 +1002,13 @@ export default function CotizacionTabContent({
         if (showErrors) alert('Ingrese una descripción o precio del servicio');
         return null;
       }
+      const precioOtro = Number(otroForm.precio || 0);
       return {
         uid,
         tipo: 'otro',
         titulo: `${otroForm.descripcion || 'Servicio Personalizado'}`,
         detalle: `Fecha: ${otroForm.fecha || 'Por definir'}`,
-        precio: Number(otroForm.precio || 0),
+        precio: precioOtro,
         hotel_item_uid: otroForm.hotel_item_uid || null,
         data: {
           descripcion: otroForm.descripcion,
@@ -1167,6 +1329,7 @@ export default function CotizacionTabContent({
           (ferryForm.itinerario && ferryForm.itinerario.trim() !== '') ||
           Number(ferryForm.precio_adulto) > 0 ||
           Number(ferryForm.precio_nino) > 0 ||
+          Number(ferryForm.precio_infante) > 0 ||
           Number(ferryForm.vehiculos) > 0
         );
       case 'otro':
@@ -1324,7 +1487,10 @@ export default function CotizacionTabContent({
         telefono: cliente.telefono,
         correo: cliente.correo,
       },
-      pasajeros: pasajeros.filter(p => p.nombres.trim()),
+      pasajeros: pasajeros.filter(p => p.nombres.trim()).map(p => ({
+        ...p,
+        edad: p.tipo_documento === 'NAC' ? calculateAgeYears(p.documento) : Number(p.edad || 0),
+      })),
       id_referidos: referidoData ? referidoData.id : null,
       checkin: fechasViaje.checkin,
       checkout: fechasViaje.checkout,
@@ -1842,69 +2008,167 @@ export default function CotizacionTabContent({
             gap: '14px',
             width: '100%',
           }}>
-            {pasajeros.map((p, idx) => (
-              <div
-                key={idx}
-                style={{
-                  background: 'rgba(255,255,250, 0.03)',
-                  padding: '14px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(255,255,255,0.18)',
-                  width: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <span style={{ fontSize: '0.8rem', color: '#E87217', fontWeight: '600', display: 'block', marginBottom: '8px' }}>
-                  Acompañante #{idx + 2}
-                </span>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                  <input
-                    type="text"
-                    placeholder="Nombres"
-                    value={p.nombres}
-                    onChange={e => handleUpdatePasajero(idx, 'nombres', e.target.value)}
-                    maxLength={35}
-                    className='erp-input'
-                    style={{ flex: 1 }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Apellidos"
-                    value={p.apellidos}
-                    onChange={e => handleUpdatePasajero(idx, 'apellidos', e.target.value)}
-                    maxLength={25}
-                    className='erp-input'
-                    style={{ flex: 1 }}
-                  />
+            {pasajeros.map((p, idx) => {
+              const tipoPax = p.tipo_pax || 'adulto';
+              const isInfante = tipoPax === 'infante';
+              const isNino = tipoPax === 'nino';
+              const isDateDoc = p.tipo_documento === 'NAC';
+
+              const badgeColor = isInfante
+                ? { bg: 'rgba(56, 189, 248, 0.15)', text: '#38BDF8', border: 'rgba(56, 189, 248, 0.35)' }
+                : isNino
+                  ? { bg: 'rgba(234, 179, 8, 0.15)', text: '#EAB308', border: 'rgba(234, 179, 8, 0.35)' }
+                  : tipoPax === 'adolescente'
+                    ? { bg: 'rgba(168, 85, 247, 0.15)', text: '#C084FC', border: 'rgba(168, 85, 247, 0.35)' }
+                    : { bg: 'rgba(255, 255, 255, 0.08)', text: '#94A3B8', border: 'rgba(255, 255, 255, 0.15)' };
+
+              const categoryLabel = isInfante ? 'Infante' : isNino ? 'Niño' : tipoPax === 'adolescente' ? 'Adolescente' : 'Adulto';
+              const ageSummary = isDateDoc && p.documento ? getBirthdateSummary(p.documento) : '';
+
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    background: 'rgba(255,255,250, 0.03)',
+                    padding: '14px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.18)',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.8rem', color: '#E87217', fontWeight: '600' }}>
+                        Acompañante #{idx + 2}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '0.68rem',
+                          fontWeight: '700',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          background: badgeColor.bg,
+                          color: badgeColor.text,
+                          border: `1px solid ${badgeColor.border}`,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.4px',
+                        }}
+                      >
+                        {categoryLabel}
+                      </span>
+                      {ageSummary && (
+                        <span style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: '600' }}>
+                          ({ageSummary})
+                        </span>
+                      )}
+                    </div>
+
+                    {(pax.ninos > 0 || pax.infantes > 0 || pax.adolescentes > 0) && (
+                      <select
+                        value={tipoPax}
+                        onChange={e => handleUpdatePasajero(idx, 'tipo_pax', e.target.value)}
+                        style={{
+                          fontSize: '0.72rem',
+                          padding: '2px 6px',
+                          borderRadius: '6px',
+                          background: 'rgba(16, 28, 68, 0.95)',
+                          border: '1px solid rgba(232, 114, 23, 0.4)',
+                          color: '#FFF',
+                          fontWeight: '600',
+                          outline: 'none',
+                          cursor: 'pointer',
+                        }}
+                        title="Cambiar categoría de este pasajero"
+                      >
+                        <option value="adulto">Adulto</option>
+                        {pax.adolescentes > 0 && <option value="adolescente">Adolescente</option>}
+                        {pax.ninos > 0 && <option value="nino">Niño</option>}
+                        {pax.infantes > 0 && <option value="infante">Infante</option>}
+                      </select>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                    <input
+                      type="text"
+                      placeholder="Nombres"
+                      value={p.nombres}
+                      onChange={e => handleUpdatePasajero(idx, 'nombres', e.target.value)}
+                      maxLength={35}
+                      className='erp-input'
+                      style={{ flex: 1 }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Apellidos"
+                      value={p.apellidos}
+                      onChange={e => handleUpdatePasajero(idx, 'apellidos', e.target.value)}
+                      maxLength={25}
+                      className='erp-input'
+                      style={{ flex: 1 }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <CustomSelect
+                      value={p.tipo_documento}
+                      onChange={e => handleUpdatePasajero(idx, 'tipo_documento', e.target.value)}
+                      style={{
+                        width: (isInfante || isNino) ? '112px' : '75px',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {isInfante ? (
+                        <>
+                          <option value="NAC">Fec. Nac.</option>
+                          <option value="P">P-</option>
+                        </>
+                      ) : isNino ? (
+                        <>
+                          <option value="V">V-</option>
+                          <option value="E">E-</option>
+                          <option value="NAC">Fec. Nac.</option>
+                          <option value="P">P-</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="V">V-</option>
+                          <option value="E">E-</option>
+                          <option value="J">J-</option>
+                          <option value="P">P-</option>
+                          <option value="G">G-</option>
+                        </>
+                      )}
+                    </CustomSelect>
+
+                    {isDateDoc ? (
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <CustomDatePicker
+                          type="date"
+                          value={p.documento}
+                          onChange={e => handleUpdatePasajero(idx, 'documento', e.target.value)}
+                          placeholder="Fecha de Nacimiento"
+                          max={new Date().toISOString().split('T')[0]}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder={p.tipo_documento === 'P' ? 'N° Pasaporte' : 'Cédula / Documento'}
+                        value={p.documento}
+                        onChange={e => handleUpdatePasajero(idx, 'documento', e.target.value)}
+                        maxLength={p.tipo_documento === 'P' ? 20 : 12}
+                        inputMode={p.tipo_documento === 'P' ? 'text' : 'numeric'}
+                        className='erp-input'
+                        style={{ flex: 1 }}
+                      />
+                    )}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <CustomSelect
-                    value={p.tipo_documento}
-                    onChange={e => handleUpdatePasajero(idx, 'tipo_documento', e.target.value)}
-                    style={{
-                      width: '80px',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <option value="V">V-</option>
-                    <option value="E">E-</option>
-                    <option value="J">J-</option>
-                    <option value="P">P-</option>
-                    <option value="G">G-</option>
-                  </CustomSelect>
-                  <input
-                    type="text"
-                    placeholder="Cédula / Documento"
-                    value={p.documento}
-                    onChange={e => handleUpdatePasajero(idx, 'documento', e.target.value)}
-                    maxLength={12}
-                    inputMode="numeric"
-                    className='erp-input'
-                    style={{ flex: 1 }}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -2356,6 +2620,40 @@ export default function CotizacionTabContent({
                 </div>
               </div>
 
+              {pax.ninos > 0 && (
+                <div>
+                  <label className='erp-label'>Tarifa Niño ($)</label>
+                  <div style={{ display: 'flex' }}>
+                    <CustomNumberInput
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      width="115px"
+                      value={vueloForm.precio_nino}
+                      onChange={e => setVueloForm({ ...vueloForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {pax.infantes > 0 && (
+                <div>
+                  <label className='erp-label'>Tarifa Infante ($)</label>
+                  <div style={{ display: 'flex' }}>
+                    <CustomNumberInput
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      width="115px"
+                      value={vueloForm.precio_infante}
+                      onChange={e => setVueloForm({ ...vueloForm, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
                 {renderTabActionButtons('vuelo', 'Vuelo')}
               </div>
@@ -2652,6 +2950,38 @@ export default function CotizacionTabContent({
                 />
               </div>
 
+              <div>
+                <label className='erp-label'>Tarifa Adulto ($)</label>
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={excursionForm.precio_adulto}
+                    onChange={e => setExcursionForm({ ...excursionForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
+              </div>
+
+              {pax.ninos > 0 && (
+                <div>
+                  <label className='erp-label'>Tarifa Niño ($)</label>
+                  <div style={{ display: 'flex' }}>
+                    <CustomNumberInput
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      width="115px"
+                      value={excursionForm.precio_nino}
+                      onChange={e => setExcursionForm({ ...excursionForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
                 {renderTabActionButtons('excursion', 'Excursión')}
               </div>
@@ -2690,6 +3020,38 @@ export default function CotizacionTabContent({
                   onChange={e => setPaqueteForm({ ...paqueteForm, fecha: e.target.value })}
                 />
               </div>
+
+              <div>
+                <label className='erp-label'>Tarifa Adulto ($)</label>
+                <div style={{ display: 'flex' }}>
+                  <CustomNumberInput
+                    step={0.01}
+                    min={0}
+                    max={99999.99}
+                    allowDecimals
+                    width="115px"
+                    value={paqueteForm.precio_adulto}
+                    onChange={e => setPaqueteForm({ ...paqueteForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
+              </div>
+
+              {pax.ninos > 0 && (
+                <div>
+                  <label className='erp-label'>Tarifa Niño ($)</label>
+                  <div style={{ display: 'flex' }}>
+                    <CustomNumberInput
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      width="115px"
+                      value={paqueteForm.precio_nino}
+                      onChange={e => setPaqueteForm({ ...paqueteForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
                 {renderTabActionButtons('paquete', 'Paquete')}
@@ -2764,6 +3126,40 @@ export default function CotizacionTabContent({
                   />
                 </div>
               </div>
+
+              {pax.ninos > 0 && (
+                <div>
+                  <label className='erp-label'>Tarifa Niño ($)</label>
+                  <div style={{ display: 'flex' }}>
+                    <CustomNumberInput
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      width="115px"
+                      value={ferryForm.precio_nino}
+                      onChange={e => setFerryForm({ ...ferryForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {pax.infantes > 0 && (
+                <div>
+                  <label className='erp-label'>Tarifa Infante ($)</label>
+                  <div style={{ display: 'flex' }}>
+                    <CustomNumberInput
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      width="115px"
+                      value={ferryForm.precio_infante}
+                      onChange={e => setFerryForm({ ...ferryForm, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className='erp-label'>Vehículos adicionales ($)</label>

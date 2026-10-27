@@ -127,5 +127,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/cotizaciones/cliente/{documento}', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@buscarCliente');
     Route::post('/v1/cotizaciones', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@store');
     Route::post('/v1/cotizaciones/rapida', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@storeRapida');
+    Route::get('/v1/cotizaciones/configuracion-cierre', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@getConfiguracionCierre');
+    Route::post('/v1/cotizaciones/configuracion-cierre', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@guardarConfiguracionCierre');
 });
 
