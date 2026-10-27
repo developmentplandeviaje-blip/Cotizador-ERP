@@ -152,22 +152,8 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
             padding: '14px 18px',
           }}
         >
-          <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>Total Cotizaciones</span>
-          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#FFFFFF', marginTop: '4px' }}>
-            {totalCotizaciones}
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: 'rgb(6, 18, 81)',
-            border: '1px solid rgba(255, 255, 255, 0.18)',
-            borderRadius: '12px',
-            padding: '14px 18px',
-          }}
-        >
-          <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>Cotizaciones Formales</span>
-          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'rgb(232, 114, 23)', marginTop: '4px' }}>
+          <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>Cotizaciones Fichadas</span>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'rgb(0 211 77)', marginTop: '4px' }}>
             {totalFormales}
           </div>
         </div>
@@ -194,11 +180,25 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
             padding: '14px 18px',
           }}
         >
+          <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>Total Cotizaciones</span>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#FFFFFF', marginTop: '4px' }}>
+            {totalCotizaciones}
+          </div>
+        </div>
+
+        {/*<div
+          style={{
+            background: 'rgb(6, 18, 81)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            borderRadius: '12px',
+            padding: '14px 18px',
+          }}
+        >
           <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>Monto Total Cotizado</span>
           <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'rgb(0 211 77)', marginTop: '4px' }}>
             ${montoTotalCotizado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
           </div>
-        </div>
+        </div>*/}
       </div>
 
       {/* Filter and Search Bar (Image 1 Style) */}

@@ -12,6 +12,7 @@ export default function EditarProductoModal({
   item,
   catalogos = {},
   allPassengers = [],
+  registeredHotels = [],
   onClose,
   onSave,
 }) {
@@ -35,6 +36,7 @@ export default function EditarProductoModal({
       setFormData({
         ...item.data,
         precio: item.precio || 0,
+        hotel_item_uid: item.hotel_item_uid || item.data?.hotel_item_uid || '',
         tipo_asignacion: initialTipoAsignacion,
         pax_individual_id: item.data.pax_individual_id ?? 0,
         pax_seleccionados: item.data.pax_seleccionados || (allPassengers.length > 0 ? [allPassengers[0].id] : []),
@@ -208,7 +210,11 @@ export default function EditarProductoModal({
       titulo: updatedTitulo,
       detalle: updatedDetalle,
       precio: totalCalculado,
-      data: finalData,
+      hotel_item_uid: tipo === 'hotel' ? item.hotel_item_uid : (formData.hotel_item_uid || null),
+      data: {
+        ...finalData,
+        hotel_item_uid: tipo === 'hotel' ? item.data?.hotel_item_uid : (formData.hotel_item_uid || null),
+      },
     };
 
     onSave(updatedItem);
@@ -234,6 +240,30 @@ export default function EditarProductoModal({
             ${totalCalculado.toFixed(2)} USD
           </span>
         </div>
+
+        {/* Agrupación a Hotel Registrado (si no es hotel) */}
+        {tipo !== 'hotel' && registeredHotels.length > 0 && (
+          <div style={{
+            background: 'rgba(232, 114, 23, 0.08)',
+            border: '1px solid rgba(232, 114, 23, 0.3)',
+            borderRadius: '10px',
+            padding: '12px 14px',
+          }}>
+            <label className="erp-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#E87217', marginBottom: '6px' }}>
+              <span>🏨</span> Agrupar este producto a un Hotel Registrado:
+            </label>
+            <CustomSelect
+              value={formData.hotel_item_uid || ''}
+              onChange={e => setFormData({ ...formData, hotel_item_uid: e.target.value || null })}
+              className="erp-select"
+            >
+              <option value="">Ninguno (Servicio General / Sin Hotel)</option>
+              {registeredHotels.map(h => (
+                <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+              ))}
+            </CustomSelect>
+          </div>
+        )}
 
         {/* ==================== FORMULARIO HOTEL ==================== */}
         {tipo === 'hotel' && (

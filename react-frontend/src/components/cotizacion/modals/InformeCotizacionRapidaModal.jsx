@@ -159,6 +159,37 @@ export default function InformeCotizacionRapidaModal({
 
   // Handler para copiar a WhatsApp
   const handleCopyWhatsApp = () => {
+    const hotelItems = items.filter(it => it.tipo === 'hotel');
+    const hasHotels = hotelItems.length > 0;
+
+    let serviciosFormatted = '';
+    if (hasHotels) {
+      hotelItems.forEach(h => {
+        const grouped = items.filter(it => it.tipo !== 'hotel' && it.hotel_item_uid === h.uid);
+        serviciosFormatted += `🏨 *HOTEL: ${h.titulo}*\n`;
+        serviciosFormatted += `   • Tarifa base: $${Number(h.precio || 0).toFixed(2)} USD (${h.detalle})\n`;
+        if (grouped.length > 0) {
+          grouped.forEach(g => {
+            serviciosFormatted += `   ↳ [${(g.tipo || 'Servicio').toUpperCase()}] *${g.titulo}*: ${g.detalle} - $${Number(g.precio || 0).toFixed(2)} USD\n`;
+          });
+          const subtotalHotel = Number(h.precio || 0) + grouped.reduce((sum, g) => sum + Number(g.precio || 0), 0);
+          serviciosFormatted += `   💰 *Subtotal Paquete Hotel:* $${subtotalHotel.toFixed(2)} USD\n\n`;
+        } else {
+          serviciosFormatted += '\n';
+        }
+      });
+
+      const unassigned = items.filter(it => it.tipo !== 'hotel' && (!it.hotel_item_uid || !hotelItems.some(h => h.uid === it.hotel_item_uid)));
+      if (unassigned.length > 0) {
+        serviciosFormatted += `🌐 *SERVICIOS GENERALES:*\n`;
+        unassigned.forEach(it => {
+          serviciosFormatted += `• [${(it.tipo || 'Servicio').toUpperCase()}] *${it.titulo}*: ${it.detalle} - $${Number(it.precio || 0).toFixed(2)} USD\n`;
+        });
+      }
+    } else {
+      serviciosFormatted = items.map(it => `• *${it.titulo}*: ${it.detalle} - $${Number(it.precio || 0).toFixed(2)} USD`).join('\n');
+    }
+
     const text = `🛫 *COTIZACIÓN RÁPIDA - PLAN DE VIAJE* 🏖️
 *Localizador:* ${localizador}
 *Fecha:* ${new Date(fechaEmision).toLocaleDateString()}
@@ -169,7 +200,7 @@ export default function InformeCotizacionRapidaModal({
 ${clienteDoc ? `• *Documento:* ${clienteDoc}\n` : ''}${clienteTelefono ? `• *Teléfono:* ${clienteTelefono}\n` : ''}${checkin ? `• *Fechas de Viaje:* ${checkin} al ${checkout} (${noches} noches)\n` : ''}• *Pasajeros:* ${paxTotal} Pax (${paxAdultos} adultos${paxNinos > 0 ? `, ${paxNinos} niños` : ''})
 
 *SERVICIOS COTIZADOS:*
-${items.map(it => `• *${it.titulo}*: ${it.detalle} - $${Number(it.precio || 0).toFixed(2)} USD`).join('\n')}
+${serviciosFormatted.trim()}
 
 *RESUMEN FINANCIERO:*
 ${descuentoUSD > 0 ? `• Descuento: -$${descuentoUSD.toFixed(2)} USD\n` : ''}• *TOTAL:* $${totalUSD.toFixed(2)} USD
@@ -540,6 +571,156 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
               {items.length === 0 ? (
                 <div style={{ padding: '16px', textAlign: 'center', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', color: '#64748B' }}>
                   No se registraron productos desglosados en esta cotización.
+                </div>
+              ) : items.some(it => it.tipo === 'hotel') ? (
+                /* VISTA CON HOTELES Y PRODUCTOS AGRUPADOS */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {items.filter(it => it.tipo === 'hotel').map((hotelItem, hIdx) => {
+                    const groupedServices = items.filter(it => it.tipo !== 'hotel' && it.hotel_item_uid === hotelItem.uid);
+                    const subtotalHotel = Number(hotelItem.precio || 0) + groupedServices.reduce((sum, g) => sum + Number(g.precio || 0), 0);
+
+                    return (
+                      <div
+                        key={hotelItem.uid || hIdx}
+                        style={{
+                          border: '1px solid #CBD5E1',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {/* Hotel Header Bar */}
+                        <div
+                          style={{
+                            background: '#F1F5F9',
+                            borderBottom: '1px solid #CBD5E1',
+                            padding: '8px 12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '1.1rem' }}>🏨</span>
+                            <div>
+                              <strong style={{ color: '#0F172A', fontSize: '0.9rem' }}>{hotelItem.titulo}</strong>
+                              <span style={{ color: '#64748B', fontSize: '0.78rem', marginLeft: '8px' }}>
+                                ({hotelItem.detalle})
+                              </span>
+                            </div>
+                          </div>
+                          <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.9rem' }}>
+                            Subtotal Paquete: <span style={{ color: '#059669' }}>${subtotalHotel.toFixed(2)} USD</span>
+                          </div>
+                        </div>
+
+                        {/* Items Table for this hotel */}
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                          <thead>
+                            <tr style={{ background: '#F8FAFC', color: '#475569', textAlign: 'left', borderBottom: '1px solid #E2E8F0' }}>
+                              <th style={{ padding: '6px 12px' }}>Servicio</th>
+                              <th style={{ padding: '6px 12px' }}>Descripción / Especificación</th>
+                              <th style={{ padding: '6px 12px', textAlign: 'right' }}>Total (USD)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {/* Base Hotel Row */}
+                            <tr style={{ borderBottom: '1px solid #E2E8F0', background: '#FFFFFF' }}>
+                              <td style={{ padding: '8px 12px', fontWeight: '600', color: '#0F172A' }}>
+                                <span style={{ color: '#E87217', marginRight: '6px' }}>[Hotel Base]</span>
+                                {hotelItem.titulo}
+                              </td>
+                              <td style={{ padding: '8px 12px', color: '#475569' }}>
+                                {hotelItem.detalle || 'Alojamiento'}
+                              </td>
+                              <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: '700', color: '#0F172A', whiteSpace: 'nowrap' }}>
+                                ${Number(hotelItem.precio || 0).toFixed(2)}
+                              </td>
+                            </tr>
+                            {/* Grouped Services Rows */}
+                            {groupedServices.map((gItem, gIdx) => (
+                              <tr key={gItem.uid || gIdx} style={{ borderBottom: '1px solid #E2E8F0', background: '#FAFAFA' }}>
+                                <td style={{ padding: '8px 12px', paddingLeft: '24px', fontWeight: '600', color: '#0F172A' }}>
+                                  <span style={{ color: '#3B82F6', marginRight: '6px' }}>↳ [{gItem.tipo || 'Servicio'}]</span>
+                                  {gItem.titulo}
+                                </td>
+                                <td style={{ padding: '8px 12px', color: '#475569' }}>
+                                  {gItem.detalle || '-'}
+                                </td>
+                                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: '700', color: '#0F172A', whiteSpace: 'nowrap' }}>
+                                  ${Number(gItem.precio || 0).toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })}
+
+                  {/* General / Unassigned Services */}
+                  {(() => {
+                    const registeredHotelUids = items.filter(it => it.tipo === 'hotel').map(h => h.uid);
+                    const unassignedServices = items.filter(it => it.tipo !== 'hotel' && (!it.hotel_item_uid || !registeredHotelUids.includes(it.hotel_item_uid)));
+                    if (unassignedServices.length === 0) return null;
+                    const subtotalGen = unassignedServices.reduce((sum, u) => sum + Number(u.precio || 0), 0);
+
+                    return (
+                      <div
+                        style={{
+                          border: '1px solid #CBD5E1',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            background: '#F1F5F9',
+                            borderBottom: '1px solid #CBD5E1',
+                            padding: '8px 12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '1.1rem' }}>🌐</span>
+                            <strong style={{ color: '#0F172A', fontSize: '0.9rem' }}>Servicios Generales / Adicionales</strong>
+                          </div>
+                          <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.9rem' }}>
+                            Subtotal: <span style={{ color: '#2563EB' }}>${subtotalGen.toFixed(2)} USD</span>
+                          </div>
+                        </div>
+
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                          <thead>
+                            <tr style={{ background: '#F8FAFC', color: '#475569', textAlign: 'left', borderBottom: '1px solid #E2E8F0' }}>
+                              <th style={{ padding: '6px 12px' }}>Servicio</th>
+                              <th style={{ padding: '6px 12px' }}>Descripción / Especificación</th>
+                              <th style={{ padding: '6px 12px', textAlign: 'right' }}>Total (USD)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {unassignedServices.map((uItem, uIdx) => (
+                              <tr key={uItem.uid || uIdx} style={{ borderBottom: '1px solid #E2E8F0', background: '#FFFFFF' }}>
+                                <td style={{ padding: '8px 12px', fontWeight: '600', color: '#0F172A' }}>
+                                  <span style={{ textTransform: 'capitalize', color: '#E87217', marginRight: '6px' }}>
+                                    [{uItem.tipo || 'Servicio'}]
+                                  </span>
+                                  {uItem.titulo}
+                                </td>
+                                <td style={{ padding: '8px 12px', color: '#475569' }}>
+                                  {uItem.detalle || '-'}
+                                </td>
+                                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: '700', color: '#0F172A', whiteSpace: 'nowrap' }}>
+                                  ${Number(uItem.precio || 0).toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })()}
                 </div>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>

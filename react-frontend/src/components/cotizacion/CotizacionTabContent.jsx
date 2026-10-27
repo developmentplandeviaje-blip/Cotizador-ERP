@@ -21,6 +21,7 @@ import {
   EliminarProductoModal,
   VaciarProductosModal,
   InformeCotizacionRapidaModal,
+  AgruparProductosHotelModal,
 } from './modals';
 
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
@@ -106,6 +107,13 @@ export default function CotizacionTabContent({
   // Cart / Added Items
   const [items, setItems] = useState(() => initialDraft?.items || []);
 
+  // Modal para agrupar productos a un hotel registrado
+  const [hotelToGroup, setHotelToGroup] = useState(null);
+  const [viewMode, setViewMode] = useState('agrupado'); // 'agrupado' | 'plano'
+
+  // Hoteles registrados actualmente en la cotización
+  const registeredHotels = useMemo(() => items.filter(it => it.tipo === 'hotel'), [items]);
+
   // Active Service Tab for adding items
   const [activeTab, setActiveTab] = useState(() => initialDraft?.activeTab || 'hotel');
 
@@ -133,6 +141,7 @@ export default function CotizacionTabContent({
     costo_adulto: 0,
     costo_nino: 0,
     costo_infante: 0,
+    hotel_item_uid: initialDraft?.vueloForm?.hotel_item_uid || '',
   });
 
   const [trasladoForm, setTrasladoForm] = useState(() => initialDraft?.trasladoForm || {
@@ -144,6 +153,7 @@ export default function CotizacionTabContent({
     tipo_asignacion: 'todos', // 'todos' | 'individual' | 'grupo'
     pax_individual_id: 0,
     pax_seleccionados: [],
+    hotel_item_uid: initialDraft?.trasladoForm?.hotel_item_uid || '',
   });
 
   const [excursionForm, setExcursionForm] = useState(() => initialDraft?.excursionForm || {
@@ -153,6 +163,7 @@ export default function CotizacionTabContent({
     precio_nino: 0,
     costo_adulto: 0,
     costo_nino: 0,
+    hotel_item_uid: initialDraft?.excursionForm?.hotel_item_uid || '',
   });
 
   const [paqueteForm, setPaqueteForm] = useState(() => initialDraft?.paqueteForm || {
@@ -162,6 +173,7 @@ export default function CotizacionTabContent({
     precio_nino: 0,
     costo_adulto: 0,
     costo_nino: 0,
+    hotel_item_uid: initialDraft?.paqueteForm?.hotel_item_uid || '',
   });
 
   const [vehiculoForm, setVehiculoForm] = useState(() => initialDraft?.vehiculoForm || {
@@ -172,6 +184,7 @@ export default function CotizacionTabContent({
     precio_unitario: 0,
     costo: 0,
     observacion: '',
+    hotel_item_uid: initialDraft?.vehiculoForm?.hotel_item_uid || '',
   });
 
   const [ferryForm, setFerryForm] = useState(() => initialDraft?.ferryForm || {
@@ -183,6 +196,7 @@ export default function CotizacionTabContent({
     precio_nino: 0,
     precio_infante: 0,
     precio_vehiculo: 0,
+    hotel_item_uid: initialDraft?.ferryForm?.hotel_item_uid || '',
   });
 
   const [otroForm, setOtroForm] = useState(() => initialDraft?.otroForm || {
@@ -190,6 +204,7 @@ export default function CotizacionTabContent({
     fecha: '',
     costo: 0,
     precio: 0,
+    hotel_item_uid: initialDraft?.otroForm?.hotel_item_uid || '',
   });
 
   // Installment Plan
@@ -483,6 +498,7 @@ export default function CotizacionTabContent({
           costo_adulto: 0,
           costo_nino: 0,
           costo_infante: 0,
+          hotel_item_uid: '',
         });
         break;
       case 'traslado':
@@ -495,6 +511,7 @@ export default function CotizacionTabContent({
           tipo_asignacion: 'todos',
           pax_individual_id: 0,
           pax_seleccionados: [],
+          hotel_item_uid: '',
         });
         break;
       case 'excursion':
@@ -505,6 +522,7 @@ export default function CotizacionTabContent({
           precio_nino: 0,
           costo_adulto: 0,
           costo_nino: 0,
+          hotel_item_uid: '',
         });
         break;
       case 'paquete':
@@ -515,6 +533,7 @@ export default function CotizacionTabContent({
           precio_nino: 0,
           costo_adulto: 0,
           costo_nino: 0,
+          hotel_item_uid: '',
         });
         break;
       case 'vehiculo':
@@ -526,6 +545,7 @@ export default function CotizacionTabContent({
           precio_unitario: 0,
           costo: 0,
           observacion: '',
+          hotel_item_uid: '',
         });
         break;
       case 'ferry':
@@ -538,6 +558,7 @@ export default function CotizacionTabContent({
           precio_nino: 0,
           precio_infante: 0,
           precio_vehiculo: 0,
+          hotel_item_uid: '',
         });
         break;
       case 'otro':
@@ -546,6 +567,7 @@ export default function CotizacionTabContent({
           fecha: '',
           costo: 0,
           precio: 0,
+          hotel_item_uid: '',
         });
         break;
       default:
@@ -573,7 +595,7 @@ export default function CotizacionTabContent({
         uid,
         tipo: 'hotel',
         titulo: `${hotelObj.nombre || 'Hotel'} (${habObj.habitacion || 'Habitación'})`,
-        detalle: `${hotelForm.noches} noches • ${pax.adultos} adultos, ${pax.adolescentes} adol, ${pax.ninos} niños`,
+        detalle: `${hotelForm.noches} noches • ${pax.adultos} adultos(ADL), ${pax.adolescentes} adolescentes(YNG), ${pax.ninos} niños(CHD)`,
         precio: totalItem,
         data: {
           id_hotel: Number(hotelForm.id_hotel),
@@ -609,6 +631,7 @@ export default function CotizacionTabContent({
         titulo: `${aeroObj.nombre || 'Aerolínea'} - ${vueloForm.itinerario || 'Ruta'}`,
         detalle: `Fecha: ${vueloForm.fecha_vuelo || 'Por definir'} • ${pax.adultos} ad, ${pax.ninos} niños, ${pax.infantes} inf`,
         precio: totalItem,
+        hotel_item_uid: vueloForm.hotel_item_uid || null,
         data: {
           id_aerolinea: Number(vueloForm.id_aerolinea),
           itinerario: vueloForm.itinerario,
@@ -622,6 +645,7 @@ export default function CotizacionTabContent({
           costo_adulto: vueloForm.costo_adulto,
           costo_nino: vueloForm.costo_nino,
           costo_infante: vueloForm.costo_infante,
+          hotel_item_uid: vueloForm.hotel_item_uid || null,
         },
       };
     }
@@ -674,6 +698,7 @@ export default function CotizacionTabContent({
         titulo,
         detalle: `Fecha: ${trasladoForm.fecha_traslado || 'Por definir'} • ${detallePax}${obsBase ? ` • Obs: ${obsBase}` : ''}`,
         precio: Number(trasladoForm.precio || trasObj.precio_publico || 0),
+        hotel_item_uid: trasladoForm.hotel_item_uid || null,
         data: {
           id_traslado: Number(trasladoForm.id_traslado || 1),
           fecha_traslado: trasladoForm.fecha_traslado,
@@ -687,6 +712,7 @@ export default function CotizacionTabContent({
           tipo_asignacion: totalPax > 1 ? trasladoForm.tipo_asignacion : 'todos',
           pax_individual_id: trasladoForm.pax_individual_id,
           pax_seleccionados: trasladoForm.pax_seleccionados,
+          hotel_item_uid: trasladoForm.hotel_item_uid || null,
         },
       };
     }
@@ -702,8 +728,9 @@ export default function CotizacionTabContent({
         uid,
         tipo: 'excursion',
         titulo: `${excObj.tipo_excursion || 'Excursión'}`,
-        detalle: `Fecha: ${excursionForm.fecha || 'Por definir'} • ${pax.adultos} ad, ${pax.ninos} niños`,
+        detalle: `Fecha: ${excursionForm.fecha || 'Por definir'} • ${pax.adultos} adultos(ADL), ${pax.ninos} niños(CHD)`,
         precio: totalItem,
+        hotel_item_uid: excursionForm.hotel_item_uid || null,
         data: {
           id_excursion: Number(excursionForm.id_excursion),
           fecha: excursionForm.fecha,
@@ -714,6 +741,7 @@ export default function CotizacionTabContent({
           precio_nino: excursionForm.precio_nino,
           costo_adulto: excursionForm.costo_adulto,
           costo_nino: excursionForm.costo_nino,
+          hotel_item_uid: excursionForm.hotel_item_uid || null,
         },
       };
     }
@@ -729,8 +757,9 @@ export default function CotizacionTabContent({
         uid,
         tipo: 'paquete',
         titulo: `${paqObj.paquete || 'Paquete Turístico'}`,
-        detalle: `Fecha: ${paqueteForm.fecha || 'Por definir'} • ${pax.adultos} ad, ${pax.ninos} niños`,
+        detalle: `Fecha: ${paqueteForm.fecha || 'Por definir'} • ${pax.adultos} adultos(ADL), ${pax.ninos} niños(CHD)`,
         precio: totalItem,
+        hotel_item_uid: paqueteForm.hotel_item_uid || null,
         data: {
           id_paquete: Number(paqueteForm.id_paquete),
           fecha: paqueteForm.fecha,
@@ -741,6 +770,7 @@ export default function CotizacionTabContent({
           precio_nino: paqueteForm.precio_nino,
           costo_adulto: paqueteForm.costo_adulto,
           costo_nino: paqueteForm.costo_nino,
+          hotel_item_uid: paqueteForm.hotel_item_uid || null,
         },
       };
     }
@@ -758,6 +788,7 @@ export default function CotizacionTabContent({
         titulo: `${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`,
         detalle: `${vehiculoForm.dias} días • Desde: ${vehiculoForm.desde || 'Por definir'} hasta: ${vehiculoForm.hasta || 'Por definir'}`,
         precio: totalItem,
+        hotel_item_uid: vehiculoForm.hotel_item_uid || null,
         data: {
           id_vehiculo: Number(vehiculoForm.id_vehiculo),
           desde: vehiculoForm.desde,
@@ -766,6 +797,7 @@ export default function CotizacionTabContent({
           precio_unitario: Number(vehiculoForm.precio_unitario),
           costo: Number(vehiculoForm.costo),
           observacion: vehiculoForm.observacion,
+          hotel_item_uid: vehiculoForm.hotel_item_uid || null,
         },
       };
     }
@@ -781,8 +813,9 @@ export default function CotizacionTabContent({
         uid,
         tipo: 'ferry',
         titulo: `${ferryForm.ruta || 'Ruta'} (${ferryForm.clase})`,
-        detalle: `${pax.adultos} ad, ${pax.ninos} niños, ${ferryForm.vehiculos} veh • Itinerario: ${ferryForm.itinerario}`,
+        detalle: `${pax.adultos} adultos(ADL), ${pax.ninos} niños(CHD), ${ferryForm.vehiculos} veh • Itinerario: ${ferryForm.itinerario}`,
         precio: totalItem,
+        hotel_item_uid: ferryForm.hotel_item_uid || null,
         data: {
           ruta: ferryForm.ruta,
           clase: ferryForm.clase,
@@ -795,6 +828,7 @@ export default function CotizacionTabContent({
           precio_nino: ferryForm.precio_nino,
           precio_infante: ferryForm.precio_infante,
           precio_vehiculo: ferryForm.precio_vehiculo,
+          hotel_item_uid: ferryForm.hotel_item_uid || null,
         },
       };
     }
@@ -811,6 +845,7 @@ export default function CotizacionTabContent({
         titulo: `${otroForm.descripcion || 'Servicio Personalizado'}`,
         detalle: `Fecha: ${otroForm.fecha || 'Por definir'}`,
         precio: Number(otroForm.precio || 0),
+        hotel_item_uid: otroForm.hotel_item_uid || null,
         data: {
           descripcion: otroForm.descripcion,
           fecha: otroForm.fecha,
@@ -819,6 +854,7 @@ export default function CotizacionTabContent({
           infantes: pax.infantes,
           precio: Number(otroForm.precio || 0),
           costo: Number(otroForm.costo || 0),
+          hotel_item_uid: otroForm.hotel_item_uid || null,
         },
       };
     }
@@ -883,7 +919,64 @@ export default function CotizacionTabContent({
   };
 
   const handleRemoveItem = (uid) => {
-    setItems(prev => prev.filter(item => item.uid !== uid));
+    setItems(prev => {
+      const target = prev.find(item => item.uid === uid);
+      const isHotel = target?.tipo === 'hotel';
+      return prev
+        .filter(item => item.uid !== uid)
+        .map(item => {
+          if (isHotel && item.hotel_item_uid === uid) {
+            return {
+              ...item,
+              hotel_item_uid: null,
+              data: item.data ? { ...item.data, hotel_item_uid: null } : item.data,
+            };
+          }
+          return item;
+        });
+    });
+  };
+
+  // Asignar o desasociar un producto a un hotel registrado
+  const handleAssignHotel = (itemUid, hotelUid) => {
+    setItems(prev => prev.map(item => {
+      if (item.uid === itemUid) {
+        return {
+          ...item,
+          hotel_item_uid: hotelUid || null,
+          data: item.data ? { ...item.data, hotel_item_uid: hotelUid || null } : item.data,
+        };
+      }
+      return item;
+    }));
+  };
+
+  // Guardar agrupación masiva para un hotel desde el modal AgruparProductosHotelModal
+  const handleSaveHotelGrouping = (hotelUid, selectedProductUids) => {
+    const selectedSet = new Set(selectedProductUids);
+    setItems(prev => prev.map(item => {
+      if (item.tipo === 'hotel') return item;
+
+      // Si este producto estaba asignado a este hotel pero ya no está seleccionado, desasociar
+      if (item.hotel_item_uid === hotelUid && !selectedSet.has(item.uid)) {
+        return {
+          ...item,
+          hotel_item_uid: null,
+          data: item.data ? { ...item.data, hotel_item_uid: null } : item.data,
+        };
+      }
+
+      // Si fue seleccionado para este hotel
+      if (selectedSet.has(item.uid)) {
+        return {
+          ...item,
+          hotel_item_uid: hotelUid,
+          data: item.data ? { ...item.data, hotel_item_uid: hotelUid } : item.data,
+        };
+      }
+
+      return item;
+    }));
   };
 
   const handleSaveEditedItem = (updatedItem) => {
@@ -1346,7 +1439,7 @@ export default function CotizacionTabContent({
             <strong>{feedback.message}</strong>
             {feedback.data?.localizador && (
               <span style={{ display: 'block', fontSize: '0.875rem', marginTop: '4px', color: '#E2E8F0' }}>
-                Localizador Oficial: <strong>{feedback.data.localizador}</strong> | Ficha: #{feedback.data.numero_ficha || feedback.data.id}
+                {/* Localizador Oficial: <strong>{feedback.data.localizador}</strong> | */} Ficha: #{feedback.data.numero_ficha || feedback.data.id}
               </span>
             )}
           </div>
@@ -1367,7 +1460,7 @@ export default function CotizacionTabContent({
                   transition: 'all 0.15s ease',
                 }}
               >
-                📄 Ver Informe de Cotización Rápida
+                Ver Informe de Cotización Rápida
               </button>
             )}
             {feedback.type === 'success' && onVerRegistro && (
@@ -1385,7 +1478,7 @@ export default function CotizacionTabContent({
                   cursor: 'pointer',
                 }}
               >
-                📂 Ir al Registro de Guardado
+                Ir al Registro de Guardado
               </button>
             )}
             <button
@@ -1605,7 +1698,7 @@ export default function CotizacionTabContent({
 
             {referidoError && (
               <div style={{ marginTop: '10px', fontSize: '0.8125rem', color: '#F59E0B' }}>
-                ⚠️ {referidoError}
+                ¡{referidoError}!
               </div>
             )}
           </div>
@@ -1652,7 +1745,7 @@ export default function CotizacionTabContent({
                     placeholder="Nombres"
                     value={p.nombres}
                     onChange={e => handleUpdatePasajero(idx, 'nombres', e.target.value)}
-                    maxLength={50}
+                    maxLength={35}
                     className='erp-input'
                     style={{ flex: 1 }}
                   />
@@ -1661,7 +1754,7 @@ export default function CotizacionTabContent({
                     placeholder="Apellidos"
                     value={p.apellidos}
                     onChange={e => handleUpdatePasajero(idx, 'apellidos', e.target.value)}
-                    maxLength={50}
+                    maxLength={25}
                     className='erp-input'
                     style={{ flex: 1 }}
                   />
@@ -1708,7 +1801,7 @@ export default function CotizacionTabContent({
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
           <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={imgServicios} alt="Servicios" style={{ width: '24px', height: '24px' }} /> Agregar Productos y Servicios al Viaje
+            <img src={imgServicios} alt="Servicios" style={{ width: '24px', height: '24px' }} /> Agregar Productos
           </h2>
         </div>
 
@@ -2000,6 +2093,7 @@ export default function CotizacionTabContent({
                 </div>
               </div>
 
+{/*
               <div>
                 <label className='erp-label'>Tarifa Adulto ($/noche)</label>
                 <div style={{ display: 'flex' }}>
@@ -2014,6 +2108,7 @@ export default function CotizacionTabContent({
                   />
                 </div>
               </div>
+          */}
 
               <div>
                 <button
@@ -2046,7 +2141,7 @@ export default function CotizacionTabContent({
               </div>
 
               <div>
-                <label className='erp-label'>Itinerario (Ruta)</label>
+                <label className='erp-label'>Itinerario</label>
                 <input
                   type="text"
                   placeholder="Ej. CCS - PMV - CCS"
@@ -2080,6 +2175,21 @@ export default function CotizacionTabContent({
                   />
                 </div>
               </div>
+
+              {registeredHotels.length > 0 && (
+                <div>
+                  <label className='erp-label'>Agrupar a Hotel</label>
+                  <CustomSelect
+                    value={vueloForm.hotel_item_uid || ''}
+                    onChange={e => setVueloForm({ ...vueloForm, hotel_item_uid: e.target.value })}
+                  >
+                    <option value="">Servicio General / Sin Hotel</option>
+                    {registeredHotels.map(h => (
+                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+                    ))}
+                  </CustomSelect>
+                </div>
+              )}
 
               <div>
                 <button
@@ -2129,7 +2239,7 @@ export default function CotizacionTabContent({
                   />
                 </div>
 
-                <div>
+                {/*<div>
                   <label className='erp-label'>Precio Total ($)</label>
                   <div style={{ display: 'flex' }}>
                     <CustomNumberInput
@@ -2142,24 +2252,39 @@ export default function CotizacionTabContent({
                       onChange={e => setTrasladoForm({ ...trasladoForm, precio: sanitizePrecioCostoValue(e.target.value) })}
                     />
                   </div>
-                </div>
+                </div>*/}
 
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                     <label className='erp-label' style={{ margin: 0 }}>Observación (Opcional)</label>
-                    <span style={{ fontSize: '0.75rem', color: (trasladoForm.observacion || '').length >= 300 ? '#EF4444' : '#b9c8ddff' }}>
-                      {(trasladoForm.observacion || '').length} / 300 caracteres
+                    <span style={{ fontSize: '0.75rem', color: (trasladoForm.observacion || '').length >= 200 ? '#EF4444' : '#b9c8ddff' }}>
+                      {(trasladoForm.observacion || '').length} / 200 caracteres
                     </span>
                   </div>
                   <input
                     type="text"
                     value={trasladoForm.observacion}
-                    onChange={e => setTrasladoForm({ ...trasladoForm, observacion: e.target.value.slice(0, 300) })}
-                    placeholder="Ej: Vuelo Laser 912, equipaje extra... (máx. 300 caracteres)"
-                    maxLength={300}
+                    onChange={e => setTrasladoForm({ ...trasladoForm, observacion: e.target.value.slice(0, 200) })}
+                    placeholder="Ej: Vuelo Laser 912, equipaje extra... (máx. 200 caracteres)"
+                    maxLength={200}
                     className="erp-input"
                   />
                 </div>
+
+                {registeredHotels.length > 0 && (
+                  <div>
+                    <label className='erp-label'>Agrupar a Hotel</label>
+                    <CustomSelect
+                      value={trasladoForm.hotel_item_uid || ''}
+                      onChange={e => setTrasladoForm({ ...trasladoForm, hotel_item_uid: e.target.value })}
+                    >
+                      <option value="">Servicio General / Sin Hotel</option>
+                      {registeredHotels.map(h => (
+                        <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+                      ))}
+                    </CustomSelect>
+                  </div>
+                )}
               </div>
 
               {/* Personalización de Pasajeros si totalPax > 1 */}
@@ -2172,14 +2297,13 @@ export default function CotizacionTabContent({
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '1rem' }}>👥</span>
                       <strong style={{ color: '#E87217', fontSize: '0.875rem' }}>
-                        Personalización de Pasajeros ({totalPax} pax en la cotización)
+                        Personalizar traslado ({totalPax} pax en la cotización)
                       </strong>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
-                      Configure si este traslado es para todos o individual / subgrupo
-                    </span>
+                    {/*<span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                      Configure si este traslado es para todos, individual o subgrupo
+                    </span>*/}
                   </div>
 
                   {/* Selector de tipo de asignación */}
@@ -2232,7 +2356,7 @@ export default function CotizacionTabContent({
                   {/* Contenido según tipo de asignación */}
                   {trasladoForm.tipo_asignacion === 'todos' && (
                     <div style={{ fontSize: '0.8125rem', color: '#CBD5E1', background: 'rgba(255, 255, 255, 0.02)', padding: '8px 12px', borderRadius: '6px' }}>
-                      ℹ️ Este servicio de traslado se registrará para <strong>los {totalPax} pasajeros</strong> del viaje.
+                    ¡Este servicio de traslado se registrará para <strong>los {totalPax} pasajeros</strong> del viaje!
                     </div>
                   )}
 
@@ -2340,7 +2464,7 @@ export default function CotizacionTabContent({
                       <div style={{ marginTop: '10px', fontSize: '0.8125rem', color: (trasladoForm.pax_seleccionados?.length > 0) ? '#10B981' : '#EF4444' }}>
                         {(trasladoForm.pax_seleccionados?.length > 0)
                           ? `✓ ${(trasladoForm.pax_seleccionados || []).length} de ${totalPax} pasajeros seleccionados`
-                          : '⚠️ Debe seleccionar al menos un pasajero para el traslado grupal'}
+                          : 'Debe seleccionar al menos un pasajero para el traslado grupal'}
                       </div>
                     </div>
                   )}
@@ -2394,6 +2518,21 @@ export default function CotizacionTabContent({
                 />
               </div>
 
+              {registeredHotels.length > 0 && (
+                <div>
+                  <label className='erp-label'>Agrupar a Hotel</label>
+                  <CustomSelect
+                    value={excursionForm.hotel_item_uid || ''}
+                    onChange={e => setExcursionForm({ ...excursionForm, hotel_item_uid: e.target.value })}
+                  >
+                    <option value="">Servicio General / Sin Hotel</option>
+                    {registeredHotels.map(h => (
+                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+                    ))}
+                  </CustomSelect>
+                </div>
+              )}
+{/*
               <div>
                 <label className='erp-label'>Precio Adulto ($)</label>
                 <div style={{ display: 'flex' }}>
@@ -2408,7 +2547,7 @@ export default function CotizacionTabContent({
                   />
                 </div>
               </div>
-
+          */}
               <div>
                 <button
                   type="button"
@@ -2456,6 +2595,21 @@ export default function CotizacionTabContent({
                 />
               </div>
 
+              {registeredHotels.length > 0 && (
+                <div>
+                  <label className='erp-label'>Agrupar a Hotel</label>
+                  <CustomSelect
+                    value={paqueteForm.hotel_item_uid || ''}
+                    onChange={e => setPaqueteForm({ ...paqueteForm, hotel_item_uid: e.target.value })}
+                  >
+                    <option value="">Servicio General / Sin Hotel</option>
+                    {registeredHotels.map(h => (
+                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+                    ))}
+                  </CustomSelect>
+                </div>
+              )}
+{/*
               <div>
                 <label className='erp-label'>Precio Adulto ($)</label>
                 <div style={{ display: 'flex' }}>
@@ -2470,7 +2624,7 @@ export default function CotizacionTabContent({
                   />
                 </div>
               </div>
-
+*/}
               <div>
                 <button
                   type="button"
@@ -2506,17 +2660,32 @@ export default function CotizacionTabContent({
                 <div style={{ display: 'flex' }}>
                   <CustomNumberInput
                     min={1}
-                    max={999}
-                    maxDigits={3}
+                    max={99}
+                    maxDigits={2}
                     value={vehiculoForm.dias}
                     onChange={e => {
-                      const val = String(e.target.value).slice(0, 3);
-                      setVehiculoForm({ ...vehiculoForm, dias: Math.max(1, Math.min(999, parseInt(val) || 1)) });
+                      const val = String(e.target.value).slice(0, 2);
+                      setVehiculoForm({ ...vehiculoForm, dias: Math.max(1, Math.min(99, parseInt(val) || 1)) });
                     }}
                   />
                 </div>
               </div>
 
+              {registeredHotels.length > 0 && (
+                <div>
+                  <label className='erp-label'>Agrupar a Hotel</label>
+                  <CustomSelect
+                    value={vehiculoForm.hotel_item_uid || ''}
+                    onChange={e => setVehiculoForm({ ...vehiculoForm, hotel_item_uid: e.target.value })}
+                  >
+                    <option value="">Servicio General / Sin Hotel</option>
+                    {registeredHotels.map(h => (
+                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+                    ))}
+                  </CustomSelect>
+                </div>
+              )}
+{/*
               <div>
                 <label className='erp-label'>Tarifa Diaria ($)</label>
                 <div style={{ display: 'flex' }}>
@@ -2531,6 +2700,7 @@ export default function CotizacionTabContent({
                   />
                 </div>
               </div>
+          */}
 
               <div>
                 <button
@@ -2555,8 +2725,8 @@ export default function CotizacionTabContent({
                   type="text"
                   placeholder="Ej. Puerto La Cruz - Punta de Piedras"
                   value={ferryForm.ruta}
-                  onChange={e => setFerryForm({ ...ferryForm, ruta: e.target.value.slice(0, 100) })}
-                  maxLength={100}
+                  onChange={e => setFerryForm({ ...ferryForm, ruta: e.target.value.slice(0, 12) })}
+                  maxLength={12}
                   className="erp-input"
                 />
               </div>
@@ -2591,6 +2761,21 @@ export default function CotizacionTabContent({
                 </div>
               </div>
 
+              {registeredHotels.length > 0 && (
+                <div>
+                  <label className='erp-label'>Agrupar a Hotel</label>
+                  <CustomSelect
+                    value={ferryForm.hotel_item_uid || ''}
+                    onChange={e => setFerryForm({ ...ferryForm, hotel_item_uid: e.target.value })}
+                  >
+                    <option value="">Servicio General / Sin Hotel</option>
+                    {registeredHotels.map(h => (
+                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+                    ))}
+                  </CustomSelect>
+                </div>
+              )}
+
               <div>
                 <button
                   type="button"
@@ -2611,16 +2796,16 @@ export default function CotizacionTabContent({
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <label className='erp-label' style={{ margin: 0 }}>Descripción del Servicio</label>
-                  <span style={{ fontSize: '0.75rem', color: (otroForm.descripcion || '').length >= 500 ? '#EF4444' : '#b9c8ddff' }}>
-                    {(otroForm.descripcion || '').length} / 500 caracteres
+                  <span style={{ fontSize: '0.75rem', color: (otroForm.descripcion || '').length >= 60 ? '#EF4444' : '#b9c8ddff' }}>
+                    {(otroForm.descripcion || '').length} / 60 caracteres
                   </span>
                 </div>
                 <input
                   type="text"
-                  placeholder="Ej. Seguro de Viaje, Asistencia Médica... (máx. 500 caracteres)"
+                  placeholder="Ej. Seguro de Viaje, Asistencia Médica... (máx. 60 caracteres)"
                   value={otroForm.descripcion}
-                  onChange={e => setOtroForm({ ...otroForm, descripcion: e.target.value.slice(0, 500) })}
-                  maxLength={500}
+                  onChange={e => setOtroForm({ ...otroForm, descripcion: e.target.value.slice(0, 60) })}
+                  maxLength={60}
                   className="erp-input"
                 />
               </div>
@@ -2639,6 +2824,21 @@ export default function CotizacionTabContent({
                   />
                 </div>
               </div>
+
+              {registeredHotels.length > 0 && (
+                <div>
+                  <label className='erp-label'>Agrupar a Hotel</label>
+                  <CustomSelect
+                    value={otroForm.hotel_item_uid || ''}
+                    onChange={e => setOtroForm({ ...otroForm, hotel_item_uid: e.target.value })}
+                  >
+                    <option value="">Servicio General / Sin Hotel</option>
+                    {registeredHotels.map(h => (
+                      <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+                    ))}
+                  </CustomSelect>
+                </div>
+              )}
 
               <div>
                 <button
@@ -2664,10 +2864,59 @@ export default function CotizacionTabContent({
           border: '1px solid rgb(255 255 255 / 34%)',
           padding: '20px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
-              Resumen de Productos del Itinerario ({items.length})
-            </h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
+                Resumen de Productos 
+                <span style={{ color: '#60A5FA', fontWeight: '600', fontSize: '1.325rem' }}>  {items.length} </span>
+              </h2>
+
+              {registeredHotels.length > 0 && (
+                <div style={{ display: 'inline-flex', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '8px', padding: '3px', gap: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('agrupado')}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: viewMode === 'agrupado' ? '#E87217' : 'transparent',
+                      color: viewMode === 'agrupado' ? '#FFF' : '#CBD5E1',
+                      fontSize: '0.78rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    🏨 Agrupados por Hotel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('plano')}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: viewMode === 'plano' ? '#E87217' : 'transparent',
+                      color: viewMode === 'plano' ? '#FFF' : '#CBD5E1',
+                      fontSize: '0.78rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    📋 Lista Plana
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={handleClearItems}
               style={{
@@ -2684,78 +2933,520 @@ export default function CotizacionTabContent({
             </button>
           </div>
 
-          <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.51)', color: '#c7d4e7ff', fontSize: '0.75rem', textTransform: 'uppercase' }}>
-                  <th style={{ padding: '10px 12px' }}>Tipo</th>
-                  <th style={{ padding: '10px 12px' }}>Producto / Descripción</th>
-                  <th style={{ padding: '10px 12px' }}>Detalles / Pax</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>Monto (USD)</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map(item => (
-                  <tr key={item.uid} style={{ borderBottom: '1px solid rgba(255,255,255,0.51)', color: '#FFF', fontSize: '0.875rem' }}>
-                    <td style={{ padding: '12px' }}>
-                      <span style={{ textTransform: 'capitalize', fontWeight: '600', color: PRODUCT_COLOR_MAP[item.tipo]?.color || '#E87217' }}>{item.tipo}</span>
-                    </td>
-                    <td style={{ padding: '12px', fontWeight: '500' }}>{item.titulo}</td>
-                    <td style={{ padding: '12px', color: '#F8FAFC', fontSize: '0.8125rem' }}>{item.detalle}</td>
-                    <td style={{ padding: '12px', textAlign: 'right', fontWeight: '700', color: '#F8FAFC' }}>
-                      ${Number(item.precio || 0).toFixed(2)}
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+          {/* VISTA AGRUPADA POR HOTEL */}
+          {viewMode === 'agrupado' && registeredHotels.length > 0 ? (
+            <div>
+              {registeredHotels.map(h => {
+                const hotelItems = items.filter(it => it.tipo !== 'hotel' && it.hotel_item_uid === h.uid);
+                const subtotalHotelYServicios = Number(h.precio || 0) + hotelItems.reduce((acc, it) => acc + Number(it.precio || 0), 0);
+
+                return (
+                  <div
+                    key={h.uid}
+                    style={{
+                      marginBottom: '20px',
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(232, 114, 23, 0.4)',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {/* Hotel Header Banner */}
+                    <div
+                      style={{
+                        background: 'linear-gradient(90deg, rgba(232, 114, 23, 0.22) 0%, rgba(37, 99, 235, 0.15) 100%)',
+                        padding: '12px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '12px',
+                        borderBottom: '1px solid rgba(232, 114, 23, 0.3)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '1.4rem' }}>🏨</span>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <strong style={{ color: '#FFF', fontSize: '1rem' }}>{h.titulo}</strong>
+                            <span style={{
+                              fontSize: '0.7rem',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              background: 'rgba(232, 114, 23, 0.35)',
+                              border: '1px solid #E87217',
+                              color: '#FDBA74',
+                              fontWeight: '600',
+                            }}>
+                              Hotel
+                            </span>
+                            <span style={{
+                              fontSize: '0.7rem',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              background: 'rgba(59, 130, 246, 0.25)',
+                              border: '1px solid #3B82F6',
+                              color: '#93C5FD',
+                              fontWeight: '600',
+                            }}>
+                              {hotelItems.length} {hotelItems.length === 1 ? 'servicio agrupado' : 'servicios agrupados'}
+                            </span>
+                          </div>
+                          <div style={{ color: '#CBD5E1', fontSize: '0.8rem', marginTop: '2px' }}>
+                            {h.detalle} • Base Hotel: <strong>${Number(h.precio || 0).toFixed(2)} USD</strong>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '0.7rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Subtotal Paquete Hotel
+                          </div>
+                          <div style={{ fontSize: '1.15rem', fontWeight: '700', color: '#34D399' }}>
+                            ${subtotalHotelYServicios.toFixed(2)} USD
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setHotelToGroup(h)}
+                            style={{
+                              background: 'rgba(232, 114, 23, 0.25)',
+                              border: '1px solid #E87217',
+                              color: '#FDBA74',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontSize: '0.78rem',
+                              fontWeight: '600',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                            }}
+                            title="Vincular o desvincular servicios a este hotel"
+                          >
+                            🔗 Agrupar Servicios
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setItemToEdit(h)}
+                            style={{
+                              background: 'rgba(37, 99, 235, 0.2)',
+                              border: '1px solid rgba(37, 99, 235, 0.4)',
+                              color: '#60A5FA',
+                              width: '30px',
+                              height: '30px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            title="Editar hotel"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setItemToDelete(h)}
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.2)',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: '#EF4444',
+                              width: '30px',
+                              height: '30px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            title="Eliminar hotel"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Services Table inside this Hotel */}
+                    {hotelItems.length === 0 ? (
+                      <div style={{
+                        padding: '16px',
+                        textAlign: 'center',
+                        color: '#94A3B8',
+                        fontSize: '0.8125rem',
+                        background: 'rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        flexWrap: 'wrap',
+                      }}>
+                        <span>Sin servicios adicionales agrupados a este hotel.</span>
                         <button
                           type="button"
-                          onClick={() => setItemToEdit(item)}
+                          onClick={() => setHotelToGroup(h)}
                           style={{
-                            background: 'rgba(37, 99, 235, 0.2)',
-                            border: '1px solid rgba(37, 99, 235, 0.4)',
-                            color: '#60A5FA',
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '6px',
+                            background: 'none',
+                            border: 'none',
+                            color: '#E87217',
+                            fontWeight: '600',
                             cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            textDecoration: 'underline',
+                            fontSize: '0.8125rem',
                           }}
-                          title="Editar producto"
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setItemToDelete(item)}
-                          style={{
-                            background: 'rgba(239, 68, 68, 0.2)',
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                            color: '#EF4444',
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                          title="Eliminar producto"
-                        >
-                          ✕
+                          + Agrupar productos existentes
                         </button>
                       </div>
-                    </td>
+                    ) : (
+                      <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8', fontSize: '0.72rem', textTransform: 'uppercase', background: 'rgba(0,0,0,0.15)' }}>
+                              <th style={{ padding: '8px 12px' }}>Tipo</th>
+                              <th style={{ padding: '8px 12px' }}>Descripción</th>
+                              <th style={{ padding: '8px 12px' }}>Detalles / Pax</th>
+                              <th style={{ padding: '8px 12px' }}>Hotel Asignado</th>
+                              <th style={{ padding: '8px 12px', textAlign: 'right' }}>Monto (USD)</th>
+                              <th style={{ padding: '8px 12px', textAlign: 'center' }}>Acciones</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {hotelItems.map(item => (
+                              <tr key={item.uid} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#FFF' }}>
+                                <td style={{ padding: '10px 12px' }}>
+                                  <span style={{ textTransform: 'capitalize', fontWeight: '600', color: PRODUCT_COLOR_MAP[item.tipo]?.color || '#E87217' }}>
+                                    {item.tipo}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '10px 12px', fontWeight: '500' }}>{item.titulo}</td>
+                                <td style={{ padding: '10px 12px', color: '#CBD5E1', fontSize: '0.78rem' }}>{item.detalle}</td>
+                                <td style={{ padding: '8px 12px', minWidth: '180px' }}>
+                                  <CustomSelect
+                                    value={item.hotel_item_uid || ''}
+                                    onChange={e => handleAssignHotel(item.uid, e.target.value)}
+                                    style={{ padding: '4px 8px', fontSize: '0.78rem' }}
+                                  >
+                                    <option value="">Desagrupar (General)</option>
+                                    {registeredHotels.map(rh => (
+                                      <option key={rh.uid} value={rh.uid}>🏨 {rh.titulo}</option>
+                                    ))}
+                                  </CustomSelect>
+                                </td>
+                                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', color: '#F8FAFC' }}>
+                                  ${Number(item.precio || 0).toFixed(2)}
+                                </td>
+                                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => setItemToEdit(item)}
+                                      style={{
+                                        background: 'rgba(37, 99, 235, 0.2)',
+                                        border: '1px solid rgba(37, 99, 235, 0.4)',
+                                        color: '#60A5FA',
+                                        width: '26px',
+                                        height: '26px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                      }}
+                                      title="Editar producto"
+                                    >
+                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setItemToDelete(item)}
+                                      style={{
+                                        background: 'rgba(239, 68, 68, 0.2)',
+                                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                                        color: '#EF4444',
+                                        width: '26px',
+                                        height: '26px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                      }}
+                                      title="Eliminar producto"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* SERVICIOS GENERALES / SIN HOTEL */}
+              {(() => {
+                const generalItems = items.filter(it => it.tipo !== 'hotel' && (!it.hotel_item_uid || !registeredHotels.some(rh => rh.uid === it.hotel_item_uid)));
+                if (generalItems.length === 0) return null;
+                const subtotalGeneral = generalItems.reduce((acc, it) => acc + Number(it.precio || 0), 0);
+
+                return (
+                  <div
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.02)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        padding: '10px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '1.1rem' }}>🌐</span>
+                        <strong style={{ color: '#FFF', fontSize: '0.9rem' }}>Servicios Generales / Sin Hotel Asociado</strong>
+                        <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>({generalItems.length} servicios)</span>
+                      </div>
+                      <div style={{ color: '#CBD5E1', fontSize: '0.85rem' }}>
+                        Subtotal: <strong style={{ color: '#60A5FA' }}>${subtotalGeneral.toFixed(2)} USD</strong>
+                      </div>
+                    </div>
+
+                    <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8', fontSize: '0.72rem', textTransform: 'uppercase', background: 'rgba(0,0,0,0.15)' }}>
+                            <th style={{ padding: '8px 12px' }}>Tipo</th>
+                            <th style={{ padding: '8px 12px' }}>Descripción</th>
+                            <th style={{ padding: '8px 12px' }}>Detalles / Pax</th>
+                            <th style={{ padding: '8px 12px' }}>Agrupar a Hotel</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'right' }}>Monto (USD)</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'center' }}>Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {generalItems.map(item => (
+                            <tr key={item.uid} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#FFF' }}>
+                              <td style={{ padding: '10px 12px' }}>
+                                <span style={{ textTransform: 'capitalize', fontWeight: '600', color: PRODUCT_COLOR_MAP[item.tipo]?.color || '#E87217' }}>
+                                  {item.tipo}
+                                </span>
+                              </td>
+                              <td style={{ padding: '10px 12px', fontWeight: '500' }}>{item.titulo}</td>
+                              <td style={{ padding: '10px 12px', color: '#CBD5E1', fontSize: '0.78rem' }}>{item.detalle}</td>
+                              <td style={{ padding: '8px 12px', minWidth: '180px' }}>
+                                <CustomSelect
+                                  value={item.hotel_item_uid || ''}
+                                  onChange={e => handleAssignHotel(item.uid, e.target.value)}
+                                  style={{ padding: '4px 8px', fontSize: '0.78rem' }}
+                                >
+                                  <option value="">Sin Hotel (General)</option>
+                                  {registeredHotels.map(rh => (
+                                    <option key={rh.uid} value={rh.uid}>🏨 {rh.titulo}</option>
+                                  ))}
+                                </CustomSelect>
+                              </td>
+                              <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', color: '#F8FAFC' }}>
+                                ${Number(item.precio || 0).toFixed(2)}
+                              </td>
+                              <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => setItemToEdit(item)}
+                                    style={{
+                                      background: 'rgba(37, 99, 235, 0.2)',
+                                      border: '1px solid rgba(37, 99, 235, 0.4)',
+                                      color: '#60A5FA',
+                                      width: '26px',
+                                      height: '26px',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                    }}
+                                    title="Editar producto"
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setItemToDelete(item)}
+                                    style={{
+                                      background: 'rgba(239, 68, 68, 0.2)',
+                                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                                      color: '#EF4444',
+                                      width: '26px',
+                                      height: '26px',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                    }}
+                                    title="Eliminar producto"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          ) : (
+            /* VISTA PLANA TRADICIONAL */
+            <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.51)', color: '#c7d4e7ff', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                    <th style={{ padding: '10px 12px' }}>Tipo</th>
+                    <th style={{ padding: '10px 12px' }}>Descripción</th>
+                    <th style={{ padding: '10px 12px' }}>Detalles / Pax</th>
+                    {registeredHotels.length > 0 && (
+                      <th style={{ padding: '10px 12px' }}>Hotel Asociado</th>
+                    )}
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Monto (USD)</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center' }}>Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {items.map(item => (
+                    <tr key={item.uid} style={{ borderBottom: '1px solid rgba(255,255,255,0.51)', color: '#FFF', fontSize: '0.875rem' }}>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{ textTransform: 'capitalize', fontWeight: '600', color: PRODUCT_COLOR_MAP[item.tipo]?.color || '#E87217' }}>{item.tipo}</span>
+                      </td>
+                      <td style={{ padding: '12px', fontWeight: '500' }}>{item.titulo}</td>
+                      <td style={{ padding: '12px', color: '#F8FAFC', fontSize: '0.8125rem' }}>{item.detalle}</td>
+                      {registeredHotels.length > 0 && (
+                        <td style={{ padding: '8px 12px', minWidth: '170px' }}>
+                          {item.tipo === 'hotel' ? (
+                            <span style={{ fontSize: '0.75rem', color: '#E87217', fontWeight: '600', background: 'rgba(232, 114, 23, 0.15)', padding: '3px 8px', borderRadius: '6px' }}>
+                              🏨 Hotel Base
+                            </span>
+                          ) : (
+                            <CustomSelect
+                              value={item.hotel_item_uid || ''}
+                              onChange={e => handleAssignHotel(item.uid, e.target.value)}
+                              style={{ padding: '3px 8px', fontSize: '0.78rem' }}
+                            >
+                              <option value="">Sin Hotel</option>
+                              {registeredHotels.map(rh => (
+                                <option key={rh.uid} value={rh.uid}>🏨 {rh.titulo}</option>
+                              ))}
+                            </CustomSelect>
+                          )}
+                        </td>
+                      )}
+                      <td style={{ padding: '12px', textAlign: 'right', fontWeight: '700', color: '#F8FAFC' }}>
+                        ${Number(item.precio || 0).toFixed(2)}
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                          {item.tipo === 'hotel' && (
+                            <button
+                              type="button"
+                              onClick={() => setHotelToGroup(item)}
+                              style={{
+                                background: 'rgba(232, 114, 23, 0.2)',
+                                border: '1px solid #E87217',
+                                color: '#FDBA74',
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                              title="Agrupar servicios a este hotel"
+                            >
+                              🔗 Agrupar
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setItemToEdit(item)}
+                            style={{
+                              background: 'rgba(37, 99, 235, 0.2)',
+                              border: '1px solid rgba(37, 99, 235, 0.4)',
+                              color: '#60A5FA',
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            title="Editar producto"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setItemToDelete(item)}
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.2)',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: '#EF4444',
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            title="Eliminar producto"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -2771,7 +3462,7 @@ export default function CotizacionTabContent({
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
-                Financiamiento / Cuotas
+                Financiamiento
               </h2>
 
               <label style={{
@@ -2848,7 +3539,7 @@ export default function CotizacionTabContent({
                     value={cuotasConfig.numero_cuotas}
                     onChange={e => setCuotasConfig({ ...cuotasConfig, numero_cuotas: parseInt(e.target.value) || 1 })}
                   >
-                    {[1, 2, 3, 4, 5, 6, 8, 10, 12].map(n => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => (
                       <option key={n} value={n}>{n} Cuotas mensuales</option>
                     ))}
                   </CustomSelect>
@@ -2867,7 +3558,7 @@ export default function CotizacionTabContent({
                         <span style={{ color: '#E87217' }}>${cuotasCalculadas.montoRestante.toFixed(2)} USD</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF', borderTop: '1px solid rgba(255,255,255,0.51)', paddingTop: '6px' }}>
-                        <span>{cuotasCalculadas.numeroCuotas} cuotas iguales de:</span>
+                        <span>{cuotasCalculadas.numeroCuotas} cuotas de:</span>
                         <strong style={{ color: '#E87217' }}>${cuotasCalculadas.montoPorCuota.toFixed(2)} USD</strong>
                       </div>
                     </div>
@@ -2876,7 +3567,7 @@ export default function CotizacionTabContent({
               </div>
             ) : (
               <p style={{ color: '#b9c8ddff', fontSize: '0.875rem', margin: '8px 0 0 0' }}>
-                Pago único al contado. Active la casilla para configurar pagos fraccionados o financiamiento.
+                Active la casilla para configurar pagos financiados.
               </p>
             )}
 
@@ -2884,8 +3575,8 @@ export default function CotizacionTabContent({
             <div style={{ marginTop: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <label className="erp-label" style={{ margin: 0 }}>Observaciones del Itinerario</label>
-                <span style={{ fontSize: '0.75rem', color: (observacion || '').length >= 3500 ? '#EF4444' : '#b9c8ddff', fontWeight: (observacion || '').length >= 3500 ? '700' : '400' }}>
-                  {(observacion || '').length} / 3500 caracteres
+                <span style={{ fontSize: '0.75rem', color: (observacion || '').length >= 500 ? '#EF4444' : '#b9c8ddff', fontWeight: (observacion || '').length >= 500 ? '700' : '400' }}>
+                  {(observacion || '').length} / 500 caracteres
                 </span>
               </div>
               <textarea
@@ -2893,8 +3584,8 @@ export default function CotizacionTabContent({
                 value={observacion}
                 onChange={handleObservacionChange}
                 onKeyDown={handleObservacionKeyDown}
-                placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 3500 caracteres)..."
-                maxLength={3500}
+                placeholder="Condiciones de pago, políticas de cancelación o peticiones especiales (máximo 500 caracteres)..."
+                maxLength={500}
                 className="erp-input custom-scrollbar"
                 style={{
                   resize: 'none',
@@ -2984,9 +3675,9 @@ export default function CotizacionTabContent({
                     <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#E87217' }}>
                       ${totalUSD.toFixed(2)} USD
                     </div>
-                    <div style={{ fontSize: '0.8125rem', color: '#b9c8ddff' }}>
+                    {/*<div style={{ fontSize: '0.8125rem', color: '#b9c8ddff' }}>
                       Bs. {totalVES} (Ref. BCV)
-                    </div>
+                    </div>*/}
                   </div>
                 </div>
               </div>
@@ -3056,8 +3747,17 @@ export default function CotizacionTabContent({
         item={itemToEdit}
         catalogos={catalogos}
         allPassengers={allPassengers}
+        registeredHotels={registeredHotels}
         onClose={() => setItemToEdit(null)}
         onSave={handleSaveEditedItem}
+      />
+
+      <AgruparProductosHotelModal
+        isOpen={!!hotelToGroup}
+        hotelItem={hotelToGroup}
+        allItems={items}
+        onClose={() => setHotelToGroup(null)}
+        onSaveGroup={handleSaveHotelGrouping}
       />
 
       <InformeCotizacionRapidaModal
