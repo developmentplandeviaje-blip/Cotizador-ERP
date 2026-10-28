@@ -298,8 +298,8 @@ export default function CotizacionTabContent({
   const [lastSavedCotizacion, setLastSavedCotizacion] = useState(null);
 
 
-  
-  
+
+
   // Update dates in hotel and forms when general dates change
   useEffect(() => {
     if (fechasViaje.checkin && fechasViaje.checkout) {
@@ -1545,7 +1545,7 @@ export default function CotizacionTabContent({
       // Limpiar borrador persistente de esta cotización formalmente guardada
       try {
         if (storageDraftKey) localStorage.removeItem(storageDraftKey);
-      } catch {}
+      } catch { }
     } catch (err) {
       console.error('Error creando cotización:', err);
       setFeedback({
@@ -1635,7 +1635,7 @@ export default function CotizacionTabContent({
   };
 
 
-  
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1280px', margin: '0 auto', paddingBottom: '20px' }}>
       {/* Header bar */}
@@ -2022,7 +2022,7 @@ export default function CotizacionTabContent({
                     ? { bg: 'rgba(168, 85, 247, 0.15)', text: '#C084FC', border: 'rgba(168, 85, 247, 0.35)' }
                     : { bg: 'rgba(255, 255, 255, 0.08)', text: '#94A3B8', border: 'rgba(255, 255, 255, 0.15)' };
 
-              const categoryLabel = isInfante ? 'Infante' : isNino ? 'Niño' : tipoPax === 'adolescente' ? 'Adolescente' : 'Adulto';
+              const categoryLabel = isInfante ? 'Infante' : isNino ? 'Niño' : tipoPax === '' ? '' : 'Adulto';
               const ageSummary = isDateDoc && p.documento ? getBirthdateSummary(p.documento) : '';
 
               return (
@@ -2040,9 +2040,9 @@ export default function CotizacionTabContent({
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '0.8rem', color: '#E87217', fontWeight: '600' }}>
-                        Acompañante #{idx + 2}
+                        {categoryLabel}
                       </span>
-                      <span
+                      {/*<span
                         style={{
                           fontSize: '0.68rem',
                           fontWeight: '700',
@@ -2061,10 +2061,10 @@ export default function CotizacionTabContent({
                         <span style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: '600' }}>
                           ({ageSummary})
                         </span>
-                      )}
+                      )} */}
                     </div>
 
-                    {(pax.ninos > 0 || pax.infantes > 0 || pax.adolescentes > 0) && (
+                    {/*{(pax.ninos > 0 || pax.infantes > 0 || pax.adolescentes > 0) && (
                       <select
                         value={tipoPax}
                         onChange={e => handleUpdatePasajero(idx, 'tipo_pax', e.target.value)}
@@ -2086,7 +2086,7 @@ export default function CotizacionTabContent({
                         {pax.ninos > 0 && <option value="nino">Niño</option>}
                         {pax.infantes > 0 && <option value="infante">Infante</option>}
                       </select>
-                    )}
+                    )} */}
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
@@ -2432,7 +2432,7 @@ export default function CotizacionTabContent({
                   title="Agregar todos los productos como servicios independientes / generales"
                 >
                   <img src={imgAgregar} alt="+" style={{ width: '15px', height: '15px' }} />
-                  Agregar los servicios ({readyDraftTypes.length})
+                  Agregar servicios
                 </button>
 
                 {hasHotelsForGrouping && nonHotelDrafts.length > 0 && (
@@ -2444,7 +2444,7 @@ export default function CotizacionTabContent({
                         style={{ padding: '7px 10px', fontSize: '0.8125rem', maxWidth: '200px' }}
                       >
                         {registeredHotels.map(h => (
-                          <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
+                          <option key={h.uid} value={h.uid}>{h.titulo}</option>
                         ))}
                       </CustomSelect>
                     )}
@@ -2467,8 +2467,7 @@ export default function CotizacionTabContent({
                       }}
                       title="Agregar y agrupar automáticamente todos los servicios al hotel"
                     >
-                      <span style={{ fontSize: '1rem' }}>🔗</span>
-                      Agrupar los servicios ({nonHotelDrafts.length})
+                      Agrupar servicios
                     </button>
                   </div>
                 )}
@@ -2537,7 +2536,7 @@ export default function CotizacionTabContent({
                 </div>
               </div>
 
-{/*
+              {/*
               <div>
                 <label className='erp-label'>Tarifa Adulto ($/noche)</label>
                 <div style={{ display: 'flex' }}>
@@ -2796,7 +2795,7 @@ export default function CotizacionTabContent({
                   {/* Contenido según tipo de asignación */}
                   {trasladoForm.tipo_asignacion === 'todos' && (
                     <div style={{ fontSize: '0.8125rem', color: '#CBD5E1', background: 'rgba(255, 255, 255, 0.02)', padding: '8px 12px', borderRadius: '6px' }}>
-                    ¡Este servicio de traslado se registrará para <strong>los {totalPax} pasajeros</strong> del viaje!
+                      ¡Este servicio de traslado se registrará para <strong>los {totalPax} pasajeros</strong> del viaje!
                     </div>
                   )}
 
@@ -3236,7 +3235,7 @@ export default function CotizacionTabContent({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
               <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
-                Resumen de Productos 
+                Resumen de Productos
                 <span style={{ color: '#60A5FA', fontWeight: '600', fontSize: '1.325rem' }}>  {items.length} </span>
               </h2>
 
@@ -3260,7 +3259,7 @@ export default function CotizacionTabContent({
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    🏨 Agrupados por Hotel
+                    Agrupados
                   </button>
                   <button
                     type="button"
@@ -3280,7 +3279,7 @@ export default function CotizacionTabContent({
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    📋 Lista Plana
+                    Productos
                   </button>
                 </div>
               )}
@@ -3298,7 +3297,7 @@ export default function CotizacionTabContent({
                 fontSize: '0.8125rem',
               }}
             >
-              Vaciar Productos
+              Vaciar Lista
             </button>
           </div>
 
@@ -3334,11 +3333,61 @@ export default function CotizacionTabContent({
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '1.4rem' }}>🏨</span>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             <strong style={{ color: '#FFF', fontSize: '1rem' }}>{h.titulo}</strong>
-                            <span style={{
+
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '0.7rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                Subtotal
+                              </div>
+                              <div style={{ fontSize: '1.15rem', fontWeight: '600', color: '#34D399' }}>
+                                ${subtotalHotelYServicios.toFixed(2)}
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => setItemToEdit(h)}
+                              style={{
+                                background: 'rgba(37, 99, 235, 0.2)',
+                                border: '1px solid rgba(37, 99, 235, 0.4)',
+                                color: '#60A5FA',
+                                width: '30px',
+                                height: '30px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                              title="Editar hotel"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setItemToDelete(h)}
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.2)',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                color: '#EF4444',
+                                width: '30px',
+                                height: '30px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                              title="Eliminar hotel"
+                            >
+                              ✕
+                            </button>
+                            {/*<span style={{
                               fontSize: '0.7rem',
                               padding: '2px 8px',
                               borderRadius: '12px',
@@ -3359,25 +3408,17 @@ export default function CotizacionTabContent({
                               fontWeight: '600',
                             }}>
                               {hotelItems.length} {hotelItems.length === 1 ? 'servicio agrupado' : 'servicios agrupados'}
-                            </span>
+                            </span>*/}
                           </div>
                           <div style={{ color: '#CBD5E1', fontSize: '0.8rem', marginTop: '2px' }}>
-                            {h.detalle} • Base Hotel: <strong>${Number(h.precio || 0).toFixed(2)} USD</strong>
+                            {h.detalle}: <strong>${Number(h.precio || 0).toFixed(2)} USD</strong>
                           </div>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '0.7rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Subtotal Paquete Hotel
-                          </div>
-                          <div style={{ fontSize: '1.15rem', fontWeight: '700', color: '#34D399' }}>
-                            ${subtotalHotelYServicios.toFixed(2)} USD
-                          </div>
-                        </div>
-
+                      {/*<div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                         <div style={{ display: 'flex', gap: '6px' }}>
+                          
                           <button
                             type="button"
                             onClick={() => setHotelToGroup(h)}
@@ -3396,51 +3437,10 @@ export default function CotizacionTabContent({
                             }}
                             title="Vincular o desvincular servicios a este hotel"
                           >
-                            🔗 Agrupar Servicios
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setItemToEdit(h)}
-                            style={{
-                              background: 'rgba(37, 99, 235, 0.2)',
-                              border: '1px solid rgba(37, 99, 235, 0.4)',
-                              color: '#60A5FA',
-                              width: '30px',
-                              height: '30px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                            title="Editar hotel"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setItemToDelete(h)}
-                            style={{
-                              background: 'rgba(239, 68, 68, 0.2)',
-                              border: '1px solid rgba(239, 68, 68, 0.3)',
-                              color: '#EF4444',
-                              width: '30px',
-                              height: '30px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                            title="Eliminar hotel"
-                          >
-                            ✕
-                          </button>
+                             Agrupar Servicios
+                          </button> 
                         </div>
-                      </div>
+                      </div>*/}
                     </div>
 
                     {/* Services Table inside this Hotel */}
@@ -3457,7 +3457,7 @@ export default function CotizacionTabContent({
                         gap: '10px',
                         flexWrap: 'wrap',
                       }}>
-                        <span>Sin servicios adicionales agrupados a este hotel.</span>
+                        {/*<span>Sin servicios adicionales agrupados a este hotel.</span>
                         <button
                           type="button"
                           onClick={() => setHotelToGroup(h)}
@@ -3472,7 +3472,7 @@ export default function CotizacionTabContent({
                           }}
                         >
                           + Agrupar productos existentes
-                        </button>
+                        </button>*/}
                       </div>
                     ) : (
                       <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
@@ -3505,7 +3505,7 @@ export default function CotizacionTabContent({
                                   >
                                     <option value="">Desagrupar (General)</option>
                                     {registeredHotels.map(rh => (
-                                      <option key={rh.uid} value={rh.uid}>🏨 {rh.titulo}</option>
+                                      <option key={rh.uid} value={rh.uid}>{rh.titulo}</option>
                                     ))}
                                   </CustomSelect>
                                 </td>
@@ -3596,9 +3596,7 @@ export default function CotizacionTabContent({
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '1.1rem' }}>🌐</span>
-                        <strong style={{ color: '#FFF', fontSize: '0.9rem' }}>Servicios Generales / Sin Hotel Asociado</strong>
-                        <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>({generalItems.length} servicios)</span>
+                        <strong style={{ color: '#FFF', fontSize: '0.9rem' }}>Servicios Generales</strong>
                       </div>
                       <div style={{ color: '#CBD5E1', fontSize: '0.85rem' }}>
                         Subtotal: <strong style={{ color: '#60A5FA' }}>${subtotalGeneral.toFixed(2)} USD</strong>
@@ -3635,7 +3633,7 @@ export default function CotizacionTabContent({
                                 >
                                   <option value="">Sin Hotel (General)</option>
                                   {registeredHotels.map(rh => (
-                                    <option key={rh.uid} value={rh.uid}>🏨 {rh.titulo}</option>
+                                    <option key={rh.uid} value={rh.uid}>{rh.titulo}</option>
                                   ))}
                                 </CustomSelect>
                               </td>
@@ -3724,7 +3722,7 @@ export default function CotizacionTabContent({
                         <td style={{ padding: '8px 12px', minWidth: '170px' }}>
                           {item.tipo === 'hotel' ? (
                             <span style={{ fontSize: '0.75rem', color: '#E87217', fontWeight: '600', background: 'rgba(232, 114, 23, 0.15)', padding: '3px 8px', borderRadius: '6px' }}>
-                              🏨 Hotel Base
+                              Hotel Base
                             </span>
                           ) : (
                             <CustomSelect
@@ -3734,7 +3732,7 @@ export default function CotizacionTabContent({
                             >
                               <option value="">Sin Hotel</option>
                               {registeredHotels.map(rh => (
-                                <option key={rh.uid} value={rh.uid}>🏨 {rh.titulo}</option>
+                                <option key={rh.uid} value={rh.uid}>{rh.titulo}</option>
                               ))}
                             </CustomSelect>
                           )}
@@ -3764,7 +3762,7 @@ export default function CotizacionTabContent({
                               }}
                               title="Agrupar servicios a este hotel"
                             >
-                              🔗 Agrupar
+                              Agrupar
                             </button>
                           )}
                           <button
