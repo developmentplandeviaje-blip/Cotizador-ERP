@@ -129,5 +129,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/cotizaciones/rapida', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@storeRapida');
     Route::get('/v1/cotizaciones/configuracion-cierre', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@getConfiguracionCierre');
     Route::post('/v1/cotizaciones/configuracion-cierre', \App\Http\Controllers\Api\v1\Quote\CotizacionController::class . '@guardarConfiguracionCierre');
+
+    // OCR Document Scanner (Ephemeral / In-memory)
+    Route::post('/v1/ocr/scan-document', [\App\Http\Controllers\Api\v1\Ocr\DocumentOcrController::class, 'scan']);
 });
 

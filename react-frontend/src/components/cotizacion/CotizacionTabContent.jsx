@@ -23,6 +23,7 @@ import {
   InformeCotizacionRapidaModal,
 } from './modals';
 import HotelAsociadoSelect from './HotelAsociadoSelect';
+import DocumentScannerButton from './DocumentScannerButton';
 
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
 import {
@@ -385,6 +386,84 @@ export default function CotizacionTabContent({
   };
 
   // Manejadores de formatos y validaciones centralizados
+  // OCR Document Auto-completion (US-04)
+  const handleOcrTitularComplete = async (docData) => {
+    const tipoDoc = docData.tipo_documento || 'V';
+    const docNum = docData.documento || '';
+    const nombres = docData.nombres || '';
+    const apellidos = docData.apellidos || '';
+
+    setCliente(prev => ({
+      ...prev,
+      tipo_documento: tipoDoc,
+      documento: docNum,
+      nombres: nombres || prev.nombres,
+      apellidos: apellidos || prev.apellidos,
+    }));
+
+    if (docNum) {
+      setSearchingClient(true);
+      try {
+        const res = await axios.get(`/v1/cotizaciones/cliente/${encodeURIComponent(docNum)}`);
+        if (res.data.encontrado && res.data.cliente) {
+          const c = res.data.cliente;
+          setCliente(prev => ({
+            ...prev,
+            tipo_documento: c.tipo_documento || tipoDoc,
+            documento: c.documento || docNum,
+            nombres: c.nombres || nombres,
+            apellidos: c.apellidos || apellidos,
+            edad: c.edad || prev.edad,
+            telefono: c.telefono || prev.telefono,
+            correo: c.correo || prev.correo,
+          }));
+          setClientStatusMsg({
+            type: 'success',
+            text: `Doc escaneado y cliente recurrente encontrado: ${c.nombres || nombres} ${c.apellidos || apellidos}`,
+          });
+        } else {
+          setClientStatusMsg({
+            type: 'success',
+            text: `Doc extraído: ${tipoDoc}-${docNum} (${nombres} ${apellidos})`,
+          });
+        }
+      } catch {
+        setClientStatusMsg({
+          type: 'success',
+          text: `Doc extraído: ${tipoDoc}-${docNum} (${nombres} ${apellidos})`,
+        });
+      } finally {
+        setSearchingClient(false);
+      }
+    }
+  };
+
+  const handleOcrAcompananteComplete = (index, docData) => {
+    setPasajeros(prev => {
+      const copy = [...prev];
+      if (!copy[index]) return prev;
+
+      const tipoDoc = docData.tipo_documento || 'V';
+      const docNum = docData.documento || '';
+      const nombres = docData.nombres || copy[index].nombres;
+      const apellidos = docData.apellidos || copy[index].apellidos;
+
+      copy[index] = {
+        ...copy[index],
+        tipo_documento: tipoDoc,
+        documento: docNum,
+        nombres,
+        apellidos,
+      };
+
+      if (docData.fecha_nacimiento && copy[index].tipo_documento === 'NAC') {
+        copy[index].documento = docData.fecha_nacimiento;
+      }
+
+      return copy;
+    });
+  };
+
   const handleDocumentoClienteChange = (e) => {
     setCliente(prev => ({ ...prev, documento: formatCedula(e.target.value) }));
   };
@@ -1799,8 +1878,8 @@ export default function CotizacionTabContent({
             <img src={imgUsuario} style={{ width: '20px', height: '20px' }} alt="" />Pasajero Titular
           </h2>
 
-          {/* Autocomplete Lookup Bar (US-04) */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+          {/* Autocomplete Lookup Bar (US-04) & OCR Document Scanner */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
             <CustomSelect
               value={cliente.tipo_documento}
               onChange={e => setCliente({ ...cliente, tipo_documento: e.target.value })}
@@ -1834,6 +1913,11 @@ export default function CotizacionTabContent({
               <img src={imgSearch} alt="Buscar" style={{ width: '16px', height: '16px' }} />
               {searchingClient ? '...' : 'Buscar'}
             </button>
+            <DocumentScannerButton
+              onScanComplete={handleOcrTitularComplete}
+              label="Escanear Doc"
+              title="Escanear Cédula, RIF o Pasaporte con IA (En memoria)"
+            />
           </div>
 
           {clientStatusMsg && (
@@ -2053,51 +2137,14 @@ export default function CotizacionTabContent({
                       <span style={{ fontSize: '0.8rem', color: '#E87217', fontWeight: '600' }}>
                         {categoryLabel}
                       </span>
-                      {/*<span
-                        style={{
-                          fontSize: '0.68rem',
-                          fontWeight: '700',
-                          padding: '2px 8px',
-                          borderRadius: '6px',
-                          background: badgeColor.bg,
-                          color: badgeColor.text,
-                          border: `1px solid ${badgeColor.border}`,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.4px',
-                        }}
-                      >
-                        {categoryLabel}
-                      </span>
-                      {ageSummary && (
-                        <span style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: '600' }}>
-                          ({ageSummary})
-                        </span>
-                      )} */}
                     </div>
 
-                    {/*{(pax.ninos > 0 || pax.infantes > 0 || pax.adolescentes > 0) && (
-                      <select
-                        value={tipoPax}
-                        onChange={e => handleUpdatePasajero(idx, 'tipo_pax', e.target.value)}
-                        style={{
-                          fontSize: '0.72rem',
-                          padding: '2px 6px',
-                          borderRadius: '6px',
-                          background: 'rgba(16, 28, 68, 0.95)',
-                          border: '1px solid rgba(232, 114, 23, 0.4)',
-                          color: '#FFF',
-                          fontWeight: '600',
-                          outline: 'none',
-                          cursor: 'pointer',
-                        }}
-                        title="Cambiar categoría de este pasajero"
-                      >
-                        <option value="adulto">Adulto</option>
-                        {pax.adolescentes > 0 && <option value="adolescente">Adolescente</option>}
-                        {pax.ninos > 0 && <option value="nino">Niño</option>}
-                        {pax.infantes > 0 && <option value="infante">Infante</option>}
-                      </select>
-                    )} */}
+                    <DocumentScannerButton
+                      compact={true}
+                      label="Escanear"
+                      title="Escanear Cédula o Pasaporte de este acompañante con IA"
+                      onScanComplete={(docData) => handleOcrAcompananteComplete(idx, docData)}
+                    />
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>

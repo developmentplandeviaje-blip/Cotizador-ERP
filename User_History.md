@@ -97,6 +97,15 @@ Escenario: Validación de estatus del cliente
   Cuando se intenta agregar como pasajero
   Entonces el sistema debe impedir la acción y mostrar una alerta de "Cliente Inactivo."
 
+Escenario: Escaneo y Autocompletado Efímero de Documentos con IA Multimodal (OCR)
+  Dado que el Asesor selecciona una imagen de documento (Cédula de Identidad, RIF o Pasaporte) para el Pasajero Titular o Acompañante
+  Cuando el sistema procesa la imagen
+  Entonces comprime automáticamente en el navegador cualquier archivo pesado a menos de 500 KB manteniendo alta nitidez
+  Y envía la imagen en memoria (efímero, sin persistencia en disco ni BD) al motor de IA (Gemini Flash / OpenAI)
+  Y detecta con precisión el tipo de documento ('V', 'E', 'J', 'P', 'G'), número, nombres y apellidos
+  Y autocompleta los campos correspondientes en el formulario de la cotización
+  Y en caso de Pasajero Titular, dispara automáticamente la búsqueda en BD para autocompletar teléfono y correo si el cliente ya existe.
+
 US-05: Registro de Pagos Multi-Moneda y Desglose Transaccional por Servicio
 Como: Asesor, Administrador o Líder.  
 Quiero: Registrar abonos en divisas (USD/EUR) o moneda local (VES) asignando los montos a los servicios correspondientes (pago_venta_detalle).  
