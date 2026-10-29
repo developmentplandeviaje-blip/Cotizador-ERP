@@ -55,7 +55,7 @@ class DocumentOcrService
     }
 
     /**
-     * Extract identity info using Google Gemini Flash.
+     * Extract identity info using Google Gemini Flash with automatic model failover on 503/timeout.
      */
     protected function scanWithGemini(string $base64, string $mimeType, ?string $apiKey): array
     {
@@ -63,8 +63,16 @@ class DocumentOcrService
             throw new RuntimeException('La API Key de Gemini (GEMINI_API_KEY) no está configurada en el servidor.');
         }
 
-        $model = config('services.ocr.gemini.model', 'gemini-3.8-flash');
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+        $configuredModel = config('services.ocr.gemini.model', 'gemini-3.6-flash');
+
+        // Prioritized fallback list of active multimodal Gemini models
+        $candidateModels = array_values(array_unique([
+            $configuredModel,
+            'gemini-3.6-flash',
+            'gemini-3.5-flash',
+            'gemini-3.1-flash-lite',
+            'gemini-3.8-flash',
+        ]));
 
         $systemPrompt = $this->buildSystemPrompt();
 
@@ -89,22 +97,43 @@ class DocumentOcrService
             ],
         ];
 
-        $response = $this->createHttpClient()->post($url, $payload);
+        $lastError = 'No se pudo conectar con ningún modelo de Gemini.';
 
-        if (!$response->successful()) {
-            $errBody = $response->json();
-            $detail = $errBody['error']['message'] ?? ('HTTP ' . $response->status());
-            Log::error('OCR Gemini API Error', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-            throw new RuntimeException("Error al comunicarse con Gemini ({$response->status()}): {$detail}");
+        foreach ($candidateModels as $model) {
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+            try {
+                $response = $this->createHttpClient(null, 15)->post($url, $payload);
+
+                if ($response->successful()) {
+                    $json = $response->json();
+                    $rawText = $json['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
+                    return $this->parseAndNormalizeResponse($rawText, "gemini:{$model}");
+                }
+
+                $errBody = $response->json();
+                $detail = $errBody['error']['message'] ?? ('HTTP ' . $response->status());
+                $lastError = "Gemini ({$model} - {$response->status()}): {$detail}";
+
+                Log::warning("OCR Gemini model {$model} failed, trying fallback if available.", [
+                    'status' => $response->status(),
+                    'detail' => $detail,
+                ]);
+
+                // If API key itself is invalid (400 API_KEY_INVALID or 403), do not keep retrying other models
+                if (in_array($response->status(), [401, 403])) {
+                    break;
+                }
+            } catch (\Throwable $e) {
+                $lastError = "Timeout o error de red en {$model}: " . $e->getMessage();
+                Log::warning("OCR Gemini model {$model} exception, trying next fallback.", [
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
-        $json = $response->json();
-        $rawText = $json['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
-        
-        return $this->parseAndNormalizeResponse($rawText, 'gemini');
+        Log::error('OCR Gemini All Models Failed', ['last_error' => $lastError]);
+        throw new RuntimeException("Error al comunicarse con Gemini: {$lastError}");
     }
 
     /**
@@ -169,9 +198,9 @@ class DocumentOcrService
     /**
      * Create an HTTP client instance configured with timeout and local SSL verification settings.
      */
-    protected function createHttpClient(?string $token = null)
+    protected function createHttpClient(?string $token = null, int $timeoutSeconds = 20)
     {
-        $client = Http::timeout(30);
+        $client = Http::timeout($timeoutSeconds);
 
         if ($token) {
             $client = $client->withToken($token);

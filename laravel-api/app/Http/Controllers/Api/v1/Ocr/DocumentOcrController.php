@@ -21,6 +21,9 @@ class DocumentOcrController extends Controller
      */
     public function scan(Request $request): JsonResponse
     {
+        // Prevent XAMPP's default 30-second max_execution_time from killing PHP and stripping CORS headers
+        @set_time_limit(90);
+
         $request->validate([
             'image' => 'nullable|file|mimes:jpeg,png,jpg,webp|max:10240', // Max 10MB in backend (frontend compresses to < 1MB)
             'image_base64' => 'nullable|string',

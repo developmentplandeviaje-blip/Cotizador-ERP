@@ -40,7 +40,7 @@ return [
         'ssl_verify' => env('OCR_SSL_VERIFY', false),
         'gemini' => [
             'api_key' => env('GEMINI_API_KEY'),
-            'model' => env('GEMINI_OCR_MODEL', 'gemini-3.8-flash'),
+            'model' => env('GEMINI_OCR_MODEL', 'gemini-3.6-flash'),
         ],
         'openai' => [
             'api_key' => env('OPENAI_API_KEY'),

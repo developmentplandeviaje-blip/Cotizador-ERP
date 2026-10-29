@@ -37,15 +37,12 @@ export default function DocumentScannerButton({
         text: `Analizando documento en memoria (${compressionResult.compressedSizeMB} MB)...`,
       });
 
-      // 2. Send in-memory to Laravel API
-      const formData = new FormData();
-      formData.append('image', compressionResult.file);
-
-      const res = await axios.post('/v1/ocr/scan-document', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // 2. Send 100% in-memory via JSON base64 to Laravel API (no temp files on disk)
+      const res = await axios.post(
+        '/v1/ocr/scan-document',
+        { image_base64: compressionResult.dataUrl },
+        { timeout: 65000 }
+      );
 
       if (res.data?.success && res.data?.data) {
         const docData = res.data.data;
