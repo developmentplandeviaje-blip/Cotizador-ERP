@@ -705,7 +705,7 @@ export default function EditarProductoModal({
                                   return { ...prev, pax_seleccionados: next };
                                 });
                               }}
-                              style={{ accentColor: '#2563EB' }}
+                              style={{ display: 'none' }}
                             />
                             <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{p.nombre}</span>
                           </label>

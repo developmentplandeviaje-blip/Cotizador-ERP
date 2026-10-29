@@ -87,13 +87,19 @@ export default function CotizacionTabContent({
   const [searchingClient, setSearchingClient] = useState(false);
   const [clientStatusMsg, setClientStatusMsg] = useState(null);
 
+  // Ref to hold the latest callback without triggering re-renders in useEffect
+  const onUpdateClientNameRef = useRef(onUpdateClientName);
+  useEffect(() => {
+    onUpdateClientNameRef.current = onUpdateClientName;
+  });
+
   // Inform parent tabs of client name in real time
   useEffect(() => {
     const fullName = `${cliente.nombres || ''} ${cliente.apellidos || ''}`.trim();
-    if (onUpdateClientName) {
-      onUpdateClientName(fullName);
+    if (onUpdateClientNameRef.current) {
+      onUpdateClientNameRef.current(fullName);
     }
-  }, [cliente.nombres, cliente.apellidos, onUpdateClientName]);
+  }, [cliente.nombres, cliente.apellidos]);
 
   // Additional passengers list
   const [pasajeros, setPasajeros] = useState(() => initialDraft?.pasajeros || []);
@@ -2878,7 +2884,7 @@ export default function CotizacionTabContent({
                                     return { ...prev, pax_seleccionados: next };
                                   });
                                 }}
-                                style={{ accentColor: '#2563EB', cursor: 'pointer' }}
+                                style={{ display: 'none' }}
                               />
                               <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                                 {p.nombre}
