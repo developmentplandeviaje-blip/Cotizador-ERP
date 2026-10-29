@@ -47,6 +47,9 @@ export default function NuevaCotizacion({ user }) {
     ];
   });
 
+  const tabsRef = useRef(tabs);
+  tabsRef.current = tabs;
+
   const [activeTabId, setActiveTabId] = useState(() => {
     try {
       const raw = localStorage.getItem(storageTabsKey);
@@ -239,12 +242,13 @@ export default function NuevaCotizacion({ user }) {
       if (lastExecutedCutoffId !== previousCutoffId && lastExecutedCutoffId !== todayCutoffId) {
         localStorage.setItem(storageCutoffKey, previousCutoffId);
         // Si hay más de 1 pestaña, o nombres de clientes cargados, o contador avanzado
-        if (tabs.length > 1 || tabs.some(t => t.clientName?.trim()) || nextTabNumberRef.current > 2) {
+        const currentTabs = tabsRef.current;
+        if (currentTabs.length > 1 || currentTabs.some(t => t.clientName?.trim()) || nextTabNumberRef.current > 2) {
           executeTabsCleanup('programado');
         }
       }
     }
-  }, [configCierre, executeTabsCleanup, storageCutoffKey, storageManualKey, tabs]);
+  }, [configCierre, executeTabsCleanup, storageCutoffKey, storageManualKey]);
 
   // Ejecutar verificación periódica (cada 25 segundos) y al ganar foco
   useEffect(() => {
@@ -298,9 +302,14 @@ export default function NuevaCotizacion({ user }) {
 
   // Update client name from active quotation tab
   const handleUpdateClientName = useCallback((tabId, name) => {
-    setTabs(prev =>
-      prev.map(t => (t.id === tabId ? { ...t, clientName: name } : t))
-    );
+    setTabs(prev => {
+      const target = prev.find(t => t.id === tabId);
+      const trimmedName = (name || '').trim();
+      if (target && (target.clientName || '').trim() === trimmedName) {
+        return prev;
+      }
+      return prev.map(t => (t.id === tabId ? { ...t, clientName: trimmedName } : t));
+    });
   }, []);
 
   // Refs for the outer floating pill and the scrollable tabs list

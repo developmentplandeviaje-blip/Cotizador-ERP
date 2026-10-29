@@ -203,13 +203,8 @@ export default function HotelAsociadoSelect({
             setIsOpen(false);
           }
         }}
-        style={{
-          fontSize: '0.85rem',
-          gap: '4px',
-          padding: '4px 8px',
-        }}
       >
-        <span className="selected-text" title={displayLabel} >
+        <span className="selected-text" title={displayLabel}>
           {displayLabel}
         </span>
         <svg
@@ -313,18 +308,18 @@ export default function HotelAsociadoSelect({
                 <div
                   key={h.uid}
                   onClick={(e) => handleToggleHotel(h.uid, e)}
+                  className={`option ${isChecked ? 'active' : ''}`}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
                     padding: '8px 12px',
                     cursor: 'pointer',
                     background: isChecked ? 'rgba(37, 99, 235, 0.25)' : 'transparent',
                     borderLeft: isChecked ? '3px solid #2563EB' : '3px solid transparent',
                     color: isChecked ? '#38BDF8' : '#F1F5F9',
-                    fontSize: '0.8rem',
+                    fontSize: '0.85rem',
                     fontWeight: isChecked ? '600' : '400',
-                    transition: 'background 0.15s ease',
+                    transition: 'all 0.15s ease',
                     userSelect: 'none',
                   }}
                   onMouseEnter={(e) => {
@@ -337,14 +332,8 @@ export default function HotelAsociadoSelect({
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => {}} // Manejado en onClick del contenedor
-                    style={{
-                      width: '14px',
-                      height: '14px',
-                      accentColor: '#2563EB',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
+                    onChange={() => {}}
+                    style={{ display: 'none' }}
                   />
                   <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {h.titulo}

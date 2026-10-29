@@ -219,13 +219,7 @@ export default function AgruparProductosHotelModal({
                       type="checkbox"
                       checked={isChecked}
                       onChange={() => handleToggleItem(item.uid)}
-                      style={{
-                        width: '18px',
-                        height: '18px',
-                        accentColor: '#2563EB',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                      }}
+                      style={{ display: 'none' }}
                     />
 
                     <div style={{ minWidth: 0, flex: 1 }}>
