@@ -275,7 +275,7 @@ export default function EditarProductoModal({
             padding: '12px 14px',
           }}>
             <label className="erp-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#E87217', marginBottom: '6px' }}>
-              <span>🏨</span> Agrupar este producto a Hotel(es) Registrado(s):
+              Agrupar este producto a Hotel(es) Registrado(s):
             </label>
             <HotelAsociadoSelect
               selectedHotelUids={formData.hotel_item_uids || (formData.hotel_item_uid ? [formData.hotel_item_uid] : [])}
@@ -588,7 +588,7 @@ export default function EditarProductoModal({
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '6px' }}>
                   <strong style={{ color: '#38BDF8', fontSize: '0.85rem' }}>
-                    👥 Asignación de Pasajeros ({allPassengers.length} en viaje)
+                    Asignación de Pasajeros ({allPassengers.length} en viaje)
                   </strong>
                   <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
                     Personalice si este traslado es para todos, individual o grupo
@@ -634,7 +634,7 @@ export default function EditarProductoModal({
 
                 {formData.tipo_asignacion === 'todos' && (
                   <div style={{ fontSize: '0.8rem', color: '#CBD5E1' }}>
-                    ℹ️ Aplica para todos los {allPassengers.length} pasajeros registrados.
+                    ¡Aplica para todos los {allPassengers.length} pasajeros registrados!
                   </div>
                 )}
 

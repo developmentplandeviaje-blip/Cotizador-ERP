@@ -715,7 +715,6 @@ export default function NuevaCotizacion({ user }) {
               e.currentTarget.style.borderColor = configCierre?.activo ? '1px solid rgba(37, 99, 235, 0.55)' : '1px solid rgba(255, 255, 255, 0.16)';
             }}
           >
-            <span>🕒</span>
             <span style={{ fontSize: '0.78rem' }}>Cierre</span>
             {configCierre?.activo && configCierre?.hora && (
               <span

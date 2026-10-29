@@ -1647,8 +1647,6 @@ export default function CotizacionTabContent({
     }
   };
 
-
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1280px', margin: '0 auto', paddingBottom: '20px' }}>
       {/* Header bar */}
@@ -2792,7 +2790,7 @@ export default function CotizacionTabContent({
                   {trasladoForm.tipo_asignacion === 'individual' && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', alignItems: 'center' }}>
                       <div>
-                        <label className='erp-label'>Seleccione el Pasajero para este traslado individual</label>
+                        <label className='erp-label'>Seleccione el Pasajero para traslado individual</label>
                         <CustomSelect
                           value={trasladoForm.pax_individual_id ?? 0}
                           onChange={e => setTrasladoForm({ ...trasladoForm, pax_individual_id: Number(e.target.value) })}
@@ -2814,7 +2812,7 @@ export default function CotizacionTabContent({
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <label className='erp-label' style={{ margin: 0 }}>
-                          Seleccione los pasajeros asignados a este traslado:
+                          Seleccione los pasajeros asignados al traslado:
                         </label>
                         <div style={{ display: 'flex', gap: '6px' }}>
                           <button
@@ -3208,10 +3206,10 @@ export default function CotizacionTabContent({
                       <td style={{ padding: '12px', fontWeight: '500' }}>{item.titulo}</td>
                       <td style={{ padding: '12px', color: '#F8FAFC', fontSize: '0.8125rem' }}>{item.detalle}</td>
                       {registeredHotels.length > 0 && (
-                        <td style={{ padding: '8px 12px', minWidth: '170px' }}>
+                        <td style={{ padding: '8px 12px', minWidth: '170px'}}>
                           {item.tipo === 'hotel' ? (
-                            <span style={{ fontSize: '0.75rem', color: '#E87217', fontWeight: '600', background: 'rgba(232, 114, 23, 0.15)', padding: '3px 8px', borderRadius: '6px' }}>
-                              Hotel Base
+                            <span style={{ fontSize: '0.75rem', color: '#38BDF8', fontWeight: '600', background: 'rgba(37, 99, 235, 0.40)', padding: '3px 8px', borderRadius: '6px' }}>
+                              Hotel
                             </span>
                           ) : (
                             <HotelAsociadoSelect

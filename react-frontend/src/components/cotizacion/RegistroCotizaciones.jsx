@@ -470,9 +470,9 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                         <div style={{ fontWeight: '800', color: '#E87217', fontSize: '0.95rem' }}>
                           ${Number(cotiz.total_usd || 0).toFixed(2)} USD
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#b9c8dd' }}>
+                        {/*<div style={{ fontSize: '0.75rem', color: '#b9c8dd' }}>
                           Ref. Bs. {(Number(cotiz.total_usd || 0) * 62.5).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </div>
+                        </div>*/}
                       </td>
 
                       {/* Tipo */}

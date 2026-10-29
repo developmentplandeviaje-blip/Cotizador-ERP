@@ -12,6 +12,7 @@ export default function HotelAsociadoSelect({
   registeredHotels = [],
   onChange,
   disabled = false,
+  className = '',
   style = {},
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -179,77 +180,55 @@ export default function HotelAsociadoSelect({
   return (
     <div
       ref={triggerRef}
+      className={`select erp-custom-select ${isOpen ? 'open' : ''} ${coords.openUp ? 'open-up' : ''} ${disabled ? 'disabled' : ''} ${className}`}
       style={{
         position: 'relative',
         display: 'inline-block',
         width: '100%',
-        maxWidth: '240px',
         ...style,
       }}
       title={tooltipText}
     >
-      {/* Botón Disparador del Dropdown */}
+      {/* Botón Disparador del Dropdown con la misma apariencia que CustomSelect (.selected) */}
       <div
+        className="selected"
         onClick={toggleDropdown}
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={(e) => {
+          if (disabled) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleDropdown(e);
+          } else if (e.key === 'Escape') {
+            setIsOpen(false);
+          }
+        }}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '6px',
-          padding: '5px 10px',
-          background: count > 1
-            ? 'rgba(37, 99, 235, 0.16)'
-            : count === 1
-              ? 'rgba(30, 41, 59, 0.85)'
-              : 'rgba(16, 28, 68, 0.7)',
-          border: isOpen
-            ? '1.5px solid #2563EB'
-            : count > 1
-              ? '1.5px solid rgba(37, 99, 235, 0.7)'
-              : '1.5px solid rgba(255, 255, 255, 0.28)',
-          borderRadius: '8px',
-          color: count > 1 ? '#93C5FD' : count === 1 ? '#BFDBFE' : '#CBD5E1',
-          fontSize: '0.78rem',
-          fontWeight: count > 0 ? '600' : '500',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          userSelect: 'none',
-          transition: 'all 0.15s ease',
-          boxShadow: isOpen ? '0 0 0 2px rgba(66, 118, 230, 0.35)' : 'none',
+          fontSize: '0.85rem',
+          gap: '4px',
+          padding: '4px 8px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, overflow: 'hidden' }}>
-          <span style={{ fontSize: '0.85rem', flexShrink: 0 }}>🏨</span>
-          <span
-            style={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              color: count > 1 ? '#93C5FD' : '#FFFFFF',
-              fontWeight: count > 1 ? '700' : '500',
-            }}
-          >
-            {displayLabel}
-          </span>
-        </div>
-
-        <span
-          style={{
-            fontSize: '0.65rem',
-            color: '#94A3B8',
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s ease',
-            marginLeft: '4px',
-            flexShrink: 0,
-          }}
-        >
-          ▼
+        <span className="selected-text" title={displayLabel} >
+          {displayLabel}
         </span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="1em"
+          viewBox="0 0 512 512"
+          className="arrow"
+        >
+          <path
+            d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+          />
+        </svg>
       </div>
 
       {/* Menú Desplegable con Checkboxes renderizado fuera de la tabla (Portal) */}
       {isOpen && createPortal(
         <div
           ref={dropdownRef}
+          className={`options ${coords.openUp ? 'open-up' : ''} portal-options`}
           style={{
             position: 'fixed',
             left: `${coords.left}px`,
@@ -257,10 +236,10 @@ export default function HotelAsociadoSelect({
             ...(coords.openUp
               ? { bottom: `${coords.bottom}px`, top: 'auto' }
               : { top: `${coords.top}px`, bottom: 'auto' }),
-            background: 'linear-gradient(180deg, #0d1b3e 0%, #06112c 100%)',
-            border: '1.5px solid rgba(37, 99, 235, 0.5)',
-            borderRadius: '10px',
-            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.75)',
+            background: '#101c44',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            borderRadius: '6px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4)',
             zIndex: 99999,
             overflow: 'hidden',
             display: 'flex',
@@ -338,18 +317,18 @@ export default function HotelAsociadoSelect({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '7px 12px',
+                    padding: '8px 12px',
                     cursor: 'pointer',
-                    background: isChecked ? 'rgba(37, 99, 235, 0.2)' : 'transparent',
+                    background: isChecked ? 'rgba(37, 99, 235, 0.25)' : 'transparent',
                     borderLeft: isChecked ? '3px solid #2563EB' : '3px solid transparent',
-                    color: isChecked ? '#93C5FD' : '#F1F5F9',
-                    fontSize: '0.78rem',
+                    color: isChecked ? '#38BDF8' : '#F1F5F9',
+                    fontSize: '0.8rem',
                     fontWeight: isChecked ? '600' : '400',
                     transition: 'background 0.15s ease',
                     userSelect: 'none',
                   }}
                   onMouseEnter={(e) => {
-                    if (!isChecked) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                    if (!isChecked) e.currentTarget.style.background = 'rgba(37, 99, 235, 0.35)';
                   }}
                   onMouseLeave={(e) => {
                     if (!isChecked) e.currentTarget.style.background = 'transparent';

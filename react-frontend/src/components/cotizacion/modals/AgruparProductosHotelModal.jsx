@@ -83,7 +83,7 @@ export default function AgruparProductosHotelModal({
       <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Banner del Hotel Objetivo */}
         <div style={{
-          background: 'rgba(232, 114, 23, 0.12)',
+          background: 'rgba(232, 114, 23, 0.)',
           border: '1px solid rgba(232, 114, 23, 0.4)',
           borderRadius: '12px',
           padding: '14px 18px',
@@ -95,7 +95,6 @@ export default function AgruparProductosHotelModal({
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ fontSize: '1.25rem' }}>🏨</span>
               <strong style={{ color: '#FFFFFF', fontSize: '1.05rem' }}>{hotelItem.titulo}</strong>
             </div>
             <div style={{ color: '#CBD5E1', fontSize: '0.8rem' }}>
