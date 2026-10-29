@@ -136,7 +136,7 @@ export default function UserAliadoModal({ isOpen, onClose, onSave, aliadoToEdit 
 
         <div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem', marginTop: '8px' }}>
-            <input type="checkbox" checked={status} onChange={(e) => setStatus(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#E87217', cursor: 'pointer' }} />
+            <input type="checkbox" checked={status} onChange={(e) => setStatus(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#2563EB', cursor: 'pointer' }} />
             <span>Habilitado (Activo)</span>
           </label>
         </div>

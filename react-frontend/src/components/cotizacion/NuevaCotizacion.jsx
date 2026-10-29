@@ -528,11 +528,11 @@ export default function NuevaCotizacion({ user }) {
                 gap: '10px',
                 padding: '8px 16px',
                 background: isActive
-                  ? 'linear-gradient(135deg, rgba(232, 158, 23, 0.22) 0%, rgba(235, 147, 37, 0.22) 100%)'
+                  ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.28) 0%, rgba(56, 189, 248, 0.22) 100%)'
                   : 'rgba(255, 255, 255, 0.04)',
                 color: isActive ? '#FFFFFF' : '#94A3B8',
                 border: isActive
-                  ? '1px solid rgb(232, 114, 23, 0.50)'
+                  ? '1px solid #2563EB'
                   : '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: '10px',
                 cursor: 'pointer',
@@ -540,7 +540,7 @@ export default function NuevaCotizacion({ user }) {
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 maxWidth: '220px',
                 minWidth: '110px',
-                boxShadow: isActive ? '0 0 15px rgba(232, 114, 23, 0.25)' : 'none',
+                boxShadow: isActive ? '0 0 15px rgba(37, 99, 235, 0.35)' : 'none',
                 flexShrink: 0,
               }}
               onMouseEnter={(e) => {
@@ -657,7 +657,7 @@ export default function NuevaCotizacion({ user }) {
           onMouseEnter={(e) => {
             if (tabs.length >= MAX_TABS) return;
             e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
-            e.currentTarget.style.borderColor = '#E87217';
+            e.currentTarget.style.borderColor = '#2563EB';
             e.currentTarget.style.color = '#FFFFFF';
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
@@ -695,10 +695,10 @@ export default function NuevaCotizacion({ user }) {
               alignItems: 'center',
               gap: '6px',
               padding: '6px 10px',
-              background: configCierre?.activo ? 'rgba(232, 114, 23, 0.2)' : 'rgba(255, 255, 255, 0.08)',
-              border: configCierre?.activo ? '1px solid rgba(232, 114, 23, 0.55)' : '1px solid rgba(255, 255, 255, 0.16)',
+              background: configCierre?.activo ? 'rgba(37, 99, 235, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+              border: configCierre?.activo ? '1px solid rgba(37, 99, 235, 0.55)' : '1px solid rgba(255, 255, 255, 0.16)',
               borderRadius: '8px',
-              color: configCierre?.activo ? '#FFA959' : '#CBD5E1',
+              color: configCierre?.activo ? '#93C5FD' : '#CBD5E1',
               fontSize: '0.8125rem',
               fontWeight: '600',
               cursor: 'pointer',
@@ -707,12 +707,12 @@ export default function NuevaCotizacion({ user }) {
               flexShrink: 0,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(232, 114, 23, 0.3)';
-              e.currentTarget.style.borderColor = '#E87217';
+              e.currentTarget.style.background = 'rgba(37, 99, 235, 0.3)';
+              e.currentTarget.style.borderColor = '#2563EB';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = configCierre?.activo ? 'rgba(232, 114, 23, 0.2)' : 'rgba(255, 255, 255, 0.08)';
-              e.currentTarget.style.borderColor = configCierre?.activo ? '1px solid rgba(232, 114, 23, 0.55)' : '1px solid rgba(255, 255, 255, 0.16)';
+              e.currentTarget.style.background = configCierre?.activo ? 'rgba(37, 99, 235, 0.2)' : 'rgba(255, 255, 255, 0.08)';
+              e.currentTarget.style.borderColor = configCierre?.activo ? '1px solid rgba(37, 99, 235, 0.55)' : '1px solid rgba(255, 255, 255, 0.16)';
             }}
           >
             <span>🕒</span>
@@ -721,7 +721,7 @@ export default function NuevaCotizacion({ user }) {
               <span
                 style={{
                   fontSize: '0.7rem',
-                  background: '#E87217',
+                  background: '#2563EB',
                   color: '#FFFFFF',
                   padding: '1px 5px',
                   borderRadius: '4px',
@@ -777,22 +777,24 @@ export default function NuevaCotizacion({ user }) {
               width: '100%',
               padding: '6px 24px 6px 28px',
               background: 'rgba(255, 255, 255, 0.08)',
-              border: tabFilter ? '1px solid rgba(232, 114, 23, 0.65)' : '1px solid rgba(255, 255, 255, 0.16)',
+              border: tabFilter ? '1px solid rgba(37, 99, 235, 0.65)' : '1px solid rgba(255, 255, 255, 0.16)',
               borderRadius: '8px',
               color: '#FFFFFF',
               fontSize: '0.8125rem',
               outline: 'none',
               transition: 'all 0.2s ease',
-              boxShadow: tabFilter ? '0 0 10px rgba(232, 114, 23, 0.25)' : 'none',
+              boxShadow: tabFilter ? '0 0 10px rgba(37, 99, 235, 0.35)' : 'none',
               boxSizing: 'border-box',
             }}
             onFocus={(e) => {
               e.target.style.background = 'rgba(255, 255, 255, 0.14)';
-              e.target.style.borderColor = '#E87217';
+              e.target.style.borderColor = '#2563EB';
+              e.target.style.boxShadow = '0 0 0 2px rgba(66, 118, 230, 0.35)';
             }}
             onBlur={(e) => {
               e.target.style.background = 'rgba(255, 255, 255, 0.08)';
-              if (!tabFilter) e.target.style.borderColor = 'rgba(255, 255, 255, 0.16)';
+              e.target.style.borderColor = tabFilter ? 'rgba(37, 99, 235, 0.65)' : 'rgba(255, 255, 255, 0.16)';
+              e.target.style.boxShadow = tabFilter ? '0 0 10px rgba(37, 99, 235, 0.35)' : 'none';
             }}
           />
 

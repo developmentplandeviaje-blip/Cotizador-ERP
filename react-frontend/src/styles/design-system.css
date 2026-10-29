@@ -508,15 +508,15 @@ input[type="number"].erp-input,
 input[type="number"]:hover,
 input[type="number"].erp-input:hover,
 .erp-number-input:hover {
-  border-color: rgba(232, 114, 23, 0.5);
+  border-color: rgba(37, 99, 235, 0.5);
   background: rgba(20, 35, 80, 0.75);
 }
 
 input[type="number"]:focus,
 input[type="number"].erp-input:focus,
 .erp-number-input:focus {
-  border-color: #E87217 !important;
-  box-shadow: 0 0 0 2px rgba(232, 114, 23, 0.28) !important;
+  border-color: #2563EB !important;
+  box-shadow: 0 0 0 2px rgba(66, 118, 230, 0.35) !important;
   outline: none !important;
 }
 
@@ -539,7 +539,7 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"]::-webkit-inner-spin-button:hover,
 input[type="number"]::-webkit-outer-spin-button:hover {
   opacity: 1;
-  filter: brightness(1.6) drop-shadow(0 0 2px #E87217);
+  filter: brightness(1.6) drop-shadow(0 0 2px #2563EB);
 }
 
 input[type="number"]::-webkit-inner-spin-button:active,
@@ -560,13 +560,18 @@ input[type="number"]::-webkit-outer-spin-button:active {
 }
 
 .custom-number-input-container:hover {
-  border-color: rgba(232, 114, 23, 0.5);
+  border-color: rgba(37, 99, 235, 0.5);
   background: rgba(22, 38, 85, 0.75);
 }
 
 .custom-number-input-container:focus-within {
-  border-color: #E87217 !important;
-  box-shadow: 0 0 0 2px rgba(232, 114, 23, 0.28) !important;
+  border-color: #2563EB !important;
+  box-shadow: 0 0 0 2px rgba(66, 118, 230, 0.35) !important;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #2563EB;
 }
 
 /* 5. Cabecera y Barra de Pasajeros (Pax Header Pill) Responsiva */
@@ -710,7 +715,6 @@ input[type="number"]::-webkit-outer-spin-button:active {
   flex-shrink: 0;
 }
 
-.select:not(.temporarily-closed):hover>.selected .arrow,
 .select.open>.selected .arrow {
   transform: rotate(0deg);
 }
@@ -735,12 +739,12 @@ input[type="number"]::-webkit-outer-spin-button:active {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px);
-  transition: opacity 300ms ease, transform 300ms ease, visibility 300ms;
+  transition: opacity 200ms ease, transform 200ms ease, visibility 200ms;
   pointer-events: none;
 }
 
-.select:not(.temporarily-closed):hover>.options,
-.select.open>.options {
+.select.open>.options,
+.options.portal-options {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -753,12 +757,10 @@ input[type="number"]::-webkit-outer-spin-button:active {
   transform: translateY(8px);
 }
 
-.select:not(.temporarily-closed):hover>.options.open-up,
 .select.open>.options.open-up {
   transform: translateY(0);
 }
 
-.select.open-up:not(.temporarily-closed):hover>.selected .arrow,
 .select.open-up.open>.selected .arrow {
   transform: rotate(180deg);
 }
@@ -786,8 +788,8 @@ input[type="number"]::-webkit-outer-spin-button:active {
 }
 
 .option.active {
-  background-color: rgba(232, 114, 23, 0.2);
-  color: #E87217;
+  background-color: rgba(37, 99, 235, 0.25);
+  color: #38BDF8;
   font-weight: 600;
 }
 

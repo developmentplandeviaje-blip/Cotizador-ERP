@@ -21,8 +21,8 @@ import {
   EliminarProductoModal,
   VaciarProductosModal,
   InformeCotizacionRapidaModal,
-  AgruparProductosHotelModal,
 } from './modals';
+import HotelAsociadoSelect from './HotelAsociadoSelect';
 
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
 import {
@@ -107,11 +107,7 @@ export default function CotizacionTabContent({
   // Cart / Added Items
   const [items, setItems] = useState(() => initialDraft?.items || []);
 
-  // Modal para agrupar productos a un hotel registrado
-  const [hotelToGroup, setHotelToGroup] = useState(null);
-  const [viewMode, setViewMode] = useState('agrupado'); // 'agrupado' | 'plano'
   const [selectedGroupingHotelUid, setSelectedGroupingHotelUid] = useState('');
-  const [tabSelectedHotelUid, setTabSelectedHotelUid] = useState('');
 
   // Hoteles registrados actualmente en la cotización
   const registeredHotels = useMemo(() => items.filter(it => it.tipo === 'hotel'), [items]);
@@ -296,6 +292,53 @@ export default function CotizacionTabContent({
   const [feedback, setFeedback] = useState(null); // { type: 'success'|'error', message, data }
   const [informeModalCotizacion, setInformeModalCotizacion] = useState(null);
   const [lastSavedCotizacion, setLastSavedCotizacion] = useState(null);
+
+  // Ref y manejador de scroll con rueda del mouse para desplazamiento horizontal de pestañas de productos
+  const productTabsScrollRef = useRef(null);
+
+  const handleProductTabsWheel = useCallback((e) => {
+    const scrollEl = productTabsScrollRef.current;
+    if (!scrollEl) return;
+
+    if (scrollEl.scrollWidth > scrollEl.clientWidth) {
+      let delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (e.deltaMode === 1) {
+        // DOM_DELTA_LINE (Firefox default)
+        delta *= 33;
+      } else if (e.deltaMode === 2) {
+        // DOM_DELTA_PAGE
+        delta *= 100;
+      }
+
+      if (delta !== 0) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        scrollEl.scrollLeft += delta;
+      }
+    }
+  }, []);
+
+  // Listener no pasivo para permitir preventDefault y desplazamiento horizontal suave
+  useEffect(() => {
+    const el = productTabsScrollRef.current;
+    if (!el) return;
+
+    el.addEventListener('wheel', handleProductTabsWheel, { passive: false });
+    return () => {
+      el.removeEventListener('wheel', handleProductTabsWheel);
+    };
+  }, [handleProductTabsWheel]);
+
+  // Asegura que la pestaña activa quede visible en el scroll
+  useEffect(() => {
+    if (productTabsScrollRef.current) {
+      const activeBtn = productTabsScrollRef.current.querySelector('[data-active="true"]');
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
+    }
+  }, [activeTab]);
 
 
 
@@ -878,8 +921,8 @@ export default function CotizacionTabContent({
         return null;
       }
       const excObj = (catalogos.excursiones || []).find(e => String(e.id) === String(excursionForm.id_excursion)) || {};
-      const precioAd = Number(excursionForm.precio_adulto || 0);
-      const precioNi = Number(excursionForm.precio_nino || 0);
+      const precioAd = Number(excursionForm.precio_adulto || excObj.precio_adulto || 0);
+      const precioNi = Number(excursionForm.precio_nino || excObj.precio_nino || 0);
       const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi);
       return {
         uid,
@@ -909,8 +952,8 @@ export default function CotizacionTabContent({
         return null;
       }
       const paqObj = (catalogos.paquetes || []).find(p => String(p.id) === String(paqueteForm.id_paquete)) || {};
-      const precioAd = Number(paqueteForm.precio_adulto || 0);
-      const precioNi = Number(paqueteForm.precio_nino || 0);
+      const precioAd = Number(paqueteForm.precio_adulto || paqObj.precio_adulto || 0);
+      const precioNi = Number(paqueteForm.precio_nino || paqObj.precio_nino || 0);
       const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi);
       return {
         uid,
@@ -1056,17 +1099,24 @@ export default function CotizacionTabContent({
     return allTypes.filter(t => isDraftReady(t));
   }, [isDraftReady]);
 
-  // Add Item to cart individually (con opción de agrupar directamente a un hotel)
+  // Add Item to cart individually
   const handleAddItem = (tipo, targetHotelUid = null) => {
     const newItem = buildItemFromDraft(tipo, true);
     if (newItem) {
       if (targetHotelUid) {
         newItem.hotel_item_uid = targetHotelUid;
-        if (newItem.data) newItem.data.hotel_item_uid = targetHotelUid;
-        setViewMode('agrupado');
+        newItem.hotel_item_uids = [targetHotelUid];
+        if (newItem.data) {
+          newItem.data.hotel_item_uid = targetHotelUid;
+          newItem.data.hotel_item_uids = [targetHotelUid];
+        }
       } else if (tipo !== 'hotel') {
         newItem.hotel_item_uid = null;
-        if (newItem.data) newItem.data.hotel_item_uid = null;
+        newItem.hotel_item_uids = [];
+        if (newItem.data) {
+          newItem.data.hotel_item_uid = null;
+          newItem.data.hotel_item_uids = [];
+        }
       }
       setItems(prev => [...prev, newItem]);
       resetFormForTipo(tipo);
@@ -1082,7 +1132,11 @@ export default function CotizacionTabContent({
       if (item) {
         if (tipo !== 'hotel') {
           item.hotel_item_uid = null;
-          if (item.data) item.data.hotel_item_uid = null;
+          item.hotel_item_uids = [];
+          if (item.data) {
+            item.data.hotel_item_uid = null;
+            item.data.hotel_item_uids = [];
+          }
         }
         newItems.push(item);
         resetFormForTipo(tipo);
@@ -1118,7 +1172,11 @@ export default function CotizacionTabContent({
       if (item) {
         if (destinationHotelUid) {
           item.hotel_item_uid = destinationHotelUid;
-          if (item.data) item.data.hotel_item_uid = destinationHotelUid;
+          item.hotel_item_uids = [destinationHotelUid];
+          if (item.data) {
+            item.data.hotel_item_uid = destinationHotelUid;
+            item.data.hotel_item_uids = [destinationHotelUid];
+          }
         }
         newItems.push(item);
         resetFormForTipo(tipo);
@@ -1127,17 +1185,13 @@ export default function CotizacionTabContent({
 
     if (newItems.length > 0) {
       setItems(prev => [...prev, ...newItems]);
-      setViewMode('agrupado');
     }
   };
 
-  // Componente de botones de acción para cada pestaña: Elegir entre Agregar o Agrupar al Hotel
+  // Componente de botón de acción para cada pestaña: Agregar al Itinerario
   const renderTabActionButtons = (tipo, label) => {
-    const hasHotel = registeredHotels.length > 0;
-    const targetUid = tabSelectedHotelUid || registeredHotels[0]?.uid || '';
-
     return (
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', width: '100%' }}>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end' }}>
         <button
           type="button"
           onClick={() => handleAddItem(tipo, null)}
@@ -1149,51 +1203,13 @@ export default function CotizacionTabContent({
             justifyContent: 'center',
             gap: '6px',
             fontSize: '0.8125rem',
+            whiteSpace: 'nowrap',
           }}
-          title={`Agregar ${label} como servicio independiente / general`}
+          title={`Agregar ${label}`}
         >
           <img src={imgAgregar} alt="Agregar" style={{ width: '15px', height: '15px' }} />
           Agregar {label}
         </button>
-
-        {hasHotel && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {registeredHotels.length > 1 && (
-              <CustomSelect
-                value={targetUid}
-                onChange={e => setTabSelectedHotelUid(e.target.value)}
-                style={{ padding: '6px 8px', fontSize: '0.78rem', maxWidth: '170px' }}
-              >
-                {registeredHotels.map(h => (
-                  <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
-                ))}
-              </CustomSelect>
-            )}
-            <button
-              type="button"
-              onClick={() => handleAddItem(tipo, targetUid)}
-              style={{
-                padding: '9px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                background: 'rgba(232, 114, 23, 0.25)',
-                border: '1px solid #E87217',
-                color: '#FDBA74',
-                borderRadius: '10px',
-                fontWeight: '600',
-                fontSize: '0.8125rem',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              title={`Agregar y agrupar ${label} al hotel`}
-            >
-              <span>🔗</span>
-              Agrupar {label} al Hotel
-            </button>
-          </div>
-        )}
       </div>
     );
   };
@@ -1205,58 +1221,55 @@ export default function CotizacionTabContent({
       return prev
         .filter(item => item.uid !== uid)
         .map(item => {
-          if (isHotel && item.hotel_item_uid === uid) {
-            return {
-              ...item,
-              hotel_item_uid: null,
-              data: item.data ? { ...item.data, hotel_item_uid: null } : item.data,
-            };
+          if (isHotel) {
+            const currentUids = Array.isArray(item.hotel_item_uids)
+              ? item.hotel_item_uids
+              : (item.hotel_item_uid ? [item.hotel_item_uid] : []);
+
+            if (currentUids.includes(uid)) {
+              const nextUids = currentUids.filter(id => id !== uid);
+              const primary = nextUids[0] || null;
+              return {
+                ...item,
+                hotel_item_uid: primary,
+                hotel_item_uids: nextUids,
+                data: item.data ? {
+                  ...item.data,
+                  hotel_item_uid: primary,
+                  hotel_item_uids: nextUids,
+                } : item.data,
+              };
+            }
           }
           return item;
         });
     });
   };
 
-  // Asignar o desasociar un producto a un hotel registrado
-  const handleAssignHotel = (itemUid, hotelUid) => {
+  // Asignar o desasociar un producto a uno o varios hoteles registrados
+  const handleAssignHotels = (itemUid, hotelUids) => {
+    const uids = Array.isArray(hotelUids) ? hotelUids.filter(Boolean) : (hotelUids ? [hotelUids] : []);
     setItems(prev => prev.map(item => {
       if (item.uid === itemUid) {
+        const primary = uids[0] || null;
         return {
           ...item,
-          hotel_item_uid: hotelUid || null,
-          data: item.data ? { ...item.data, hotel_item_uid: hotelUid || null } : item.data,
+          hotel_item_uid: primary,
+          hotel_item_uids: uids,
+          data: item.data ? {
+            ...item.data,
+            hotel_item_uid: primary,
+            hotel_item_uids: uids,
+          } : item.data,
         };
       }
       return item;
     }));
   };
 
-  // Guardar agrupación masiva para un hotel desde el modal AgruparProductosHotelModal
-  const handleSaveHotelGrouping = (hotelUid, selectedProductUids) => {
-    const selectedSet = new Set(selectedProductUids);
-    setItems(prev => prev.map(item => {
-      if (item.tipo === 'hotel') return item;
-
-      // Si este producto estaba asignado a este hotel pero ya no está seleccionado, desasociar
-      if (item.hotel_item_uid === hotelUid && !selectedSet.has(item.uid)) {
-        return {
-          ...item,
-          hotel_item_uid: null,
-          data: item.data ? { ...item.data, hotel_item_uid: null } : item.data,
-        };
-      }
-
-      // Si fue seleccionado para este hotel
-      if (selectedSet.has(item.uid)) {
-        return {
-          ...item,
-          hotel_item_uid: hotelUid,
-          data: item.data ? { ...item.data, hotel_item_uid: hotelUid } : item.data,
-        };
-      }
-
-      return item;
-    }));
+  // Wrapper para compatibilidad hacia atrás
+  const handleAssignHotel = (itemUid, hotelUid) => {
+    handleAssignHotels(itemUid, hotelUid ? [hotelUid] : []);
   };
 
   const handleSaveEditedItem = (updatedItem) => {
@@ -2188,7 +2201,19 @@ export default function CotizacionTabContent({
         </div>
 
         {/* Tab Buttons */}
-        <div className="custom-scrollbar" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div
+          ref={productTabsScrollRef}
+          onWheel={handleProductTabsWheel}
+          className="custom-scrollbar"
+          style={{
+            display: 'flex',
+            gap: '8px',
+            overflowX: 'auto',
+            paddingBottom: '12px',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            boxSizing: 'border-box',
+          }}
+        >
           {PRODUCT_TABS.map(tab => {
             const isActive = activeTab === tab.id;
             const hasInfo = checkTabHasInfo(tab.id);
@@ -2196,7 +2221,11 @@ export default function CotizacionTabContent({
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                data-active={isActive ? 'true' : 'false'}
+                onClick={(e) => {
+                  setActiveTab(tab.id);
+                  e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -2480,8 +2509,8 @@ export default function CotizacionTabContent({
         <div style={{ marginTop: '20px' }}>
           {/* TAB HOTEL */}
           {activeTab === 'hotel' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', alignItems: 'end' }}>
-              <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'end', width: '100%' }}>
+              <div style={{ flex: '1 1 180px', minWidth: '160px', maxWidth: '350px' }}>
                 <label className='erp-label'>Ubicación</label>
                 <CustomSelect
                   value={hotelForm.id_ubicacion}
@@ -2494,7 +2523,7 @@ export default function CotizacionTabContent({
                 </CustomSelect>
               </div>
 
-              <div>
+              <div style={{ flex: '1 1 220px', minWidth: '180px', maxWidth: '350px' }}>
                 <label className='erp-label'>Hotel</label>
                 <CustomSelect
                   value={hotelForm.id_hotel}
@@ -2507,7 +2536,7 @@ export default function CotizacionTabContent({
                 </CustomSelect>
               </div>
 
-              <div>
+              <div style={{ flex: '1 1 220px', minWidth: '180px', maxWidth: '350px' }}>
                 <label className='erp-label'>Habitación</label>
                 <CustomSelect
                   value={hotelForm.id_habitacion}
@@ -2520,13 +2549,14 @@ export default function CotizacionTabContent({
                 </CustomSelect>
               </div>
 
-              <div>
+              <div style={{ width: '90px', flexShrink: 0 }}>
                 <label className='erp-label'>Noches</label>
                 <div style={{ display: 'flex' }}>
                   <CustomNumberInput
                     min={1}
                     max={999}
                     maxDigits={3}
+                    width="100%"
                     value={hotelForm.noches}
                     onChange={e => {
                       const val = String(e.target.value).slice(0, 3);
@@ -2536,41 +2566,16 @@ export default function CotizacionTabContent({
                 </div>
               </div>
 
-              {/*
-              <div>
-                <label className='erp-label'>Tarifa Adulto ($/noche)</label>
-                <div style={{ display: 'flex' }}>
-                  <CustomNumberInput
-                    step={0.01}
-                    min={0}
-                    max={99999.99}
-                    allowDecimals
-                    width="115px"
-                    value={hotelForm.precio_noche_adulto}
-                    onChange={e => setHotelForm({ ...hotelForm, precio_noche_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  />
-                </div>
-              </div>
-          */}
-
-              <div>
-                <button
-                  type="button"
-                  onClick={() => handleAddItem('hotel')}
-                  className="btn-form-nxt"
-                  style={{ width: '100%', padding: '9px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <img src={imgAgregar} alt="Agregar" style={{ width: '16px', height: '16px' }} />
-                  Agregar Hotel
-                </button>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
+                {renderTabActionButtons('hotel', 'Hotel')}
               </div>
             </div>
           )}
 
           {/* TAB VUELO */}
           {activeTab === 'vuelo' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
-              <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'end', width: '100%' }}>
+              <div style={{ flex: '1 1 180px', minWidth: '160px', maxWidth: '350px' }}>
                 <label className='erp-label'>Aerolínea</label>
                 <CustomSelect
                   value={vueloForm.id_aerolinea}
@@ -2583,7 +2588,7 @@ export default function CotizacionTabContent({
                 </CustomSelect>
               </div>
 
-              <div>
+              <div style={{ flex: '1 1 200px', minWidth: '170px', maxWidth: '350px' }}>
                 <label className='erp-label'>Itinerario</label>
                 <input
                   type="text"
@@ -2595,7 +2600,7 @@ export default function CotizacionTabContent({
                 />
               </div>
 
-              <div>
+              <div style={{ flex: '1 1 180px', minWidth: '170px', maxWidth: '295px' }}>
                 <label className='erp-label'>Fecha Vuelo</label>
                 <CustomDatePicker
                   type="datetime-local"
@@ -2604,56 +2609,59 @@ export default function CotizacionTabContent({
                 />
               </div>
 
-              <div>
-                <label className='erp-label'>Tarifa Adulto ($)</label>
-                <div style={{ display: 'flex' }}>
-                  <CustomNumberInput
-                    step={0.01}
-                    min={0}
-                    max={99999.99}
-                    allowDecimals
-                    width="115px"
-                    value={vueloForm.precio_adulto}
-                    onChange={e => setVueloForm({ ...vueloForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  />
+              {/* Tarifas compactas agrupadas */}
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <div style={{ width: '115px', flexShrink: 0 }}>
+                  <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Tarifa Adulto ($)</label>
+                  <div style={{ display: 'flex' }}>
+                    <CustomNumberInput
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      width="100%"
+                      value={vueloForm.precio_adulto}
+                      onChange={e => setVueloForm({ ...vueloForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
                 </div>
+
+                {pax.ninos > 0 && (
+                  <div style={{ width: '115px', flexShrink: 0 }}>
+                    <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Tarifa Niño ($)</label>
+                    <div style={{ display: 'flex' }}>
+                      <CustomNumberInput
+                        step={0.01}
+                        min={0}
+                        max={99999.99}
+                        allowDecimals
+                        width="100%"
+                        value={vueloForm.precio_nino}
+                        onChange={e => setVueloForm({ ...vueloForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {pax.infantes > 0 && (
+                  <div style={{ width: '115px', flexShrink: 0 }}>
+                    <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Tarifa Infante ($)</label>
+                    <div style={{ display: 'flex' }}>
+                      <CustomNumberInput
+                        step={0.01}
+                        min={0}
+                        max={99999.99}
+                        allowDecimals
+                        width="100%"
+                        value={vueloForm.precio_infante}
+                        onChange={e => setVueloForm({ ...vueloForm, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {pax.ninos > 0 && (
-                <div>
-                  <label className='erp-label'>Tarifa Niño ($)</label>
-                  <div style={{ display: 'flex' }}>
-                    <CustomNumberInput
-                      step={0.01}
-                      min={0}
-                      max={99999.99}
-                      allowDecimals
-                      width="115px"
-                      value={vueloForm.precio_nino}
-                      onChange={e => setVueloForm({ ...vueloForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {pax.infantes > 0 && (
-                <div>
-                  <label className='erp-label'>Tarifa Infante ($)</label>
-                  <div style={{ display: 'flex' }}>
-                    <CustomNumberInput
-                      step={0.01}
-                      min={0}
-                      max={99999.99}
-                      allowDecimals
-                      width="115px"
-                      value={vueloForm.precio_infante}
-                      onChange={e => setVueloForm({ ...vueloForm, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
                 {renderTabActionButtons('vuelo', 'Vuelo')}
               </div>
             </div>
@@ -2662,8 +2670,8 @@ export default function CotizacionTabContent({
           {/* TAB TRASLADO */}
           {activeTab === 'traslado' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
-                <div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'end', width: '100%' }}>
+                <div style={{ flex: '1 1 240px', minWidth: '200px', maxWidth: '350px' }}>
                   <label className='erp-label'>Servicio de Traslado</label>
                   <CustomSelect
                     value={trasladoForm.id_traslado}
@@ -2684,7 +2692,7 @@ export default function CotizacionTabContent({
                   </CustomSelect>
                 </div>
 
-                <div>
+                <div style={{ flex: '1 1 180px', minWidth: '170px', maxWidth: '295px' }}>
                   <label className='erp-label'>Fecha y Hora</label>
                   <CustomDatePicker
                     type="datetime-local"
@@ -2693,22 +2701,7 @@ export default function CotizacionTabContent({
                   />
                 </div>
 
-                {/*<div>
-                  <label className='erp-label'>Precio Total ($)</label>
-                  <div style={{ display: 'flex' }}>
-                    <CustomNumberInput
-                      step={0.01}
-                      min={0}
-                      max={99999.99}
-                      allowDecimals
-                      width="115px"
-                      value={trasladoForm.precio}
-                      onChange={e => setTrasladoForm({ ...trasladoForm, precio: sanitizePrecioCostoValue(e.target.value) })}
-                    />
-                  </div>
-                </div>*/}
-
-                <div>
+                <div style={{ flex: '1 1 260px', minWidth: '200px', maxWidth: '350px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                     <label className='erp-label' style={{ margin: 0 }}>Observación (Opcional)</label>
                     <span style={{ fontSize: '0.75rem', color: (trasladoForm.observacion || '').length >= 200 ? '#EF4444' : '#b9c8ddff' }}>
@@ -2731,18 +2724,15 @@ export default function CotizacionTabContent({
                 <div style={{
                   padding: '14px 16px',
                   background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(232, 114, 23, 0.35)',
+                  border: '1px solid rgba(37, 99, 235, 0.35)',
                   borderRadius: '10px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <strong style={{ color: '#E87217', fontSize: '0.875rem' }}>
+                      <strong style={{ color: '#38BDF8', fontSize: '0.875rem' }}>
                         Personalizar traslado ({totalPax} pax en la cotización)
                       </strong>
                     </div>
-                    {/*<span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
-                      Configure si este traslado es para todos, individual o subgrupo
-                    </span>*/}
                   </div>
 
                   {/* Selector de tipo de asignación */}
@@ -2768,8 +2758,8 @@ export default function CotizacionTabContent({
                           style={{
                             padding: '6px 14px',
                             borderRadius: '8px',
-                            border: active ? '1px solid #E87217' : '1px solid rgba(255, 255, 255, 0.15)',
-                            background: active ? 'rgba(232, 114, 23, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+                            border: active ? '1px solid #2563EB' : '1px solid rgba(255, 255, 255, 0.15)',
+                            background: active ? 'rgba(37, 99, 235, 0.25)' : 'rgba(255, 255, 255, 0.05)',
                             color: active ? '#FFF' : '#94A3B8',
                             fontSize: '0.8125rem',
                             fontWeight: active ? '600' : '400',
@@ -2783,7 +2773,7 @@ export default function CotizacionTabContent({
                             width: '8px',
                             height: '8px',
                             borderRadius: '50%',
-                            background: active ? '#E87217' : 'rgba(255, 255, 255, 0.3)',
+                            background: active ? '#2563EB' : 'rgba(255, 255, 255, 0.3)',
                             display: 'inline-block',
                           }} />
                           {opt.label}
@@ -2871,8 +2861,8 @@ export default function CotizacionTabContent({
                                 alignItems: 'center',
                                 gap: '8px',
                                 padding: '8px 12px',
-                                background: isChecked ? 'rgba(232, 114, 23, 0.16)' : 'rgba(255, 255, 255, 0.04)',
-                                border: isChecked ? '1px solid #E87217' : '1px solid rgba(255, 255, 255, 0.1)',
+                                background: isChecked ? 'rgba(37, 99, 235, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                                border: isChecked ? '1px solid #2563EB' : '1px solid rgba(255, 255, 255, 0.1)',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontSize: '0.8125rem',
@@ -2890,7 +2880,7 @@ export default function CotizacionTabContent({
                                     return { ...prev, pax_seleccionados: next };
                                   });
                                 }}
-                                style={{ accentColor: '#E87217', cursor: 'pointer' }}
+                                style={{ accentColor: '#2563EB', cursor: 'pointer' }}
                               />
                               <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                                 {p.nombre}
@@ -2910,7 +2900,7 @@ export default function CotizacionTabContent({
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px', width: '100%' }}>
                 {renderTabActionButtons('traslado', 'Traslado')}
               </div>
             </div>
@@ -2918,8 +2908,8 @@ export default function CotizacionTabContent({
 
           {/* TAB EXCURSIÓN */}
           {activeTab === 'excursion' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
-              <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'end', width: '100%' }}>
+              <div style={{ flex: '1 1 240px', minWidth: '200px', maxWidth: '350px' }}>
                 <label className='erp-label'>Excursión</label>
                 <CustomSelect
                   value={excursionForm.id_excursion}
@@ -2941,7 +2931,7 @@ export default function CotizacionTabContent({
                 </CustomSelect>
               </div>
 
-              <div>
+              <div style={{ flex: '1 1 180px', minWidth: '170px', maxWidth: '295px' }}>
                 <label className='erp-label'>Fecha</label>
                 <CustomDatePicker
                   value={excursionForm.fecha}
@@ -2949,39 +2939,7 @@ export default function CotizacionTabContent({
                 />
               </div>
 
-              <div>
-                <label className='erp-label'>Tarifa Adulto ($)</label>
-                <div style={{ display: 'flex' }}>
-                  <CustomNumberInput
-                    step={0.01}
-                    min={0}
-                    max={99999.99}
-                    allowDecimals
-                    width="115px"
-                    value={excursionForm.precio_adulto}
-                    onChange={e => setExcursionForm({ ...excursionForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  />
-                </div>
-              </div>
-
-              {pax.ninos > 0 && (
-                <div>
-                  <label className='erp-label'>Tarifa Niño ($)</label>
-                  <div style={{ display: 'flex' }}>
-                    <CustomNumberInput
-                      step={0.01}
-                      min={0}
-                      max={99999.99}
-                      allowDecimals
-                      width="115px"
-                      value={excursionForm.precio_nino}
-                      onChange={e => setExcursionForm({ ...excursionForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
                 {renderTabActionButtons('excursion', 'Excursión')}
               </div>
             </div>
@@ -2989,8 +2947,8 @@ export default function CotizacionTabContent({
 
           {/* TAB PAQUETE */}
           {activeTab === 'paquete' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
-              <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'end', width: '100%' }}>
+              <div style={{ flex: '1 1 240px', minWidth: '200px', maxWidth: '350px' }}>
                 <label className='erp-label'>Paquete Turístico</label>
                 <CustomSelect
                   value={paqueteForm.id_paquete}
@@ -3012,7 +2970,7 @@ export default function CotizacionTabContent({
                 </CustomSelect>
               </div>
 
-              <div>
+              <div style={{ flex: '1 1 180px', minWidth: '170px', maxWidth: '295px' }}>
                 <label className='erp-label'>Fecha</label>
                 <CustomDatePicker
                   value={paqueteForm.fecha}
@@ -3020,39 +2978,7 @@ export default function CotizacionTabContent({
                 />
               </div>
 
-              <div>
-                <label className='erp-label'>Tarifa Adulto ($)</label>
-                <div style={{ display: 'flex' }}>
-                  <CustomNumberInput
-                    step={0.01}
-                    min={0}
-                    max={99999.99}
-                    allowDecimals
-                    width="115px"
-                    value={paqueteForm.precio_adulto}
-                    onChange={e => setPaqueteForm({ ...paqueteForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  />
-                </div>
-              </div>
-
-              {pax.ninos > 0 && (
-                <div>
-                  <label className='erp-label'>Tarifa Niño ($)</label>
-                  <div style={{ display: 'flex' }}>
-                    <CustomNumberInput
-                      step={0.01}
-                      min={0}
-                      max={99999.99}
-                      allowDecimals
-                      width="115px"
-                      value={paqueteForm.precio_nino}
-                      onChange={e => setPaqueteForm({ ...paqueteForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
                 {renderTabActionButtons('paquete', 'Paquete')}
               </div>
             </div>
@@ -3060,8 +2986,8 @@ export default function CotizacionTabContent({
 
           {/* TAB VEHÍCULO */}
           {activeTab === 'vehiculo' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
-              <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'end', width: '100%' }}>
+              <div style={{ flex: '1 1 260px', minWidth: '220px', maxWidth: '350px' }}>
                 <label className='erp-label'>Vehículo</label>
                 <CustomSelect
                   value={vehiculoForm.id_vehiculo}
@@ -3074,13 +3000,14 @@ export default function CotizacionTabContent({
                 </CustomSelect>
               </div>
 
-              <div>
-                <label className='erp-label'>Días de Alquiler</label>
+              <div style={{ width: '110px', flexShrink: 0 }}>
+                <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Días de Alquiler</label>
                 <div style={{ display: 'flex' }}>
                   <CustomNumberInput
                     min={1}
                     max={99}
                     maxDigits={2}
+                    width="100%"
                     value={vehiculoForm.dias}
                     onChange={e => {
                       const val = String(e.target.value).slice(0, 2);
@@ -3090,7 +3017,7 @@ export default function CotizacionTabContent({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
                 {renderTabActionButtons('vehiculo', 'Vehículo')}
               </div>
             </div>
@@ -3098,84 +3025,87 @@ export default function CotizacionTabContent({
 
           {/* TAB FERRY */}
           {activeTab === 'ferry' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', alignItems: 'end' }}>
-              <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'end', width: '100%' }}>
+              <div style={{ flex: '1 1 240px', minWidth: '200px', maxWidth: '350px' }}>
                 <label className='erp-label'>Ruta</label>
                 <input
                   type="text"
                   placeholder="Ej. Puerto La Cruz - Punta de Piedras"
                   value={ferryForm.ruta}
-                  onChange={e => setFerryForm({ ...ferryForm, ruta: e.target.value.slice(0, 12) })}
-                  maxLength={12}
+                  onChange={e => setFerryForm({ ...ferryForm, ruta: e.target.value.slice(0, 100) })}
+                  maxLength={100}
                   className="erp-input"
                 />
               </div>
 
-              <div>
-                <label className='erp-label'>Tarifa Adulto ($)</label>
-                <div style={{ display: 'flex' }}>
-                  <CustomNumberInput
-                    step={0.01}
-                    min={0}
-                    max={99999.99}
-                    allowDecimals
-                    width="115px"
-                    value={ferryForm.precio_adulto}
-                    onChange={e => setFerryForm({ ...ferryForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-                  />
-                </div>
-              </div>
-
-              {pax.ninos > 0 && (
-                <div>
-                  <label className='erp-label'>Tarifa Niño ($)</label>
+              {/* Tarifas compactas agrupadas */}
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <div style={{ width: '115px', flexShrink: 0 }}>
+                  <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Tarifa Adulto ($)</label>
                   <div style={{ display: 'flex' }}>
                     <CustomNumberInput
                       step={0.01}
                       min={0}
                       max={99999.99}
                       allowDecimals
-                      width="115px"
-                      value={ferryForm.precio_nino}
-                      onChange={e => setFerryForm({ ...ferryForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                      width="100%"
+                      value={ferryForm.precio_adulto}
+                      onChange={e => setFerryForm({ ...ferryForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
                     />
                   </div>
                 </div>
-              )}
 
-              {pax.infantes > 0 && (
-                <div>
-                  <label className='erp-label'>Tarifa Infante ($)</label>
+                {pax.ninos > 0 && (
+                  <div style={{ width: '115px', flexShrink: 0 }}>
+                    <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Tarifa Niño ($)</label>
+                    <div style={{ display: 'flex' }}>
+                      <CustomNumberInput
+                        step={0.01}
+                        min={0}
+                        max={99999.99}
+                        allowDecimals
+                        width="100%"
+                        value={ferryForm.precio_nino}
+                        onChange={e => setFerryForm({ ...ferryForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {pax.infantes > 0 && (
+                  <div style={{ width: '115px', flexShrink: 0 }}>
+                    <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Tarifa Infante ($)</label>
+                    <div style={{ display: 'flex' }}>
+                      <CustomNumberInput
+                        step={0.01}
+                        min={0}
+                        max={99999.99}
+                        allowDecimals
+                        width="100%"
+                        value={ferryForm.precio_infante}
+                        onChange={e => setFerryForm({ ...ferryForm, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ width: '145px', flexShrink: 0 }}>
+                  <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Vehículos adic. ($)</label>
                   <div style={{ display: 'flex' }}>
                     <CustomNumberInput
                       step={0.01}
                       min={0}
                       max={99999.99}
                       allowDecimals
-                      width="115px"
-                      value={ferryForm.precio_infante}
-                      onChange={e => setFerryForm({ ...ferryForm, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
+                      width="100%"
+                      value={ferryForm.precio_vehiculo}
+                      onChange={e => setFerryForm({ ...ferryForm, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
                     />
                   </div>
                 </div>
-              )}
-
-              <div>
-                <label className='erp-label'>Vehículos adicionales ($)</label>
-                <div style={{ display: 'flex' }}>
-                  <CustomNumberInput
-                    step={0.01}
-                    min={0}
-                    max={99999.99}
-                    allowDecimals
-                    width="115px"
-                    value={ferryForm.precio_vehiculo}
-                    onChange={e => setFerryForm({ ...ferryForm, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
-                  />
-                </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
                 {renderTabActionButtons('ferry', 'Ferry')}
               </div>
             </div>
@@ -3183,8 +3113,8 @@ export default function CotizacionTabContent({
 
           {/* TAB OTRO */}
           {activeTab === 'otro' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', alignItems: 'end' }}>
-              <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'end', width: '100%' }}>
+              <div style={{ flex: '1 1 320px', minWidth: '220px', maxWidth: '350px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <label className='erp-label' style={{ margin: 0 }}>Descripción del Servicio</label>
                   <span style={{ fontSize: '0.75rem', color: (otroForm.descripcion || '').length >= 60 ? '#EF4444' : '#b9c8ddff' }}>
@@ -3201,22 +3131,22 @@ export default function CotizacionTabContent({
                 />
               </div>
 
-              <div>
-                <label className='erp-label'>Precio Venta ($)</label>
+              <div style={{ width: '130px', flexShrink: 0 }}>
+                <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Precio Venta ($)</label>
                 <div style={{ display: 'flex' }}>
                   <CustomNumberInput
                     step={0.01}
                     min={0}
                     max={99999.99}
                     allowDecimals
-                    width="115px"
+                    width="100%"
                     value={otroForm.precio}
                     onChange={e => setOtroForm({ ...otroForm, precio: sanitizePrecioCostoValue(e.target.value) })}
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
                 {renderTabActionButtons('otro', 'Servicio')}
               </div>
             </div>
@@ -3233,57 +3163,10 @@ export default function CotizacionTabContent({
           padding: '20px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-              <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
-                Resumen de Productos
-                <span style={{ color: '#60A5FA', fontWeight: '600', fontSize: '1.325rem' }}>  {items.length} </span>
-              </h2>
-
-              {registeredHotels.length > 0 && (
-                <div style={{ display: 'inline-flex', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '8px', padding: '3px', gap: '4px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('agrupado')}
-                    style={{
-                      padding: '5px 12px',
-                      borderRadius: '6px',
-                      border: 'none',
-                      background: viewMode === 'agrupado' ? '#E87217' : 'transparent',
-                      color: viewMode === 'agrupado' ? '#FFF' : '#CBD5E1',
-                      fontSize: '0.78rem',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    Agrupados
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('plano')}
-                    style={{
-                      padding: '5px 12px',
-                      borderRadius: '6px',
-                      border: 'none',
-                      background: viewMode === 'plano' ? '#E87217' : 'transparent',
-                      color: viewMode === 'plano' ? '#FFF' : '#CBD5E1',
-                      fontSize: '0.78rem',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    Productos
-                  </button>
-                </div>
-              )}
-            </div>
+            <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
+              Resumen de Productos
+              <span style={{ color: '#60A5FA', fontWeight: '600', fontSize: '1.325rem' }}>  {items.length} </span>
+            </h2>
 
             <button
               onClick={handleClearItems}
@@ -3301,402 +3184,8 @@ export default function CotizacionTabContent({
             </button>
           </div>
 
-          {/* VISTA AGRUPADA POR HOTEL */}
-          {viewMode === 'agrupado' && registeredHotels.length > 0 ? (
-            <div>
-              {registeredHotels.map(h => {
-                const hotelItems = items.filter(it => it.tipo !== 'hotel' && it.hotel_item_uid === h.uid);
-                const subtotalHotelYServicios = Number(h.precio || 0) + hotelItems.reduce((acc, it) => acc + Number(it.precio || 0), 0);
-
-                return (
-                  <div
-                    key={h.uid}
-                    style={{
-                      marginBottom: '20px',
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      border: '1px solid rgba(232, 114, 23, 0.4)',
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {/* Hotel Header Banner */}
-                    <div
-                      style={{
-                        background: 'linear-gradient(90deg, rgba(232, 114, 23, 0.22) 0%, rgba(37, 99, 235, 0.15) 100%)',
-                        padding: '12px 16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        gap: '12px',
-                        borderBottom: '1px solid rgba(232, 114, 23, 0.3)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <strong style={{ color: '#FFF', fontSize: '1rem' }}>{h.titulo}</strong>
-
-                            <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontSize: '0.7rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                Subtotal
-                              </div>
-                              <div style={{ fontSize: '1.15rem', fontWeight: '600', color: '#34D399' }}>
-                                ${subtotalHotelYServicios.toFixed(2)}
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => setItemToEdit(h)}
-                              style={{
-                                background: 'rgba(37, 99, 235, 0.2)',
-                                border: '1px solid rgba(37, 99, 235, 0.4)',
-                                color: '#60A5FA',
-                                width: '30px',
-                                height: '30px',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                              title="Editar hotel"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setItemToDelete(h)}
-                              style={{
-                                background: 'rgba(239, 68, 68, 0.2)',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                color: '#EF4444',
-                                width: '30px',
-                                height: '30px',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                              title="Eliminar hotel"
-                            >
-                              ✕
-                            </button>
-                            {/*<span style={{
-                              fontSize: '0.7rem',
-                              padding: '2px 8px',
-                              borderRadius: '12px',
-                              background: 'rgba(232, 114, 23, 0.35)',
-                              border: '1px solid #E87217',
-                              color: '#FDBA74',
-                              fontWeight: '600',
-                            }}>
-                              Hotel
-                            </span>
-                            <span style={{
-                              fontSize: '0.7rem',
-                              padding: '2px 8px',
-                              borderRadius: '12px',
-                              background: 'rgba(59, 130, 246, 0.25)',
-                              border: '1px solid #3B82F6',
-                              color: '#93C5FD',
-                              fontWeight: '600',
-                            }}>
-                              {hotelItems.length} {hotelItems.length === 1 ? 'servicio agrupado' : 'servicios agrupados'}
-                            </span>*/}
-                          </div>
-                          <div style={{ color: '#CBD5E1', fontSize: '0.8rem', marginTop: '2px' }}>
-                            {h.detalle}: <strong>${Number(h.precio || 0).toFixed(2)} USD</strong>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/*<div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          
-                          <button
-                            type="button"
-                            onClick={() => setHotelToGroup(h)}
-                            style={{
-                              background: 'rgba(232, 114, 23, 0.25)',
-                              border: '1px solid #E87217',
-                              color: '#FDBA74',
-                              padding: '6px 12px',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              fontSize: '0.78rem',
-                              fontWeight: '600',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                            }}
-                            title="Vincular o desvincular servicios a este hotel"
-                          >
-                             Agrupar Servicios
-                          </button> 
-                        </div>
-                      </div>*/}
-                    </div>
-
-                    {/* Services Table inside this Hotel */}
-                    {hotelItems.length === 0 ? (
-                      <div style={{
-                        padding: '16px',
-                        textAlign: 'center',
-                        color: '#94A3B8',
-                        fontSize: '0.8125rem',
-                        background: 'rgba(0, 0, 0, 0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '10px',
-                        flexWrap: 'wrap',
-                      }}>
-                        {/*<span>Sin servicios adicionales agrupados a este hotel.</span>
-                        <button
-                          type="button"
-                          onClick={() => setHotelToGroup(h)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#E87217',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            textDecoration: 'underline',
-                            fontSize: '0.8125rem',
-                          }}
-                        >
-                          + Agrupar productos existentes
-                        </button>*/}
-                      </div>
-                    ) : (
-                      <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-                          <thead>
-                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8', fontSize: '0.72rem', textTransform: 'uppercase', background: 'rgba(0,0,0,0.15)' }}>
-                              <th style={{ padding: '8px 12px' }}>Tipo</th>
-                              <th style={{ padding: '8px 12px' }}>Descripción</th>
-                              <th style={{ padding: '8px 12px' }}>Detalles / Pax</th>
-                              <th style={{ padding: '8px 12px' }}>Hotel Asignado</th>
-                              <th style={{ padding: '8px 12px', textAlign: 'right' }}>Monto (USD)</th>
-                              <th style={{ padding: '8px 12px', textAlign: 'center' }}>Acciones</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {hotelItems.map(item => (
-                              <tr key={item.uid} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#FFF' }}>
-                                <td style={{ padding: '10px 12px' }}>
-                                  <span style={{ textTransform: 'capitalize', fontWeight: '600', color: PRODUCT_COLOR_MAP[item.tipo]?.color || '#E87217' }}>
-                                    {item.tipo}
-                                  </span>
-                                </td>
-                                <td style={{ padding: '10px 12px', fontWeight: '500' }}>{item.titulo}</td>
-                                <td style={{ padding: '10px 12px', color: '#CBD5E1', fontSize: '0.78rem' }}>{item.detalle}</td>
-                                <td style={{ padding: '8px 12px', minWidth: '180px' }}>
-                                  <CustomSelect
-                                    value={item.hotel_item_uid || ''}
-                                    onChange={e => handleAssignHotel(item.uid, e.target.value)}
-                                    style={{ padding: '4px 8px', fontSize: '0.78rem' }}
-                                  >
-                                    <option value="">Desagrupar (General)</option>
-                                    {registeredHotels.map(rh => (
-                                      <option key={rh.uid} value={rh.uid}>{rh.titulo}</option>
-                                    ))}
-                                  </CustomSelect>
-                                </td>
-                                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', color: '#F8FAFC' }}>
-                                  ${Number(item.precio || 0).toFixed(2)}
-                                </td>
-                                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
-                                    <button
-                                      type="button"
-                                      onClick={() => setItemToEdit(item)}
-                                      style={{
-                                        background: 'rgba(37, 99, 235, 0.2)',
-                                        border: '1px solid rgba(37, 99, 235, 0.4)',
-                                        color: '#60A5FA',
-                                        width: '26px',
-                                        height: '26px',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                      }}
-                                      title="Editar producto"
-                                    >
-                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                      </svg>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setItemToDelete(item)}
-                                      style={{
-                                        background: 'rgba(239, 68, 68, 0.2)',
-                                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                                        color: '#EF4444',
-                                        width: '26px',
-                                        height: '26px',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                      }}
-                                      title="Eliminar producto"
-                                    >
-                                      ✕
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* SERVICIOS GENERALES / SIN HOTEL */}
-              {(() => {
-                const generalItems = items.filter(it => it.tipo !== 'hotel' && (!it.hotel_item_uid || !registeredHotels.some(rh => rh.uid === it.hotel_item_uid)));
-                if (generalItems.length === 0) return null;
-                const subtotalGeneral = generalItems.reduce((acc, it) => acc + Number(it.precio || 0), 0);
-
-                return (
-                  <div
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.02)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      marginBottom: '16px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        padding: '10px 16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                        flexWrap: 'wrap',
-                        gap: '8px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <strong style={{ color: '#FFF', fontSize: '0.9rem' }}>Servicios Generales</strong>
-                      </div>
-                      <div style={{ color: '#CBD5E1', fontSize: '0.85rem' }}>
-                        Subtotal: <strong style={{ color: '#60A5FA' }}>${subtotalGeneral.toFixed(2)} USD</strong>
-                      </div>
-                    </div>
-
-                    <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-                        <thead>
-                          <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8', fontSize: '0.72rem', textTransform: 'uppercase', background: 'rgba(0,0,0,0.15)' }}>
-                            <th style={{ padding: '8px 12px' }}>Tipo</th>
-                            <th style={{ padding: '8px 12px' }}>Descripción</th>
-                            <th style={{ padding: '8px 12px' }}>Detalles / Pax</th>
-                            <th style={{ padding: '8px 12px' }}>Agrupar a Hotel</th>
-                            <th style={{ padding: '8px 12px', textAlign: 'right' }}>Monto (USD)</th>
-                            <th style={{ padding: '8px 12px', textAlign: 'center' }}>Acciones</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {generalItems.map(item => (
-                            <tr key={item.uid} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#FFF' }}>
-                              <td style={{ padding: '10px 12px' }}>
-                                <span style={{ textTransform: 'capitalize', fontWeight: '600', color: PRODUCT_COLOR_MAP[item.tipo]?.color || '#E87217' }}>
-                                  {item.tipo}
-                                </span>
-                              </td>
-                              <td style={{ padding: '10px 12px', fontWeight: '500' }}>{item.titulo}</td>
-                              <td style={{ padding: '10px 12px', color: '#CBD5E1', fontSize: '0.78rem' }}>{item.detalle}</td>
-                              <td style={{ padding: '8px 12px', minWidth: '180px' }}>
-                                <CustomSelect
-                                  value={item.hotel_item_uid || ''}
-                                  onChange={e => handleAssignHotel(item.uid, e.target.value)}
-                                  style={{ padding: '4px 8px', fontSize: '0.78rem' }}
-                                >
-                                  <option value="">Sin Hotel (General)</option>
-                                  {registeredHotels.map(rh => (
-                                    <option key={rh.uid} value={rh.uid}>{rh.titulo}</option>
-                                  ))}
-                                </CustomSelect>
-                              </td>
-                              <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', color: '#F8FAFC' }}>
-                                ${Number(item.precio || 0).toFixed(2)}
-                              </td>
-                              <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
-                                  <button
-                                    type="button"
-                                    onClick={() => setItemToEdit(item)}
-                                    style={{
-                                      background: 'rgba(37, 99, 235, 0.2)',
-                                      border: '1px solid rgba(37, 99, 235, 0.4)',
-                                      color: '#60A5FA',
-                                      width: '26px',
-                                      height: '26px',
-                                      borderRadius: '6px',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                    }}
-                                    title="Editar producto"
-                                  >
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                    </svg>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setItemToDelete(item)}
-                                    style={{
-                                      background: 'rgba(239, 68, 68, 0.2)',
-                                      border: '1px solid rgba(239, 68, 68, 0.3)',
-                                      color: '#EF4444',
-                                      width: '26px',
-                                      height: '26px',
-                                      borderRadius: '6px',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                    }}
-                                    title="Eliminar producto"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          ) : (
-            /* VISTA PLANA TRADICIONAL */
-            <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
+          {/* TABLA GENERAL DE PRODUCTOS */}
+          <div className="custom-scrollbar" style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.51)', color: '#c7d4e7ff', fontSize: '0.75rem', textTransform: 'uppercase' }}>
@@ -3725,16 +3214,11 @@ export default function CotizacionTabContent({
                               Hotel Base
                             </span>
                           ) : (
-                            <CustomSelect
-                              value={item.hotel_item_uid || ''}
-                              onChange={e => handleAssignHotel(item.uid, e.target.value)}
-                              style={{ padding: '3px 8px', fontSize: '0.78rem' }}
-                            >
-                              <option value="">Sin Hotel</option>
-                              {registeredHotels.map(rh => (
-                                <option key={rh.uid} value={rh.uid}>{rh.titulo}</option>
-                              ))}
-                            </CustomSelect>
+                            <HotelAsociadoSelect
+                              selectedHotelUids={item.hotel_item_uids || (item.hotel_item_uid ? [item.hotel_item_uid] : [])}
+                              registeredHotels={registeredHotels}
+                              onChange={newUids => handleAssignHotels(item.uid, newUids)}
+                            />
                           )}
                         </td>
                       )}
@@ -3743,28 +3227,6 @@ export default function CotizacionTabContent({
                       </td>
                       <td style={{ padding: '12px', textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                          {item.tipo === 'hotel' && (
-                            <button
-                              type="button"
-                              onClick={() => setHotelToGroup(item)}
-                              style={{
-                                background: 'rgba(232, 114, 23, 0.2)',
-                                border: '1px solid #E87217',
-                                color: '#FDBA74',
-                                padding: '4px 8px',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                              title="Agrupar servicios a este hotel"
-                            >
-                              Agrupar
-                            </button>
-                          )}
                           <button
                             type="button"
                             onClick={() => setItemToEdit(item)}
@@ -3813,7 +3275,6 @@ export default function CotizacionTabContent({
                 </tbody>
               </table>
             </div>
-          )}
         </div>
       )}
 
@@ -3839,7 +3300,7 @@ export default function CotizacionTabContent({
                 cursor: 'pointer',
                 fontSize: '0.8125rem',
                 fontWeight: '500',
-                color: enableCuotas ? '#E87217' : '#b9c8ddff',
+                color: enableCuotas ? '#38BDF8' : '#b9c8ddff',
                 padding: '10px 16px',
                 borderRadius: '12px',
                 background: 'rgb(30, 41, 59)',
@@ -3847,7 +3308,7 @@ export default function CotizacionTabContent({
                 boxShadow: enableCuotas
                   ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
                   : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
-                border: enableCuotas ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+                border: enableCuotas ? '1px solid rgba(37, 99, 235, 0.5)' : '1px solid transparent',
                 userSelect: 'none'
               }}>
                 <input
@@ -4117,14 +3578,6 @@ export default function CotizacionTabContent({
         registeredHotels={registeredHotels}
         onClose={() => setItemToEdit(null)}
         onSave={handleSaveEditedItem}
-      />
-
-      <AgruparProductosHotelModal
-        isOpen={!!hotelToGroup}
-        hotelItem={hotelToGroup}
-        allItems={items}
-        onClose={() => setHotelToGroup(null)}
-        onSaveGroup={handleSaveHotelGrouping}
       />
 
       <InformeCotizacionRapidaModal

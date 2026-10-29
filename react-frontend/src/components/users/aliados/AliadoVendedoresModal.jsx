@@ -421,7 +421,7 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
                     cursor: 'pointer',
                     fontSize: '0.8125rem',
                     fontWeight: '500',
-                    color: status ? '#E87217' : '#b9c8ddff',
+                    color: status ? '#38BDF8' : '#b9c8ddff',
                     padding: '10px 16px',
                     borderRadius: '12px',
                     background: 'rgb(30, 41, 59)',
@@ -429,10 +429,10 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
                     boxShadow: status
                       ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
                       : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
-                    border: status ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+                    border: status ? '1px solid rgba(37, 99, 235, 0.5)' : '1px solid transparent',
                     userSelect: 'none'
                   }}>
-                    <input type="checkbox" checked={status} onChange={(e) => setStatus(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#E87217' }} />
+                    <input type="checkbox" checked={status} onChange={(e) => setStatus(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#2563EB' }} />
                     <span>Habilitado (Activo)</span>
                   </label>
                 </div>

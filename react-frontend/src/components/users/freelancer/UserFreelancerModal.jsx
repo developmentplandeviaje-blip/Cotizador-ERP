@@ -331,7 +331,7 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                         style={{
                           width: '18px',
                           height: '18px',
-                          accentColor: '#E87217',
+                          accentColor: '#2563EB',
                           cursor: 'pointer',
                         }}
                       />

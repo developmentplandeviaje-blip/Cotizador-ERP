@@ -144,10 +144,10 @@ export default function ConfigurarHorarioCierreModal({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: activo ? '#E87217' : 'rgba(255, 255, 255, 0.2)',
+                backgroundColor: activo ? '#2563EB' : 'rgba(255, 255, 255, 0.2)',
                 transition: '0.3s',
                 borderRadius: '34px',
-                boxShadow: activo ? '0 0 10px rgba(232, 114, 23, 0.4)' : 'none',
+                boxShadow: activo ? '0 0 10px rgba(37, 99, 235, 0.45)' : 'none',
               }}
             >
               <span
@@ -235,7 +235,7 @@ export default function ConfigurarHorarioCierreModal({
             lineHeight: '1.5',
           }}
         >
-          <div style={{ fontWeight: '700', color: '#E87217', marginBottom: '6px', fontSize: '0.8125rem' }}>
+          <div style={{ fontWeight: '700', color: '#38BDF8', marginBottom: '6px', fontSize: '0.8125rem' }}>
             📌 Comportamiento al activarse el horario ({hora}):
           </div>
           <ul style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>

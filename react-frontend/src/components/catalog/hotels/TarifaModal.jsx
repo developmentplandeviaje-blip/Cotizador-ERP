@@ -324,7 +324,7 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             cursor: 'pointer',
             fontSize: '0.8125rem',
             fontWeight: '500',
-            color: formData.suplemento ? '#E87217' : '#b9c8ddff',
+            color: formData.suplemento ? '#38BDF8' : '#b9c8ddff',
             padding: '10px 16px',
             borderRadius: '12px',
             background: 'rgb(30, 41, 59)',
@@ -332,7 +332,7 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             boxShadow: formData.suplemento
               ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
               : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
-            border: formData.suplemento ? '1px solid rgba(232, 114, 23, 0.3)' : '1px solid transparent',
+            border: formData.suplemento ? '1px solid rgba(37, 99, 235, 0.5)' : '1px solid transparent',
             userSelect: 'none'
           }}>
             <input

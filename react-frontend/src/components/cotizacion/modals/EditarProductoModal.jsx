@@ -6,6 +6,7 @@ import CustomDatePicker from '../../common/CustomDatePicker';
 import CustomNumberInput from '../../common/CustomNumberInput';
 import { PRODUCT_COLOR_MAP } from '../NuevaCotizacion';
 import { handlePriceInputKeyClamp, sanitizePrecioCostoValue } from '../../../utils/validation';
+import HotelAsociadoSelect from '../HotelAsociadoSelect';
 
 export default function EditarProductoModal({
   isOpen,
@@ -37,6 +38,9 @@ export default function EditarProductoModal({
         ...item.data,
         precio: item.precio || 0,
         hotel_item_uid: item.hotel_item_uid || item.data?.hotel_item_uid || '',
+        hotel_item_uids: Array.isArray(item.hotel_item_uids)
+          ? item.hotel_item_uids
+          : (item.hotel_item_uid ? [item.hotel_item_uid] : []),
         tipo_asignacion: initialTipoAsignacion,
         pax_individual_id: item.data.pax_individual_id ?? 0,
         pax_seleccionados: item.data.pax_seleccionados || (allPassengers.length > 0 ? [allPassengers[0].id] : []),
@@ -230,9 +234,11 @@ export default function EditarProductoModal({
       detalle: updatedDetalle,
       precio: totalCalculado,
       hotel_item_uid: tipo === 'hotel' ? item.hotel_item_uid : (formData.hotel_item_uid || null),
+      hotel_item_uids: tipo === 'hotel' ? item.hotel_item_uids : (formData.hotel_item_uids || (formData.hotel_item_uid ? [formData.hotel_item_uid] : [])),
       data: {
         ...finalData,
         hotel_item_uid: tipo === 'hotel' ? item.data?.hotel_item_uid : (formData.hotel_item_uid || null),
+        hotel_item_uids: tipo === 'hotel' ? item.data?.hotel_item_uids : (formData.hotel_item_uids || (formData.hotel_item_uid ? [formData.hotel_item_uid] : [])),
       },
     };
 
@@ -269,18 +275,17 @@ export default function EditarProductoModal({
             padding: '12px 14px',
           }}>
             <label className="erp-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#E87217', marginBottom: '6px' }}>
-              <span>🏨</span> Agrupar este producto a un Hotel Registrado:
+              <span>🏨</span> Agrupar este producto a Hotel(es) Registrado(s):
             </label>
-            <CustomSelect
-              value={formData.hotel_item_uid || ''}
-              onChange={e => setFormData({ ...formData, hotel_item_uid: e.target.value || null })}
-              className="erp-select"
-            >
-              <option value="">Ninguno (Servicio General / Sin Hotel)</option>
-              {registeredHotels.map(h => (
-                <option key={h.uid} value={h.uid}>🏨 {h.titulo}</option>
-              ))}
-            </CustomSelect>
+            <HotelAsociadoSelect
+              selectedHotelUids={formData.hotel_item_uids || (formData.hotel_item_uid ? [formData.hotel_item_uid] : [])}
+              registeredHotels={registeredHotels}
+              onChange={newUids => setFormData({
+                ...formData,
+                hotel_item_uids: newUids,
+                hotel_item_uid: newUids[0] || null,
+              })}
+            />
           </div>
         )}
 
@@ -578,11 +583,11 @@ export default function EditarProductoModal({
               <div style={{
                 padding: '12px 14px',
                 background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(232, 114, 23, 0.35)',
+                border: '1px solid rgba(37, 99, 235, 0.35)',
                 borderRadius: '8px',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '6px' }}>
-                  <strong style={{ color: '#E87217', fontSize: '0.85rem' }}>
+                  <strong style={{ color: '#38BDF8', fontSize: '0.85rem' }}>
                     👥 Asignación de Pasajeros ({allPassengers.length} en viaje)
                   </strong>
                   <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
@@ -613,8 +618,8 @@ export default function EditarProductoModal({
                         style={{
                           padding: '5px 12px',
                           borderRadius: '6px',
-                          border: active ? '1px solid #E87217' : '1px solid rgba(255, 255, 255, 0.15)',
-                          background: active ? 'rgba(232, 114, 23, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+                          border: active ? '1px solid #2563EB' : '1px solid rgba(255, 255, 255, 0.15)',
+                          background: active ? 'rgba(37, 99, 235, 0.25)' : 'rgba(255, 255, 255, 0.05)',
                           color: active ? '#FFF' : '#94A3B8',
                           fontSize: '0.78rem',
                           fontWeight: active ? '600' : '400',
@@ -682,8 +687,8 @@ export default function EditarProductoModal({
                               alignItems: 'center',
                               gap: '6px',
                               padding: '6px 10px',
-                              background: isChecked ? 'rgba(232, 114, 23, 0.16)' : 'rgba(255, 255, 255, 0.04)',
-                              border: isChecked ? '1px solid #E87217' : '1px solid rgba(255, 255, 255, 0.1)',
+                              background: isChecked ? 'rgba(37, 99, 235, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                              border: isChecked ? '1px solid #2563EB' : '1px solid rgba(255, 255, 255, 0.1)',
                               borderRadius: '6px',
                               cursor: 'pointer',
                               fontSize: '0.78rem',
@@ -700,7 +705,7 @@ export default function EditarProductoModal({
                                   return { ...prev, pax_seleccionados: next };
                                 });
                               }}
-                              style={{ accentColor: '#E87217' }}
+                              style={{ accentColor: '#2563EB' }}
                             />
                             <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{p.nombre}</span>
                           </label>

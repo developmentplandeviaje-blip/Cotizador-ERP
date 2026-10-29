@@ -22,7 +22,12 @@ export default function AgruparProductosHotelModal({
   useEffect(() => {
     if (isOpen && hotelItem) {
       const initialSelected = nonHotelItems
-        .filter(item => item.hotel_item_uid === hotelItem.uid)
+        .filter(item => {
+          if (Array.isArray(item.hotel_item_uids)) {
+            return item.hotel_item_uids.includes(hotelItem.uid);
+          }
+          return item.hotel_item_uid === hotelItem.uid;
+        })
         .map(item => item.uid);
       setSelectedUids(initialSelected);
       setSearchTerm('');
@@ -184,10 +189,11 @@ export default function AgruparProductosHotelModal({
           ) : (
             filteredItems.map(item => {
               const isChecked = selectedUids.includes(item.uid);
-              const isAssignedToOther = item.hotel_item_uid && item.hotel_item_uid !== hotelItem.uid;
-              const otherHotel = isAssignedToOther
-                ? allItems.find(h => h.uid === item.hotel_item_uid)
-                : null;
+              const itemHotels = Array.isArray(item.hotel_item_uids)
+                ? item.hotel_item_uids
+                : (item.hotel_item_uid ? [item.hotel_item_uid] : []);
+              const otherHotels = itemHotels.filter(id => id !== hotelItem.uid);
+              const otherHotelNames = otherHotels.map(id => allItems.find(h => h.uid === id)?.titulo || 'Otro hotel');
 
               return (
                 <label
@@ -201,10 +207,10 @@ export default function AgruparProductosHotelModal({
                     borderRadius: '10px',
                     cursor: 'pointer',
                     background: isChecked
-                      ? 'rgba(232, 114, 23, 0.15)'
+                      ? 'rgba(37, 99, 235, 0.2)'
                       : 'rgba(255, 255, 255, 0.03)',
                     border: isChecked
-                      ? '1px solid #E87217'
+                      ? '1px solid #2563EB'
                       : '1px solid rgba(255, 255, 255, 0.1)',
                     transition: 'all 0.15s ease',
                   }}
@@ -217,7 +223,7 @@ export default function AgruparProductosHotelModal({
                       style={{
                         width: '18px',
                         height: '18px',
-                        accentColor: '#E87217',
+                        accentColor: '#2563EB',
                         cursor: 'pointer',
                         flexShrink: 0,
                       }}
@@ -234,7 +240,7 @@ export default function AgruparProductosHotelModal({
                           [{item.tipo}]
                         </span>
                         <strong style={{ color: '#FFFFFF', fontSize: '0.875rem' }}>{item.titulo}</strong>
-                        {isAssignedToOther && (
+                        {otherHotels.length > 0 && (
                           <span style={{
                             fontSize: '0.7rem',
                             color: '#F59E0B',
@@ -243,7 +249,9 @@ export default function AgruparProductosHotelModal({
                             borderRadius: '4px',
                             border: '1px solid rgba(245, 158, 11, 0.3)',
                           }}>
-                            Actualmente en: {otherHotel?.titulo || 'Otro Hotel'}
+                            {otherHotels.length === 1
+                              ? `También en: ${otherHotelNames[0]}`
+                              : `También en ${otherHotels.length} hoteles`}
                           </span>
                         )}
                       </div>

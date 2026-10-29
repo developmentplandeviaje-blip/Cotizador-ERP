@@ -321,7 +321,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                         type="checkbox"
                         checked={status}
                         onChange={(e) => setStatus(e.target.checked)}
-                        style={{ width: '18px', height: '18px', accentColor: '#E87217', cursor: 'pointer' }}
+                        style={{ width: '18px', height: '18px', accentColor: '#2563EB', cursor: 'pointer' }}
                       />
                       <span>{status ? 'Habilitado para cobros' : 'Deshabilitado'}</span>
                     </label>
@@ -619,8 +619,8 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                           gap: '10px',
                           padding: '10px 12px',
                           borderRadius: '8px',
-                          backgroundColor: isChecked ? 'rgba(232, 114, 23, 0.12)' : 'rgba(15, 23, 42, 0.4)',
-                          border: isChecked ? '1px solid rgba(232, 114, 23, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
+                          backgroundColor: isChecked ? 'rgba(37, 99, 235, 0.2)' : 'rgba(15, 23, 42, 0.4)',
+                          border: isChecked ? '1px solid #2563EB' : '1px solid rgba(255, 255, 255, 0.08)',
                           cursor: 'pointer',
                           transition: 'all 0.15s',
                         }}
@@ -629,7 +629,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleToggleAsesor(asesor.id)}
-                          style={{ width: '16px', height: '16px', accentColor: '#E87217', cursor: 'pointer' }}
+                          style={{ width: '16px', height: '16px', accentColor: '#2563EB', cursor: 'pointer' }}
                         />
                         <div style={{ overflow: 'hidden' }}>
                           <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#FFFFFF', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>

@@ -165,7 +165,7 @@ export default function InformeCotizacionRapidaModal({
     let serviciosFormatted = '';
     if (hasHotels) {
       hotelItems.forEach(h => {
-        const grouped = items.filter(it => it.tipo !== 'hotel' && it.hotel_item_uid === h.uid);
+        const grouped = items.filter(it => it.tipo !== 'hotel' && (Array.isArray(it.hotel_item_uids) ? it.hotel_item_uids.includes(h.uid) : it.hotel_item_uid === h.uid));
         serviciosFormatted += `🏨 *HOTEL: ${h.titulo}*\n`;
         serviciosFormatted += `   • Tarifa base: $${Number(h.precio || 0).toFixed(2)} USD (${h.detalle})\n`;
         if (grouped.length > 0) {
@@ -179,7 +179,11 @@ export default function InformeCotizacionRapidaModal({
         }
       });
 
-      const unassigned = items.filter(it => it.tipo !== 'hotel' && (!it.hotel_item_uid || !hotelItems.some(h => h.uid === it.hotel_item_uid)));
+      const unassigned = items.filter(it => {
+        if (it.tipo === 'hotel') return false;
+        const uids = Array.isArray(it.hotel_item_uids) ? it.hotel_item_uids : (it.hotel_item_uid ? [it.hotel_item_uid] : []);
+        return uids.length === 0 || !hotelItems.some(h => uids.includes(h.uid));
+      });
       if (unassigned.length > 0) {
         serviciosFormatted += `🌐 *SERVICIOS GENERALES:*\n`;
         unassigned.forEach(it => {
@@ -576,7 +580,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                 /* VISTA CON HOTELES Y PRODUCTOS AGRUPADOS */
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {items.filter(it => it.tipo === 'hotel').map((hotelItem, hIdx) => {
-                    const groupedServices = items.filter(it => it.tipo !== 'hotel' && it.hotel_item_uid === hotelItem.uid);
+                    const groupedServices = items.filter(it => it.tipo !== 'hotel' && (Array.isArray(it.hotel_item_uids) ? it.hotel_item_uids.includes(hotelItem.uid) : it.hotel_item_uid === hotelItem.uid));
                     const subtotalHotel = Number(hotelItem.precio || 0) + groupedServices.reduce((sum, g) => sum + Number(g.precio || 0), 0);
 
                     return (
@@ -660,7 +664,11 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                   {/* General / Unassigned Services */}
                   {(() => {
                     const registeredHotelUids = items.filter(it => it.tipo === 'hotel').map(h => h.uid);
-                    const unassignedServices = items.filter(it => it.tipo !== 'hotel' && (!it.hotel_item_uid || !registeredHotelUids.includes(it.hotel_item_uid)));
+                    const unassignedServices = items.filter(it => {
+                      if (it.tipo === 'hotel') return false;
+                      const uids = Array.isArray(it.hotel_item_uids) ? it.hotel_item_uids : (it.hotel_item_uid ? [it.hotel_item_uid] : []);
+                      return uids.length === 0 || !registeredHotelUids.some(hUid => uids.includes(hUid));
+                    });
                     if (unassignedServices.length === 0) return null;
                     const subtotalGen = unassignedServices.reduce((sum, u) => sum + Number(u.precio || 0), 0);
 

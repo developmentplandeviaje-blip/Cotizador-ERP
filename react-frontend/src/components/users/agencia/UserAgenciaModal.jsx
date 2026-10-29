@@ -302,7 +302,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                         style={{
                           width: '18px',
                           height: '18px',
-                          accentColor: '#E87217',
+                          accentColor: '#2563EB',
                           cursor: 'pointer',
                         }}
                       />

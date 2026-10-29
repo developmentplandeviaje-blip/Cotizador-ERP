@@ -332,14 +332,14 @@ export default function CustomNumberInput({
             ? 'rgba(20, 35, 80, 0.75)'
             : 'rgba(16, 28, 68, 0.55)',
         border: isFocused
-          ? '1px solid #E87217'
+          ? '1px solid #2563EB'
           : isHovered
-            ? '1px solid rgba(232, 114, 23, 0.5)'
+            ? '1px solid rgba(37, 99, 235, 0.5)'
             : '1px solid rgba(255, 255, 255, 0.18)',
         borderRadius: sizeStyles.borderRadius,
         height: sizeStyles.height,
         boxShadow: isFocused
-          ? '0 0 0 2px rgba(232, 114, 23, 0.25), 0 2px 8px rgba(0, 0, 0, 0.25)'
+          ? '0 0 0 2px rgba(66, 118, 230, 0.35), 0 2px 8px rgba(0, 0, 0, 0.25)'
           : '0 2px 5px rgba(0, 0, 0, 0.15)',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         position: 'relative',
@@ -425,8 +425,8 @@ export default function CustomNumberInput({
             }}
             onMouseEnter={(e) => {
               if (!isMaxReached) {
-                e.currentTarget.style.color = '#E87217';
-                e.currentTarget.style.background = 'rgba(232, 114, 23, 0.2)';
+                e.currentTarget.style.color = '#2563EB';
+                e.currentTarget.style.background = 'rgba(37, 99, 235, 0.2)';
               }
             }}
             onMouseLeave={(e) => {
@@ -476,8 +476,8 @@ export default function CustomNumberInput({
             }}
             onMouseEnter={(e) => {
               if (!isMinReached) {
-                e.currentTarget.style.color = '#E87217';
-                e.currentTarget.style.background = 'rgba(232, 114, 23, 0.2)';
+                e.currentTarget.style.color = '#2563EB';
+                e.currentTarget.style.background = 'rgba(37, 99, 235, 0.2)';
               }
             }}
             onMouseLeave={(e) => {
