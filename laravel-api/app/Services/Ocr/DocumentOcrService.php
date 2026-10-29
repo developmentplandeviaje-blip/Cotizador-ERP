@@ -63,7 +63,7 @@ class DocumentOcrService
             throw new RuntimeException('La API Key de Gemini (GEMINI_API_KEY) no está configurada en el servidor.');
         }
 
-        $model = config('services.ocr.gemini.model', 'gemini-1.5-flash');
+        $model = config('services.ocr.gemini.model', 'gemini-2.5-flash');
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
         $systemPrompt = $this->buildSystemPrompt();
@@ -92,11 +92,13 @@ class DocumentOcrService
         $response = $this->createHttpClient()->post($url, $payload);
 
         if (!$response->successful()) {
+            $errBody = $response->json();
+            $detail = $errBody['error']['message'] ?? ('HTTP ' . $response->status());
             Log::error('OCR Gemini API Error', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
-            throw new RuntimeException('Error al comunicarse con el servicio de IA (Gemini): ' . $response->status());
+            throw new RuntimeException("Error al comunicarse con Gemini ({$response->status()}): {$detail}");
         }
 
         $json = $response->json();
@@ -149,11 +151,13 @@ class DocumentOcrService
         $response = $this->createHttpClient($apiKey)->post($url, $payload);
 
         if (!$response->successful()) {
+            $errBody = $response->json();
+            $detail = $errBody['error']['message'] ?? ('HTTP ' . $response->status());
             Log::error('OCR OpenAI API Error', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
-            throw new RuntimeException('Error al comunicarse con el servicio de IA (OpenAI): ' . $response->status());
+            throw new RuntimeException("Error al comunicarse con OpenAI ({$response->status()}): {$detail}");
         }
 
         $json = $response->json();
