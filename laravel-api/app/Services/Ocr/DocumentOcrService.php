@@ -63,7 +63,7 @@ class DocumentOcrService
             throw new RuntimeException('La API Key de Gemini (GEMINI_API_KEY) no está configurada en el servidor.');
         }
 
-        $model = config('services.ocr.gemini.model', 'gemini-2.5-flash');
+        $model = config('services.ocr.gemini.model', 'gemini-3.8-flash');
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
         $systemPrompt = $this->buildSystemPrompt();
