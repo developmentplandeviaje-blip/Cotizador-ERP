@@ -37,6 +37,7 @@ return [
 
     'ocr' => [
         'driver' => env('OCR_AI_DRIVER', 'gemini'),
+        'ssl_verify' => env('OCR_SSL_VERIFY', false),
         'gemini' => [
             'api_key' => env('GEMINI_API_KEY'),
             'model' => env('GEMINI_OCR_MODEL', 'gemini-1.5-flash'),

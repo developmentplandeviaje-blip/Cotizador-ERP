@@ -89,7 +89,7 @@ class DocumentOcrService
             ],
         ];
 
-        $response = Http::timeout(25)->post($url, $payload);
+        $response = $this->createHttpClient()->post($url, $payload);
 
         if (!$response->successful()) {
             Log::error('OCR Gemini API Error', [
@@ -146,7 +146,7 @@ class DocumentOcrService
             ],
         ];
 
-        $response = Http::withToken($apiKey)->timeout(25)->post($url, $payload);
+        $response = $this->createHttpClient($apiKey)->post($url, $payload);
 
         if (!$response->successful()) {
             Log::error('OCR OpenAI API Error', [
@@ -160,6 +160,27 @@ class DocumentOcrService
         $rawText = $json['choices'][0]['message']['content'] ?? '{}';
 
         return $this->parseAndNormalizeResponse($rawText, 'openai');
+    }
+
+    /**
+     * Create an HTTP client instance configured with timeout and local SSL verification settings.
+     */
+    protected function createHttpClient(?string $token = null)
+    {
+        $client = Http::timeout(30);
+
+        if ($token) {
+            $client = $client->withToken($token);
+        }
+
+        // On local environments (such as Windows / XAMPP where cacert.pem is often not configured in php.ini)
+        // or when explicitly disabled in config, bypass cURL SSL certificate verification.
+        $sslVerify = config('services.ocr.ssl_verify', false);
+        if (!$sslVerify) {
+            $client = $client->withoutVerifying();
+        }
+
+        return $client;
     }
 
     /**
