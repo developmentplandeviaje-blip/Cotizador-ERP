@@ -24,6 +24,7 @@ import {
 } from './modals';
 import HotelAsociadoSelect from './HotelAsociadoSelect';
 import DocumentScannerButton from './DocumentScannerButton';
+import BatchDocumentScannerButton from './BatchDocumentScannerButton';
 
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
 import {
@@ -444,30 +445,58 @@ export default function CotizacionTabContent({
     }
   };
 
+  // Combina los datos leídos por OCR con una casilla de acompañante
+  const mergeOcrIntoPasajero = (p, docData) => {
+    let tipoDoc = docData.tipo_documento || 'V';
+    let docNum = docData.documento || '';
+    // Infantes sin pasaporte se identifican por fecha de nacimiento
+    if (p.tipo_pax === 'infante' && tipoDoc !== 'P' && docData.fecha_nacimiento) {
+      tipoDoc = 'NAC';
+      docNum = docData.fecha_nacimiento;
+    }
+    return {
+      ...p,
+      tipo_documento: tipoDoc,
+      documento: docNum,
+      nombres: (docData.nombres || p.nombres || '').slice(0, 35),
+      apellidos: (docData.apellidos || p.apellidos || '').slice(0, 25),
+    };
+  };
+
   const handleOcrAcompananteComplete = (index, docData) => {
     setPasajeros(prev => {
+      if (!prev[index]) return prev;
       const copy = [...prev];
-      if (!copy[index]) return prev;
-
-      const tipoDoc = docData.tipo_documento || 'V';
-      const docNum = docData.documento || '';
-      const nombres = docData.nombres || copy[index].nombres;
-      const apellidos = docData.apellidos || copy[index].apellidos;
-
-      copy[index] = {
-        ...copy[index],
-        tipo_documento: tipoDoc,
-        documento: docNum,
-        nombres,
-        apellidos,
-      };
-
-      if (docData.fecha_nacimiento && copy[index].tipo_documento === 'NAC') {
-        copy[index].documento = docData.fecha_nacimiento;
-      }
-
+      copy[index] = mergeOcrIntoPasajero(copy[index], docData);
       return copy;
     });
+  };
+
+  const isPasajeroVacio = (p) => !p?.nombres?.trim() && !p?.apellidos?.trim() && !String(p?.documento || '').trim();
+  const hasAcompananteData = pasajeros.some(p => !isPasajeroVacio(p));
+
+  // Escaneo múltiple: llena en orden las casillas vacías. Devuelve cuántas se llenaron.
+  const handleOcrBatchAcompanantes = (results) => {
+    const copy = [...pasajeros];
+    let r = 0;
+    for (let i = 0; i < copy.length && r < results.length; i++) {
+      if (isPasajeroVacio(copy[i])) {
+        copy[i] = mergeOcrIntoPasajero(copy[i], results[r]);
+        r++;
+      }
+    }
+    setPasajeros(copy);
+    return r;
+  };
+
+  const handleLimpiarAcompanantes = () => {
+    setPasajeros(prev => prev.map(p => ({
+      ...p,
+      nombres: '',
+      apellidos: '',
+      documento: '',
+      tipo_documento: p.tipo_pax === 'infante' ? 'NAC' : 'V',
+    })));
   };
 
   const handleDocumentoClienteChange = (e) => {
@@ -2100,9 +2129,19 @@ export default function CotizacionTabContent({
           width: '100%',
           boxSizing: 'border-box',
         }}>
-          <h2 style={{ fontSize: '1rem', color: '#FFF', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={imgUsuario} style={{ width: '18px', height: '18px' }} alt="" /> Pasajeros Acompañantes ({pasajeros.length})
-          </h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', margin: '0 0 16px 0' }}>
+            <h2 style={{ fontSize: '1rem', color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={imgUsuario} style={{ width: '18px', height: '18px' }} alt="" /> Pasajeros Acompañantes ({pasajeros.length})
+            </h2>
+            {pasajeros.length > 0 && (
+              <BatchDocumentScannerButton
+                hasData={hasAcompananteData}
+                maxFiles={pasajeros.length}
+                onBatchComplete={handleOcrBatchAcompanantes}
+                onClear={handleLimpiarAcompanantes}
+              />
+            )}
+          </div>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
