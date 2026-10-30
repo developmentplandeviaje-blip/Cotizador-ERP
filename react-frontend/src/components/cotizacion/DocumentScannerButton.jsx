@@ -5,10 +5,14 @@ import { compressDocumentImage } from '../../utils/imageCompressor';
 export default function DocumentScannerButton({
   onScanComplete,
   compact = false,
-  label = 'Escanear Doc',
+  label = 'Escanear',
   title = 'Escanear Cédula, RIF o Pasaporte con IA',
   className = '',
   style = {},
+  isClearMode = false,
+  onClear,
+  clearLabel = 'Limpiar',
+  clearTitle = 'Limpiar campos de datos',
 }) {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState(null); // { type: 'success' | 'error' | 'info', text: string }
@@ -73,8 +77,18 @@ export default function DocumentScannerButton({
     }
   };
 
-  const triggerInput = () => {
+  const handleClick = () => {
     if (loading) return;
+    if (isClearMode) {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      setStatusMsg(null);
+      if (onClear) {
+        onClear();
+      }
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -91,9 +105,9 @@ export default function DocumentScannerButton({
 
       <button
         type="button"
-        onClick={triggerInput}
+        onClick={handleClick}
         disabled={loading}
-        title={title}
+        title={isClearMode ? clearTitle : title}
         className={className || (compact ? 'btn-icon-scanner' : 'btn-secondary-form')}
         style={{
           display: 'inline-flex',
@@ -129,6 +143,28 @@ export default function DocumentScannerButton({
               <path d="M12 2a10 10 0 0 1 10 10" />
             </svg>
             <span>{compact ? 'Leyendo...' : 'Escaneando...'}</span>
+          </>
+        ) : isClearMode ? (
+          <>
+            {/* Clear / Eraser Icon */}
+            <svg
+              style={{
+                width: compact ? '14px' : '16px',
+                height: compact ? '14px' : '16px',
+                flexShrink: 0,
+              }}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
+              <path d="M22 21H7" />
+              <path d="m5 11 9 9" />
+            </svg>
+            {clearLabel && <span>{clearLabel}</span>}
           </>
         ) : (
           <>

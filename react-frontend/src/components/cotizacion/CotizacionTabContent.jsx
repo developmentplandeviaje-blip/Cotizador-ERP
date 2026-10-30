@@ -89,6 +89,15 @@ export default function CotizacionTabContent({
   const [searchingClient, setSearchingClient] = useState(false);
   const [clientStatusMsg, setClientStatusMsg] = useState(null);
 
+  // Auto-descartar mensajes de estado del cliente tras 4.5 segundos
+  useEffect(() => {
+    if (!clientStatusMsg) return;
+    const timer = setTimeout(() => {
+      setClientStatusMsg(null);
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, [clientStatusMsg]);
+
   // Ref to hold the latest callback without triggering re-renders in useEffect
   const onUpdateClientNameRef = useRef(onUpdateClientName);
   useEffect(() => {
@@ -111,6 +120,15 @@ export default function CotizacionTabContent({
   const [validatingReferido, setValidatingReferido] = useState(false);
   const [referidoData, setReferidoData] = useState(() => initialDraft?.referidoData || null);
   const [referidoError, setReferidoError] = useState('');
+
+  // Auto-descartar error de referido tras 4.5 segundos
+  useEffect(() => {
+    if (!referidoError) return;
+    const timer = setTimeout(() => {
+      setReferidoError('');
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, [referidoError]);
 
   // Cart / Added Items
   const [items, setItems] = useState(() => initialDraft?.items || []);
@@ -426,18 +444,18 @@ export default function CotizacionTabContent({
           }));
           setClientStatusMsg({
             type: 'success',
-            text: `Doc escaneado y cliente recurrente encontrado: ${c.nombres || nombres} ${c.apellidos || apellidos}`,
+            text: `Información extraída con éxito. Cliente recurrente encontrado.`,
           });
         } else {
           setClientStatusMsg({
             type: 'success',
-            text: `Doc extraído: ${tipoDoc}-${docNum} (${nombres} ${apellidos})`,
+            text: `Información extraída con éxito.`,
           });
         }
       } catch {
         setClientStatusMsg({
           type: 'success',
-          text: `Doc extraído: ${tipoDoc}-${docNum} (${nombres} ${apellidos})`,
+          text: `Información extraída con éxito.`,
         });
       } finally {
         setSearchingClient(false);
@@ -489,14 +507,54 @@ export default function CotizacionTabContent({
     return r;
   };
 
+  // Limpiar todas las casillas de acompañantes
   const handleLimpiarAcompanantes = () => {
     setPasajeros(prev => prev.map(p => ({
       ...p,
       nombres: '',
       apellidos: '',
       documento: '',
+      fecha_nacimiento: '',
+      edad: '',
       tipo_documento: p.tipo_pax === 'infante' ? 'NAC' : 'V',
     })));
+  };
+
+  // Limpiar campos del pasajero titular (cédula, nombres, apellidos, teléfono, correo)
+  const handleLimpiarCliente = () => {
+    setCliente(prev => ({
+      ...prev,
+      documento: '',
+      nombres: '',
+      apellidos: '',
+      telefono: '',
+      correo: '',
+      edad: '',
+    }));
+    setClientStatusMsg(null);
+  };
+
+  const hasClienteInfo = Boolean(
+    cliente.documento?.trim() ||
+    cliente.nombres?.trim() ||
+    cliente.apellidos?.trim() ||
+    cliente.telefono?.trim() ||
+    cliente.correo?.trim()
+  );
+
+  // Limpiar campos de un acompañante
+  const handleLimpiarAcompanante = (index) => {
+    setPasajeros(prev => prev.map((pasajero, i) => {
+      if (i !== index) return pasajero;
+      return {
+        ...pasajero,
+        documento: '',
+        nombres: '',
+        apellidos: '',
+        fecha_nacimiento: '',
+        edad: '',
+      };
+    }));
   };
 
   const handleDocumentoClienteChange = (e) => {
@@ -1909,12 +1967,23 @@ export default function CotizacionTabContent({
           border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '20px',
         }}>
-          <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={imgUsuario} style={{ width: '20px', height: '20px' }} alt="" />Pasajero Titular
-          </h2>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'nowrap', justifyContent: 'space-between'}}>
+            <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={imgUsuario} style={{ width: '20px', height: '20px' }} alt="" />Pasajero Titular
+            </h2>
+            <DocumentScannerButton
+                onScanComplete={handleOcrTitularComplete}
+                label="Escanear"
+                title="Escanear Cédula, RIF o Pasaporte con IA (En memoria)"
+                isClearMode={hasClienteInfo}
+                onClear={handleLimpiarCliente}
+                clearLabel="Limpiar"
+                clearTitle="Limpiar información de los campos del titular"
+            />
+          </div>
 
           {/* Autocomplete Lookup Bar (US-04) & OCR Document Scanner */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'nowrap' }}>
             <CustomSelect
               value={cliente.tipo_documento}
               onChange={e => setCliente({ ...cliente, tipo_documento: e.target.value })}
@@ -1948,23 +2017,43 @@ export default function CotizacionTabContent({
               <img src={imgSearch} alt="Buscar" style={{ width: '16px', height: '16px' }} />
               {searchingClient ? '...' : 'Buscar'}
             </button>
-            <DocumentScannerButton
-              onScanComplete={handleOcrTitularComplete}
-              label="Escanear Doc"
-              title="Escanear Cédula, RIF o Pasaporte con IA (En memoria)"
-            />
+            
           </div>
 
           {clientStatusMsg && (
             <div style={{
               fontSize: '0.8125rem',
               marginBottom: '12px',
-              padding: '6px 12px',
+              padding: '7px 12px',
               borderRadius: '6px',
               color: clientStatusMsg.type === 'success' ? '#10B981' : clientStatusMsg.type === 'warning' ? '#F59E0B' : '#60A5FA',
-              background: 'rgba(255,255,255,0.05)',
+              background: clientStatusMsg.type === 'success' ? 'rgba(16, 185, 129, 0.12)' : clientStatusMsg.type === 'warning' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(96, 165, 250, 0.12)',
+              border: `1px solid ${clientStatusMsg.type === 'success' ? 'rgba(16, 185, 129, 0.35)' : clientStatusMsg.type === 'warning' ? 'rgba(245, 158, 11, 0.35)' : 'rgba(96, 165, 250, 0.35)'}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+              transition: 'opacity 0.2s ease',
             }}>
-              {clientStatusMsg.text}
+              <span>{clientStatusMsg.text}</span>
+              <button
+                type="button"
+                onClick={() => setClientStatusMsg(null)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '1rem',
+                  lineHeight: 1,
+                  padding: '0 4px',
+                  opacity: 0.7,
+                }}
+                title="Cerrar mensaje"
+              >
+                ×
+              </button>
             </div>
           )}
 
@@ -2189,6 +2278,10 @@ export default function CotizacionTabContent({
                       label="Escanear"
                       title="Escanear Cédula o Pasaporte de este acompañante con IA"
                       onScanComplete={(docData) => handleOcrAcompananteComplete(idx, docData)}
+                      isClearMode={Boolean(p.documento?.trim() || p.nombres?.trim() || p.apellidos?.trim())}
+                      onClear={() => handleLimpiarAcompanante(idx)}
+                      clearLabel="Limpiar"
+                      clearTitle="Limpiar información de este acompañante"
                     />
                   </div>
 
