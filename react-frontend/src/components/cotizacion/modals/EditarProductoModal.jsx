@@ -206,7 +206,7 @@ export default function EditarProductoModal({
       finalData.precio_nino = Number(formData.precio_nino || 0);
     } else if (tipo === 'vehiculo') {
       const vehObj = (catalogos.vehiculos || []).find(v => String(v.id) === String(formData.id_vehiculo)) || {};
-      updatedTitulo = `${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`;
+      updatedTitulo = `${vehObj.marca || 'Vehículo'} ${vehObj.vehiculo || vehObj.modelo || ''}`.trim();
       updatedDetalle = `${formData.dias} días • Desde: ${formData.desde || 'N/A'} hasta: ${formData.hasta || 'N/A'}`;
       finalData.id_vehiculo = Number(formData.id_vehiculo);
       finalData.dias = Number(formData.dias);
@@ -249,16 +249,13 @@ export default function EditarProductoModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Editar Producto: ${item.titulo || item.tipo}`}
+      title={`Editar Producto: ${item.tipo}`}
       width="680px"
       zIndex={10000}
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 24px 24px 24px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Badge status="badge-primary">
-              <span style={{ textTransform: 'capitalize', fontWeight: '700', color: PRODUCT_COLOR_MAP?.[tipo]?.color || '#E87217' }}>{tipo}</span>
-            </Badge>
             <span style={{ color: '#E2E8F0', fontSize: '0.875rem' }}>{item.titulo}</span>
           </div>
           <span style={{ color: '#E87217', fontWeight: '700', fontSize: '1.125rem' }}>
@@ -291,13 +288,14 @@ export default function EditarProductoModal({
 
         {/* ==================== FORMULARIO HOTEL ==================== */}
         {tipo === 'hotel' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-            <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: 'repeat(3, 1fr)', gap: '8px' }}>
+            <div style={{ gridColumnStart: 2, gridRowStart: 1, minWidth: 0 }}>
               <label className="erp-label">Hotel</label>
               <CustomSelect
                 value={formData.id_hotel || ''}
                 onChange={e => setFormData({ ...formData, id_hotel: e.target.value, id_habitacion: '' })}
-                className="erp-select"
+                searchable={true}
+                style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
               >
                 <option value="">Seleccione hotel...</option>
                 {(catalogos.hoteles || []).map(h => (
@@ -306,12 +304,13 @@ export default function EditarProductoModal({
               </CustomSelect>
             </div>
 
-            <div>
+            <div style={{ gridColumnStart: 2, gridRowStart: 2, minWidth: 0 }}>
               <label className="erp-label">Habitación</label>
               <CustomSelect
                 value={formData.id_habitacion || ''}
                 onChange={e => handleHabitacionChange(e.target.value)}
-                className="erp-select"
+                searchable={true}
+                style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
               >
                 <option value="">Seleccione habitación...</option>
                 {(selectedHotel?.habitaciones || []).map(hab => (
@@ -320,100 +319,116 @@ export default function EditarProductoModal({
               </CustomSelect>
             </div>
 
-            <div>
+            <div style={{ gridColumnStart: 2, gridRowStart: 3, minWidth: 0 }}>
               <label className="erp-label">Noches</label>
               <CustomNumberInput
                 min={1}
                 max={999}
+                width="100%"
                 value={formData.noches || 1}
                 onChange={e => setFormData({ ...formData, noches: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
               />
             </div>
 
-            <div>
-              <label className="erp-label">Adultos</label>
-              <CustomNumberInput
-                min={1}
-                max={999}
-                value={formData.adultos ?? 1}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
-              />
-            </div>
+            <div style={{ gridColumnStart: 1, gridRowStart: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Adultos</label>
+                  <CustomNumberInput
+                    min={1}
+                    max={999}
+                    width="100%"
+                    value={formData.adultos ?? 1}
+                    onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
+                  />
+                </div>
 
-            <div>
-              <label className="erp-label">Adolescentes</label>
-              <CustomNumberInput
-                min={0}
-                max={999}
-                value={formData.adolescente ?? 0}
-                onChange={e => setFormData({ ...formData, adolescente: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
-              />
-            </div>
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Adolescentes</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={999}
+                    width="100%"
+                    value={formData.adolescente ?? 0}
+                    onChange={e => setFormData({ ...formData, adolescente: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+                  />
+                </div>
 
-            <div>
-              <label className="erp-label">Niños</label>
-              <CustomNumberInput
-                min={0}
-                max={999}
-                value={formData.ninos ?? 0}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
-              />
-            </div>
-
-            <div>
-              <label className="erp-label">Precio Noche Adulto ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_noche_adulto ?? 0}
-                onChange={e => setFormData({ ...formData, precio_noche_adulto: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
-
-            {(formData.adolescente ?? 0) > 0 && (
-              <div>
-                <label className="erp-label">Precio Noche Adol ($)</label>
-                <CustomNumberInput
-                  min={0}
-                  max={99999.99}
-                  step={0.01}
-                  allowDecimals
-                  width="115px"
-                  value={formData.precio_noche_adolescente ?? 0}
-                  onChange={e => setFormData({ ...formData, precio_noche_adolescente: sanitizePrecioCostoValue(e.target.value) })}
-                />
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Niños</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={999}
+                    width="100%"
+                    value={formData.ninos ?? 0}
+                    onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+                  />
+                </div>
               </div>
-            )}
+            </div>
 
-            {(formData.ninos ?? 0) > 0 && (
-              <div>
-                <label className="erp-label">Precio Noche Niño ($)</label>
-                <CustomNumberInput
-                  min={0}
-                  max={99999.99}
-                  step={0.01}
-                  allowDecimals
-                  width="115px"
-                  value={formData.precio_noche_nino ?? 0}
-                  onChange={e => setFormData({ ...formData, precio_noche_nino: sanitizePrecioCostoValue(e.target.value) })}
-                />
+            <div style={{ gridColumnStart: 1, gridRowStart: 2, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label" style={{ fontSize: '0.725rem', whiteSpace: 'nowrap' }}>Precio Noche ADT ($)</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={99999.99}
+                    step={0.01}
+                    allowDecimals
+                    width="100%"
+                    value={formData.precio_noche_adulto ?? ''}
+                    onChange={e => setFormData({ ...formData, precio_noche_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
+
+                {(formData.adolescente ?? 0) > 0 && (
+                  <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                    <label className="erp-label" style={{ fontSize: '0.725rem', whiteSpace: 'nowrap' }}>Precio Noche Adol ($)</label>
+                    <CustomNumberInput
+                      min={0}
+                      max={99999.99}
+                      step={0.01}
+                      allowDecimals
+                      width="100%"
+                      value={formData.precio_noche_adolescente ?? ''}
+                      onChange={e => setFormData({ ...formData, precio_noche_adolescente: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            <div style={{ gridColumnStart: 1, gridRowStart: 3, minWidth: 0 }}>
+              {(formData.ninos ?? 0) > 0 && (
+                <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label" style={{ fontSize: '0.725rem', whiteSpace: 'nowrap' }}>Precio Noche Niño ($)</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={99999.99}
+                    step={0.01}
+                    allowDecimals
+                    width="100%"
+                    value={formData.precio_noche_nino ?? ''}
+                    onChange={e => setFormData({ ...formData, precio_noche_nino: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {/* ==================== FORMULARIO VUELO ==================== */}
         {tipo === 'vuelo' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-            <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: 'repeat(3, 1fr)', gap: '8px' }}>
+
+            <div style={{ gridColumnStart: 2, gridRowStart: 1, minWidth: 0 }}>
               <label className="erp-label">Aerolínea</label>
               <CustomSelect
                 value={formData.id_aerolinea || ''}
                 onChange={e => setFormData({ ...formData, id_aerolinea: e.target.value })}
-                className="erp-select"
+                searchable={true}
+                style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
               >
                 <option value="">Seleccione aerolínea...</option>
                 {(catalogos.aerolineas || []).map(a => (
@@ -422,7 +437,7 @@ export default function EditarProductoModal({
               </CustomSelect>
             </div>
 
-            <div>
+            <div style={{ gridColumnStart: 2, gridRowStart: 2, minWidth: 0 }}>
               <label className="erp-label">Itinerario / Ruta</label>
               <input
                 type="text"
@@ -434,7 +449,7 @@ export default function EditarProductoModal({
               />
             </div>
 
-            <div>
+            <div style={{ gridColumnStart: 2, gridRowStart: 3, minWidth: 0 }}>
               <label className="erp-label">Fecha de Vuelo</label>
               <CustomDatePicker
                 value={formData.fecha_vuelo || ''}
@@ -442,78 +457,94 @@ export default function EditarProductoModal({
               />
             </div>
 
-            <div>
-              <label className="erp-label">Adultos</label>
-              <CustomNumberInput
-                min={1}
-                max={999}
-                value={formData.adultos ?? 1}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
-              />
-            </div>
+            <div style={{ gridColumnStart: 1, gridRowStart: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Adultos</label>
+                  <CustomNumberInput
+                    min={1}
+                    max={999}
+                    width="100%"
+                    value={formData.adultos ?? 1}
+                    onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
+                  />
+                </div>
 
-            <div>
-              <label className="erp-label">Niños</label>
-              <CustomNumberInput
-                min={0}
-                max={999}
-                value={formData.ninos ?? 0}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
-              />
-            </div>
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Niños</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={999}
+                    width="100%"
+                    value={formData.ninos ?? 0}
+                    onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+                  />
+                </div>
 
-            <div>
-              <label className="erp-label">Infantes</label>
-              <CustomNumberInput
-                min={0}
-                max={999}
-                value={formData.infantes ?? 0}
-                onChange={e => setFormData({ ...formData, infantes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
-              />
-            </div>
-
-            <div>
-              <label className="erp-label">Precio Adulto ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_adulto ?? 0}
-                onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
-
-            {(formData.ninos ?? 0) > 0 && (
-              <div>
-                <label className="erp-label">Precio Niño ($)</label>
-                <CustomNumberInput
-                  min={0}
-                  max={99999.99}
-                  step={0.01}
-                  allowDecimals
-                  width="115px"
-                  value={formData.precio_nino ?? 0}
-                  onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-                />
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Infantes</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={999}
+                    width="100%"
+                    value={formData.infantes ?? 0}
+                    onChange={e => setFormData({ ...formData, infantes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+                  />
+                </div>
               </div>
-            )}
+            </div>
 
-            {(formData.infantes ?? 0) > 0 && (
-              <div>
-                <label className="erp-label">Precio Infante ($)</label>
-                <CustomNumberInput
-                  min={0}
-                  max={99999.99}
-                  step={0.01}
-                  allowDecimals
-                  width="115px"
-                  value={formData.precio_infante ?? 0}
-                  onChange={e => setFormData({ ...formData, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
-                />
+            <div style={{ gridColumnStart: 1, gridRowStart: 2, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Precio Adulto ($)</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={99999.99}
+                    step={0.01}
+                    allowDecimals
+                    width="100%"
+                    value={formData.precio_adulto ?? ''}
+                    onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
+
+                {(formData.ninos ?? 0) > 0 && (
+                  <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                    <label className="erp-label">Precio Niño ($)</label>
+                    <CustomNumberInput
+                      min={0}
+                      max={99999.99}
+                      step={0.01}
+                      allowDecimals
+                      width="100%"
+                      value={formData.precio_nino ?? ''}
+                      onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            <div style={{ gridColumnStart: 1, gridRowStart: 3, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                {(formData.infantes ?? 0) > 0 && (
+                  <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                    <label className="erp-label">Precio Infante ($)</label>
+                    <CustomNumberInput
+                      min={0}
+                      max={99999.99}
+                      step={0.01}
+                      allowDecimals
+                      width="100%"
+                      value={formData.precio_infante ?? ''}
+                      onChange={e => setFormData({ ...formData, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
         )}
 
@@ -526,7 +557,8 @@ export default function EditarProductoModal({
                 <CustomSelect
                   value={formData.id_traslado || ''}
                   onChange={e => setFormData({ ...formData, id_traslado: e.target.value })}
-                  className="erp-select"
+                  searchable={true}
+                  style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
                 >
                   <option value="">Seleccione traslado...</option>
                   {(catalogos.traslados || []).map(t => (
@@ -721,9 +753,9 @@ export default function EditarProductoModal({
 
         {/* ==================== FORMULARIO EXCURSIÓN O PAQUETE ==================== */}
         {(tipo === 'excursion' || tipo === 'paquete') && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-            <div>
-              <label className="erp-label">{tipo === 'excursion' ? 'Excusión' : 'Paquete'}</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: 'repeat(2, 1fr)', gap: '8px' }}>
+            <div style={{ gridColumnStart: 2, gridRowStart: 1, minWidth: 0 }}>
+              <label className="erp-label">{tipo === 'excursion' ? 'Excursión' : 'Paquete'}</label>
               <CustomSelect
                 value={tipo === 'excursion' ? (formData.id_excursion || '') : (formData.id_paquete || '')}
                 onChange={e => {
@@ -733,7 +765,8 @@ export default function EditarProductoModal({
                     setFormData({ ...formData, id_paquete: e.target.value });
                   }
                 }}
-                className="erp-select"
+                searchable={true}
+                style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
               >
                 <option value="">Seleccione {tipo}...</option>
                 {tipo === 'excursion'
@@ -747,7 +780,7 @@ export default function EditarProductoModal({
               </CustomSelect>
             </div>
 
-            <div>
+            <div style={{ gridColumnStart: 2, gridRowStart: 2, minWidth: 0 }}>
               <label className="erp-label">Fecha</label>
               <CustomDatePicker
                 value={formData.fecha || ''}
@@ -755,97 +788,113 @@ export default function EditarProductoModal({
               />
             </div>
 
-            <div>
-              <label className="erp-label">Adultos</label>
-              <CustomNumberInput
-                min={1}
-                max={999}
-                value={formData.adultos ?? 1}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
-              />
-            </div>
+            <div style={{ gridColumnStart: 1, gridRowStart: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                <div style={{ flex: '1 1 0', minWidth: '70px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Adultos</label>
+                  <CustomNumberInput
+                    min={1}
+                    max={999}
+                    width="100%"
+                    value={formData.adultos ?? 1}
+                    onChange={e => setFormData({ ...formData, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
+                  />
+                </div>
 
-            <div>
-              <label className="erp-label">Niños</label>
-              <CustomNumberInput
-                min={0}
-                max={999}
-                value={formData.ninos ?? 0}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
-              />
-            </div>
-
-            <div>
-              <label className="erp-label">Precio Adulto ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_adulto ?? 0}
-                onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
-
-            {(formData.ninos ?? 0) > 0 && (
-              <div>
-                <label className="erp-label">Precio Niño ($)</label>
-                <CustomNumberInput
-                  min={0}
-                  max={99999.99}
-                  step={0.01}
-                  allowDecimals
-                  width="115px"
-                  value={formData.precio_nino ?? 0}
-                  onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-                />
+                <div style={{ flex: '1 1 0', minWidth: '70px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Niños</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={999}
+                    width="100%"
+                    value={formData.ninos ?? 0}
+                    onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+                  />
+                </div>
               </div>
-            )}
+            </div>
+
+            <div style={{ gridColumnStart: 1, gridRowStart: 2, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                <div style={{ flex: '1 1 0', minWidth: '85px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Precio Adulto ($)</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={99999.99}
+                    step={0.01}
+                    allowDecimals
+                    width="100%"
+                    value={formData.precio_adulto ?? ''}
+                    onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
+
+                {(formData.ninos ?? 0) > 0 && (
+                  <div style={{ flex: '1 1 0', minWidth: '85px', display: 'flex', flexDirection: 'column' }}>
+                    <label className="erp-label">Precio Niño ($)</label>
+                    <CustomNumberInput
+                      min={0}
+                      max={99999.99}
+                      step={0.01}
+                      allowDecimals
+                      width="100%"
+                      value={formData.precio_nino ?? ''}
+                      onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
         {/* ==================== FORMULARIO VEHÍCULO ==================== */}
         {tipo === 'vehiculo' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-            <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: 'repeat(3, 1fr)', gap: '8px' }}>
+            <div style={{ gridColumnStart: 2, gridRowStart: 1, minWidth: 0 }}>
               <label className="erp-label">Vehículo</label>
               <CustomSelect
                 value={formData.id_vehiculo || ''}
                 onChange={e => setFormData({ ...formData, id_vehiculo: e.target.value })}
-                className="erp-select"
+                searchable={true}
+                style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
               >
                 <option value="">Seleccione vehículo...</option>
                 {(catalogos.vehiculos || []).map(v => (
-                  <option key={v.id} value={v.id}>{v.marca} {v.modelo}</option>
+                  <option key={v.id} value={v.id}>{v.marca} {v.vehiculo || v.modelo || ''}</option>
                 ))}
               </CustomSelect>
             </div>
 
-            <div>
-              <label className="erp-label">Días de Alquiler</label>
-              <CustomNumberInput
-                min={1}
-                max={999}
-                value={formData.dias || 1}
-                onChange={e => setFormData({ ...formData, dias: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
-              />
+            <div style={{ gridColumnStart: 1, gridRowStart: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                <div style={{ flex: '1 1 0', minWidth: '80px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Días de Alquiler</label>
+                  <CustomNumberInput
+                    min={1}
+                    max={999}
+                    width="100%"
+                    value={formData.dias || 1}
+                    onChange={e => setFormData({ ...formData, dias: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
+                  />
+                </div>
+
+                <div style={{ flex: '1 1 0', minWidth: '95px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Precio por Día ($)</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={99999.99}
+                    step={0.01}
+                    allowDecimals
+                    width="100%"
+                    value={formData.precio_unitario ?? ''}
+                    onChange={e => setFormData({ ...formData, precio_unitario: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="erp-label">Precio por Día ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_unitario ?? 0}
-                onChange={e => setFormData({ ...formData, precio_unitario: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
-
-            <div>
+            <div style={{ gridColumnStart: 2, gridRowStart: 2, minWidth: 0 }}>
               <label className="erp-label">Fecha Desde</label>
               <CustomDatePicker
                 value={formData.desde || ''}
@@ -853,7 +902,7 @@ export default function EditarProductoModal({
               />
             </div>
 
-            <div>
+            <div style={{ gridColumnStart: 2, gridRowStart: 3, minWidth: 0 }}>
               <label className="erp-label">Fecha Hasta</label>
               <CustomDatePicker
                 value={formData.hasta || ''}
@@ -861,20 +910,34 @@ export default function EditarProductoModal({
               />
             </div>
 
-            <div style={{ gridColumn: '1 / -1' }}>
+            <div style={{
+              gridRow: 'span 2 / span 2',
+              gridColumnStart: '1',
+              gridRowStart: '2',
+              minWidth: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+            }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                 <label className="erp-label" style={{ margin: 0 }}>Observaciones</label>
                 <span style={{ fontSize: '0.75rem', color: (formData.observacion || '').length >= 300 ? '#EF4444' : '#b9c8ddff' }}>
                   {(formData.observacion || '').length} / 300 caracteres
                 </span>
               </div>
-              <input
-                type="text"
+              <textarea
                 value={formData.observacion || ''}
                 onChange={e => setFormData({ ...formData, observacion: e.target.value.slice(0, 300) })}
                 maxLength={300}
-                className="erp-input"
+                className="erp-input custom-scrollbar"
                 placeholder="Detalles del alquiler o vehículo... (máx. 300 caracteres)"
+                style={{
+                  flex: 1,
+                  width: '100%',
+                  resize: 'none',
+                  minHeight: '85px',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
           </div>
@@ -882,8 +945,8 @@ export default function EditarProductoModal({
 
         {/* ==================== FORMULARIO FERRY ==================== */}
         {tipo === 'ferry' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-            <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: 'repeat(3, 1fr)', gap: '8px' }}>
+            <div style={{ gridColumnStart: 2, gridRowStart: 1, minWidth: 0 }}>
               <label className="erp-label">Ruta</label>
               <input
                 type="text"
@@ -894,7 +957,7 @@ export default function EditarProductoModal({
               />
             </div>
 
-            <div>
+            <div style={{ gridColumnStart: 2, gridRowStart: 2, minWidth: 0 }}>
               <label className="erp-label">Clase</label>
               <input
                 type="text"
@@ -904,101 +967,116 @@ export default function EditarProductoModal({
                 className="erp-input"
               />
             </div>
+            <div style={{ gridColumnStart: 1, gridRowStart: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Adultos</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={999}
+                    width="100%"
+                    value={formData.adultos ?? 0}
+                    onChange={e => setFormData({ ...formData, adultos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+                  />
+                </div>
 
-            <div>
-              <label className="erp-label">Adultos</label>
-              <CustomNumberInput
-                min={0}
-                max={999}
-                value={formData.adultos ?? 0}
-                onChange={e => setFormData({ ...formData, adultos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
-              />
-            </div>
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Niños</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={999}
+                    width="100%"
+                    value={formData.ninos ?? 0}
+                    onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+                  />
+                </div>
 
-            <div>
-              <label className="erp-label">Niños</label>
-              <CustomNumberInput
-                min={0}
-                max={999}
-                value={formData.ninos ?? 0}
-                onChange={e => setFormData({ ...formData, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
-              />
-            </div>
-
-            <div>
-              <label className="erp-label">Infantes</label>
-              <CustomNumberInput
-                min={0}
-                max={999}
-                value={formData.infantes ?? 0}
-                onChange={e => setFormData({ ...formData, infantes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
-              />
-            </div>
-
-            <div>
-              <label className="erp-label">Vehículos</label>
-              <CustomNumberInput
-                min={0}
-                max={999}
-                value={formData.vehiculos ?? 0}
-                onChange={e => setFormData({ ...formData, vehiculos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
-              />
-            </div>
-
-            <div>
-              <label className="erp-label">Precio Adulto ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_adulto ?? 0}
-                onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
-              />
-            </div>
-
-            {(formData.ninos ?? 0) > 0 && (
-              <div>
-                <label className="erp-label">Precio Niño ($)</label>
-                <CustomNumberInput
-                  min={0}
-                  max={99999.99}
-                  step={0.01}
-                  allowDecimals
-                  width="115px"
-                  value={formData.precio_nino ?? 0}
-                  onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
-                />
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Infantes</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={999}
+                    width="100%"
+                    value={formData.infantes ?? 0}
+                    onChange={e => setFormData({ ...formData, infantes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+                  />
+                </div>
               </div>
-            )}
+            </div>
+
+            <div style={{ gridColumnStart: 1, gridRowStart: 2, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Precio Adulto ($)</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={99999.99}
+                    step={0.01}
+                    allowDecimals
+                    width="100%"
+                    value={formData.precio_adulto ?? ''}
+                    onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
+
+                {(formData.ninos ?? 0) > 0 && (
+                  <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                    <label className="erp-label">Precio Niño ($)</label>
+                    <CustomNumberInput
+                      min={0}
+                      max={99999.99}
+                      step={0.01}
+                      allowDecimals
+                      width="100%"
+                      value={formData.precio_nino ?? ''}
+                      onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
 
             {(formData.infantes ?? 0) > 0 && (
-              <div>
+              <div style={{ gridColumnStart: 1, gridRowStart: 3, minWidth: 0 }}>
                 <label className="erp-label">Precio Infante ($)</label>
                 <CustomNumberInput
                   min={0}
                   max={99999.99}
                   step={0.01}
                   allowDecimals
-                  width="115px"
-                  value={formData.precio_infante ?? 0}
+                  width="100%"
+                  value={formData.precio_infante ?? ''}
                   onChange={e => setFormData({ ...formData, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
                 />
               </div>
             )}
 
-            <div>
-              <label className="erp-label">Precio Vehículo ($)</label>
-              <CustomNumberInput
-                min={0}
-                max={99999.99}
-                step={0.01}
-                allowDecimals
-                width="115px"
-                value={formData.precio_vehiculo ?? 0}
-                onChange={e => setFormData({ ...formData, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
-              />
+            <div style={{ gridColumnStart: 2, gridRowStart: 3, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Vehículos</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={999}
+                    width="100%"
+                    value={formData.vehiculos ?? 0}
+                    onChange={e => setFormData({ ...formData, vehiculos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+                  />
+                </div>
+
+                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                  <label className="erp-label">Precio Vehículo ($)</label>
+                  <CustomNumberInput
+                    min={0}
+                    max={99999.99}
+                    step={0.01}
+                    allowDecimals
+                    width="100%"
+                    value={formData.precio_vehiculo ?? ''}
+                    onChange={e => setFormData({ ...formData, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1047,7 +1125,7 @@ export default function EditarProductoModal({
         )}
 
         {/* ==================== ACCIONES DEL MODAL ==================== */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.12)' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.12)' }}>
           <button type="button" className="btn-form-cancel" onClick={onClose}>
             Cancelar
           </button>

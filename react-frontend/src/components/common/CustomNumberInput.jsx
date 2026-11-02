@@ -26,13 +26,8 @@ export default function CustomNumberInput({
   allowDecimals = false,
   decimals = 2,
 }) {
-  const [isFocused, setIsFocused] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [displayValue, setDisplayValue] = useState(() => (value !== undefined && value !== null && value !== '' ? String(value) : ''));
-  const holdIntervalRef = useRef(null);
-  const holdTimeoutRef = useRef(null);
-
   const isDecimal = allowDecimals || (step > 0 && step < 1);
+  const effectivePlaceholder = placeholder !== '' ? placeholder : (isDecimal ? '0.00' : '');
   const maxDigitsLimit = maxDigits !== undefined ? Math.max(1, maxDigits) : (isDecimal ? 5 : 3);
   const maxPossibleValue = isDecimal
     ? Math.pow(10, maxDigitsLimit) - (1 / Math.pow(10, decimals))
@@ -40,12 +35,28 @@ export default function CustomNumberInput({
   const effectiveMax = max !== undefined ? Math.min(max, maxPossibleValue) : maxPossibleValue;
   const precision = isDecimal ? decimals : 0;
 
+  // Formatear valor para visualización: si es decimal y el valor es 0, vacío o no numérico, mostrar vacío ('')
+  const formatDisplayValue = useCallback((val) => {
+    if (val === undefined || val === null || val === '') return '';
+    if (isDecimal) {
+      const num = Number(val);
+      if (num === 0 || isNaN(num)) return '';
+    }
+    return String(val);
+  }, [isDecimal]);
+
+  const [isFocused, setIsFocused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [displayValue, setDisplayValue] = useState(() => formatDisplayValue(value));
+  const holdIntervalRef = useRef(null);
+  const holdTimeoutRef = useRef(null);
+
   // Sincronizar displayValue con value cuando el input no tiene el foco
   useEffect(() => {
     if (!isFocused) {
-      setDisplayValue(value !== undefined && value !== null && value !== '' ? String(value) : '');
+      setDisplayValue(formatDisplayValue(value));
     }
-  }, [value, isFocused]);
+  }, [value, isFocused, formatDisplayValue]);
 
   // Obtener valor numérico actual para cálculo de steppers y límites
   const getNumericValue = useCallback(() => {
@@ -105,8 +116,13 @@ export default function CustomNumberInput({
       next = Number(next.toFixed(precision));
     }
     if (min !== undefined && next < min) return;
-    setDisplayValue(String(next));
-    triggerChange(next);
+    if (isDecimal && next <= 0) {
+      setDisplayValue('');
+      triggerChange('');
+    } else {
+      setDisplayValue(String(next));
+      triggerChange(next);
+    }
   }, [getNumericValue, min, step, isDecimal, precision, triggerChange]);
 
   // Soporte de mantener pulsado (hold to increment/decrement)
@@ -259,6 +275,11 @@ export default function CustomNumberInput({
     if (effectiveMax !== undefined && num > effectiveMax) num = effectiveMax;
 
     if (isDecimal) {
+      if (num === 0) {
+        setDisplayValue('');
+        triggerChange('');
+        return;
+      }
       num = Number(num.toFixed(precision));
     } else {
       num = Math.round(num);
@@ -268,7 +289,8 @@ export default function CustomNumberInput({
   };
 
   const currentNumeric = getNumericValue();
-  const isMinReached = min !== undefined && currentNumeric !== '' && !isNaN(currentNumeric) && currentNumeric <= min;
+  const isMinReached = (min !== undefined && currentNumeric !== '' && !isNaN(currentNumeric) && currentNumeric <= min)
+    || (isDecimal && min !== undefined && min >= 0 && (currentNumeric === '' || currentNumeric === 0));
   const isMaxReached = effectiveMax !== undefined && currentNumeric !== '' && !isNaN(currentNumeric) && currentNumeric >= effectiveMax;
 
   const defaultWidth = isDecimal
@@ -357,17 +379,17 @@ export default function CustomNumberInput({
         inputMode={isDecimal ? "decimal" : "numeric"}
         pattern={isDecimal ? "[0-9]*[.]?[0-9]*" : "[0-9]*"}
         maxLength={isDecimal ? maxDigitsLimit + decimals + 1 : maxDigitsLimit}
-        value={isFocused ? displayValue : (value !== undefined && value !== null && value !== '' ? String(value) : '')}
+        value={isFocused ? displayValue : formatDisplayValue(value)}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         onFocus={() => {
           setIsFocused(true);
-          setDisplayValue(value !== undefined && value !== null && value !== '' ? String(value) : '');
+          setDisplayValue(formatDisplayValue(value));
         }}
         onBlur={handleBlur}
         disabled={disabled}
         readOnly={readOnly}
-        placeholder={placeholder}
+        placeholder={effectivePlaceholder}
         style={{
           background: 'transparent',
           border: 'none',

@@ -180,11 +180,12 @@ export default function HotelAsociadoSelect({
   return (
     <div
       ref={triggerRef}
-      className={`select erp-custom-select ${isOpen ? 'open' : ''} ${coords.openUp ? 'open-up' : ''} ${disabled ? 'disabled' : ''} ${className}`}
+      className={`select hotel-asociado-select ${isOpen ? 'open' : ''} ${coords.openUp ? 'open-up' : ''} ${disabled ? 'disabled' : ''} ${className}`}
       style={{
         position: 'relative',
         display: 'inline-block',
         width: '100%',
+        maxWidth: '135px',
         ...style,
       }}
       title={tooltipText}
@@ -209,13 +210,17 @@ export default function HotelAsociadoSelect({
         </span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          height="1em"
-          viewBox="0 0 512 512"
-          className="arrow"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`arrow ${isOpen ? 'open' : ''}`}
         >
-          <path
-            d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
-          />
+          <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </div>
 

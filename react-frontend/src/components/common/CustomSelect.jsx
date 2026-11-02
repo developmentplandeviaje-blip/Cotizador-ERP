@@ -12,8 +12,13 @@ export default function CustomSelect({
   style = {},
   disabled = false,
   required = false,
+  searchable,
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [coords, setCoords] = useState({
     openUp: false,
     top: 0,
@@ -22,8 +27,10 @@ export default function CustomSelect({
     width: 0,
     maxHeight: 240,
   });
+
   const containerRef = useRef(null);
   const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
 
   // Parse options from either `options` prop or JSX `<option>` children
   const parsedOptions = useMemo(() => {
@@ -61,6 +68,23 @@ export default function CustomSelect({
     return list;
   }, [options, children]);
 
+  // Determine whether to use searchable mode or normal select mode
+  const isSearchable = useMemo(() => {
+    if (searchable !== undefined) return Boolean(searchable);
+    // Only disable if explicitly a small pixel width (< 120px, like '75px' or '80px')
+    if (
+      style &&
+      style.width &&
+      typeof style.width === 'string' &&
+      style.width.endsWith('px') &&
+      parseInt(style.width) < 120
+    ) {
+      return false;
+    }
+    // Default to true for all form and modal selects
+    return true;
+  }, [searchable, style]);
+
   const normalizedValue = value === undefined || value === null ? '' : value;
 
   // Find currently selected option
@@ -75,6 +99,21 @@ export default function CustomSelect({
     if (placeholder) return placeholder;
     return parsedOptions[0]?.label || 'Seleccione...';
   }, [currentOption, parsedOptions, placeholder]);
+
+  // Filter options when searching
+  const visibleOptions = useMemo(() => {
+    if (!isSearchable || !isSearching || !searchTerm.trim()) {
+      return parsedOptions;
+    }
+    const cleanSearch = searchTerm.toLowerCase().trim();
+    return parsedOptions.filter(opt => {
+      // Hide empty/blank options when actively filtering, unless label matches
+      if (opt.value === '' && !String(opt.label).toLowerCase().includes(cleanSearch)) {
+        return false;
+      }
+      return String(opt.label).toLowerCase().includes(cleanSearch);
+    });
+  }, [parsedOptions, isSearchable, isSearching, searchTerm]);
 
   // Dynamic positioning calculation for portal placement
   const updatePosition = useCallback(() => {
@@ -98,7 +137,7 @@ export default function CustomSelect({
       : Math.min(280, Math.max(100, spaceBelow - 20));
 
     let left = rect.left;
-    const width = rect.width;
+    const width = Math.max(rect.width, isSearchable ? rect.width : Math.min(rect.width, 180));
 
     if (left + width > viewportWidth - 10) {
       left = Math.max(10, viewportWidth - width - 10);
@@ -110,10 +149,10 @@ export default function CustomSelect({
       top: rect.bottom + 4,
       bottom: viewportHeight - rect.top + 4,
       left,
-      width,
+      width: isSearchable ? rect.width : Math.max(rect.width, 140),
       maxHeight: maxH,
     });
-  }, []);
+  }, [isSearchable]);
 
   // Close when clicking outside
   useEffect(() => {
@@ -121,18 +160,23 @@ export default function CustomSelect({
 
     const handleClickOutside = (e) => {
       if (containerRef.current && containerRef.current.contains(e.target)) {
-        return; // Click inside trigger button is handled by toggleOpen
+        return;
       }
       if (dropdownRef.current && dropdownRef.current.contains(e.target)) {
-        return; // Click inside dropdown options
+        return;
       }
       setIsOpen(false);
+      setIsSearching(false);
+      setIsFocused(false);
+      setSearchTerm('');
+      setHighlightedIndex(-1);
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
+  // Update position on scroll/resize while open
   useEffect(() => {
     if (isOpen) {
       updatePosition();
@@ -146,20 +190,17 @@ export default function CustomSelect({
     }
   }, [isOpen, updatePosition]);
 
-  const toggleOpen = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  // Scroll active option into view when opened without search
+  useEffect(() => {
+    if (isOpen && !isSearching && dropdownRef.current) {
+      const activeEl = dropdownRef.current.querySelector('.option.active');
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
     }
-    if (disabled) return;
-    if (!isOpen) {
-      updatePosition();
-      setIsOpen(true);
-    } else {
-      setIsOpen(false);
-    }
-  };
+  }, [isOpen, isSearching]);
 
+  // Select an option
   const handleSelect = (optValue) => {
     if (disabled) return;
     if (onChange) {
@@ -171,7 +212,161 @@ export default function CustomSelect({
       });
     }
     setIsOpen(false);
+    setIsSearching(false);
+    setIsFocused(false);
+    setSearchTerm('');
+    setHighlightedIndex(-1);
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
   };
+
+  // Toggle chevron ( > ): desplegar / recoger opciones
+  const handleToggleArrow = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (disabled) return;
+
+    if (isOpen) {
+      // Recoger
+      setIsOpen(false);
+      setIsSearching(false);
+      setIsFocused(false);
+      setSearchTerm('');
+      setHighlightedIndex(-1);
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+    } else {
+      // Desplegar lista completa de opciones
+      setIsSearching(false);
+      setSearchTerm('');
+      setHighlightedIndex(-1);
+      setIsFocused(false);
+      updatePosition();
+      setIsOpen(true);
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }
+  };
+
+  // Box click: if closed, deploy options and focus input for typing
+  const handleBoxClick = () => {
+    if (disabled) return;
+    if (!isOpen) {
+      updatePosition();
+      setIsOpen(true);
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }
+  };
+
+  // Toggle for normal select mode
+  const handleToggleNormal = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (disabled) return;
+    if (isOpen) {
+      setIsOpen(false);
+    } else {
+      updatePosition();
+      setIsOpen(true);
+    }
+  };
+
+  // Search input focus: start search mode
+  const handleInputFocus = () => {
+    if (disabled) return;
+    setIsFocused(true);
+    if (!isOpen) {
+      updatePosition();
+      setIsOpen(true);
+    }
+  };
+
+  // Search input change: filter options in real time
+  const handleInputChange = (e) => {
+    if (disabled) return;
+    const val = e.target.value;
+    setSearchTerm(val);
+    setIsSearching(true);
+    setHighlightedIndex(-1);
+    if (!isOpen) {
+      updatePosition();
+      setIsOpen(true);
+    }
+  };
+
+  // Keyboard navigation for search input
+  const handleInputKeyDown = (e) => {
+    if (disabled) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!isOpen) {
+        updatePosition();
+        setIsOpen(true);
+        return;
+      }
+      const list = isSearchable ? visibleOptions : parsedOptions;
+      setHighlightedIndex(prev => {
+        const next = prev < list.length - 1 ? prev + 1 : 0;
+        setTimeout(() => {
+          const el = dropdownRef.current?.querySelector(`[data-index="${next}"]`);
+          el?.scrollIntoView({ block: 'nearest' });
+        }, 10);
+        return next;
+      });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!isOpen) {
+        updatePosition();
+        setIsOpen(true);
+        return;
+      }
+      const list = isSearchable ? visibleOptions : parsedOptions;
+      setHighlightedIndex(prev => {
+        const next = prev > 0 ? prev - 1 : list.length - 1;
+        setTimeout(() => {
+          const el = dropdownRef.current?.querySelector(`[data-index="${next}"]`);
+          el?.scrollIntoView({ block: 'nearest' });
+        }, 10);
+        return next;
+      });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const list = isSearchable ? visibleOptions : parsedOptions;
+      if (isOpen) {
+        if (highlightedIndex >= 0 && highlightedIndex < list.length) {
+          const opt = list[highlightedIndex];
+          if (!opt.disabled) {
+            handleSelect(opt.value);
+          }
+        } else if (list.length === 1 && !list[0].disabled) {
+          handleSelect(list[0].value);
+        }
+      } else {
+        updatePosition();
+        setIsOpen(true);
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsOpen(false);
+      setIsSearching(false);
+      setIsFocused(false);
+      setSearchTerm('');
+      setHighlightedIndex(-1);
+      inputRef.current?.blur();
+    }
+  };
+
+  const currentOptionsList = isSearchable ? visibleOptions : parsedOptions;
 
   return (
     <div
@@ -180,32 +375,83 @@ export default function CustomSelect({
       style={style}
     >
       {name && <input type="hidden" name={name} value={normalizedValue} />}
-      <div
-        className="selected"
-        onClick={toggleOpen}
-        tabIndex={disabled ? -1 : 0}
-        onKeyDown={(e) => {
-          if (disabled) return;
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            toggleOpen(e);
-          } else if (e.key === 'Escape') {
-            setIsOpen(false);
-          }
-        }}
-      >
-        <span className="selected-text" title={currentLabel}>{currentLabel}</span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="1em"
-          viewBox="0 0 512 512"
-          className="arrow"
+
+      {isSearchable ? (
+        /* Modo Buscador Unificado: única caja con input de búsqueda y flecha desplegable */
+        <div
+          className={`selected custom-select-search-box ${isOpen ? 'open' : ''} ${isFocused || isSearching ? 'searching' : ''}`}
+          onClick={handleBoxClick}
         >
-          <path
-            d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+          <input
+            ref={inputRef}
+            type="text"
+            className="custom-select-search-input"
+            value={isFocused || isSearching ? searchTerm : currentLabel}
+            placeholder={isFocused ? (currentLabel || placeholder || 'Buscar...') : (placeholder || 'Seleccione...')}
+            disabled={disabled}
+            onFocus={handleInputFocus}
+            onChange={handleInputChange}
+            onKeyDown={handleInputKeyDown}
+            title={!isFocused ? currentLabel : undefined}
+            autoComplete="off"
+            spellCheck="false"
           />
-        </svg>
-      </div>
+          <div
+            className="custom-select-arrow"
+            onClick={handleToggleArrow}
+            title={isOpen ? 'Recoger opciones' : 'Desplegar opciones'}
+            role="button"
+            tabIndex={-1}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`custom-select-chevron ${isOpen ? 'open' : ''}`}
+            >
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+      ) : (
+        /* Modo Select Normal (caja simple estándar) */
+        <div
+          className="selected"
+          onClick={handleToggleNormal}
+          tabIndex={disabled ? -1 : 0}
+          onKeyDown={(e) => {
+            if (disabled) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleToggleNormal(e);
+            } else if (e.key === 'Escape') {
+              setIsOpen(false);
+            }
+          }}
+        >
+          <span className="selected-text" title={currentLabel}>{currentLabel}</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`arrow ${isOpen ? 'open' : ''}`}
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      )}
 
       {isOpen && createPortal(
         <div
@@ -218,35 +464,43 @@ export default function CustomSelect({
             ...(coords.openUp
               ? { bottom: `${coords.bottom}px`, top: 'auto' }
               : { top: `${coords.top}px`, bottom: 'auto' }),
+            background: '#101c44',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            borderRadius: '6px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.65), 0 8px 10px -6px rgba(0, 0, 0, 0.4)',
+            zIndex: 999999,
             maxHeight: `${coords.maxHeight}px`,
             overflowY: 'auto',
-            overflowX: 'hidden',
-            zIndex: 99999,
-            opacity: 1,
-            visibility: 'visible',
-            transform: 'none',
-            pointerEvents: 'auto',
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {parsedOptions.map((opt, idx) => {
-            const isSelected = String(opt.value) === String(normalizedValue);
-            return (
-              <div
-                key={`${opt.value}-${idx}`}
-                title={opt.label}
-                className={`option ${isSelected ? 'active' : ''} ${opt.disabled ? 'disabled' : ''}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!opt.disabled) {
-                    handleSelect(opt.value);
-                  }
-                }}
-              >
-                {opt.label}
-              </div>
-            );
-          })}
+          {currentOptionsList.length > 0 ? (
+            currentOptionsList.map((opt, idx) => {
+              const isSelected = String(opt.value) === String(normalizedValue);
+              const isHighlighted = idx === highlightedIndex;
+              return (
+                <div
+                  key={`${opt.value}-${idx}`}
+                  data-index={idx}
+                  title={opt.label}
+                  className={`option ${isSelected ? 'active' : ''} ${isHighlighted ? 'highlighted' : ''} ${opt.disabled ? 'disabled' : ''}`}
+                  onMouseEnter={() => setHighlightedIndex(idx)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!opt.disabled) {
+                      handleSelect(opt.value);
+                    }
+                  }}
+                >
+                  {opt.label}
+                </div>
+              );
+            })
+          ) : (
+            <div className="custom-select-empty-msg">
+              No se encontraron opciones
+            </div>
+          )}
         </div>,
         document.body
       )}

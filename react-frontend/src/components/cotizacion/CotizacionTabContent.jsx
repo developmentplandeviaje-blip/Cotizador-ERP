@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import axios from 'axios';
 import imgNuevaCotizacion from '../../assets/NuevaCotizacion.svg';
@@ -115,6 +115,20 @@ export default function CotizacionTabContent({
   // Additional passengers list
   const [pasajeros, setPasajeros] = useState(() => initialDraft?.pasajeros || []);
 
+  // Paginación por pestañas y búsqueda de pasajeros acompañantes (15 por grupo)
+  const PAX_PER_GROUP = 15;
+  const [activePaxGroup, setActivePaxGroup] = useState(0);
+  const [paxSearchTerm, setPaxSearchTerm] = useState('');
+  const paxTabsScrollRef = useRef(null);
+
+  const handlePaxTabsWheel = (e) => {
+    if (paxTabsScrollRef.current) {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      paxTabsScrollRef.current.scrollLeft += e.deltaY;
+    }
+  };
+
   // Referral Code (US-01)
   const [codigoReferido, setCodigoReferido] = useState(() => initialDraft?.codigoReferido || '');
   const [validatingReferido, setValidatingReferido] = useState(false);
@@ -147,32 +161,32 @@ export default function CotizacionTabContent({
     id_hotel: '',
     id_habitacion: '',
     noches: 4,
-    precio_noche_adulto: 0,
-    precio_noche_adolescente: 0,
-    precio_noche_nino: 0,
-    costo_noche_adulto: 0,
-    costo_noche_adolescente: 0,
-    costo_noche_nino: 0,
+    precio_noche_adulto: '',
+    precio_noche_adolescente: '',
+    precio_noche_nino: '',
+    costo_noche_adulto: '',
+    costo_noche_adolescente: '',
+    costo_noche_nino: '',
   });
 
   const [vueloForm, setVueloForm] = useState(() => initialDraft?.vueloForm || {
     id_aerolinea: '',
     itinerario: '',
     fecha_vuelo: '',
-    precio_adulto: 0,
-    precio_nino: 0,
-    precio_infante: 0,
-    costo_adulto: 0,
-    costo_nino: 0,
-    costo_infante: 0,
+    precio_adulto: '',
+    precio_nino: '',
+    precio_infante: '',
+    costo_adulto: '',
+    costo_nino: '',
+    costo_infante: '',
     hotel_item_uid: initialDraft?.vueloForm?.hotel_item_uid || '',
   });
 
   const [trasladoForm, setTrasladoForm] = useState(() => initialDraft?.trasladoForm || {
     id_traslado: '',
     fecha_traslado: '',
-    precio: 0,
-    costo: 0,
+    precio: '',
+    costo: '',
     observacion: '',
     tipo_asignacion: 'todos', // 'todos' | 'individual' | 'grupo'
     pax_individual_id: 0,
@@ -183,20 +197,20 @@ export default function CotizacionTabContent({
   const [excursionForm, setExcursionForm] = useState(() => initialDraft?.excursionForm || {
     id_excursion: '',
     fecha: '',
-    precio_adulto: 0,
-    precio_nino: 0,
-    costo_adulto: 0,
-    costo_nino: 0,
+    precio_adulto: '',
+    precio_nino: '',
+    costo_adulto: '',
+    costo_nino: '',
     hotel_item_uid: initialDraft?.excursionForm?.hotel_item_uid || '',
   });
 
   const [paqueteForm, setPaqueteForm] = useState(() => initialDraft?.paqueteForm || {
     id_paquete: '',
     fecha: '',
-    precio_adulto: 0,
-    precio_nino: 0,
-    costo_adulto: 0,
-    costo_nino: 0,
+    precio_adulto: '',
+    precio_nino: '',
+    costo_adulto: '',
+    costo_nino: '',
     hotel_item_uid: initialDraft?.paqueteForm?.hotel_item_uid || '',
   });
 
@@ -205,8 +219,8 @@ export default function CotizacionTabContent({
     desde: '',
     hasta: '',
     dias: 1,
-    precio_unitario: 0,
-    costo: 0,
+    precio_unitario: '',
+    costo: '',
     observacion: '',
     hotel_item_uid: initialDraft?.vehiculoForm?.hotel_item_uid || '',
   });
@@ -216,18 +230,18 @@ export default function CotizacionTabContent({
     clase: 'Playa',
     itinerario: '',
     vehiculos: 0,
-    precio_adulto: 0,
-    precio_nino: 0,
-    precio_infante: 0,
-    precio_vehiculo: 0,
+    precio_adulto: '',
+    precio_nino: '',
+    precio_infante: '',
+    precio_vehiculo: '',
     hotel_item_uid: initialDraft?.ferryForm?.hotel_item_uid || '',
   });
 
   const [otroForm, setOtroForm] = useState(() => initialDraft?.otroForm || {
     descripcion: '',
     fecha: '',
-    costo: 0,
-    precio: 0,
+    costo: '',
+    precio: '',
     hotel_item_uid: initialDraft?.otroForm?.hotel_item_uid || '',
   });
 
@@ -365,9 +379,6 @@ export default function CotizacionTabContent({
       }
     }
   }, [activeTab]);
-
-
-
 
   // Update dates in hotel and forms when general dates change
   useEffect(() => {
@@ -609,21 +620,47 @@ export default function CotizacionTabContent({
     return categories;
   }, [pax.adultos, pax.adolescentes, pax.ninos, pax.infantes]);
 
-  // Sync companions count and default categories when pax changes
+  // Sync companions count and categories when pax changes
   useEffect(() => {
     const needed = Math.max(0, totalPax - 1);
     const expected = getExpectedPaxCategories();
 
     setPasajeros(prev => {
+      // 1. Group previous passengers by category, prioritizing those with data
+      const pool = {
+        adulto: prev.filter(p => p.tipo_pax === 'adulto'),
+        adolescente: prev.filter(p => p.tipo_pax === 'adolescente'),
+        nino: prev.filter(p => p.tipo_pax === 'nino'),
+        infante: prev.filter(p => p.tipo_pax === 'infante'),
+      };
+
+      // Sort each pool so passengers with entered data come first
+      Object.keys(pool).forEach(key => {
+        pool[key].sort((a, b) => {
+          const aHasData = !isPasajeroVacio(a);
+          const bHasData = !isPasajeroVacio(b);
+          if (aHasData && !bHasData) return -1;
+          if (!aHasData && bHasData) return 1;
+          return 0;
+        });
+      });
+
       const next = [];
+
+      // 2. First pass: fill slots based strictly on expected category
       for (let i = 0; i < needed; i++) {
-        const existing = prev[i];
-        const category = existing?.tipo_pax || expected[i] || 'adulto';
+        const category = expected[i] || 'adulto';
+        const existing = pool[category] && pool[category].length > 0 ? pool[category].shift() : null;
 
         let tipoDoc = existing?.tipo_documento;
+        let doc = existing?.documento || '';
+
         if (category === 'infante') {
           if (tipoDoc !== 'NAC' && tipoDoc !== 'P') {
             tipoDoc = 'NAC';
+            if (existing && !isPasajeroVacio(existing) && existing.tipo_documento !== 'NAC' && existing.tipo_documento !== 'P') {
+              doc = '';
+            }
           }
         } else if (category === 'nino') {
           if (!['V', 'E', 'NAC', 'P'].includes(tipoDoc)) {
@@ -632,17 +669,60 @@ export default function CotizacionTabContent({
         } else {
           if (!['V', 'E', 'P', 'J', 'G'].includes(tipoDoc)) {
             tipoDoc = 'V';
+            if (existing && existing.tipo_documento === 'NAC') {
+              doc = '';
+            }
           }
         }
 
         next.push({
           nombres: existing?.nombres || '',
           apellidos: existing?.apellidos || '',
-          documento: existing?.documento || '',
+          documento: doc,
           tipo_documento: tipoDoc,
           tipo_pax: category,
         });
       }
+
+      // 3. Second pass: If any leftover passengers in the pools have data,
+      // recover their data into empty slots
+      const leftoverWithData = Object.values(pool).flat().filter(p => !isPasajeroVacio(p));
+      if (leftoverWithData.length > 0) {
+        for (let i = 0; i < next.length && leftoverWithData.length > 0; i++) {
+          if (isPasajeroVacio(next[i])) {
+            const displaced = leftoverWithData.shift();
+            const category = next[i].tipo_pax;
+            let tipoDoc = displaced.tipo_documento;
+            let doc = displaced.documento || '';
+
+            if (category === 'infante') {
+              if (tipoDoc !== 'NAC' && tipoDoc !== 'P') {
+                tipoDoc = 'NAC';
+                doc = '';
+              }
+            } else if (category === 'nino') {
+              if (!['V', 'E', 'NAC', 'P'].includes(tipoDoc)) {
+                tipoDoc = 'NAC';
+              }
+            } else {
+              if (!['V', 'E', 'P', 'J', 'G'].includes(tipoDoc)) {
+                tipoDoc = 'V';
+                doc = '';
+              }
+            }
+
+            next[i] = {
+              ...next[i],
+              nombres: displaced.nombres || '',
+              apellidos: displaced.apellidos || '',
+              documento: doc,
+              tipo_documento: tipoDoc,
+              tipo_pax: category,
+            };
+          }
+        }
+      }
+
       return next;
     });
   }, [totalPax, getExpectedPaxCategories, pax.adultos, pax.adolescentes, pax.ninos, pax.infantes]);
@@ -762,6 +842,108 @@ export default function CotizacionTabContent({
     return Math.max(0, years);
   };
 
+  // Lógica de Grupos y Filtro de Búsqueda para Pasajeros Acompañantes (15 por grupo)
+  const totalPaxGroups = Math.max(1, Math.ceil(pasajeros.length / PAX_PER_GROUP));
+
+  // Ajustar el grupo activo si la cantidad de acompañantes disminuye
+  useEffect(() => {
+    const maxGroupIdx = Math.max(0, Math.ceil(pasajeros.length / PAX_PER_GROUP) - 1);
+    if (activePaxGroup > maxGroupIdx) {
+      setActivePaxGroup(maxGroupIdx);
+    }
+  }, [pasajeros.length, activePaxGroup]);
+
+  // Estructura de grupos de acompañantes con filtro de búsqueda de grupo o pasajero
+  const paxGroupsData = useMemo(() => {
+    const groups = [];
+    const q = paxSearchTerm.trim().toLowerCase();
+    const cleanQ = q.replace(/[^a-z0-9]/g, '');
+
+    for (let g = 0; g < totalPaxGroups; g++) {
+      const start = g * PAX_PER_GROUP;
+      const end = Math.min(start + PAX_PER_GROUP, pasajeros.length);
+      const slice = pasajeros.slice(start, end).map((p, offset) => ({
+        ...p,
+        originalIndex: start + offset,
+        itemNumberInGroup: offset + 1,
+      }));
+
+      // Coincidencia explícita con el grupo (ej. "Grupo 1", "G1", "1", "Grupo 2", etc.)
+      const groupName = `grupo ${g + 1}`;
+      const groupShort = `g${g + 1}`;
+      const isGroupExplicitMatch = Boolean(
+        q && (
+          groupName.includes(q) ||
+          groupShort === cleanQ ||
+          `grupo${g + 1}` === cleanQ ||
+          q === String(g + 1)
+        )
+      );
+
+      // Coincidencia con pasajeros dentro de este grupo
+      const matchingPassengers = slice.filter(p => {
+        if (!q) return true;
+        if (isGroupExplicitMatch) return true; // Si el término busca explícitamente este grupo, mostrar todos sus 15 pasajeros
+
+        const fullName = `${p.nombres || ''} ${p.apellidos || ''}`.toLowerCase();
+        const doc = String(p.documento || '').toLowerCase();
+        const docClean = doc.replace(/[^a-z0-9]/g, '');
+        const numAcompanante = String(p.originalIndex + 1);
+        const numGlobal = String(p.originalIndex + 2);
+        const tipoPax = (p.tipo_pax || '').toLowerCase();
+
+        return (
+          fullName.includes(q) ||
+          (p.nombres || '').toLowerCase().includes(q) ||
+          (p.apellidos || '').toLowerCase().includes(q) ||
+          doc.includes(q) ||
+          (cleanQ && docClean.includes(cleanQ)) ||
+          tipoPax.includes(q) ||
+          q === numAcompanante ||
+          q === `#${numAcompanante}` ||
+          q === numGlobal ||
+          q === `#${numGlobal}`
+        );
+      });
+
+      groups.push({
+        groupIndex: g,
+        groupNumber: g + 1,
+        startPax: start + 1,
+        endPax: end,
+        totalInGroup: slice.length,
+        allPassengers: slice,
+        matchingPassengers,
+        hasMatches: matchingPassengers.length > 0,
+        isGroupExplicitMatch,
+      });
+    }
+
+    return groups;
+  }, [pasajeros, paxSearchTerm, totalPaxGroups]);
+
+  // Total de coincidencias encontradas en todos los grupos
+  const totalPaxMatchesCount = useMemo(() => {
+    if (!paxSearchTerm.trim()) return pasajeros.length;
+    return paxGroupsData.reduce((acc, g) => acc + g.matchingPassengers.length, 0);
+  }, [paxGroupsData, paxSearchTerm, pasajeros.length]);
+
+  // Cambio automático de pestaña de grupo al buscar si el grupo actual no tiene coincidencias
+  useEffect(() => {
+    const term = paxSearchTerm.trim();
+    if (!term) return;
+
+    // Si el grupo activo ya tiene coincidencias, mantenerlo
+    const current = paxGroupsData[activePaxGroup];
+    if (current && current.hasMatches) return;
+
+    // Si el grupo actual no tiene coincidencias, cambiar al primer grupo que sí tenga
+    const firstWithMatches = paxGroupsData.find(g => g.hasMatches);
+    if (firstWithMatches) {
+      setActivePaxGroup(firstWithMatches.groupIndex);
+    }
+  }, [paxSearchTerm, paxGroupsData, activePaxGroup]);
+
   // Unified passenger list for individual/group customization
   const allPassengers = useMemo(() => {
     const list = [];
@@ -810,12 +992,12 @@ export default function CotizacionTabContent({
       const t = selectedHabitacion.tarifas[0];
       setHotelForm(prev => ({
         ...prev,
-        precio_noche_adulto: Number(t.precio_noche_adulto || 0),
-        precio_noche_adolescente: Number(t.precio_noche_adolescente || 0),
-        precio_noche_nino: Number(t.precio_noche_nino || 0),
-        costo_noche_adulto: Number(t.costo_noche_adulto || 0),
-        costo_noche_adolescente: Number(t.costo_noche_adolescente || 0),
-        costo_noche_nino: Number(t.costo_noche_nino || 0),
+        precio_noche_adulto: Number(t.precio_noche_adulto) > 0 ? t.precio_noche_adulto : '',
+        precio_noche_adolescente: Number(t.precio_noche_adolescente) > 0 ? t.precio_noche_adolescente : '',
+        precio_noche_nino: Number(t.precio_noche_nino) > 0 ? t.precio_noche_nino : '',
+        costo_noche_adulto: Number(t.costo_noche_adulto) > 0 ? t.costo_noche_adulto : '',
+        costo_noche_adolescente: Number(t.costo_noche_adolescente) > 0 ? t.costo_noche_adolescente : '',
+        costo_noche_nino: Number(t.costo_noche_nino) > 0 ? t.costo_noche_nino : '',
       }));
     }
   }, [selectedHabitacion]);
@@ -823,17 +1005,17 @@ export default function CotizacionTabContent({
   // Limpiar tarifas de categorías cuando la cantidad de pasajeros vuelve a 0
   useEffect(() => {
     if (pax.ninos === 0) {
-      setVueloForm(prev => (prev.precio_nino !== 0 ? { ...prev, precio_nino: 0 } : prev));
-      setFerryForm(prev => (prev.precio_nino !== 0 ? { ...prev, precio_nino: 0 } : prev));
-      setExcursionForm(prev => (prev.precio_nino !== 0 ? { ...prev, precio_nino: 0 } : prev));
-      setPaqueteForm(prev => (prev.precio_nino !== 0 ? { ...prev, precio_nino: 0 } : prev));
+      setVueloForm(prev => (prev.precio_nino !== '' ? { ...prev, precio_nino: '' } : prev));
+      setFerryForm(prev => (prev.precio_nino !== '' ? { ...prev, precio_nino: '' } : prev));
+      setExcursionForm(prev => (prev.precio_nino !== '' ? { ...prev, precio_nino: '' } : prev));
+      setPaqueteForm(prev => (prev.precio_nino !== '' ? { ...prev, precio_nino: '' } : prev));
     }
   }, [pax.ninos]);
 
   useEffect(() => {
     if (pax.infantes === 0) {
-      setVueloForm(prev => (prev.precio_infante !== 0 ? { ...prev, precio_infante: 0 } : prev));
-      setFerryForm(prev => (prev.precio_infante !== 0 ? { ...prev, precio_infante: 0 } : prev));
+      setVueloForm(prev => (prev.precio_infante !== '' ? { ...prev, precio_infante: '' } : prev));
+      setFerryForm(prev => (prev.precio_infante !== '' ? { ...prev, precio_infante: '' } : prev));
     }
   }, [pax.infantes]);
 
@@ -846,12 +1028,12 @@ export default function CotizacionTabContent({
           id_hotel: '',
           id_habitacion: '',
           noches: 4,
-          precio_noche_adulto: 0,
-          precio_noche_adolescente: 0,
-          precio_noche_nino: 0,
-          costo_noche_adulto: 0,
-          costo_noche_adolescente: 0,
-          costo_noche_nino: 0,
+          precio_noche_adulto: '',
+          precio_noche_adolescente: '',
+          precio_noche_nino: '',
+          costo_noche_adulto: '',
+          costo_noche_adolescente: '',
+          costo_noche_nino: '',
         });
         break;
       case 'vuelo':
@@ -859,12 +1041,12 @@ export default function CotizacionTabContent({
           id_aerolinea: '',
           itinerario: '',
           fecha_vuelo: '',
-          precio_adulto: 0,
-          precio_nino: 0,
-          precio_infante: 0,
-          costo_adulto: 0,
-          costo_nino: 0,
-          costo_infante: 0,
+          precio_adulto: '',
+          precio_nino: '',
+          precio_infante: '',
+          costo_adulto: '',
+          costo_nino: '',
+          costo_infante: '',
           hotel_item_uid: '',
         });
         break;
@@ -872,8 +1054,8 @@ export default function CotizacionTabContent({
         setTrasladoForm({
           id_traslado: '',
           fecha_traslado: '',
-          precio: 0,
-          costo: 0,
+          precio: '',
+          costo: '',
           observacion: '',
           tipo_asignacion: 'todos',
           pax_individual_id: 0,
@@ -885,10 +1067,10 @@ export default function CotizacionTabContent({
         setExcursionForm({
           id_excursion: '',
           fecha: '',
-          precio_adulto: 0,
-          precio_nino: 0,
-          costo_adulto: 0,
-          costo_nino: 0,
+          precio_adulto: '',
+          precio_nino: '',
+          costo_adulto: '',
+          costo_nino: '',
           hotel_item_uid: '',
         });
         break;
@@ -896,10 +1078,10 @@ export default function CotizacionTabContent({
         setPaqueteForm({
           id_paquete: '',
           fecha: '',
-          precio_adulto: 0,
-          precio_nino: 0,
-          costo_adulto: 0,
-          costo_nino: 0,
+          precio_adulto: '',
+          precio_nino: '',
+          costo_adulto: '',
+          costo_nino: '',
           hotel_item_uid: '',
         });
         break;
@@ -909,8 +1091,8 @@ export default function CotizacionTabContent({
           desde: '',
           hasta: '',
           dias: 1,
-          precio_unitario: 0,
-          costo: 0,
+          precio_unitario: '',
+          costo: '',
           observacion: '',
           hotel_item_uid: '',
         });
@@ -921,10 +1103,10 @@ export default function CotizacionTabContent({
           clase: 'Playa',
           itinerario: '',
           vehiculos: 0,
-          precio_adulto: 0,
-          precio_nino: 0,
-          precio_infante: 0,
-          precio_vehiculo: 0,
+          precio_adulto: '',
+          precio_nino: '',
+          precio_infante: '',
+          precio_vehiculo: '',
           hotel_item_uid: '',
         });
         break;
@@ -932,8 +1114,8 @@ export default function CotizacionTabContent({
         setOtroForm({
           descripcion: '',
           fecha: '',
-          costo: 0,
-          precio: 0,
+          costo: '',
+          precio: '',
           hotel_item_uid: '',
         });
         break;
@@ -990,9 +1172,9 @@ export default function CotizacionTabContent({
         return null;
       }
       const aeroObj = (catalogos.aerolineas || []).find(a => String(a.id) === String(vueloForm.id_aerolinea)) || {};
-      const precioAd = Number(vueloForm.precio_adulto || 0);
-      const precioNi = Number(vueloForm.precio_nino || 0);
-      const precioInf = Number(vueloForm.precio_infante || 0);
+      const precioAd = Number(vueloForm.precio_adulto || '');
+      const precioNi = Number(vueloForm.precio_nino || '');
+      const precioInf = Number(vueloForm.precio_infante || '');
       const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi) + (pax.infantes * precioInf);
 
       return {
@@ -1012,9 +1194,9 @@ export default function CotizacionTabContent({
           precio_adulto: precioAd,
           precio_nino: precioNi,
           precio_infante: precioInf,
-          costo_adulto: Number(vueloForm.costo_adulto || 0),
-          costo_nino: Number(vueloForm.costo_nino || 0),
-          costo_infante: Number(vueloForm.costo_infante || 0),
+          costo_adulto: Number(vueloForm.costo_adulto || ''),
+          costo_nino: Number(vueloForm.costo_nino || ''),
+          costo_infante: Number(vueloForm.costo_infante || ''),
           hotel_item_uid: vueloForm.hotel_item_uid || null,
         },
       };
@@ -1067,7 +1249,7 @@ export default function CotizacionTabContent({
         tipo: 'traslado',
         titulo,
         detalle: `Fecha: ${trasladoForm.fecha_traslado || 'Por definir'} • ${detallePax}${obsBase ? ` • Obs: ${obsBase}` : ''}`,
-        precio: Number(trasladoForm.precio || trasObj.precio_publico || 0),
+        precio: Number(trasladoForm.precio || trasObj.precio_publico || ''),
         hotel_item_uid: trasladoForm.hotel_item_uid || null,
         data: {
           id_traslado: Number(trasladoForm.id_traslado || 1),
@@ -1075,8 +1257,8 @@ export default function CotizacionTabContent({
           adultos: adultosCount,
           ninos: ninosCount,
           infantes: infantesCount,
-          precio_historico: Number(trasladoForm.precio || trasObj.precio_publico || 0),
-          costo_historico: Number(trasladoForm.costo || trasObj.costo || 0),
+          precio_historico: Number(trasladoForm.precio || trasObj.precio_publico || ''),
+          costo_historico: Number(trasladoForm.costo || trasObj.costo || ''),
           observacion: obsFinal,
           observacion_base: obsBase,
           tipo_asignacion: totalPax > 1 ? trasladoForm.tipo_asignacion : 'todos',
@@ -1093,8 +1275,8 @@ export default function CotizacionTabContent({
         return null;
       }
       const excObj = (catalogos.excursiones || []).find(e => String(e.id) === String(excursionForm.id_excursion)) || {};
-      const precioAd = Number(excursionForm.precio_adulto || excObj.precio_adulto || 0);
-      const precioNi = Number(excursionForm.precio_nino || excObj.precio_nino || 0);
+      const precioAd = Number(excursionForm.precio_adulto || excObj.precio_adulto || '');
+      const precioNi = Number(excursionForm.precio_nino || excObj.precio_nino || '');
       const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi);
       return {
         uid,
@@ -1111,8 +1293,10 @@ export default function CotizacionTabContent({
           infantes: pax.infantes,
           precio_adulto: precioAd,
           precio_nino: precioNi,
-          costo_adulto: Number(excursionForm.costo_adulto || 0),
-          costo_nino: Number(excursionForm.costo_nino || 0),
+          precio_infante: Number(excursionForm.precio_infante || ''),
+          costo_adulto: Number(excursionForm.costo_adulto || ''),
+          costo_nino: Number(excursionForm.costo_nino || ''),
+          costo_infante: Number(excursionForm.costo_infante || ''),
           hotel_item_uid: excursionForm.hotel_item_uid || null,
         },
       };
@@ -1182,10 +1366,10 @@ export default function CotizacionTabContent({
         if (showErrors) alert('Complete los datos del ferry');
         return null;
       }
-      const precioAd = Number(ferryForm.precio_adulto || 0);
-      const precioNi = Number(ferryForm.precio_nino || 0);
-      const precioInf = Number(ferryForm.precio_infante || 0);
-      const precioVeh = Number(ferryForm.precio_vehiculo || 0);
+      const precioAd = Number(ferryForm.precio_adulto || '');
+      const precioNi = Number(ferryForm.precio_nino || '');
+      const precioInf = Number(ferryForm.precio_infante ||'');
+      const precioVeh = Number(ferryForm.precio_vehiculo || '');
       const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi) + (pax.infantes * precioInf) + (ferryForm.vehiculos * precioVeh);
       return {
         uid,
@@ -1453,12 +1637,8 @@ export default function CotizacionTabContent({
     setIsVaciarModalOpen(true);
   };
 
-  // Verifica si un producto/pestaña tiene información reservada o configurada (formulario o items agregados)
+  // Verifica si un producto/pestaña tiene información pendiente o configurada en su formulario
   const checkTabHasInfo = (tabId) => {
-    if (items.some(item => item.tipo === tabId)) {
-      return true;
-    }
-
     switch (tabId) {
       case 'hotel':
         return Boolean(
@@ -1505,8 +1685,7 @@ export default function CotizacionTabContent({
           (vehiculoForm.desde && vehiculoForm.desde.trim() !== '') ||
           (vehiculoForm.hasta && vehiculoForm.hasta.trim() !== '') ||
           (vehiculoForm.observacion && vehiculoForm.observacion.trim() !== '') ||
-          Number(vehiculoForm.precio_unitario) > 0 ||
-          Number(vehiculoForm.dias) !== 1
+          Number(vehiculoForm.precio_unitario) > 0
         );
       case 'ferry':
         return Boolean(
@@ -1987,9 +2166,13 @@ export default function CotizacionTabContent({
             <CustomSelect
               value={cliente.tipo_documento}
               onChange={e => setCliente({ ...cliente, tipo_documento: e.target.value })}
+              className="select-tipo-doc"
               style={{
                 width: '80px',
+                minWidth: '80px',
+                flexShrink: 0,
               }}
+              searchable={false}
             >
               <option value="V">V-</option>
               <option value="E">E-</option>
@@ -2218,153 +2401,456 @@ export default function CotizacionTabContent({
           width: '100%',
           boxSizing: 'border-box',
         }}>
+          {/* Header Row: Title & Batch Scanner */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', margin: '0 0 16px 0' }}>
             <h2 style={{ fontSize: '1rem', color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <img src={imgUsuario} style={{ width: '18px', height: '18px' }} alt="" /> Pasajeros Acompañantes ({pasajeros.length})
             </h2>
             {pasajeros.length > 0 && (
-              <BatchDocumentScannerButton
-                hasData={hasAcompananteData}
-                maxFiles={pasajeros.length}
-                onBatchComplete={handleOcrBatchAcompanantes}
-                onClear={handleLimpiarAcompanantes}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BatchDocumentScannerButton
+                  maxFiles={pasajeros.length}
+                  onBatchComplete={handleOcrBatchAcompanantes}
+                />
+                <button
+                  type="button"
+                  disabled={!hasAcompananteData}
+                  onClick={() => {
+                    if (window.confirm('¿Desea limpiar los datos de todos los pasajeros acompañantes?')) {
+                      handleLimpiarAcompanantes();
+                    }
+                  }}
+                  title={hasAcompananteData ? 'Borrar los datos de todas las casillas de acompañantes' : 'No hay casillas con información'}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid rgba(239, 68, 68, 0.5)',
+                    color: '#FCA5A5',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    cursor: hasAcompananteData ? 'pointer' : 'not-allowed',
+                    opacity: hasAcompananteData ? 1 : 0.4,
+                    transition: 'opacity 0.2s ease',
+                  }}
+                >
+                  <svg style={{ width: 15, height: 15 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                  </svg>
+                  <span>Limpiar Todo</span>
+                </button>
+              </div>
             )}
           </div>
+
+          {/* Group Tabs & Filter Row (Unificados en una sola fila como en Pestañas de Cotizaciones) */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              marginBottom: '16px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              paddingBottom: '10px',
+              boxSizing: 'border-box',
+              width: '100%',
+            }}
+          >
+            {/* Scrollable Group Tabs (15 pasajeros por grupo) */}
+            <div
+              ref={paxTabsScrollRef}
+              onWheel={handlePaxTabsWheel}
+              className="custom-scrollbar"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                overflowX: 'auto',
+                paddingRight: '6px',
+                boxSizing: 'border-box',
+              }}
+            >
+              {paxGroupsData.map((g) => {
+                const isActive = activePaxGroup === g.groupIndex;
+                const hasSearch = Boolean(paxSearchTerm.trim());
+                const matchCount = g.matchingPassengers.length;
+
+                return (
+                  <button
+                    key={g.groupIndex}
+                    type="button"
+                    data-active={isActive ? 'true' : 'false'}
+                    onClick={(e) => {
+                      setActivePaxGroup(g.groupIndex);
+                      e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '7px 14px',
+                      borderRadius: '8px',
+                      border: isActive
+                        ? '1px solid #2563EB'
+                        : hasSearch && matchCount > 0
+                        ? '1px solid rgba(37, 99, 235, 0.5)'
+                        : '1px solid rgba(255, 255, 255, 0.18)',
+                      background: isActive
+                        ? 'rgba(37, 99, 235, 0.22)'
+                        : hasSearch && matchCount > 0
+                        ? 'rgba(37, 99, 235, 0.12)'
+                        : 'rgba(255, 255, 255, 0.05)',
+                      boxShadow: isActive
+                        ? '0 0 12px rgba(37, 99, 235, 0.45)'
+                        : hasSearch && matchCount > 0
+                        ? '0 0 8px rgba(37, 99, 235, 0.25)'
+                        : 'none',
+                      color: isActive
+                        ? '#93C5FD'
+                        : hasSearch && matchCount > 0
+                        ? '#FFFFFF'
+                        : '#b9c8ddff',
+                      fontWeight: isActive ? '600' : '500',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.2s ease-in-out',
+                      fontSize: '0.8125rem',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span>Grupo {g.groupNumber}</span>
+                    <span style={{
+                      fontSize: '0.72rem',
+                      padding: '1px 6px',
+                      borderRadius: '5px',
+                      background: isActive ? 'rgba(37, 99, 235, 0.4)' : 'rgba(255, 255, 255, 0.08)',
+                      color: isActive ? '#FFFFFF' : '#94A3B8',
+                    }}>
+                      {g.startPax} - {g.endPax}
+                    </span>
+
+                    {hasSearch && (
+                      <span style={{
+                        fontSize: '0.7rem',
+                        padding: '1px 6px',
+                        borderRadius: '10px',
+                        fontWeight: '700',
+                        background: matchCount > 0 ? '#10B981' : 'rgba(255, 255, 255, 0.1)',
+                        color: matchCount > 0 ? '#FFFFFF' : '#64748B',
+                      }}>
+                        {matchCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Filter on the right (Exact styling from NuevaCotizacion.jsx) */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                position: 'relative',
+                width: '190px',
+                flexShrink: 0,
+              }}
+            >
+              {/* Search Icon */}
+              <svg
+                style={{
+                  position: 'absolute',
+                  left: '9px',
+                  width: '13px',
+                  height: '13px',
+                  fill: 'none',
+                  stroke: '#94A3B8',
+                  strokeWidth: 2,
+                  pointerEvents: 'none',
+                }}
+                viewBox="0 0 24 24"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+
+              <input
+                type="text"
+                value={paxSearchTerm}
+                onChange={(e) => setPaxSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setPaxSearchTerm('');
+                  }
+                }}
+                placeholder={`Filtrar (${pasajeros.length})...`}
+                title="Filtrar por grupo (ej. Grupo 1) o pasajero (nombre, cédula...)"
+                style={{
+                  width: '100%',
+                  padding: '6px 24px 6px 28px',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: paxSearchTerm ? '1px solid rgba(37, 99, 235, 0.65)' : '1px solid rgba(255, 255, 255, 0.16)',
+                  borderRadius: '8px',
+                  color: '#FFFFFF',
+                  fontSize: '0.8125rem',
+                  outline: 'none',
+                  transition: 'all 0.2s ease',
+                  boxShadow: paxSearchTerm ? '0 0 10px rgba(37, 99, 235, 0.35)' : 'none',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.14)';
+                  e.target.style.borderColor = '#2563EB';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(66, 118, 230, 0.35)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+                  e.target.style.borderColor = paxSearchTerm ? 'rgba(37, 99, 235, 0.65)' : 'rgba(255, 255, 255, 0.16)';
+                  e.target.style.boxShadow = paxSearchTerm ? '0 0 10px rgba(37, 99, 235, 0.35)' : 'none';
+                }}
+              />
+
+              {/* Clear Button */}
+              {paxSearchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setPaxSearchTerm('')}
+                  title="Limpiar filtro"
+                  style={{
+                    position: 'absolute',
+                    right: '5px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#94A3B8',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    padding: '2px 4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1,
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94A3B8'}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Passenger Cards Grid */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
             gap: '14px',
             width: '100%',
           }}>
-            {pasajeros.map((p, idx) => {
-              const tipoPax = p.tipo_pax || 'adulto';
-              const isInfante = tipoPax === 'infante';
-              const isNino = tipoPax === 'nino';
-              const isDateDoc = p.tipo_documento === 'NAC';
+            {paxGroupsData[activePaxGroup]?.matchingPassengers?.length > 0 ? (
+              paxGroupsData[activePaxGroup].matchingPassengers.map((p) => {
+                const tipoPax = p.tipo_pax || 'adulto';
+                const isInfante = tipoPax === 'infante';
+                const isNino = tipoPax === 'nino';
+                const isDateDoc = p.tipo_documento === 'NAC';
 
-              const badgeColor = isInfante
-                ? { bg: 'rgba(56, 189, 248, 0.15)', text: '#38BDF8', border: 'rgba(56, 189, 248, 0.35)' }
-                : isNino
-                  ? { bg: 'rgba(234, 179, 8, 0.15)', text: '#EAB308', border: 'rgba(234, 179, 8, 0.35)' }
-                  : tipoPax === 'adolescente'
-                    ? { bg: 'rgba(168, 85, 247, 0.15)', text: '#C084FC', border: 'rgba(168, 85, 247, 0.35)' }
-                    : { bg: 'rgba(255, 255, 255, 0.08)', text: '#94A3B8', border: 'rgba(255, 255, 255, 0.15)' };
+                const categoryLabel = isInfante ? 'Infante' : isNino ? 'Niño' : tipoPax === 'adolescente' ? 'Adolescente' : 'Adulto';
 
-              const categoryLabel = isInfante ? 'Infante' : isNino ? 'Niño' : tipoPax === '' ? '' : 'Adulto';
-              const ageSummary = isDateDoc && p.documento ? getBirthdateSummary(p.documento) : '';
+                return (
+                  <div
+                    key={p.originalIndex}
+                    style={{
+                      background: 'rgba(255,255,250, 0.03)',
+                      padding: '14px',
+                      borderRadius: '10px',
+                      border: '1px solid rgba(255,255,255,0.18)',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{
+                          fontSize: '0.72rem',
+                          fontWeight: '700',
+                          color: '#93C5FD',
+                          background: 'rgba(37, 99, 235, 0.18)',
+                          border: '1px solid rgba(37, 99, 235, 0.4)',
+                          padding: '2px 7px',
+                          borderRadius: '6px',
+                          letterSpacing: '0.3px',
+                        }}>
+                          #{p.originalIndex + 1}
+                        </span>
+                        <span style={{ fontSize: '0.8rem', color: '#E87217', fontWeight: '600' }}>
+                          {categoryLabel}
+                        </span>
+                      </div>
 
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    background: 'rgba(255,255,250, 0.03)',
-                    padding: '14px',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(255,255,255,0.18)',
-                    width: '100%',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '0.8rem', color: '#E87217', fontWeight: '600' }}>
-                        {categoryLabel}
-                      </span>
+                      <DocumentScannerButton
+                        compact={true}
+                        label="Escanear"
+                        title="Escanear Cédula o Pasaporte de este acompañante con IA"
+                        onScanComplete={(docData) => handleOcrAcompananteComplete(p.originalIndex, docData)}
+                        isClearMode={Boolean(p.documento?.trim() || p.nombres?.trim() || p.apellidos?.trim())}
+                        onClear={() => handleLimpiarAcompanante(p.originalIndex)}
+                        clearLabel="Limpiar"
+                        clearTitle="Limpiar información de este acompañante"
+                      />
                     </div>
 
-                    <DocumentScannerButton
-                      compact={true}
-                      label="Escanear"
-                      title="Escanear Cédula o Pasaporte de este acompañante con IA"
-                      onScanComplete={(docData) => handleOcrAcompananteComplete(idx, docData)}
-                      isClearMode={Boolean(p.documento?.trim() || p.nombres?.trim() || p.apellidos?.trim())}
-                      onClear={() => handleLimpiarAcompanante(idx)}
-                      clearLabel="Limpiar"
-                      clearTitle="Limpiar información de este acompañante"
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                    <input
-                      type="text"
-                      placeholder="Nombres"
-                      value={p.nombres}
-                      onChange={e => handleUpdatePasajero(idx, 'nombres', e.target.value)}
-                      maxLength={35}
-                      className='erp-input'
-                      style={{ flex: 1 }}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Apellidos"
-                      value={p.apellidos}
-                      onChange={e => handleUpdatePasajero(idx, 'apellidos', e.target.value)}
-                      maxLength={25}
-                      className='erp-input'
-                      style={{ flex: 1 }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <CustomSelect
-                      value={p.tipo_documento}
-                      onChange={e => handleUpdatePasajero(idx, 'tipo_documento', e.target.value)}
-                      style={{
-                        width: (isInfante || isNino) ? '112px' : '75px',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {isInfante ? (
-                        <>
-                          <option value="NAC">Fec. Nac.</option>
-                          <option value="P">P-</option>
-                        </>
-                      ) : isNino ? (
-                        <>
-                          <option value="V">V-</option>
-                          <option value="E">E-</option>
-                          <option value="NAC">Fec. Nac.</option>
-                          <option value="P">P-</option>
-                        </>
-                      ) : (
-                        <>
-                          <option value="V">V-</option>
-                          <option value="E">E-</option>
-                          <option value="J">J-</option>
-                          <option value="P">P-</option>
-                          <option value="G">G-</option>
-                        </>
-                      )}
-                    </CustomSelect>
-
-                    {isDateDoc ? (
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <CustomDatePicker
-                          type="date"
-                          value={p.documento}
-                          onChange={e => handleUpdatePasajero(idx, 'documento', e.target.value)}
-                          placeholder="Fecha de Nacimiento"
-                          max={new Date().toISOString().split('T')[0]}
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                    ) : (
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                       <input
                         type="text"
-                        placeholder={p.tipo_documento === 'P' ? 'N° Pasaporte' : 'Cédula / Documento'}
-                        value={p.documento}
-                        onChange={e => handleUpdatePasajero(idx, 'documento', e.target.value)}
-                        maxLength={p.tipo_documento === 'P' ? 20 : 12}
-                        inputMode={p.tipo_documento === 'P' ? 'text' : 'numeric'}
+                        placeholder="Nombres"
+                        value={p.nombres}
+                        onChange={e => handleUpdatePasajero(p.originalIndex, 'nombres', e.target.value)}
+                        maxLength={35}
                         className='erp-input'
                         style={{ flex: 1 }}
                       />
-                    )}
+                      <input
+                        type="text"
+                        placeholder="Apellidos"
+                        value={p.apellidos}
+                        onChange={e => handleUpdatePasajero(p.originalIndex, 'apellidos', e.target.value)}
+                        maxLength={25}
+                        className='erp-input'
+                        style={{ flex: 1 }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <CustomSelect
+                        value={p.tipo_documento}
+                        onChange={e => handleUpdatePasajero(p.originalIndex, 'tipo_documento', e.target.value)}
+                        className="select-tipo-doc"
+                        style={{
+                          width: (isInfante || isNino) ? '112px' : '80px',
+                          minWidth: (isInfante || isNino) ? '112px' : '80px',
+                          flexShrink: 0,
+                        }}
+                        searchable={false}
+                      >
+                        {isInfante ? (
+                          <>
+                            <option value="NAC">Fec. Nac.</option>
+                            <option value="P">P-</option>
+                          </>
+                        ) : isNino ? (
+                          <>
+                            <option value="V">V-</option>
+                            <option value="E">E-</option>
+                            <option value="NAC">Fec. Nac.</option>
+                            <option value="P">P-</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="V">V-</option>
+                            <option value="E">E-</option>
+                            <option value="J">J-</option>
+                            <option value="P">P-</option>
+                            <option value="G">G-</option>
+                          </>
+                        )}
+                      </CustomSelect>
+
+                      {isDateDoc ? (
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <CustomDatePicker
+                            type="date"
+                            value={p.documento}
+                            onChange={e => handleUpdatePasajero(p.originalIndex, 'documento', e.target.value)}
+                            placeholder="Fecha de Nacimiento"
+                            max={new Date().toISOString().split('T')[0]}
+                            style={{ width: '100%' }}
+                          />
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          placeholder={p.tipo_documento === 'P' ? 'N° Pasaporte' : 'Cédula / Documento'}
+                          value={p.documento}
+                          onChange={e => handleUpdatePasajero(p.originalIndex, 'documento', e.target.value)}
+                          maxLength={p.tipo_documento === 'P' ? 20 : 12}
+                          inputMode={p.tipo_documento === 'P' ? 'text' : 'numeric'}
+                          className='erp-input'
+                          style={{ flex: 1 }}
+                        />
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div style={{
+                gridColumn: '1 / -1',
+                padding: '32px 20px',
+                textAlign: 'center',
+                background: 'rgba(255, 255, 255, 0.02)',
+                borderRadius: '10px',
+                border: '1px dashed rgba(255, 255, 255, 0.15)',
+                color: '#94A3B8',
+                fontSize: '0.875rem',
+              }}>
+                <p style={{ margin: '0 0 10px 0', color: '#CBD5E1', fontSize: '0.925rem' }}>
+                  No se encontraron pasajeros en el <strong>Grupo {activePaxGroup + 1}</strong> que coincidan con "<em>{paxSearchTerm}</em>".
+                </p>
+
+                {paxGroupsData.filter(g => g.groupIndex !== activePaxGroup && g.hasMatches).length > 0 ? (
+                  <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.8125rem', color: '#94A3B8' }}>Coincidencias en otros grupos:</span>
+                    {paxGroupsData.filter(g => g.groupIndex !== activePaxGroup && g.hasMatches).map(g => (
+                      <button
+                        key={g.groupIndex}
+                        type="button"
+                        onClick={() => setActivePaxGroup(g.groupIndex)}
+                        style={{
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          background: 'rgba(37, 99, 235, 0.2)',
+                          border: '1px solid #2563EB',
+                          color: '#93C5FD',
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Ir a Grupo {g.groupNumber} ({g.matchingPassengers.length})
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ marginTop: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setPaxSearchTerm('')}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        background: 'rgba(37, 99, 235, 0.2)',
+                        border: '1px solid #2563EB',
+                        color: '#93C5FD',
+                        fontSize: '0.8125rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Limpiar búsqueda
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2457,56 +2943,41 @@ export default function CotizacionTabContent({
                   />
                 )}
                 <span>{tab.label}</span>
-                {hasInfo && !isActive && (
-                  isDraftReady(tab.id) ? (
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        resetFormForTipo(tab.id);
-                      }}
-                      title={`Eliminar información de ${tab.label} para no agregarlo`}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        background: 'rgba(255, 255, 255, 0.12)',
-                        color: tab.color,
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        marginLeft: '3px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#bbbbbb2f';
-                        e.currentTarget.style.color = '#FFFFFF';
-                        e.currentTarget.style.transform = 'scale(1.2)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
-                        e.currentTarget.style.color = tab.color;
-                        e.currentTarget.style.transform = 'scale(1)';
-                      }}
-                    >
-                      ✕
-                    </span>
-                  ) : (
-                    <span
-                      title="Producto agregado al itinerario"
-                      style={{
-                        width: '6px',
-                        height: '6px',
-                        borderRadius: '50%',
-                        backgroundColor: tab.color,
-                        boxShadow: `0 0 6px ${tab.color}`,
-                        display: 'inline-block',
-                        marginLeft: '2px',
-                      }}
-                    />
-                  )
+                {hasInfo && !isActive && isDraftReady(tab.id) && (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      resetFormForTipo(tab.id);
+                    }}
+                    title={`Eliminar información de ${tab.label} para no agregarlo`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      background: 'rgba(255, 255, 255, 0.12)',
+                      color: tab.color,
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      marginLeft: '3px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#bbbbbb2f';
+                      e.currentTarget.style.color = '#FFFFFF';
+                      e.currentTarget.style.transform = 'scale(1.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
+                      e.currentTarget.style.color = tab.color;
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    ✕
+                  </span>
                 )}
               </button>
             );
@@ -2766,7 +3237,7 @@ export default function CotizacionTabContent({
                 >
                   <option value="">Seleccione aerolínea...</option>
                   {(catalogos.aerolineas || []).map(a => (
-                    <option key={a.id} value={a.id}>{a.nombre} ({a.codigo})</option>
+                    <option key={a.id} value={a.id}>{a.nombre}{a.codigo ? ` (${a.codigo})` : ''}</option>
                   ))}
                 </CustomSelect>
               </div>
@@ -2798,6 +3269,7 @@ export default function CotizacionTabContent({
                   <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Tarifa Adulto ($)</label>
                   <div style={{ display: 'flex' }}>
                     <CustomNumberInput
+                      placeholder="0.00"
                       step={0.01}
                       min={0}
                       max={99999.99}
@@ -2814,6 +3286,7 @@ export default function CotizacionTabContent({
                     <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Tarifa Niño ($)</label>
                     <div style={{ display: 'flex' }}>
                       <CustomNumberInput
+                        placeholder="0.00"
                         step={0.01}
                         min={0}
                         max={99999.99}
@@ -2831,6 +3304,7 @@ export default function CotizacionTabContent({
                     <label className='erp-label' style={{ whiteSpace: 'nowrap' }}>Tarifa Infante ($)</label>
                     <div style={{ display: 'flex' }}>
                       <CustomNumberInput
+                        placeholder="0.00"
                         step={0.01}
                         min={0}
                         max={99999.99}
@@ -3178,7 +3652,7 @@ export default function CotizacionTabContent({
                 >
                   <option value="">Seleccione vehículo...</option>
                   {(catalogos.vehiculos || []).map(v => (
-                    <option key={v.id} value={v.id}>{v.marca} {v.modelo} ({v.categoria})</option>
+                    <option key={v.id} value={v.id}>{v.marca} {v.vehiculo || v.modelo || ''}{v.categoria ? ` (${v.categoria})` : ''}</option>
                   ))}
                 </CustomSelect>
               </div>
@@ -3232,6 +3706,7 @@ export default function CotizacionTabContent({
                       max={99999.99}
                       allowDecimals
                       width="100%"
+                      placeholder="0.00"
                       value={ferryForm.precio_adulto}
                       onChange={e => setFerryForm({ ...ferryForm, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
                     />
@@ -3248,6 +3723,7 @@ export default function CotizacionTabContent({
                         max={99999.99}
                         allowDecimals
                         width="100%"
+                        placeholder="0.00"
                         value={ferryForm.precio_nino}
                         onChange={e => setFerryForm({ ...ferryForm, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
                       />
@@ -3265,6 +3741,7 @@ export default function CotizacionTabContent({
                         max={99999.99}
                         allowDecimals
                         width="100%"
+                        placeholder="0.00"
                         value={ferryForm.precio_infante}
                         onChange={e => setFerryForm({ ...ferryForm, precio_infante: sanitizePrecioCostoValue(e.target.value) })}
                       />
@@ -3281,6 +3758,7 @@ export default function CotizacionTabContent({
                       max={99999.99}
                       allowDecimals
                       width="100%"
+                      placeholder="0.00"
                       value={ferryForm.precio_vehiculo}
                       onChange={e => setFerryForm({ ...ferryForm, precio_vehiculo: sanitizePrecioCostoValue(e.target.value) })}
                     />
@@ -3323,6 +3801,7 @@ export default function CotizacionTabContent({
                     max={99999.99}
                     allowDecimals
                     width="100%"
+                    placeholder="0.00"
                     value={otroForm.precio}
                     onChange={e => setOtroForm({ ...otroForm, precio: sanitizePrecioCostoValue(e.target.value) })}
                   />
@@ -3376,7 +3855,7 @@ export default function CotizacionTabContent({
                     <th style={{ padding: '10px 12px' }}>Descripción</th>
                     <th style={{ padding: '10px 12px' }}>Detalles / Pax</th>
                     {registeredHotels.length > 0 && (
-                      <th style={{ padding: '10px 12px' }}>Hotel Asociado</th>
+                      <th style={{ padding: '10px 8px', width: '140px' }}>Hotel Asociado</th>
                     )}
                     <th style={{ padding: '10px 12px', textAlign: 'right' }}>Monto (USD)</th>
                     <th style={{ padding: '10px 12px', textAlign: 'center' }}>Acciones</th>

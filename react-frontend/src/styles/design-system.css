@@ -438,6 +438,8 @@ textarea.erp-input,
 
 .erp-select {
   appearance: none;
+  max-width: 100%;
+  min-width: 0;
   -webkit-appearance: none;
   -moz-appearance: none;
   background: #1e387599;
@@ -569,6 +571,11 @@ input[type="number"]::-webkit-outer-spin-button:active {
   box-shadow: 0 0 0 2px rgba(66, 118, 230, 0.35) !important;
 }
 
+.custom-number-input-container input::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+  font-weight: 500;
+}
+
 input[type="checkbox"],
 input[type="radio"] {
   accent-color: #2563EB;
@@ -663,6 +670,8 @@ input[type="radio"] {
    =================================================== */
 .select {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   cursor: pointer;
   position: relative;
   transition: 300ms ease;
@@ -671,10 +680,152 @@ input[type="radio"] {
   user-select: none;
 }
 
-.selected {
+/* CustomSelect Base */
+.erp-custom-select {
+  position: relative;
+  box-sizing: border-box;
+  user-select: none;
+  background-image: none !important;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Selector múltiple de Hotel Asociado en tablas */
+.hotel-asociado-select {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 140px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.hotel-asociado-select .selected {
+  padding: 4px 8px;
+  min-height: 28px;
+  height: 28px;
+  font-size: 0.78rem;
+  border-radius: 5px;
+  gap: 4px;
   background-color: #1e387599;
   border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.12));
-  padding: 8px 12px;
+  width: 100%;
+  max-width: 135px;
+  box-sizing: border-box;
+}
+
+.hotel-asociado-select .selected .selected-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  flex: 1;
+  min-width: 0;
+  max-width: 90px;
+}
+
+.hotel-asociado-select .selected .arrow {
+  width: 10px;
+  height: 8px;
+  flex-shrink: 0;
+}
+
+/* Caja de CustomSelect con Buscador Integrado (única caja) */
+.selected.custom-select-search-box {
+  cursor: pointer;
+  padding: 0 10px 0 12px;
+  gap: 8px;
+}
+
+.selected.custom-select-search-box.searching,
+.selected.custom-select-search-box:focus-within {
+  border-color: var(--color-accent, #2563EB);
+  box-shadow: 0 0 0 2px rgba(66, 118, 230, 0.35);
+}
+
+.custom-select-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: var(--color-text-primary, #F8FAFC) !important;
+  font-size: 0.85rem !important;
+  font-family: inherit !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.custom-select-search-input:focus {
+  cursor: text;
+}
+
+.custom-select-search-input::placeholder {
+  color: var(--color-text-secondary, #94A3B8);
+  opacity: 0.75;
+}
+
+/* Flecha del buscador ( > ) que rota a ( v ) al desplegar */
+.custom-select-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.75);
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 0 2px;
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: color 0.15s;
+}
+
+.custom-select-arrow:hover {
+  color: #FFFFFF;
+}
+
+.custom-select-chevron {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: rotate(0deg);
+}
+
+.custom-select-chevron.open,
+.selected.open .custom-select-chevron {
+  transform: rotate(90deg);
+}
+
+.select.open-up .custom-select-chevron.open,
+.select.open-up .selected.open .custom-select-chevron {
+  transform: rotate(-90deg);
+}
+
+/* Mensaje cuando no hay resultados en la búsqueda */
+.custom-select-empty-msg {
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #94A3B8);
+  text-align: center;
+  font-style: italic;
+}
+
+.selected {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  background-color: #1e387599;
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.12));
+  padding: 8px 10px;
   border-radius: var(--radius-sm, 6px);
   position: relative;
   z-index: 10;
@@ -682,11 +833,12 @@ input[type="radio"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   color: var(--color-text-primary, #F8FAFC);
   transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
   box-sizing: border-box;
   min-height: 38px;
+  height: 38px;
 }
 
 .select:hover>.selected,
@@ -701,22 +853,34 @@ input[type="radio"] {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  min-width: 0;
 }
 
-.arrow {
+.selected .arrow {
   position: relative;
-  right: 0px;
-  height: 10px;
-  transform: rotate(-90deg);
-  width: 18px;
-  fill: white;
-  z-index: 10;
-  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  width: 12px;
+  height: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  transform: rotate(0deg);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
 }
 
-.select.open>.selected .arrow {
-  transform: rotate(0deg);
+.select.open>.selected .arrow,
+.selected .arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Estilo compacto para selector de tipo de documento (V-, E-, J-, etc.) */
+.select-tipo-doc .selected {
+  padding: 8px 6px !important;
+  gap: 2px !important;
+}
+
+.select-tipo-doc .selected .selected-text {
+  text-align: center;
+  font-weight: 600;
+  padding-left: 2px;
 }
 
 .options {
@@ -782,7 +946,8 @@ input[type="radio"] {
   line-height: 1.35;
 }
 
-.option:hover {
+.option:hover,
+.option.highlighted {
   background-color: rgba(37, 99, 235, 0.35);
   color: #FFFFFF;
 }
