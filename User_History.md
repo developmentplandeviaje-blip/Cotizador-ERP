@@ -339,3 +339,14 @@ Escenario: Unificación y estandarización del sistema global de notificaciones 
   Y cuenta con icono SVG circular representativo alineado a la izquierda, tipografía limpia, botón 'X' de cierre manual y temporizador de auto-cierre con soporte de pausa al pasar el cursor (hover)
   Y permite botones de acción interactivos en notificaciones complejas (ej. ver informe de cotización y acceder al registro de guardado)
   Y se han eliminado todos los banners inline y alertas nativas de JavaScript ('alert') del sistema.
+
+Escenario: Estandarización y dinamismo del componente global de modales de confirmación
+  Dado que el usuario ejecuta una acción crítica que requiere confirmación en cualquier módulo del sistema
+  Cuando se despliega el modal de confirmación (`ConfirmationModal` / `DeleteConfirmationModal`)
+  Entonces conserva la estructura visual unificada: tarjeta flotante con esquinas redondeadas (border-radius 16px), contenedor superior de icono (border-radius 12px), bloque de título y subtítulo, área central de contenido y botones de acción ("Cancelar" y botón principal)
+  Y adapta dinámicamente su esquema de color completo según la severidad indicada en el prop `type`:
+    - `danger`: fondo vinotinto oscuro (`rgb(73 38 38)`), bordes rojos sutiles (`rgba(239, 68, 68, 0.35)`), icono de alerta y botón principal rojo (`#DC2626`)
+    - `warning`: fondo ámbar oscuro (`rgb(66 48 24)`), bordes ámbar (`rgba(245, 158, 11, 0.35)`), icono de advertencia y botón principal ámbar (`#D97706`)
+    - `info`: fondo azul oscuro (`rgb(24 38 60)`), bordes azulados (`rgba(59, 130, 246, 0.35)`), icono informativo y botón principal azul (`#2563EB`)
+    - `success`: fondo verde esmeralda oscuro (`rgb(20 54 38)`), bordes verdes (`rgba(16, 185, 129, 0.35)`), icono de checkmark y botón principal verde (`#059669`)
+  Y permite cerrar el modal con la tecla Escape o al hacer clic sobre el fondo oscuro exterior (backdrop).

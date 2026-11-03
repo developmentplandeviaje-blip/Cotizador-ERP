@@ -200,6 +200,7 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
 
             <DeleteConfirmationModal
                 isOpen={confirmAction}
+                type="warning"
                 onClose={() => setConfirmAction(false)}
                 onCancel={() => setConfirmAction(false)}
                 onConfirm={executeDeactivate}

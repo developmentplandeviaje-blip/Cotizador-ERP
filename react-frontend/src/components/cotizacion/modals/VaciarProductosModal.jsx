@@ -12,6 +12,7 @@ export default function VaciarProductosModal({
   return (
     <DeleteConfirmationModal
       isOpen={isOpen}
+      type="warning"
       title="Vaciar Itinerario de Productos"
       subtitle="¿Está seguro de que desea vaciar todos los productos agregados a esta cotización?"
       content={
