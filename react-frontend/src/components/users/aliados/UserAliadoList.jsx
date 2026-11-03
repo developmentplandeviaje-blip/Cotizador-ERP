@@ -7,6 +7,7 @@ import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
+import { showToast } from '../../../utils/toast';
 
 export default function UserAliadoList({ user: currentUser }) {
   const [aliados, setAliados] = useState([]);
@@ -30,7 +31,6 @@ export default function UserAliadoList({ user: currentUser }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const [successBanner, setSuccessBanner] = useState('');
   const [togglingId, setTogglingId] = useState(null);
 
   const fetchAliados = useCallback(async () => {
@@ -95,9 +95,8 @@ export default function UserAliadoList({ user: currentUser }) {
 
   const handleSaveSuccess = () => {
     setIsModalOpen(false);
+    showToast(aliadoToEdit ? 'Empresa Aliada actualizada exitosamente.' : 'Empresa Aliada registrada exitosamente.', 'success');
     setAliadoToEdit(null);
-    setSuccessBanner(aliadoToEdit ? 'Empresa Aliada actualizada exitosamente.' : 'Empresa Aliada registrada exitosamente.');
-    setTimeout(() => setSuccessBanner(''), 4000);
     fetchAliados();
   };
 
@@ -105,8 +104,7 @@ export default function UserAliadoList({ user: currentUser }) {
     setTogglingId(aliado.id);
     try {
       await axios.patch(`/v1/users/aliados/${aliado.id}/toggle-status`);
-      setSuccessBanner(`Estado de ${aliado.razon_social} actualizado.`);
-      setTimeout(() => setSuccessBanner(''), 3000);
+      showToast(`Estado de ${aliado.razon_social} actualizado.`, 'success');
       fetchAliados();
     } catch (err) {
       console.error('Error al cambiar estado:', err);
@@ -126,9 +124,8 @@ export default function UserAliadoList({ user: currentUser }) {
     setDeleteError('');
     try {
       await axios.delete(`/v1/users/aliados/${deleteTarget.id}`);
+      showToast('Empresa Aliada eliminada exitosamente.', 'success');
       setDeleteTarget(null);
-      setSuccessBanner('Empresa Aliada eliminada exitosamente.');
-      setTimeout(() => setSuccessBanner(''), 4000);
       fetchAliados();
     } catch (err) {
       if (err.response?.status === 422) {
@@ -153,17 +150,6 @@ export default function UserAliadoList({ user: currentUser }) {
           Empresas Aliadas
         </h1>
       </div>
-
-      {successBanner && (
-        <div style={{
-          background: 'rgba(21, 128, 61, 0.2)', border: '1px solid #16a34a', color: '#86efac',
-          padding: '12px 18px', borderRadius: '10px', fontSize: '0.875rem', marginBottom: '20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <span>{successBanner}</span>
-          <button onClick={() => setSuccessBanner('')} style={{ background: 'none', border: 'none', color: '#86efac', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
-        </div>
-      )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px', padding: '0px 20px' }}>
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>

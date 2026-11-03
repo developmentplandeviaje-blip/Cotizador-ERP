@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import axios from 'axios';
 import imgNuevaCotizacion from '../../assets/NuevaCotizacion.svg';
@@ -24,6 +24,7 @@ import {
 } from './modals';
 import HotelAsociadoSelect from './HotelAsociadoSelect';
 import DocumentScannerButton from './DocumentScannerButton';
+import { showToast } from '../../utils/toast';
 import BatchDocumentScannerButton from './BatchDocumentScannerButton';
 
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
@@ -1130,7 +1131,7 @@ export default function CotizacionTabContent({
 
     if (tipo === 'hotel') {
       if (!hotelForm.id_hotel) {
-        if (showErrors) alert('Seleccione un hotel');
+        if (showErrors) showToast('Seleccione un hotel', 'warning');
         return null;
       }
       const hotelObj = selectedHotel || {};
@@ -1168,7 +1169,7 @@ export default function CotizacionTabContent({
 
     if (tipo === 'vuelo') {
       if (!vueloForm.id_aerolinea) {
-        if (showErrors) alert('Seleccione una aerolínea');
+        if (showErrors) showToast('Seleccione una aerolínea', 'warning');
         return null;
       }
       const aeroObj = (catalogos.aerolineas || []).find(a => String(a.id) === String(vueloForm.id_aerolinea)) || {};
@@ -1204,7 +1205,7 @@ export default function CotizacionTabContent({
 
     if (tipo === 'traslado') {
       if (!trasladoForm.id_traslado) {
-        if (showErrors) alert('Por favor seleccione un servicio de traslado.');
+        if (showErrors) showToast('Por favor seleccione un servicio de traslado.', 'warning');
         return null;
       }
 
@@ -1231,7 +1232,7 @@ export default function CotizacionTabContent({
         } else if (trasladoForm.tipo_asignacion === 'grupo') {
           const selectedList = allPassengers.filter(p => (trasladoForm.pax_seleccionados || []).includes(p.id));
           if (selectedList.length === 0) {
-            if (showErrors) alert('Por favor seleccione al menos un pasajero para el traslado grupal.');
+            if (showErrors) showToast('Por favor seleccione al menos un pasajero para el traslado grupal.', 'warning');
             return null;
           }
           const nombres = selectedList.map(p => p.nombreCorto).join(', ');
@@ -1271,7 +1272,7 @@ export default function CotizacionTabContent({
 
     if (tipo === 'excursion') {
       if (!excursionForm.id_excursion) {
-        if (showErrors) alert('Seleccione una excursión');
+        if (showErrors) showToast('Seleccione una excursión', 'warning');
         return null;
       }
       const excObj = (catalogos.excursiones || []).find(e => String(e.id) === String(excursionForm.id_excursion)) || {};
@@ -1304,7 +1305,7 @@ export default function CotizacionTabContent({
 
     if (tipo === 'paquete') {
       if (!paqueteForm.id_paquete) {
-        if (showErrors) alert('Seleccione un paquete turístico');
+        if (showErrors) showToast('Seleccione un paquete turístico', 'warning');
         return null;
       }
       const paqObj = (catalogos.paquetes || []).find(p => String(p.id) === String(paqueteForm.id_paquete)) || {};
@@ -1335,7 +1336,7 @@ export default function CotizacionTabContent({
 
     if (tipo === 'vehiculo') {
       if (!vehiculoForm.id_vehiculo) {
-        if (showErrors) alert('Seleccione un vehículo');
+        if (showErrors) showToast('Seleccione un vehículo', 'warning');
         return null;
       }
       const vehObj = (catalogos.vehiculos || []).find(v => String(v.id) === String(vehiculoForm.id_vehiculo)) || {};
@@ -1363,7 +1364,7 @@ export default function CotizacionTabContent({
     if (tipo === 'ferry') {
       const hasFerryData = (ferryForm.ruta && ferryForm.ruta.trim() !== '') || (ferryForm.itinerario && ferryForm.itinerario.trim() !== '') || Number(ferryForm.precio_adulto) > 0;
       if (!hasFerryData) {
-        if (showErrors) alert('Complete los datos del ferry');
+        if (showErrors) showToast('Complete los datos del ferry', 'warning');
         return null;
       }
       const precioAd = Number(ferryForm.precio_adulto || '');
@@ -1398,7 +1399,7 @@ export default function CotizacionTabContent({
     if (tipo === 'otro') {
       const hasOtroData = (otroForm.descripcion && otroForm.descripcion.trim() !== '') || Number(otroForm.precio) > 0;
       if (!hasOtroData) {
-        if (showErrors) alert('Ingrese una descripción o precio del servicio');
+        if (showErrors) showToast('Ingrese una descripción o precio del servicio', 'warning');
         return null;
       }
       const precioOtro = Number(otroForm.precio || 0);
@@ -1822,18 +1823,18 @@ export default function CotizacionTabContent({
   const handleSubmitCotizacion = async () => {
     if (isSubmittingRef.current || isProcessing) return;
     if (!cliente.nombres.trim() || !cliente.apellidos.trim()) {
-      alert('Por favor ingrese el nombre y el apellido del cliente principal.');
+      showToast('Por favor ingrese el nombre y el apellido del cliente principal.', 'warning');
       return;
     }
     if (cliente.correo && cliente.correo.trim() !== '') {
       const emailCheck = validateEmail(cliente.correo);
       if (!emailCheck.isValid) {
-        alert(`Correo electrónico inválido: ${emailCheck.message}`);
+        showToast(`Correo electrónico inválido: ${emailCheck.message}`, 'warning');
         return;
       }
     }
     if (items.length === 0) {
-      alert('Debe agregar al menos un producto o servicio a la cotización.');
+      showToast('Debe agregar al menos un producto o servicio a la cotización.', 'warning');
       return;
     }
 
@@ -1876,10 +1877,22 @@ export default function CotizacionTabContent({
     try {
       const res = await axios.post('/v1/cotizaciones', payload);
       const cotizGuardada = res.data.cotizacion;
-      setFeedback({
+      showToast({
         type: 'success',
         message: '¡Cotización registrada y guardada exitosamente!',
-        data: cotizGuardada,
+        subtitle: `Ficha: #${cotizGuardada.numero_ficha || cotizGuardada.id}`,
+        duration: 8000,
+        actions: [
+          {
+            label: 'Ver Informe de Cotización Rápida',
+            primary: true,
+            onClick: () => setInformeModalCotizacion(normalizedCotiz),
+          },
+          ...(onVerRegistro ? [{
+            label: 'Ir al Registro de Guardado',
+            onClick: onVerRegistro,
+          }] : []),
+        ],
       });
 
       // Generar y abrir inmediatamente el informe de cotización rápida
@@ -1912,10 +1925,7 @@ export default function CotizacionTabContent({
       } catch { }
     } catch (err) {
       console.error('Error creando cotización:', err);
-      setFeedback({
-        type: 'error',
-        message: err.response?.data?.message || 'Error al persistir la cotización. Revise los datos requeridos.',
-      });
+      showToast(err.response?.data?.message || 'Error al persistir la cotización. Revise los datos requeridos.', 'error');
     } finally {
       isSubmittingRef.current = false;
       setSubmitting(false);
@@ -1926,13 +1936,13 @@ export default function CotizacionTabContent({
   const handleSubmitRapida = async () => {
     if (isSubmittingRef.current || isProcessing) return;
     if (items.length === 0) {
-      alert('Debe agregar al menos un producto para guardar como cotización rápida.');
+      showToast('Debe agregar al menos un producto para guardar como cotización rápida.', 'warning');
       return;
     }
     if (cliente.correo && cliente.correo.trim() !== '') {
       const emailCheck = validateEmail(cliente.correo);
       if (!emailCheck.isValid) {
-        alert(`Correo electrónico inválido: ${emailCheck.message}`);
+        showToast(`Correo electrónico inválido: ${emailCheck.message}`, 'warning');
         return;
       }
     }
@@ -1955,10 +1965,22 @@ export default function CotizacionTabContent({
       const res = await axios.post('/v1/cotizaciones/rapida', payload);
       const rapidaGuardada = res.data.data;
       const rapidaLocalizador = `RAP-${String(rapidaGuardada.id).padStart(5, '0')}`;
-      setFeedback({
+      showToast({
         type: 'success',
         message: '¡Cotización rápida guardada exitosamente!',
-        data: { id: rapidaGuardada.id, localizador: rapidaLocalizador },
+        subtitle: `Ficha: #${rapidaGuardada.id}`,
+        duration: 8000,
+        actions: [
+          {
+            label: 'Ver Informe de Cotización Rápida',
+            primary: true,
+            onClick: () => setInformeModalCotizacion(normalizedRapida),
+          },
+          ...(onVerRegistro ? [{
+            label: 'Ir al Registro de Guardado',
+            onClick: onVerRegistro,
+          }] : []),
+        ],
       });
 
       // Generar y abrir inmediatamente el informe de cotización rápida
@@ -1988,10 +2010,7 @@ export default function CotizacionTabContent({
       setInformeModalCotizacion(normalizedRapida);
     } catch (err) {
       console.error('Error guardando cotización rápida:', err);
-      setFeedback({
-        type: 'error',
-        message: 'Error al registrar la cotización rápida.',
-      });
+      showToast('Error al registrar la cotización rápida.', 'error');
     } finally {
       isSubmittingRef.current = false;
       setSubmittingRapida(false);
@@ -2067,75 +2086,6 @@ export default function CotizacionTabContent({
         </div>
       </div>
 
-      {/* Success/Error Banner */}
-      {feedback && (
-        <div style={{
-          padding: '16px 20px',
-          borderRadius: '12px',
-          background: feedback.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-          border: `1px solid ${feedback.type === 'success' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
-          color: feedback.type === 'success' ? '#10B981' : '#EF4444',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-        }}>
-          <div>
-            <strong>{feedback.message}</strong>
-            {feedback.data?.localizador && (
-              <span style={{ display: 'block', fontSize: '0.875rem', marginTop: '4px', color: '#E2E8F0' }}>
-                {/* Localizador Oficial: <strong>{feedback.data.localizador}</strong> | */} Ficha: #{feedback.data.numero_ficha || feedback.data.id}
-              </span>
-            )}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            {feedback.type === 'success' && lastSavedCotizacion && (
-              <button
-                type="button"
-                onClick={() => setInformeModalCotizacion(lastSavedCotizacion)}
-                style={{
-                  padding: '6px 14px',
-                  background: '#10B981',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#FFFFFF',
-                  fontWeight: '600',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                Ver Informe de Cotización Rápida
-              </button>
-            )}
-            {feedback.type === 'success' && onVerRegistro && (
-              <button
-                type="button"
-                onClick={onVerRegistro}
-                style={{
-                  padding: '6px 12px',
-                  background: 'rgba(255, 255, 255, 0.12)',
-                  border: '1px solid rgba(255, 255, 255, 0.25)',
-                  borderRadius: '8px',
-                  color: '#FFFFFF',
-                  fontWeight: '600',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Ir al Registro de Guardado
-              </button>
-            )}
-            <button
-              onClick={() => setFeedback(null)}
-              style={{ background: 'transparent', border: 'none', color: '#FFF', cursor: 'pointer', fontSize: '1.25rem', padding: '0 4px' }}
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Grid: 1. Cliente & Viaje (US-04 & US-01) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>

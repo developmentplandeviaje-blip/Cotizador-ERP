@@ -40,10 +40,11 @@ export default function CustomNumberInput({
     if (val === undefined || val === null || val === '') return '';
     if (isDecimal) {
       const num = Number(val);
-      if (num === 0 || isNaN(num)) return '';
+      if (isNaN(num)) return '';
+      if (num === 0) return readOnly ? Number(0).toFixed(decimals) : '';
     }
     return String(val);
-  }, [isDecimal]);
+  }, [isDecimal, decimals, readOnly]);
 
   const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -97,6 +98,7 @@ export default function CustomNumberInput({
 
   // Manejar incremento y decremento
   const handleIncrement = useCallback(() => {
+    if (disabled || readOnly) return;
     const current = getNumericValue();
     const base = current === '' || isNaN(current) ? (min !== undefined ? min : 0) : current;
     let next = base + step;
@@ -106,9 +108,10 @@ export default function CustomNumberInput({
     if (effectiveMax !== undefined && next > effectiveMax) return;
     setDisplayValue(String(next));
     triggerChange(next);
-  }, [getNumericValue, min, effectiveMax, step, isDecimal, precision, triggerChange]);
+  }, [disabled, readOnly, getNumericValue, min, effectiveMax, step, isDecimal, precision, triggerChange]);
 
   const handleDecrement = useCallback(() => {
+    if (disabled || readOnly) return;
     const current = getNumericValue();
     const base = current === '' || isNaN(current) ? (min !== undefined ? min : 0) : current;
     let next = base - step;
@@ -123,7 +126,7 @@ export default function CustomNumberInput({
       setDisplayValue(String(next));
       triggerChange(next);
     }
-  }, [getNumericValue, min, step, isDecimal, precision, triggerChange]);
+  }, [disabled, readOnly, getNumericValue, min, step, isDecimal, precision, triggerChange]);
 
   // Soporte de mantener pulsado (hold to increment/decrement)
   const startHold = (action) => {
@@ -150,6 +153,12 @@ export default function CustomNumberInput({
 
   // Manejo de teclado (flechas arriba/abajo y control de caracteres)
   const handleKeyDown = (e) => {
+    if (disabled || readOnly) {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+      }
+      return;
+    }
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       handleIncrement();
@@ -210,6 +219,7 @@ export default function CustomNumberInput({
   };
 
   const handleInputChange = (e) => {
+    if (disabled || readOnly) return;
     let rawVal = e.target.value;
     if (rawVal === '') {
       setDisplayValue('');
@@ -253,6 +263,7 @@ export default function CustomNumberInput({
 
   const handleBlur = () => {
     setIsFocused(false);
+    if (disabled || readOnly) return;
     let trimmed = String(displayValue || '').trim();
     if (trimmed === '' || trimmed === '.') {
       setDisplayValue('');
@@ -348,26 +359,33 @@ export default function CustomNumberInput({
         maxWidth: '100%',
         boxSizing: 'border-box',
         flexShrink: 0,
-        background: isFocused
-          ? 'rgba(16, 28, 68, 0.85)'
-          : isHovered
-            ? 'rgba(20, 35, 80, 0.75)'
-            : 'rgba(16, 28, 68, 0.55)',
-        border: isFocused
-          ? '1px solid #2563EB'
-          : isHovered
-            ? '1px solid rgba(37, 99, 235, 0.5)'
-            : '1px solid rgba(255, 255, 255, 0.18)',
+        background: (disabled || readOnly)
+          ? 'rgba(16, 28, 68, 0.4)'
+          : isFocused
+            ? 'rgba(16, 28, 68, 0.85)'
+            : isHovered
+              ? 'rgba(20, 35, 80, 0.75)'
+              : 'rgba(16, 28, 68, 0.55)',
+        border: (disabled || readOnly)
+          ? '1px solid rgba(255, 255, 255, 0.12)'
+          : isFocused
+            ? '1px solid #2563EB'
+            : isHovered
+              ? '1px solid rgba(37, 99, 235, 0.5)'
+              : '1px solid rgba(255, 255, 255, 0.18)',
         borderRadius: sizeStyles.borderRadius,
         height: sizeStyles.height,
-        boxShadow: isFocused
-          ? '0 0 0 2px rgba(66, 118, 230, 0.35), 0 2px 8px rgba(0, 0, 0, 0.25)'
-          : '0 2px 5px rgba(0, 0, 0, 0.15)',
+        boxShadow: (disabled || readOnly)
+          ? 'none'
+          : isFocused
+            ? '0 0 0 2px rgba(66, 118, 230, 0.35), 0 2px 8px rgba(0, 0, 0, 0.25)'
+            : '0 2px 5px rgba(0, 0, 0, 0.15)',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         position: 'relative',
         overflow: 'hidden',
         userSelect: 'none',
-        opacity: disabled ? 0.5 : 1,
+        opacity: disabled ? 0.5 : (readOnly ? 0.85 : 1),
+        cursor: (disabled || readOnly) ? 'not-allowed' : 'default',
         ...style,
       }}
     >
@@ -394,7 +412,7 @@ export default function CustomNumberInput({
           background: 'transparent',
           border: 'none',
           outline: 'none',
-          color: '#FFFFFF',
+          color: (disabled || readOnly) ? '#CBD5E1' : '#FFFFFF',
           fontWeight: '700',
           fontSize: sizeStyles.fontSize,
           textAlign: align,
@@ -402,7 +420,7 @@ export default function CustomNumberInput({
           minWidth: 0,
           flex: '1 1 auto',
           padding: sizeStyles.padding,
-          cursor: disabled ? 'not-allowed' : 'text',
+          cursor: (disabled || readOnly) ? 'not-allowed' : 'text',
           boxSizing: 'border-box',
           ...inputStyle,
         }}

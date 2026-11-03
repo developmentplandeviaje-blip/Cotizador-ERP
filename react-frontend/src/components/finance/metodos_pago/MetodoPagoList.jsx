@@ -7,6 +7,7 @@ import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
+import { showToast } from '../../../utils/toast';
 
 export default function MetodoPagoList({ user }) {
   const isFreelancer = user?.level === 'Freelancer';
@@ -32,7 +33,6 @@ export default function MetodoPagoList({ user }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const [successBanner, setSuccessBanner] = useState('');
 
   // Toggling status
   const [togglingId, setTogglingId] = useState(null);
@@ -100,9 +100,8 @@ export default function MetodoPagoList({ user }) {
 
   const handleSaveSuccess = () => {
     setIsModalOpen(false);
+    showToast(metodoToEdit ? 'Método de pago actualizado exitosamente.' : 'Método de pago creado exitosamente.', 'success');
     setMetodoToEdit(null);
-    setSuccessBanner(metodoToEdit ? 'Método de pago actualizado exitosamente.' : 'Método de pago creado exitosamente.');
-    setTimeout(() => setSuccessBanner(''), 4000);
     fetchMetodos();
   };
 
@@ -111,8 +110,7 @@ export default function MetodoPagoList({ user }) {
     setTogglingId(item.id);
     try {
       await axios.patch(`/v1/finance/metodos-pago/${item.id}/toggle-status`);
-      setSuccessBanner(`Estado de "${item.nombre}" actualizado.`);
-      setTimeout(() => setSuccessBanner(''), 3000);
+      showToast(`Estado de "${item.nombre}" actualizado.`, 'success');
       fetchMetodos();
     } catch (err) {
       console.error('Error cambiando estado:', err);
@@ -132,9 +130,8 @@ export default function MetodoPagoList({ user }) {
     setDeleteError('');
     try {
       await axios.delete(`/v1/finance/metodos-pago/${deleteTarget.id}`);
+      showToast('Método de pago eliminado exitosamente.', 'success');
       setDeleteTarget(null);
-      setSuccessBanner('Método de pago eliminado exitosamente.');
-      setTimeout(() => setSuccessBanner(''), 4000);
       fetchMetodos();
     } catch (err) {
       if (err.response?.status === 422 && err.response.data?.errors?.metodo_pago) {
@@ -181,31 +178,6 @@ export default function MetodoPagoList({ user }) {
           Métodos de Pago
         </h1>
       </div>
-
-      {/* Success Alert */}
-      {successBanner && (
-        <div
-          style={{
-            padding: '12px 18px',
-            backgroundColor: 'rgba(34, 197, 94, 0.15)',
-            border: '1px solid rgba(34, 197, 94, 0.4)',
-            borderRadius: '10px',
-            color: '#86EFAC',
-            fontSize: '0.875rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <span>✓ {successBanner}</span>
-          <button
-            onClick={() => setSuccessBanner('')}
-            style={{ background: 'none', border: 'none', color: '#86EFAC', cursor: 'pointer', fontSize: '1rem' }}
-          >
-            &times;
-          </button>
-        </div>
-      )}
 
       {/* Top Toolbar Controls */}
       <div style={{
@@ -692,8 +664,7 @@ export default function MetodoPagoList({ user }) {
         onClose={() => setIsAssignModalOpen(false)}
         onSaveSuccess={() => {
           setIsAssignModalOpen(false);
-          setSuccessBanner('Asignación guardada exitosamente.');
-          setTimeout(() => setSuccessBanner(''), 4000);
+          showToast('Asignación guardada exitosamente.', 'success');
           fetchMetodos();
         }}
       />

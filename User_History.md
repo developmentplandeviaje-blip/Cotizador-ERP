@@ -267,3 +267,75 @@ Escenario: Rollback automático ante fallo en la transacción de gastos
   Y no deja archivos huérfanos ni registros parciales en la base de datos
   Y retorna un error 500 al frontend.
 
+
+
+US-11: Buscador Interno y Desplegable Completo Externo
+Como: Asesor o Freelancer en los formularios del Cotizador y Edición de Productos.
+Quiero: Que el selector interno funcione como un buscador en tiempo real.
+Para: Encontrar rápidamente hoteles, paquetes, habitaciones o vehículos escribiendo términos de búsqueda o explorar el catálogo completo con un solo clic.
+
+Escenario: Búsqueda en tiempo real mediante el selector interno
+  Dado que el usuario hace foco o escribe en la caja interna del selector
+  Cuando introduce términos como "Sun" o "Caribe"
+  Entonces el desplegable se extiende mostrando en tiempo real únicamente las opciones que coinciden con la búsqueda
+  Y al presionar Enter o hacer clic sobre una opción, el valor se asigna y la caja interna muestra la etiqueta seleccionada.
+
+Escenario: Extensión y recogida bidireccional mediante la flecha interna del buscador
+  Dado que el usuario pulsa sobre la flecha interna (>) en la caja de búsqueda
+  Cuando el selector está cerrado, se extiende y activa el buscador
+  Y cuando el selector ya se encuentra abierto, al volver a pulsar la flecha interna se recoge (cierra) inmediatamente.
+
+Escenario: Mantenimiento de selectores estándar y dimensiones compactas
+  Dado que un selector tiene un número reducido de opciones (por ejemplo, Tipo de Documento) o se ubica en tablas compactas
+  Cuando el sistema renderiza el componente
+  Entonces se muestra como un selector normal de borde simple respetando su ancho original (75px, 80px)
+  Y los selectores de "Hotel Asociado" en la tabla mantienen dimensiones reducidas con truncamiento elíptico sin generar cajas dobles.
+
+
+Escenario: Funcionamiento del buscador en modales de edición de productos
+  Dado que el usuario abre el modal de edición de productos ("Editar Producto: hotel", "vuelo", "traslado", etc.)
+  Cuando interactúa con los selectores de Hotel, Habitación, Aerolínea, Servicio de Traslado o Vehículo
+  Entonces se muestran con el buscador interactivo ([>]) idéntico al comportamiento en la sección "Agregar Producto".
+
+Escenario: Visualización limpia del selector de tipo de documento
+  Dado que el usuario se encuentra en la sección de datos del pasajero titular o acompañantes
+  Cuando se renderiza el selector de tipo de documento (V-, E-, J-, P-, G-)
+  Entonces se muestra en una sola caja estilizada con ancho de 80px, texto centrado legible sin recortar o truncar la letra
+  Y con una flecha descendente (v) delicada que rota 180° al desplegarse.
+
+Escenario: Unificación del selector con buscador en una sola caja estilizada
+  Dado que el usuario visualiza los selectores de búsqueda (Ubicación, Hotel, Habitación, etc.)
+  Cuando se renderiza el componente
+  Entonces se muestra en una sola caja de control (sin doble contenedor ni segunda flecha 'v')
+  Y contiene el buscador en tiempo real para escribir y filtrar opciones
+  Y contiene la flecha '>' que permite desplegar la lista completa o recogerla con un clic.
+
+Escenario: Corrección de etiqueta 'undefined' en selector de aerolíneas
+  Dado que el catálogo de aerolíneas en la base de datos almacena únicamente 'id' y 'nombre'
+  Cuando el usuario despliega las opciones del selector de Aerolínea en la cotización
+  Entonces se muestra limpiamente el nombre de la aerolínea (ej. 'Avior Airlines', 'Conviasa')
+  Y no se concatena el texto '(undefined)' en ninguna de las opciones.
+
+Escenario: Sincronización exacta de categorías de pasajeros acompañantes
+  Dado que el usuario modifica los contadores de pasajeros (Adultos, Adolescentes, Niños, Infantes)
+  Cuando se agregan adultos o adolescentes después de haber agregado niños o infantes
+  Entonces el sistema asigna estrictamente la categoría correspondiente a cada tarjeta según las cantidades configuradas
+  Y no sobreescribe adultos ni adolescentes con categorías de niño o infante
+  Y preserva los datos ingresados previamente (nombres, apellidos, documento) en las tarjetas de la categoría correspondiente.
+
+Escenario: Bloqueo de edición de precios en modales de edición excepto en vuelo, ferry y otro
+  Dado que el usuario abre el modal de edición de un producto dentro del módulo "Nueva Cotización"
+  Cuando el producto es de tipo "hotel", "traslado", "excursion", "paquete" o "vehiculo"
+  Entonces los inputs de precios correspondientes se muestran en modo solo lectura (readOnly) con cursor not-allowed, estilo atenuado y sin flechas steppers de incremento/decremento
+  Y al cambiar el servicio en el selector (ej. traslado, excursión, paquete o vehículo), los precios se actualizan automáticamente desde el catálogo
+  Y cuando el producto es de tipo "vuelo", "ferry" u "otro"
+  Entonces los inputs de precios permanecen completamente editables para permitir el ingreso de tarifas personalizadas.
+
+Escenario: Unificación y estandarización del sistema global de notificaciones (Toast)
+  Dado que cualquier módulo del sistema (cotizador, catálogos, finanzas, usuarios) dispara una notificación de éxito, error, advertencia o información
+  Cuando el evento es emitido
+  Entonces se muestra en el contenedor global ubicado en la esquina superior derecha (position: fixed; z-index: 99999)
+  Y adopta un diseño uniforme con fondo oscuro translúcido con desenfoque (blur), borde sutil, barra lateral de color según el estado (verde para éxito, rojo para error, ámbar para advertencia y gris para información)
+  Y cuenta con icono SVG circular representativo alineado a la izquierda, tipografía limpia, botón 'X' de cierre manual y temporizador de auto-cierre con soporte de pausa al pasar el cursor (hover)
+  Y permite botones de acción interactivos en notificaciones complejas (ej. ver informe de cotización y acceder al registro de guardado)
+  Y se han eliminado todos los banners inline y alertas nativas de JavaScript ('alert') del sistema.

@@ -7,6 +7,7 @@ import Pagination from '../../common/Pagination';
 import imgImprimir from '../../../assets/Imprimir.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
+import { showToast } from '../../../utils/toast';
 
 export default function TrasladoList({ user }) {
   const isFreelancer = user?.level === 'Freelancer';
@@ -34,7 +35,6 @@ export default function TrasladoList({ user }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const [successBanner, setSuccessBanner] = useState('');
 
   // Fetch ubicaciones for the filter dropdown
   useEffect(() => {
@@ -108,9 +108,8 @@ export default function TrasladoList({ user }) {
 
   const handleSaveSuccess = () => {
     setIsModalOpen(false);
+    showToast(trasladoToEdit ? 'Traslado actualizado con éxito.' : 'Traslado creado con éxito.', 'success');
     setTrasladoToEdit(null);
-    setSuccessBanner(trasladoToEdit ? 'Traslado actualizado con éxito.' : 'Traslado creado con éxito.');
-    setTimeout(() => setSuccessBanner(''), 4000);
     fetchTraslados();
   };
 
@@ -126,9 +125,8 @@ export default function TrasladoList({ user }) {
     setDeleteError('');
     try {
       await axios.delete(`/v1/catalog/traslados/${deleteTarget.id}`);
+      showToast(`Traslado '${deleteTarget.ruta_origen}' eliminado correctamente.`, 'success');
       setDeleteTarget(null);
-      setSuccessBanner(`Traslado '${deleteTarget.ruta_origen}' eliminado correctamente.`);
-      setTimeout(() => setSuccessBanner(''), 4000);
       fetchTraslados();
     } catch (err) {
       console.error('Error al eliminar traslado:', err);
@@ -159,30 +157,6 @@ export default function TrasladoList({ user }) {
           Traslados
         </h1>
       </div>
-
-      {/* Success Notification */}
-      {successBanner && (
-        <div style={{
-          background: 'rgba(21, 128, 61, 0.2)',
-          border: '1px solid #16a34a',
-          color: '#86efac',
-          padding: '12px 18px',
-          borderRadius: '10px',
-          fontSize: '0.875rem',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <span>{successBanner}</span>
-          <button
-            onClick={() => setSuccessBanner('')}
-            style={{ background: 'none', border: 'none', color: '#86efac', cursor: 'pointer', fontSize: '1.1rem' }}
-          >
-            ✕
-          </button>
-        </div>
-      )}
 
       {/* Top Toolbar Controls */}
       <div style={{

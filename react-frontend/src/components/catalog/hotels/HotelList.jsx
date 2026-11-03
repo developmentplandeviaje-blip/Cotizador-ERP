@@ -34,7 +34,6 @@ export default function HotelList({ user }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const [successBanner, setSuccessBanner] = useState('');
 
   const isFreelancer = user?.level === 'Freelancer';
 
@@ -97,8 +96,6 @@ export default function HotelList({ user }) {
       await axios.delete(`/v1/catalog/hoteles/${deleteTarget.id}`);
       showToast(`Hotel '${deleteTarget.nombre}' eliminado exitosamente.`, 'success');
       setDeleteTarget(null);
-      setSuccessBanner('Hotel eliminado exitosamente.');
-      setTimeout(() => setSuccessBanner(''), 4000);
       fetchHotels();
     } catch (err) {
       console.error('Error al eliminar hotel:', err);

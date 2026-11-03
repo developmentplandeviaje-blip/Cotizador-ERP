@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
 import Badge from '../../common/Badge';
+import { showToast } from '../../../utils/toast';
 import { formatEmail, validateEmail } from '../../../utils/validation';
 
 const SERVICIOS = [
@@ -161,7 +162,7 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
       await axios.delete(`/v1/users/aliados/${aliado.id}/vendedores/${v.id}`);
       fetchVendedores();
     } catch (err) {
-      alert(err.response?.data?.message || 'Error al eliminar');
+      showToast(err.response?.data?.message || 'Error al eliminar', 'error');
     }
   };
 
@@ -175,7 +176,7 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
       );
     } catch (err) {
       console.error('Error al cambiar estado del vendedor:', err);
-      alert(err.response?.data?.message || 'Error al cambiar estado del vendedor.');
+      showToast(err.response?.data?.message || 'Error al cambiar estado del vendedor.', 'error');
     } finally {
       setTogglingId(null);
     }

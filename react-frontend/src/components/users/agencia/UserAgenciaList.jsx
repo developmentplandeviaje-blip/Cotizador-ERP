@@ -7,6 +7,7 @@ import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
+import { showToast } from '../../../utils/toast';
 
 const NIVELES = ['Admin', 'Sub Gerente', 'Lider', 'Asesor'];
 
@@ -31,7 +32,6 @@ export default function UserAgenciaList({ user: currentUser }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const [successBanner, setSuccessBanner] = useState('');
   const [linksModalUser, setLinksModalUser] = useState(null);
 
   // Toggling status state
@@ -95,8 +95,7 @@ export default function UserAgenciaList({ user: currentUser }) {
 
   const copySpecificLink = (url) => {
     navigator.clipboard.writeText(url).then(() => {
-      setSuccessBanner('Enlace copiado al portapapeles.');
-      setTimeout(() => setSuccessBanner(''), 3000);
+      showToast('Enlace copiado al portapapeles.', 'success');
     }).catch(err => console.error('Error al copiar: ', err));
   };
 
@@ -112,9 +111,8 @@ export default function UserAgenciaList({ user: currentUser }) {
 
   const handleSaveSuccess = () => {
     setIsModalOpen(false);
+    showToast(userToEdit ? 'Usuario actualizado exitosamente.' : 'Usuario registrado exitosamente.', 'success');
     setUserToEdit(null);
-    setSuccessBanner(userToEdit ? 'Usuario actualizado exitosamente.' : 'Usuario registrado exitosamente.');
-    setTimeout(() => setSuccessBanner(''), 4000);
     fetchUsers();
   };
 
@@ -122,8 +120,7 @@ export default function UserAgenciaList({ user: currentUser }) {
     setTogglingId(userItem.id);
     try {
       await axios.patch(`/v1/users/agencia/${userItem.id}/toggle-status`);
-      setSuccessBanner(`Estado de ${userItem.first_name} actualizado.`);
-      setTimeout(() => setSuccessBanner(''), 3000);
+      showToast(`Estado de ${userItem.first_name} actualizado.`, 'success');
       fetchUsers();
     } catch (err) {
       console.error('Error al cambiar estado:', err);
@@ -143,9 +140,8 @@ export default function UserAgenciaList({ user: currentUser }) {
     setDeleteError('');
     try {
       await axios.delete(`/v1/users/agencia/${deleteTarget.id}`);
+      showToast('Usuario eliminado exitosamente.', 'success');
       setDeleteTarget(null);
-      setSuccessBanner('Usuario eliminado exitosamente.');
-      setTimeout(() => setSuccessBanner(''), 4000);
       fetchUsers();
     } catch (err) {
       if (err.response?.status === 422 && err.response.data?.errors?.user) {
@@ -194,29 +190,6 @@ export default function UserAgenciaList({ user: currentUser }) {
           Usuarios de Agencia
         </h1>
       </div>
-
-      {/* Success Alert Banner */}
-      {successBanner && (
-        <div style={{
-          background: 'rgba(21, 128, 61, 0.2)',
-          border: '1px solid #16a34a',
-          color: '#86efac',
-          padding: '12px 18px',
-          borderRadius: '10px',
-          fontSize: '0.875rem',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <span>{successBanner}</span>
-          <button
-            onClick={() => setSuccessBanner('')}
-            style={{ background: 'none', border: 'none', color: '#86efac', cursor: 'pointer', fontSize: '1.1rem' }}>
-            ✕
-          </button>
-        </div>
-      )}
 
       {/* Top Toolbar Controls */}
       <div style={{

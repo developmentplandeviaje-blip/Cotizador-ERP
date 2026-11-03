@@ -263,7 +263,7 @@ export default function EditarProductoModal({
           </span>
         </div>
 
-        {/* Agrupación a Hotel Registrado (si no es hotel) */}
+        {/* Agrupación a Hotel Registrado (si no es hotel) 
         {tipo !== 'hotel' && registeredHotels.length > 0 && (
           <div style={{
             background: 'rgba(232, 114, 23, 0.08)',
@@ -285,7 +285,7 @@ export default function EditarProductoModal({
             />
           </div>
         )}
-
+*/}
         {/* ==================== FORMULARIO HOTEL ==================== */}
         {tipo === 'hotel' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: 'repeat(3, 1fr)', gap: '8px' }}>
@@ -376,6 +376,7 @@ export default function EditarProductoModal({
                     max={99999.99}
                     step={0.01}
                     allowDecimals
+                    readOnly
                     width="100%"
                     value={formData.precio_noche_adulto ?? ''}
                     onChange={e => setFormData({ ...formData, precio_noche_adulto: sanitizePrecioCostoValue(e.target.value) })}
@@ -390,6 +391,7 @@ export default function EditarProductoModal({
                       max={99999.99}
                       step={0.01}
                       allowDecimals
+                      readOnly
                       width="100%"
                       value={formData.precio_noche_adolescente ?? ''}
                       onChange={e => setFormData({ ...formData, precio_noche_adolescente: sanitizePrecioCostoValue(e.target.value) })}
@@ -408,6 +410,7 @@ export default function EditarProductoModal({
                     max={99999.99}
                     step={0.01}
                     allowDecimals
+                    readOnly
                     width="100%"
                     value={formData.precio_noche_nino ?? ''}
                     onChange={e => setFormData({ ...formData, precio_noche_nino: sanitizePrecioCostoValue(e.target.value) })}
@@ -556,7 +559,17 @@ export default function EditarProductoModal({
                 <label className="erp-label">Servicio de Traslado</label>
                 <CustomSelect
                   value={formData.id_traslado || ''}
-                  onChange={e => setFormData({ ...formData, id_traslado: e.target.value })}
+                  onChange={e => {
+                    const trasId = e.target.value;
+                    const selT = (catalogos.traslados || []).find(t => String(t.id) === String(trasId));
+                    const nuevoPrecio = selT ? (selT.precio_publico || selT.precio || 0) : (formData.precio_historico ?? formData.precio);
+                    setFormData({
+                      ...formData,
+                      id_traslado: trasId,
+                      precio_historico: nuevoPrecio,
+                      precio: nuevoPrecio,
+                    });
+                  }}
                   searchable={true}
                   style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
                 >
@@ -583,6 +596,7 @@ export default function EditarProductoModal({
                   max={99999.99}
                   step={0.01}
                   allowDecimals
+                  readOnly
                   width="115px"
                   value={formData.precio_historico ?? formData.precio ?? 0}
                   onChange={e => {
@@ -759,10 +773,23 @@ export default function EditarProductoModal({
               <CustomSelect
                 value={tipo === 'excursion' ? (formData.id_excursion || '') : (formData.id_paquete || '')}
                 onChange={e => {
+                  const selectedId = e.target.value;
                   if (tipo === 'excursion') {
-                    setFormData({ ...formData, id_excursion: e.target.value });
+                    const selExc = (catalogos.excursiones || []).find(ex => String(ex.id) === String(selectedId));
+                    setFormData({
+                      ...formData,
+                      id_excursion: selectedId,
+                      precio_adulto: selExc ? (selExc.precio_adulto || 0) : formData.precio_adulto,
+                      precio_nino: selExc ? (selExc.precio_nino || 0) : formData.precio_nino,
+                    });
                   } else {
-                    setFormData({ ...formData, id_paquete: e.target.value });
+                    const selPq = (catalogos.paquetes || []).find(pq => String(pq.id) === String(selectedId));
+                    setFormData({
+                      ...formData,
+                      id_paquete: selectedId,
+                      precio_adulto: selPq ? (selPq.precio_adulto || 0) : formData.precio_adulto,
+                      precio_nino: selPq ? (selPq.precio_nino || 0) : formData.precio_nino,
+                    });
                   }
                 }}
                 searchable={true}
@@ -823,6 +850,7 @@ export default function EditarProductoModal({
                     max={99999.99}
                     step={0.01}
                     allowDecimals
+                    readOnly
                     width="100%"
                     value={formData.precio_adulto ?? ''}
                     onChange={e => setFormData({ ...formData, precio_adulto: sanitizePrecioCostoValue(e.target.value) })}
@@ -837,6 +865,7 @@ export default function EditarProductoModal({
                       max={99999.99}
                       step={0.01}
                       allowDecimals
+                      readOnly
                       width="100%"
                       value={formData.precio_nino ?? ''}
                       onChange={e => setFormData({ ...formData, precio_nino: sanitizePrecioCostoValue(e.target.value) })}
@@ -855,7 +884,15 @@ export default function EditarProductoModal({
               <label className="erp-label">Vehículo</label>
               <CustomSelect
                 value={formData.id_vehiculo || ''}
-                onChange={e => setFormData({ ...formData, id_vehiculo: e.target.value })}
+                onChange={e => {
+                  const vId = e.target.value;
+                  const selV = (catalogos.vehiculos || []).find(v => String(v.id) === String(vId));
+                  setFormData({
+                    ...formData,
+                    id_vehiculo: vId,
+                    precio_unitario: selV ? (selV.precio_dia || selV.precio || 0) : formData.precio_unitario,
+                  });
+                }}
                 searchable={true}
                 style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
               >
@@ -886,6 +923,7 @@ export default function EditarProductoModal({
                     max={99999.99}
                     step={0.01}
                     allowDecimals
+                    readOnly
                     width="100%"
                     value={formData.precio_unitario ?? ''}
                     onChange={e => setFormData({ ...formData, precio_unitario: sanitizePrecioCostoValue(e.target.value) })}
