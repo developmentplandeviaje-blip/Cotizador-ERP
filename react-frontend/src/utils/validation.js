@@ -31,6 +31,11 @@ export const formatCodigoReferido = (val) => {
   return (prefix + rest).slice(0, 12);
 };
 
+export const formatFlightItinerary = (val) => {
+  const letters = String(val || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 75);
+  return letters.match(/.{1,3}/g)?.join('-') || '';
+};
+
 export const formatEmail = (val) => {
   if (!val) return '';
   let str = String(val);

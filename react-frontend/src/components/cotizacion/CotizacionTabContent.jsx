@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import axios from 'axios';
 import imgNuevaCotizacion from '../../assets/NuevaCotizacion.svg';
@@ -26,6 +26,7 @@ import HotelAsociadoSelect from './HotelAsociadoSelect';
 import DocumentScannerButton from './DocumentScannerButton';
 import { showToast } from '../../utils/toast';
 import BatchDocumentScannerButton from './BatchDocumentScannerButton';
+import ConfirmationModal from '../common/ConfirmationModal';
 
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
 import {
@@ -34,6 +35,7 @@ import {
   formatTelefono,
   formatCedula,
   formatCodigoReferido,
+  formatFlightItinerary,
   handlePriceInputKeyClamp,
   sanitizePrecioCostoValue,
 } from '../../utils/validation';
@@ -48,6 +50,7 @@ export default function CotizacionTabContent({
   onCloseTab,
   onVerRegistro,
 }) {
+  const [showClearPassengersConfirmation, setShowClearPassengersConfirmation] = useState(false);
   const storageDraftKey = tabId
     ? (user?.id ? `cotizador_draft_${user.id}_${tabId}` : `cotizador_draft_${tabId}`)
     : null;
@@ -76,6 +79,14 @@ export default function CotizacionTabContent({
     checkin: new Date().toISOString().split('T')[0],
     checkout: new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0],
   });
+  const nochesEstadia = useMemo(() => {
+    if (!fechasViaje.checkin || !fechasViaje.checkout) return 0;
+    const checkin = Date.parse(`${fechasViaje.checkin}T00:00:00Z`);
+    const checkout = Date.parse(`${fechasViaje.checkout}T00:00:00Z`);
+    if (!Number.isFinite(checkin) || !Number.isFinite(checkout)) return 0;
+    return Math.max(0, Math.round((checkout - checkin) / 86400000));
+  }, [fechasViaje.checkin, fechasViaje.checkout]);
+  const diasEstadia = nochesEstadia > 0 ? nochesEstadia + 1 : 0;
 
   // Client Data (US-04)
   const [cliente, setCliente] = useState(() => initialDraft?.cliente || {
@@ -148,6 +159,44 @@ export default function CotizacionTabContent({
   // Cart / Added Items
   const [items, setItems] = useState(() => initialDraft?.items || []);
 
+  const handleTravelDateChange = (field, value) => {
+    const updatedFechas = { ...fechasViaje, [field]: value };
+    setFechasViaje(updatedFechas);
+
+    const checkin = Date.parse(`${updatedFechas.checkin}T00:00:00Z`);
+    const checkout = Date.parse(`${updatedFechas.checkout}T00:00:00Z`);
+    const noches = Number.isFinite(checkin) && Number.isFinite(checkout)
+      ? Math.max(0, Math.round((checkout - checkin) / 86400000))
+      : 0;
+    const dias = noches > 0 ? noches + 1 : 0;
+
+    setItems(prev => prev.map(item => {
+      if (item.tipo !== 'hotel') return item;
+
+      const data = {
+        ...item.data,
+        fecha_checkin: updatedFechas.checkin,
+        fecha_checkout: updatedFechas.checkout,
+        noches,
+      };
+      const adultos = Number(data.adultos || 0);
+      const adolescentes = Number(data.adolescente || 0);
+      const ninos = Number(data.ninos || 0);
+      const precio = (
+        adultos * Number(data.precio_noche_adulto || 0) +
+        adolescentes * Number(data.precio_noche_adolescente || 0) +
+        ninos * Number(data.precio_noche_nino || 0)
+      ) * noches;
+
+      return {
+        ...item,
+        data,
+        precio,
+        detalle: `${noches} noches • ${dias} días • ${adultos} adultos, ${adolescentes} adolescentes, ${ninos} niños`,
+      };
+    }));
+  };
+
   const [selectedGroupingHotelUid, setSelectedGroupingHotelUid] = useState('');
 
   // Hoteles registrados actualmente en la cotización
@@ -161,7 +210,6 @@ export default function CotizacionTabContent({
     id_ubicacion: '',
     id_hotel: '',
     id_habitacion: '',
-    noches: 4,
     precio_noche_adulto: '',
     precio_noche_adolescente: '',
     precio_noche_nino: '',
@@ -174,6 +222,7 @@ export default function CotizacionTabContent({
     id_aerolinea: '',
     itinerario: '',
     fecha_vuelo: '',
+    fecha_retorno: '',
     precio_adulto: '',
     precio_nino: '',
     precio_infante: '',
@@ -186,6 +235,7 @@ export default function CotizacionTabContent({
   const [trasladoForm, setTrasladoForm] = useState(() => initialDraft?.trasladoForm || {
     id_traslado: '',
     fecha_traslado: '',
+    fecha_retorno: '',
     precio: '',
     costo: '',
     observacion: '',
@@ -230,6 +280,8 @@ export default function CotizacionTabContent({
     ruta: '',
     clase: 'Playa',
     itinerario: '',
+    fecha_salida: '',
+    fecha_retorno: '',
     vehiculos: 0,
     precio_adulto: '',
     precio_nino: '',
@@ -380,16 +432,6 @@ export default function CotizacionTabContent({
       }
     }
   }, [activeTab]);
-
-  // Update dates in hotel and forms when general dates change
-  useEffect(() => {
-    if (fechasViaje.checkin && fechasViaje.checkout) {
-      const d1 = new Date(fechasViaje.checkin);
-      const d2 = new Date(fechasViaje.checkout);
-      const diffTime = Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)));
-      setHotelForm(prev => ({ ...prev, noches: diffTime }));
-    }
-  }, [fechasViaje.checkin, fechasViaje.checkout]);
 
   // Lookup client (US-04)
   const handleBuscarCliente = async () => {
@@ -1028,7 +1070,6 @@ export default function CotizacionTabContent({
           id_ubicacion: '',
           id_hotel: '',
           id_habitacion: '',
-          noches: 4,
           precio_noche_adulto: '',
           precio_noche_adolescente: '',
           precio_noche_nino: '',
@@ -1042,6 +1083,7 @@ export default function CotizacionTabContent({
           id_aerolinea: '',
           itinerario: '',
           fecha_vuelo: '',
+          fecha_retorno: '',
           precio_adulto: '',
           precio_nino: '',
           precio_infante: '',
@@ -1055,6 +1097,7 @@ export default function CotizacionTabContent({
         setTrasladoForm({
           id_traslado: '',
           fecha_traslado: '',
+          fecha_retorno: '',
           precio: '',
           costo: '',
           observacion: '',
@@ -1103,6 +1146,8 @@ export default function CotizacionTabContent({
           ruta: '',
           clase: 'Playa',
           itinerario: '',
+          fecha_salida: '',
+          fecha_retorno: '',
           vehiculos: 0,
           precio_adulto: '',
           precio_nino: '',
@@ -1134,23 +1179,27 @@ export default function CotizacionTabContent({
         if (showErrors) showToast('Seleccione un hotel', 'warning');
         return null;
       }
+      if (nochesEstadia < 1) {
+        if (showErrors) showToast('Verifique las fechas de check-in y check-out del hotel.', 'warning');
+        return null;
+      }
       const hotelObj = selectedHotel || {};
       const habObj = selectedHabitacion || {};
-      const subtotalAdultos = pax.adultos * hotelForm.precio_noche_adulto * hotelForm.noches;
-      const subtotalAdol = pax.adolescentes * hotelForm.precio_noche_adolescente * hotelForm.noches;
-      const subtotalNinos = pax.ninos * hotelForm.precio_noche_nino * hotelForm.noches;
+      const subtotalAdultos = pax.adultos * hotelForm.precio_noche_adulto * nochesEstadia;
+      const subtotalAdol = pax.adolescentes * hotelForm.precio_noche_adolescente * nochesEstadia;
+      const subtotalNinos = pax.ninos * hotelForm.precio_noche_nino * nochesEstadia;
       const totalItem = subtotalAdultos + subtotalAdol + subtotalNinos;
 
       return {
         uid,
         tipo: 'hotel',
         titulo: `${hotelObj.nombre || 'Hotel'} (${habObj.habitacion || 'Habitación'})`,
-        detalle: `${hotelForm.noches} noches • ${pax.adultos} adultos(ADL), ${pax.adolescentes} adolescentes(YNG), ${pax.ninos} niños(CHD)`,
+        detalle: `${nochesEstadia} noches • ${diasEstadia} días • ${pax.adultos} adultos(ADL), ${pax.adolescentes} adolescentes(YNG), ${pax.ninos} niños(CHD)`,
         precio: totalItem,
         data: {
           id_hotel: Number(hotelForm.id_hotel),
           id_habitacion: Number(hotelForm.id_habitacion || 0),
-          noches: Number(hotelForm.noches),
+          noches: nochesEstadia,
           adultos: pax.adultos,
           adolescente: pax.adolescentes,
           ninos: pax.ninos,
@@ -1182,13 +1231,14 @@ export default function CotizacionTabContent({
         uid,
         tipo: 'vuelo',
         titulo: `${aeroObj.nombre || 'Aerolínea'} - ${vueloForm.itinerario || 'Ruta'}`,
-        detalle: `Fecha: ${vueloForm.fecha_vuelo || 'Por definir'} • ${pax.adultos} ad${pax.ninos > 0 ? `, ${pax.ninos} niños` : ''}${pax.infantes > 0 ? `, ${pax.infantes} inf` : ''}`,
+        detalle: `Salida: ${vueloForm.fecha_vuelo || 'Por definir'} • Retorno: ${vueloForm.fecha_retorno || 'Por definir'} • ${pax.adultos} ad${pax.ninos > 0 ? `, ${pax.ninos} niños` : ''}${pax.infantes > 0 ? `, ${pax.infantes} inf` : ''}`,
         precio: totalItem,
         hotel_item_uid: vueloForm.hotel_item_uid || null,
         data: {
           id_aerolinea: Number(vueloForm.id_aerolinea),
           itinerario: vueloForm.itinerario,
           fecha_vuelo: vueloForm.fecha_vuelo,
+          fecha_retorno: vueloForm.fecha_retorno,
           adultos: pax.adultos,
           ninos: pax.ninos,
           infantes: pax.infantes,
@@ -1249,12 +1299,13 @@ export default function CotizacionTabContent({
         uid,
         tipo: 'traslado',
         titulo,
-        detalle: `Fecha: ${trasladoForm.fecha_traslado || 'Por definir'} • ${detallePax}${obsBase ? ` • Obs: ${obsBase}` : ''}`,
+        detalle: `Salida: ${trasladoForm.fecha_traslado || 'Por definir'} • Retorno: ${trasladoForm.fecha_retorno || 'Por definir'} • ${detallePax}${obsBase ? ` • Obs: ${obsBase}` : ''}`,
         precio: Number(trasladoForm.precio || trasObj.precio_publico || ''),
         hotel_item_uid: trasladoForm.hotel_item_uid || null,
         data: {
           id_traslado: Number(trasladoForm.id_traslado || 1),
           fecha_traslado: trasladoForm.fecha_traslado,
+          fecha_retorno: trasladoForm.fecha_retorno,
           adultos: adultosCount,
           ninos: ninosCount,
           infantes: infantesCount,
@@ -1376,13 +1427,15 @@ export default function CotizacionTabContent({
         uid,
         tipo: 'ferry',
         titulo: `${ferryForm.ruta || 'Ruta'} (${ferryForm.clase})`,
-        detalle: `${pax.adultos} adultos(ADL)${pax.ninos > 0 ? `, ${pax.ninos} niños(CHD)` : ''}${pax.infantes > 0 ? `, ${pax.infantes} infantes(INF)` : ''}, ${ferryForm.vehiculos} veh • Itinerario: ${ferryForm.itinerario}`,
+        detalle: `Salida: ${ferryForm.fecha_salida || 'Por definir'} • Retorno: ${ferryForm.fecha_retorno || 'Por definir'} • ${pax.adultos} adultos(ADL)${pax.ninos > 0 ? `, ${pax.ninos} niños(CHD)` : ''}${pax.infantes > 0 ? `, ${pax.infantes} infantes(INF)` : ''}, ${ferryForm.vehiculos} veh`,
         precio: totalItem,
         hotel_item_uid: ferryForm.hotel_item_uid || null,
         data: {
           ruta: ferryForm.ruta,
           clase: ferryForm.clase,
           itinerario: ferryForm.itinerario,
+          fecha_salida: ferryForm.fecha_salida,
+          fecha_retorno: ferryForm.fecha_retorno,
           adultos: pax.adultos,
           ninos: pax.ninos,
           infantes: pax.infantes,
@@ -1757,18 +1810,18 @@ export default function CotizacionTabContent({
     let decPart = parts.length > 1 ? parts[1] : null;
 
     if (tipoDescuento === 'Porcentaje') {
-      // Porcentaje: máximo 2 dígitos en la parte entera (0 a 99)
-      if (intPart.length > 2) {
-        intPart = intPart.slice(0, 2);
+      // Porcentaje: máximo 3 dígitos en la parte entera (0 a 999)
+      if (intPart.length > 3) {
+        intPart = intPart.slice(0, 3);
       }
       // Permitir hasta 2 decimales
       if (decPart !== null && decPart.length > 2) {
         decPart = decPart.slice(0, 2);
       }
     } else {
-      // Monto: máximo 3 dígitos en la parte entera (0 a 999)
-      if (intPart.length > 3) {
-        intPart = intPart.slice(0, 3);
+      // Monto: máximo 5 dígitos en la parte entera (0 a 99999)
+      if (intPart.length > 5) {
+        intPart = intPart.slice(0, 5);
       }
       // Permitir hasta 2 decimales
       if (decPart !== null && decPart.length > 2) {
@@ -2019,6 +2072,18 @@ export default function CotizacionTabContent({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1280px', margin: '0 auto', paddingBottom: '20px' }}>
+      <ConfirmationModal
+        isOpen={showClearPassengersConfirmation}
+        type="danger"
+        title="Limpiar pasajeros acompañantes"
+        subtitle="¿Desea limpiar los datos de todos los pasajeros acompañantes?"
+        confirmText="Limpiar datos"
+        onCancel={() => setShowClearPassengersConfirmation(false)}
+        onConfirm={() => {
+          setShowClearPassengersConfirmation(false);
+          handleLimpiarAcompanantes();
+        }}
+      />
       {/* Header bar */}
       <div className="cotizacion-header-bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -2036,10 +2101,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Adultos</span>
             <CustomNumberInput
               min={1}
-              max={999}
+              max={300}
               maxDigits={3}
               value={pax.adultos}
-              onChange={e => setPax({ ...pax, adultos: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
+              onChange={e => setPax({ ...pax, adultos: Math.max(1, Math.min(300, parseInt(e.target.value) || 1)) })}
               size="sm"
             />
           </div>
@@ -2048,10 +2113,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Adolescentes</span>
             <CustomNumberInput
               min={0}
-              max={999}
+              max={300}
               maxDigits={3}
               value={pax.adolescentes}
-              onChange={e => setPax({ ...pax, adolescentes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+              onChange={e => setPax({ ...pax, adolescentes: Math.max(0, Math.min(300, parseInt(e.target.value) || 0)) })}
               size="sm"
             />
           </div>
@@ -2060,10 +2125,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Niños</span>
             <CustomNumberInput
               min={0}
-              max={999}
+              max={200}
               maxDigits={3}
               value={pax.ninos}
-              onChange={e => setPax({ ...pax, ninos: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+              onChange={e => setPax({ ...pax, ninos: Math.max(0, Math.min(200, parseInt(e.target.value) || 0)) })}
               size="sm"
             />
           </div>
@@ -2072,10 +2137,10 @@ export default function CotizacionTabContent({
             <span className="pax-label">Infantes</span>
             <CustomNumberInput
               min={0}
-              max={999}
+              max={200}
               maxDigits={3}
               value={pax.infantes}
-              onChange={e => setPax({ ...pax, infantes: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+              onChange={e => setPax({ ...pax, infantes: Math.max(0, Math.min(200, parseInt(e.target.value) || 0)) })}
               size="sm"
             />
           </div>
@@ -2128,7 +2193,6 @@ export default function CotizacionTabContent({
               <option value="E">E-</option>
               <option value="J">J-</option>
               <option value="P">P-</option>
-              <option value="G">G-</option>
             </CustomSelect>
             <input
               type="text"
@@ -2208,9 +2272,9 @@ export default function CotizacionTabContent({
               <input
                 type="text"
                 value={cliente.apellidos}
-                onChange={e => setCliente({ ...cliente, apellidos: e.target.value.slice(0, 25) })}
+                onChange={e => setCliente({ ...cliente, apellidos: e.target.value.slice(0, 35) })}
                 placeholder="Apellido(s)"
-                maxLength={25}
+                maxLength={40}
                 className='erp-input'
               />
             </div>
@@ -2243,7 +2307,7 @@ export default function CotizacionTabContent({
                 value={cliente.correo}
                 onChange={handleCorreoClienteChange}
                 placeholder="cliente@correo.com"
-                maxLength={20}
+                maxLength={50}
                 className='erp-input'
                 style={{
                   marginTop: '4px',
@@ -2270,14 +2334,14 @@ export default function CotizacionTabContent({
               <label className='erp-label'>Fecha Check-in</label>
               <CustomDatePicker
                 value={fechasViaje.checkin}
-                onChange={e => setFechasViaje({ ...fechasViaje, checkin: e.target.value })}
+                onChange={e => handleTravelDateChange('checkin', e.target.value)}
               />
             </div>
             <div>
               <label className='erp-label'>Fecha Check-out</label>
               <CustomDatePicker
                 value={fechasViaje.checkout}
-                onChange={e => setFechasViaje({ ...fechasViaje, checkout: e.target.value })}
+                onChange={e => handleTravelDateChange('checkout', e.target.value)}
               />
             </div>
           </div>
@@ -2365,11 +2429,7 @@ export default function CotizacionTabContent({
                 <button
                   type="button"
                   disabled={!hasAcompananteData}
-                  onClick={() => {
-                    if (window.confirm('¿Desea limpiar los datos de todos los pasajeros acompañantes?')) {
-                      handleLimpiarAcompanantes();
-                    }
-                  }}
+                  onClick={() => setShowClearPassengersConfirmation(true)}
                   title={hasAcompananteData ? 'Borrar los datos de todas las casillas de acompañantes' : 'No hay casillas con información'}
                   style={{
                     display: 'inline-flex',
@@ -2664,7 +2724,7 @@ export default function CotizacionTabContent({
                         placeholder="Nombres"
                         value={p.nombres}
                         onChange={e => handleUpdatePasajero(p.originalIndex, 'nombres', e.target.value)}
-                        maxLength={35}
+                        maxLength={40}
                         className='erp-input'
                         style={{ flex: 1 }}
                       />
@@ -2673,7 +2733,7 @@ export default function CotizacionTabContent({
                         placeholder="Apellidos"
                         value={p.apellidos}
                         onChange={e => handleUpdatePasajero(p.originalIndex, 'apellidos', e.target.value)}
-                        maxLength={25}
+                        maxLength={40}
                         className='erp-input'
                         style={{ flex: 1 }}
                       />
@@ -2709,7 +2769,6 @@ export default function CotizacionTabContent({
                             <option value="E">E-</option>
                             <option value="J">J-</option>
                             <option value="P">P-</option>
-                            <option value="G">G-</option>
                           </>
                         )}
                       </CustomSelect>
@@ -3153,20 +3212,10 @@ export default function CotizacionTabContent({
                 </CustomSelect>
               </div>
 
-              <div style={{ width: '90px', flexShrink: 0 }}>
-                <label className='erp-label'>Noches</label>
-                <div style={{ display: 'flex' }}>
-                  <CustomNumberInput
-                    min={1}
-                    max={999}
-                    maxDigits={3}
-                    width="100%"
-                    value={hotelForm.noches}
-                    onChange={e => {
-                      const val = String(e.target.value).slice(0, 3);
-                      setHotelForm({ ...hotelForm, noches: Math.max(1, Math.min(999, parseInt(val) || 1)) });
-                    }}
-                  />
+              <div style={{ minWidth: '130px', flexShrink: 0 }}>
+                <label className='erp-label'>Estadía calculada</label>
+                <div style={{ color: '#CBD5E1', fontSize: '0.875rem', padding: '10px 0' }}>
+                  {nochesEstadia > 0 ? `${nochesEstadia} noches · ${diasEstadia} días` : 'Verifique las fechas'}
                 </div>
               </div>
 
@@ -3198,8 +3247,8 @@ export default function CotizacionTabContent({
                   type="text"
                   placeholder="Ej. CCS - PMV - CCS"
                   value={vueloForm.itinerario}
-                  onChange={e => setVueloForm({ ...vueloForm, itinerario: e.target.value.slice(0, 100) })}
-                  maxLength={100}
+                  onChange={e => setVueloForm({ ...vueloForm, itinerario: formatFlightItinerary(e.target.value) })}
+                  maxLength={50}
                   className="erp-input"
                 />
               </div>
@@ -3210,6 +3259,16 @@ export default function CotizacionTabContent({
                   type="datetime-local"
                   value={vueloForm.fecha_vuelo}
                   onChange={e => setVueloForm({ ...vueloForm, fecha_vuelo: e.target.value })}
+                />
+              </div>
+
+              <div style={{ flex: '1 1 180px', minWidth: '170px', maxWidth: '295px' }}>
+                <label className='erp-label'>Fecha de retorno</label>
+                <CustomDatePicker
+                  type="datetime-local"
+                  value={vueloForm.fecha_retorno}
+                  min={vueloForm.fecha_vuelo || undefined}
+                  onChange={e => setVueloForm({ ...vueloForm, fecha_retorno: e.target.value })}
                 />
               </div>
 
@@ -3305,6 +3364,16 @@ export default function CotizacionTabContent({
                     type="datetime-local"
                     value={trasladoForm.fecha_traslado}
                     onChange={e => setTrasladoForm({ ...trasladoForm, fecha_traslado: e.target.value })}
+                  />
+                </div>
+
+                <div style={{ flex: '1 1 180px', minWidth: '170px', maxWidth: '295px' }}>
+                  <label className='erp-label'>Fecha y Hora de retorno</label>
+                  <CustomDatePicker
+                    type="datetime-local"
+                    value={trasladoForm.fecha_retorno}
+                    min={trasladoForm.fecha_traslado || undefined}
+                    onChange={e => setTrasladoForm({ ...trasladoForm, fecha_retorno: e.target.value })}
                   />
                 </div>
 
@@ -3642,6 +3711,25 @@ export default function CotizacionTabContent({
                   onChange={e => setFerryForm({ ...ferryForm, ruta: e.target.value.slice(0, 100) })}
                   maxLength={100}
                   className="erp-input"
+                />
+              </div>
+
+              <div style={{ flex: '1 1 180px', minWidth: '170px', maxWidth: '295px' }}>
+                <label className='erp-label'>Fecha de salida</label>
+                <CustomDatePicker
+                  type="datetime-local"
+                  value={ferryForm.fecha_salida}
+                  onChange={e => setFerryForm({ ...ferryForm, fecha_salida: e.target.value })}
+                />
+              </div>
+
+              <div style={{ flex: '1 1 180px', minWidth: '170px', maxWidth: '295px' }}>
+                <label className='erp-label'>Fecha de retorno</label>
+                <CustomDatePicker
+                  type="datetime-local"
+                  value={ferryForm.fecha_retorno}
+                  min={ferryForm.fecha_salida || undefined}
+                  onChange={e => setFerryForm({ ...ferryForm, fecha_retorno: e.target.value })}
                 />
               </div>
 
@@ -4188,6 +4276,9 @@ export default function CotizacionTabContent({
         catalogos={catalogos}
         allPassengers={allPassengers}
         registeredHotels={registeredHotels}
+        nochesEstadia={nochesEstadia}
+        diasEstadia={diasEstadia}
+        fechasViaje={fechasViaje}
         onClose={() => setItemToEdit(null)}
         onSave={handleSaveEditedItem}
       />

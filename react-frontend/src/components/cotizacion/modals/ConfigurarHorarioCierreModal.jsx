@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
+import ConfirmationModal from '../../common/ConfirmationModal';
 import { showToast } from '../../../utils/toast';
 
 export default function ConfigurarHorarioCierreModal({
@@ -15,6 +17,7 @@ export default function ConfigurarHorarioCierreModal({
   const [dias, setDias] = useState('todos');
   const [saving, setSaving] = useState(false);
   const [executingManual, setExecutingManual] = useState(false);
+  const [showCleanupConfirmation, setShowCleanupConfirmation] = useState(false);
 
   useEffect(() => {
     if (config) {
@@ -50,10 +53,6 @@ export default function ConfigurarHorarioCierreModal({
   };
 
   const handleExecuteNow = async () => {
-    if (!window.confirm('¿Está seguro de que desea ejecutar la limpieza global ahora? Se cerrarán las pestañas adicionales de todos los usuarios, se limpiarán los borradores y se reiniciará el contador a #1.')) {
-      return;
-    }
-
     setExecutingManual(true);
     try {
       const payload = {
@@ -80,13 +79,14 @@ export default function ConfigurarHorarioCierreModal({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="🕒 Configurar Horario de Cierre y Limpieza de Pestañas"
-      width="560px"
-    >
-      <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '4px 0' }}>
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Configurar Horario de Cierre"
+        width="560px"
+      >
+        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '4px 0' }}>
         {/* Banner descriptivo */}
         <div
           style={{
@@ -100,7 +100,7 @@ export default function ConfigurarHorarioCierreModal({
           }}
         >
           <strong style={{ color: '#93C5FD', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-            <span>⚙️</span> Administración Global para Todos los Usuarios
+            Administración Global para Todos los Usuarios
           </strong>
           Esta configuración aplica a todos los asesores y usuarios que utilicen el módulo de <strong>Nueva Cotización</strong>.
           Al alcanzarse el horario establecido, las cotizaciones en proceso se cerrarán y se restablecerá el espacio de trabajo.
@@ -124,7 +124,7 @@ export default function ConfigurarHorarioCierreModal({
             </div>
             <div style={{ color: '#94A3B8', fontSize: '0.78rem', marginTop: '2px' }}>
               {activo
-                ? 'El sistema cerrará y limpiará las pestañas en el horario programado.'
+                ? ''
                 : 'El cierre automático está inhabilitado.'}
             </div>
           </div>
@@ -179,19 +179,7 @@ export default function ConfigurarHorarioCierreModal({
               onChange={(e) => setHora(e.target.value)}
               disabled={!activo}
               required
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                background: activo ? 'rgba(16, 28, 68, 0.95)' : 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '10px',
-                color: activo ? '#FFFFFF' : '#64748B',
-                fontSize: '0.9375rem',
-                fontWeight: '600',
-                outline: 'none',
-                boxSizing: 'border-box',
-                cursor: activo ? 'pointer' : 'not-allowed',
-              }}
+              className='erp-input'
             />
           </div>
 
@@ -199,59 +187,17 @@ export default function ConfigurarHorarioCierreModal({
             <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: '600', color: '#E2E8F0', marginBottom: '6px' }}>
               Días de Aplicación
             </label>
-            <select
+            <CustomSelect
               value={dias}
               onChange={(e) => setDias(e.target.value)}
               disabled={!activo}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                background: activo ? 'rgba(16, 28, 68, 0.95)' : 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '10px',
-                color: activo ? '#FFFFFF' : '#64748B',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                outline: 'none',
-                boxSizing: 'border-box',
-                cursor: activo ? 'pointer' : 'not-allowed',
-              }}
+              className="select-tipo-doc"
+              searchable={false}
             >
               <option value="todos">Todos los días (Lun - Dom)</option>
               <option value="laborales">Días laborales (Lun - Vie)</option>
-            </select>
+            </CustomSelect>
           </div>
-        </div>
-
-        {/* 3. Resumen de Reglas de Limpieza */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.03)',
-            borderRadius: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            padding: '14px 16px',
-            fontSize: '0.78rem',
-            color: '#94A3B8',
-            lineHeight: '1.5',
-          }}
-        >
-          <div style={{ fontWeight: '700', color: '#38BDF8', marginBottom: '6px', fontSize: '0.8125rem' }}>
-            📌 Comportamiento al activarse el horario ({hora}):
-          </div>
-          <ul style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <li>
-              <strong>Múltiples pestañas:</strong> Se cierran automáticamente todas las pestañas adicionales y queda 1 sola pestaña.
-            </li>
-            <li>
-              <strong>Pestaña única o con datos:</strong> Se limpia por completo (se borran datos del cliente, productos y borradores locales).
-            </li>
-            <li>
-              <strong>Reinicio de contador:</strong> El correlativo de cotizaciones vuelve a <strong>#1</strong> (la próxima añadida será #2).
-            </li>
-            <li>
-              <strong>Libertad de uso posterior:</strong> El usuario puede continuar trabajando con normalidad luego del corte sin interrupciones adicionales.
-            </li>
-          </ul>
         </div>
 
         {/* Botones de acción */}
@@ -269,7 +215,7 @@ export default function ConfigurarHorarioCierreModal({
           {/* Botón de Limpieza Manual Inmediata */}
           <button
             type="button"
-            onClick={handleExecuteNow}
+            onClick={() => setShowCleanupConfirmation(true)}
             disabled={executingManual || saving}
             title="Ejecuta inmediatamente la limpieza de pestañas para todos los usuarios"
             style={{
@@ -284,7 +230,7 @@ export default function ConfigurarHorarioCierreModal({
               transition: 'all 0.2s ease',
             }}
           >
-            {executingManual ? 'Ejecutando...' : '⚡ Limpiar Pestañas Ahora'}
+            {executingManual ? 'Ejecutando...' : 'Limpiar Pestañas'}
           </button>
 
           <div style={{ display: 'flex', gap: '10px' }}>
@@ -292,7 +238,7 @@ export default function ConfigurarHorarioCierreModal({
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="btn-secondary"
+              className="btn-form-cancel"
               style={{
                 padding: '9px 18px',
                 fontSize: '0.875rem',
@@ -303,17 +249,30 @@ export default function ConfigurarHorarioCierreModal({
             <button
               type="submit"
               disabled={saving}
-              className="btn-primary"
+              className="btn-form-nxt"
               style={{
                 padding: '9px 20px',
                 fontSize: '0.875rem',
               }}
             >
-              {saving ? 'Guardando...' : 'Guardar Configuración'}
+              {saving ? 'Guardando...' : 'Guardar'}
             </button>
           </div>
         </div>
-      </form>
-    </Modal>
+        </form>
+      </Modal>
+      <ConfirmationModal
+        isOpen={showCleanupConfirmation}
+        type="danger"
+        title="Ejecutar limpieza global"
+        subtitle="¿Está seguro de que desea ejecutar la limpieza global ahora? Se cerrarán las pestañas adicionales de todos los usuarios, se limpiarán los borradores y se reiniciará el contador a #1."
+        confirmText="Ejecutar limpieza"
+        onCancel={() => setShowCleanupConfirmation(false)}
+        onConfirm={() => {
+          setShowCleanupConfirmation(false);
+          handleExecuteNow();
+        }}
+      />
+    </>
   );
 }

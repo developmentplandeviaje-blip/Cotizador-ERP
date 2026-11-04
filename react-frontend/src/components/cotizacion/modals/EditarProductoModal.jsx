@@ -5,7 +5,7 @@ import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import CustomNumberInput from '../../common/CustomNumberInput';
 import { PRODUCT_COLOR_MAP } from '../NuevaCotizacion';
-import { handlePriceInputKeyClamp, sanitizePrecioCostoValue } from '../../../utils/validation';
+import { formatFlightItinerary, handlePriceInputKeyClamp, sanitizePrecioCostoValue } from '../../../utils/validation';
 import HotelAsociadoSelect from '../HotelAsociadoSelect';
 
 export default function EditarProductoModal({
@@ -14,6 +14,9 @@ export default function EditarProductoModal({
   catalogos = {},
   allPassengers = [],
   registeredHotels = [],
+  nochesEstadia,
+  diasEstadia,
+  fechasViaje,
   onClose,
   onSave,
 }) {
@@ -51,7 +54,6 @@ export default function EditarProductoModal({
         adolescente: item.data.adolescente ?? 0,
         ninos: item.data.ninos ?? 0,
         infantes: item.data.infantes ?? 0,
-        noches: item.data.noches ?? 1,
         dias: item.data.dias ?? 1,
       });
     }
@@ -93,9 +95,9 @@ export default function EditarProductoModal({
   const totalCalculado = useMemo(() => {
     const d = formData;
     if (tipo === 'hotel') {
-      const subAdultos = Number(d.adultos || 0) * Number(d.precio_noche_adulto || 0) * Number(d.noches || 1);
-      const subAdol = Number(d.adolescente || 0) * Number(d.precio_noche_adolescente || 0) * Number(d.noches || 1);
-      const subNinos = Number(d.ninos || 0) * Number(d.precio_noche_nino || 0) * Number(d.noches || 1);
+      const subAdultos = Number(d.adultos || 0) * Number(d.precio_noche_adulto || 0) * nochesEstadia;
+      const subAdol = Number(d.adolescente || 0) * Number(d.precio_noche_adolescente || 0) * nochesEstadia;
+      const subNinos = Number(d.ninos || 0) * Number(d.precio_noche_nino || 0) * nochesEstadia;
       return Math.max(0, subAdultos + subAdol + subNinos);
     }
     if (tipo === 'vuelo') {
@@ -126,7 +128,7 @@ export default function EditarProductoModal({
       return Math.max(0, Number(d.precio || 0));
     }
     return Math.max(0, Number(d.precio || 0));
-  }, [tipo, formData]);
+  }, [tipo, formData, nochesEstadia]);
 
   const handleSubmit = (e) => {
     e?.preventDefault();
@@ -139,17 +141,19 @@ export default function EditarProductoModal({
       const hotelObj = (catalogos.hoteles || []).find(h => String(h.id) === String(formData.id_hotel)) || {};
       const habObj = (hotelObj.habitaciones || []).find(hab => String(hab.id) === String(formData.id_habitacion)) || {};
       updatedTitulo = `${hotelObj.nombre || item.titulo.split(' (')[0]} (${habObj.habitacion || 'Habitación'})`;
-      updatedDetalle = `${formData.noches} noches • ${formData.adultos} adultos, ${formData.adolescente} adol, ${formData.ninos} niños`;
+      updatedDetalle = `${nochesEstadia} noches • ${diasEstadia} días • ${formData.adultos} adultos, ${formData.adolescente} adol, ${formData.ninos} niños`;
       finalData.id_hotel = Number(formData.id_hotel);
       finalData.id_habitacion = Number(formData.id_habitacion || 0);
-      finalData.noches = Number(formData.noches);
+      finalData.noches = nochesEstadia;
+      finalData.fecha_checkin = fechasViaje.checkin;
+      finalData.fecha_checkout = fechasViaje.checkout;
       finalData.precio_noche_adulto = Number(formData.precio_noche_adulto || 0);
       finalData.precio_noche_adolescente = Number(formData.precio_noche_adolescente || 0);
       finalData.precio_noche_nino = Number(formData.precio_noche_nino || 0);
     } else if (tipo === 'vuelo') {
       const aeroObj = (catalogos.aerolineas || []).find(a => String(a.id) === String(formData.id_aerolinea)) || {};
       updatedTitulo = `${aeroObj.nombre || 'Aerolínea'} - ${formData.itinerario || 'Ruta'}`;
-      updatedDetalle = `Fecha: ${formData.fecha_vuelo || 'Por definir'} • ${formData.adultos} ad${(formData.ninos || 0) > 0 ? `, ${formData.ninos} niños` : ''}${(formData.infantes || 0) > 0 ? `, ${formData.infantes} inf` : ''}`;
+      updatedDetalle = `Salida: ${formData.fecha_vuelo || 'Por definir'} • Retorno: ${formData.fecha_retorno || 'Por definir'} • ${formData.adultos} ad${(formData.ninos || 0) > 0 ? `, ${formData.ninos} niños` : ''}${(formData.infantes || 0) > 0 ? `, ${formData.infantes} inf` : ''}`;
       finalData.id_aerolinea = Number(formData.id_aerolinea);
       finalData.precio_adulto = Number(formData.precio_adulto || 0);
       finalData.precio_nino = Number(formData.precio_nino || 0);
@@ -181,7 +185,7 @@ export default function EditarProductoModal({
       }
 
       updatedTitulo = titulo;
-      updatedDetalle = `Fecha: ${formData.fecha_traslado || 'Por definir'}${detallePax ? ` • ${detallePax}` : ''}${obsBase ? ` • Obs: ${obsBase}` : ''}`;
+      updatedDetalle = `Salida: ${formData.fecha_traslado || 'Por definir'} • Retorno: ${formData.fecha_retorno || 'Por definir'}${detallePax ? ` • ${detallePax}` : ''}${obsBase ? ` • Obs: ${obsBase}` : ''}`;
       finalData.id_traslado = Number(formData.id_traslado || 1);
       finalData.adultos = adultosCount;
       finalData.precio_historico = totalCalculado;
@@ -213,7 +217,7 @@ export default function EditarProductoModal({
       finalData.precio_unitario = Number(formData.precio_unitario);
     } else if (tipo === 'ferry') {
       updatedTitulo = `${formData.ruta || 'Ruta'} (${formData.clase || 'Clase'})`;
-      updatedDetalle = `${formData.adultos} ad${(formData.ninos || 0) > 0 ? `, ${formData.ninos} niños` : ''}${(formData.infantes || 0) > 0 ? `, ${formData.infantes} inf` : ''}, ${formData.vehiculos || 0} veh • Itinerario: ${formData.itinerario || 'N/A'}`;
+      updatedDetalle = `Salida: ${formData.fecha_salida || 'Por definir'} • Retorno: ${formData.fecha_retorno || 'Por definir'} • ${formData.adultos} ad${(formData.ninos || 0) > 0 ? `, ${formData.ninos} niños` : ''}${(formData.infantes || 0) > 0 ? `, ${formData.infantes} inf` : ''}, ${formData.vehiculos || 0} veh`;
       finalData.adultos = Number(formData.adultos || 1);
       finalData.ninos = Number(formData.ninos || 0);
       finalData.infantes = Number(formData.infantes || 0);
@@ -320,14 +324,10 @@ export default function EditarProductoModal({
             </div>
 
             <div style={{ gridColumnStart: 2, gridRowStart: 3, minWidth: 0 }}>
-              <label className="erp-label">Noches</label>
-              <CustomNumberInput
-                min={1}
-                max={999}
-                width="100%"
-                value={formData.noches || 1}
-                onChange={e => setFormData({ ...formData, noches: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })}
-              />
+              <label className="erp-label">Estadía calculada</label>
+              <div style={{ color: '#CBD5E1', fontSize: '0.875rem', padding: '10px 0' }}>
+                {nochesEstadia > 0 ? `${nochesEstadia} noches · ${diasEstadia} días` : 'Verifique las fechas'}
+              </div>
             </div>
 
             <div style={{ gridColumnStart: 1, gridRowStart: 1, minWidth: 0 }}>
@@ -446,7 +446,7 @@ export default function EditarProductoModal({
                 type="text"
                 maxLength={100}
                 value={formData.itinerario || ''}
-                onChange={e => setFormData({ ...formData, itinerario: e.target.value.slice(0, 100) })}
+                onChange={e => setFormData({ ...formData, itinerario: formatFlightItinerary(e.target.value) })}
                 className="erp-input"
                 placeholder="Ej. CCS - PMV / PMV - CCS"
               />
@@ -455,8 +455,19 @@ export default function EditarProductoModal({
             <div style={{ gridColumnStart: 2, gridRowStart: 3, minWidth: 0 }}>
               <label className="erp-label">Fecha de Vuelo</label>
               <CustomDatePicker
+                type="datetime-local"
                 value={formData.fecha_vuelo || ''}
                 onChange={e => setFormData({ ...formData, fecha_vuelo: e.target.value })}
+              />
+            </div>
+
+            <div style={{ gridColumnStart: 2, gridRowStart: 4, minWidth: 0 }}>
+              <label className="erp-label">Fecha de retorno</label>
+              <CustomDatePicker
+                type="datetime-local"
+                value={formData.fecha_retorno || ''}
+                min={formData.fecha_vuelo || undefined}
+                onChange={e => setFormData({ ...formData, fecha_retorno: e.target.value })}
               />
             </div>
 
@@ -586,6 +597,16 @@ export default function EditarProductoModal({
                   type="datetime-local"
                   value={formData.fecha_traslado ? (formData.fecha_traslado.includes('T') ? formData.fecha_traslado : `${formData.fecha_traslado}T00:00`) : ''}
                   onChange={e => setFormData({ ...formData, fecha_traslado: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="erp-label">Fecha y Hora de retorno</label>
+                <CustomDatePicker
+                  type="datetime-local"
+                  value={formData.fecha_retorno ? (formData.fecha_retorno.includes('T') ? formData.fecha_retorno : `${formData.fecha_retorno}T00:00`) : ''}
+                  min={formData.fecha_traslado || undefined}
+                  onChange={e => setFormData({ ...formData, fecha_retorno: e.target.value })}
                 />
               </div>
 
@@ -983,7 +1004,7 @@ export default function EditarProductoModal({
 
         {/* ==================== FORMULARIO FERRY ==================== */}
         {tipo === 'ferry' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: 'repeat(3, 1fr)', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: 'repeat(4, auto)', gap: '8px' }}>
             <div style={{ gridColumnStart: 2, gridRowStart: 1, minWidth: 0 }}>
               <label className="erp-label">Ruta</label>
               <input
@@ -1004,6 +1025,25 @@ export default function EditarProductoModal({
                 onChange={e => setFormData({ ...formData, clase: e.target.value.slice(0, 50) })}
                 className="erp-input"
               />
+            </div>
+            <div style={{ gridColumn: '1 / -1', gridRowStart: 3, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', minWidth: 0 }}>
+              <div>
+                <label className="erp-label">Fecha de salida</label>
+                <CustomDatePicker
+                  type="datetime-local"
+                  value={formData.fecha_salida || ''}
+                  onChange={e => setFormData({ ...formData, fecha_salida: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="erp-label">Fecha de retorno</label>
+                <CustomDatePicker
+                  type="datetime-local"
+                  value={formData.fecha_retorno || ''}
+                  min={formData.fecha_salida || undefined}
+                  onChange={e => setFormData({ ...formData, fecha_retorno: e.target.value })}
+                />
+              </div>
             </div>
             <div style={{ gridColumnStart: 1, gridRowStart: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
@@ -1075,7 +1115,7 @@ export default function EditarProductoModal({
             </div>
 
             {(formData.infantes ?? 0) > 0 && (
-              <div style={{ gridColumnStart: 1, gridRowStart: 3, minWidth: 0 }}>
+              <div style={{ gridColumnStart: 1, gridRowStart: 4, minWidth: 0 }}>
                 <label className="erp-label">Precio Infante ($)</label>
                 <CustomNumberInput
                   min={0}
@@ -1089,7 +1129,7 @@ export default function EditarProductoModal({
               </div>
             )}
 
-            <div style={{ gridColumnStart: 2, gridRowStart: 3, minWidth: 0 }}>
+            <div style={{ gridColumnStart: 2, gridRowStart: 4, minWidth: 0 }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
                 <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
                   <label className="erp-label">Vehículos</label>
@@ -1175,4 +1215,3 @@ export default function EditarProductoModal({
     </Modal>
   );
 }
-

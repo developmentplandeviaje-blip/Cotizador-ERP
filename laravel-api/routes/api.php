@@ -132,5 +132,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // OCR Document Scanner (Ephemeral / In-memory)
     Route::post('/v1/ocr/scan-document', [\App\Http\Controllers\Api\v1\Ocr\DocumentOcrController::class, 'scan']);
+
+    // Sales: Ventas (Agencia, Freelancer, Aliados)
+    Route::get('/v1/ventas/agencia', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'indexAgencia']);
+    Route::get('/v1/ventas/freelancer', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'indexFreelancer']);
+    Route::get('/v1/ventas/aliados', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'indexAliados']);
+    Route::get('/v1/ventas/{id}', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'show']);
+    Route::put('/v1/ventas/{id}', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'update']);
+    Route::patch('/v1/ventas/{id}/confirmar', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'confirmar']);
+    Route::post('/v1/ventas/{id}/pagos', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'registrarPago']);
 });
 

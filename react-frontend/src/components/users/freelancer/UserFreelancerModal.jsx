@@ -164,7 +164,15 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
       onSave();
     } catch (err) {
       if (err.response?.status === 422 && err.response.data?.errors) {
-        setErrors(err.response.data.errors);
+        const errs = err.response.data.errors;
+        setErrors(errs);
+        if (errs.first_name || errs.last_name || errs.email || errs.password) {
+          setCurrentStep(1);
+        } else if (errs.freelancer_nombre || errs.freelancer_rif) {
+          setCurrentStep(2);
+        } else {
+          setCurrentStep(3);
+        }
         setErrorMessage('Por favor verifique los campos señalados.');
       } else if (err.response?.data?.message) {
         setErrorMessage(err.response.data.message);

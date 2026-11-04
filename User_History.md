@@ -136,6 +136,25 @@ Escenario: Rollback automático ante fallo en la asignación por servicio
   Y no altera el estado de la venta ni descuenta saldos parciales
   Y retorna un código de error HTTP 500 con un mensaje de fallo transaccional.
 
+Escenario: Consolidación y Monitoreo de Ventas por Empresa Aliada
+  Dado que múltiples asesores vinculados a una misma Empresa Aliada generan cotizaciones y ventas
+  Cuando el usuario consulta la vista "Ventas Aliados" ("/v1/ventas/aliados")
+  Entonces el sistema agrupa y consolida las métricas (Ventas totales, Facturado USD, Recaudado USD y Saldo deudor) al nivel corporativo de la Empresa Aliada
+  Y permite filtrar dinámicamente las operaciones por Aliado conservando la trazabilidad del asesor comercial individual.
+
+Escenario: Ocultamiento Estricto de Costos Netos de Proveedor para Asesores Freelance
+  Dado que un asesor con nivel "Freelancer" o con identificador "id_freelancer" asignado accede al listado o detalle de ventas
+  Cuando el endpoint "/v1/ventas/freelancer" o "/v1/ventas/{id}" procesa la solicitud
+  Entonces todos los campos de costos netos de proveedores ("costo", "costo_usd", "costo_noche_adulto") son omitidos (null)
+  Y únicamente se retornan los precios finales de venta y saldos deudores del cliente.
+
+Escenario: Confirmación Formal de Venta y Transición Automática por Cobro
+  Dado que una venta se encuentra en estado preliminar "Cotizacion"
+  Cuando el asesor o líder ejecuta la acción de confirmación manual o registra un abono de pago válido
+  Entonces el sistema actualiza de forma atómica el estado a "Confirmada"
+  Y estampa la fecha y hora exacta de confirmación ("fecha_confirmacion = now()")
+  Y formaliza la operación para los módulos contables, operativos y de reportes.
+
 US-06: Plan de Pagos por Cuotas y Control de Fechas Límite
 Como: Asesor.  
 Quiero: Configurar un plan de cuotas dinámico a partir del pago inicial, la frecuencia de pago y las fechas límite del hotel/cliente.  
@@ -350,3 +369,29 @@ Escenario: Estandarización y dinamismo del componente global de modales de conf
     - `info`: fondo azul oscuro (`rgb(24 38 60)`), bordes azulados (`rgba(59, 130, 246, 0.35)`), icono informativo y botón principal azul (`#2563EB`)
     - `success`: fondo verde esmeralda oscuro (`rgb(20 54 38)`), bordes verdes (`rgba(16, 185, 129, 0.35)`), icono de checkmark y botón principal verde (`#059669`)
   Y permite cerrar el modal con la tecla Escape o al hacer clic sobre el fondo oscuro exterior (backdrop).
+
+Escenario: Corrección de creación y edición de usuarios Freelancer
+  Dado que un administrador o subgerente interactúa con el módulo de Usuarios Freelancer
+  Cuando intenta registrar un nuevo usuario freelancer o editar uno existente
+  Entonces el sistema procesa la creación y actualización sin intentar insertar o actualizar la columna inexistente 'status' en la tabla 'freelancer'
+  Y asigna y gestiona el estatus exclusivamente sobre el registro de usuario en la tabla 'user' (`user.status`)
+  Y en caso de omisión del RIF, genera automáticamente un identificador único seguro para preservar la integridad de la clave única de la base de datos
+  Y al editar un usuario sin modificar su correo electrónico, la regla de validación ignora correctamente el ID del usuario en curso sin bloquear la operación con falsos positivos de duplicidad
+  Y en el modal de interfaz, si la validación detecta campos incompletos o erróneos, redirige automáticamente al paso/pestaña correspondiente donde se encuentra el error.
+
+Escenario: Gestión inteligente de ventas, vista de edición por estado y corrección de métricas financieras
+  Dado que el usuario accede al módulo de Ventas (Agencia, Freelancer o Aliados)
+  Cuando visualiza las métricas financieras superiores
+  Entonces la tarjeta "Total Facturado USD" y el "Saldo Pendiente" suman estrictamente los montos de registros en estado "Confirmada" o "Venta", excluyendo las cotizaciones abiertas preliminares
+  Y al hacer clic en el botón de acción "Ver / Editar" (icono 👁️) de cualquier registro en la tabla
+  Entonces el sistema redirige a la vista completa "Editar Cotización" precargando los datos del registro seleccionado
+  Y si el registro se encuentra en estado "Cotización":
+    - Se permite modificar, agregar o eliminar productos libremente mediante el botón "+ Agregar Producto" y las acciones de tabla (Editar y Eliminar) vinculadas a los modales de servicios
+    - Se dispone de la opción/botón para promover o cambiar el estado de la cotización a "Venta Confirmada"
+  Y en la gestión de pasajeros acompañantes:
+    - Se permite identificar explícitamente la categoría de cada acompañante (Adulto, Adolescente, Niño o Infante) mediante botones de adición rápida, distintivos de color y selector interactivo segmentado
+    - El cambio de categoría o edad ajusta automáticamente los rangos etarios y los tipos de documentos permitidos (incluyendo NAC para infantes)
+  Y si el registro se encuentra en estado "Venta Confirmada":
+    - Se bloquea por completo la edición, adición o eliminación de productos, manteniéndose fijos los servicios contratados
+    - Se permite gestionar, editar los datos de los pasajeros existentes y añadir nuevos pasajeros con sus respectivas categorías
+    - Se presenta visiblemente el módulo de pagos con el historial de abonos y el botón interactivo "Registrar Abono" para asentar pagos en tiempo real.

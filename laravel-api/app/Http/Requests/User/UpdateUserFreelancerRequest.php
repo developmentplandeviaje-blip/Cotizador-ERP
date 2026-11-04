@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\User;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateUserFreelancerRequest extends FormRequest
@@ -14,8 +15,9 @@ class UpdateUserFreelancerRequest extends FormRequest
 
     public function rules(): array
     {
-        // $this->user is the route parameter, a User instance
-        $userId = $this->route('user') ? $this->route('user')->id : null;
+        // Resolve target user from 'freelancer' route parameter (fallback to 'user')
+        $userParam = $this->route('freelancer') ?? $this->route('user');
+        $userId = $userParam instanceof User ? $userParam->id : $userParam;
 
         return [
             // User rules

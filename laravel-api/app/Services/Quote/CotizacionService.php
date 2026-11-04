@@ -283,6 +283,7 @@ class CotizacionService
                         'precio_nino' => $v['precio_nino'] ?? 0,
                         'precio_infante' => $v['precio_infante'] ?? 0,
                         'fecha_vuelo' => $v['fecha_vuelo'] ?? now()->toDateTimeString(),
+                        'fecha_retorno' => $v['fecha_retorno'] ?? null,
                         'boleto_internacional' => $v['boleto_internacional'] ?? 0,
                         'comision_internacional' => $v['comision_internacional'] ?? 0,
                     ]);
@@ -337,6 +338,7 @@ class CotizacionService
                         'id_chofer' => $t['id_chofer'] ?? null,
                         'id_vuelo' => $t['id_vuelo'] ?? null,
                         'fecha_traslado' => $t['fecha_traslado'] ?? now()->toDateTimeString(),
+                        'fecha_retorno' => $t['fecha_retorno'] ?? null,
                         'adultos' => $t['adultos'] ?? 0,
                         'ninos' => $t['ninos'] ?? 0,
                         'infantes' => $t['infantes'] ?? 0,
@@ -376,6 +378,8 @@ class CotizacionService
                         'infantes' => $f['infantes'] ?? 0,
                         'vehiculos' => $f['vehiculos'] ?? 0,
                         'itinerario' => $f['itinerario'] ?? '',
+                        'fecha_salida' => $f['fecha_salida'] ?? null,
+                        'fecha_retorno' => $f['fecha_retorno'] ?? null,
                         'costo_adulto' => $f['costo_adulto'] ?? 0,
                         'costo_nino' => $f['costo_nino'] ?? 0,
                         'costo_infante' => $f['costo_infante'] ?? 0,
@@ -510,7 +514,7 @@ class CotizacionService
                 $items[] = [
                     'tipo' => 'vuelo',
                     'titulo' => 'Vuelo: ' . ($vu->aerolinea?->nombre ?? 'Aerolínea'),
-                    'detalle' => $vu->itinerario ?? 'Ruta aérea',
+                    'detalle' => 'Salida: ' . ($vu->fecha_vuelo ?? 'N/A') . ' • Retorno: ' . ($vu->fecha_retorno ?? 'N/A') . ' • ' . ($vu->itinerario ?? 'Ruta aérea'),
                     'precio' => $monto,
                     'data' => $vu,
                 ];
@@ -522,7 +526,7 @@ class CotizacionService
                 $items[] = [
                     'tipo' => 'traslado',
                     'titulo' => 'Traslado: ' . ($t->traslado?->ruta_origen ?? '') . ' - ' . ($t->traslado?->ruta_destino ?? ''),
-                    'detalle' => 'Fecha: ' . ($t->fecha_traslado ?? 'N/A'),
+                    'detalle' => 'Salida: ' . ($t->fecha_traslado ?? 'N/A') . ' • Retorno: ' . ($t->fecha_retorno ?? 'N/A'),
                     'precio' => $monto,
                     'data' => $t,
                 ];
@@ -575,7 +579,7 @@ class CotizacionService
                 $items[] = [
                     'tipo' => 'ferry',
                     'titulo' => 'Ferry: ' . ($f->ruta ?? 'Ruta marítima'),
-                    'detalle' => 'Itinerario: ' . ($f->itinerario ?? ''),
+                    'detalle' => 'Salida: ' . ($f->fecha_salida ?? 'N/A') . ' • Retorno: ' . ($f->fecha_retorno ?? 'N/A') . ' • Itinerario: ' . ($f->itinerario ?? ''),
                     'precio' => $monto,
                     'data' => $f,
                 ];

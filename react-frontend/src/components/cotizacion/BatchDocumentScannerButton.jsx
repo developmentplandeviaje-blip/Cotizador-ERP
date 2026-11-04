@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import axios from 'axios';
 import { compressDocumentImage } from '../../utils/imageCompressor';
+import ConfirmationModal from '../common/ConfirmationModal';
 
 /**
  * Escaneo por lotes de documentos (Cédula, RIF, Pasaporte).
@@ -18,6 +19,7 @@ export default function BatchDocumentScannerButton({
 }) {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState(null);
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const fileInputRef = useRef(null);
 
   const showMsg = (msg, ms) => {
@@ -83,10 +85,7 @@ export default function BatchDocumentScannerButton({
   const handleClick = () => {
     if (loading) return;
     if (hasData) {
-      if (window.confirm('¿Desea limpiar los datos de todos los pasajeros acompañantes?')) {
-        onClear?.();
-        showMsg({ type: 'info', text: 'Casillas de acompañantes limpiadas.' }, 3000);
-      }
+      setShowClearConfirmation(true);
       return;
     }
     fileInputRef.current?.click();
@@ -106,6 +105,19 @@ export default function BatchDocumentScannerButton({
 
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+      <ConfirmationModal
+        isOpen={showClearConfirmation}
+        type="danger"
+        title="Limpiar pasajeros acompañantes"
+        subtitle="¿Desea limpiar los datos de todos los pasajeros acompañantes?"
+        confirmText="Limpiar datos"
+        onCancel={() => setShowClearConfirmation(false)}
+        onConfirm={() => {
+          setShowClearConfirmation(false);
+          onClear?.();
+          showMsg({ type: 'info', text: 'Casillas de acompañantes limpiadas.' }, 3000);
+        }}
+      />
       <input
         ref={fileInputRef}
         type="file"

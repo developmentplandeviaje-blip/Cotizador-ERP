@@ -221,6 +221,20 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                 />
                 <span className="nav-text">Freelancer</span>
               </button>
+
+              <button
+                title={isCollapsed ? 'Ventas Aliados' : undefined} onClick={() => onNavigate('ventas_aliados')}
+                style={{
+                  ...subnavButtonStyle,
+                  color: isRouteActive('ventas_aliados') ? '#E87217' : '#FFFFFF',
+                }}
+              >
+                <img
+                  src={usuarios}
+                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                />
+                <span className="nav-text">Aliados</span>
+              </button>
             </div>
           )}
         </div>

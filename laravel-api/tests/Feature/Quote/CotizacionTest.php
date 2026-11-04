@@ -266,6 +266,7 @@ class CotizacionTest extends TestCase
                     'precio_adulto' => 150.00,
                     'costo_adulto' => 110.00,
                     'fecha_vuelo' => '2026-12-10 08:00:00',
+                    'fecha_retorno' => '2026-12-15 17:30:00',
                 ],
             ],
         ];
@@ -307,6 +308,7 @@ class CotizacionTest extends TestCase
         $this->assertDatabaseHas('vuelo_venta', [
             'id_aerolinea' => $aerolinea->id,
             'itinerario' => 'CCS - PMV / PMV - CCS',
+            'fecha_retorno' => '2026-12-15 17:30:00',
         ]);
     }
 

@@ -26,6 +26,7 @@ class UserFreelancerResource extends JsonResource
             
             // Freelancer Company Data
             'freelancer' => $this->whenLoaded('freelancer', function () {
+                if (!$this->freelancer) return null;
                 return [
                     'id' => $this->freelancer->id,
                     'nombre' => $this->freelancer->nombre,
@@ -34,7 +35,7 @@ class UserFreelancerResource extends JsonResource
                     'telefono_2' => $this->freelancer->telefono_2,
                     'direccion' => $this->freelancer->direccion,
                     'color_primario' => $this->freelancer->color_primario,
-                    'status' => (bool) $this->freelancer->status,
+                    'status' => (bool) $this->status,
                 ];
             }),
 

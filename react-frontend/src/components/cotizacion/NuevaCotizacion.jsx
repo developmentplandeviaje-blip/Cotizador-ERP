@@ -6,6 +6,7 @@ import imgAgregar from '../../assets/Agregar.svg';
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
 import { showToast } from '../../utils/toast';
 import { ConfigurarHorarioCierreModal } from './modals';
+import ConfirmationModal from '../common/ConfirmationModal';
 
 const MAX_TABS = 35;
 
@@ -25,6 +26,7 @@ export default function NuevaCotizacion({ user }) {
     is_freelancer: false,
   });
   const [loadingCatalogs, setLoadingCatalogs] = useState(true);
+  const [tabToConfirmClose, setTabToConfirmClose] = useState(null);
 
   const storageTabsKey = user?.id ? `cotizador_open_tabs_${user.id}` : 'cotizador_open_tabs';
 
@@ -394,50 +396,44 @@ export default function NuevaCotizacion({ user }) {
         ? tabToClose.clientName.trim()
         : `Cotización ${tabToClose?.initialNumber || ''}`;
 
-    if (tabs.length === 1) {
-      if (
-        window.confirm(
-          `¿Deseas cerrar "${tabTitle}" y reiniciar con una cotización nueva en blanco?`
-        )
-      ) {
-        // Clear saved draft for closed tab
-        try {
-          localStorage.removeItem(`cotizador_draft_${tabIdToClose}`);
-          if (user?.id) localStorage.removeItem(`cotizador_draft_${user.id}_${tabIdToClose}`);
-        } catch {}
+    setTabToConfirmClose({
+      id: tabIdToClose,
+      isLastTab: tabs.length === 1,
+      title: tabTitle,
+    });
+  };
 
-        const newNum = nextTabNumberRef.current++;
-        const newTab = {
-          id: `cotiz_${Date.now()}_${newNum}`,
-          initialNumber: newNum,
-          clientName: '',
-        };
-        setTabs([newTab]);
-        setActiveTabId(newTab.id);
-      }
+  const handleConfirmCloseTab = () => {
+    if (!tabToConfirmClose) return;
+
+    const { id: tabIdToClose, isLastTab } = tabToConfirmClose;
+    try {
+      localStorage.removeItem(`cotizador_draft_${tabIdToClose}`);
+      if (user?.id) localStorage.removeItem(`cotizador_draft_${user.id}_${tabIdToClose}`);
+    } catch {}
+
+    if (isLastTab) {
+      const newNum = nextTabNumberRef.current++;
+      const newTab = {
+        id: `cotiz_${Date.now()}_${newNum}`,
+        initialNumber: newNum,
+        clientName: '',
+      };
+      setTabs([newTab]);
+      setActiveTabId(newTab.id);
+      setTabToConfirmClose(null);
       return;
     }
 
-    if (
-      window.confirm(
-        `¿Deseas cerrar la pestaña "${tabTitle}"? Los datos no guardados de esta cotización se perderán.`
-      )
-    ) {
-      // Clear saved draft for closed tab
-      try {
-        localStorage.removeItem(`cotizador_draft_${tabIdToClose}`);
-        if (user?.id) localStorage.removeItem(`cotizador_draft_${user.id}_${tabIdToClose}`);
-      } catch {}
+    const nextTabs = tabs.filter(t => t.id !== tabIdToClose);
+    setTabs(nextTabs);
 
-      const nextTabs = tabs.filter(t => t.id !== tabIdToClose);
-      setTabs(nextTabs);
-
-      if (activeTabId === tabIdToClose) {
-        const closedIndex = tabs.findIndex(t => t.id === tabIdToClose);
-        const newActiveIndex = closedIndex > 0 ? closedIndex - 1 : 0;
-        setActiveTabId(nextTabs[newActiveIndex].id);
-      }
+    if (activeTabId === tabIdToClose) {
+      const closedIndex = tabs.findIndex(t => t.id === tabIdToClose);
+      const newActiveIndex = closedIndex > 0 ? closedIndex - 1 : 0;
+      setActiveTabId(nextTabs[newActiveIndex].id);
     }
+    setTabToConfirmClose(null);
   };
 
   if (loadingCatalogs) {
@@ -476,6 +472,17 @@ export default function NuevaCotizacion({ user }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      <ConfirmationModal
+        isOpen={Boolean(tabToConfirmClose)}
+        type="warning"
+        title={tabToConfirmClose?.isLastTab ? 'Cerrar cotización' : 'Cerrar pestaña'}
+        subtitle={tabToConfirmClose?.isLastTab
+          ? `¿Deseas cerrar "${tabToConfirmClose.title}" y reiniciar con una cotización nueva en blanco?`
+          : `¿Deseas cerrar la pestaña "${tabToConfirmClose?.title}"? Los datos no guardados de esta cotización se perderán.`}
+        confirmText={tabToConfirmClose?.isLastTab ? 'Cerrar y reiniciar' : 'Cerrar pestaña'}
+        onCancel={() => setTabToConfirmClose(null)}
+        onConfirm={handleConfirmCloseTab}
+      />
       {/* Floating Sticky Tab Bar */}
       <div
         ref={outerBarRef}

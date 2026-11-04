@@ -70,16 +70,22 @@ class UserFreelancerService
     public function createUser(array $data): User
     {
         return DB::transaction(function () use ($data) {
-            // 1. Create the Freelancer company entity
+            $rif = trim($data['freelancer_rif'] ?? '');
+            if (empty($rif)) {
+                $rif = 'F-' . strtoupper(substr(uniqid(), -8));
+            }
+
+            // 1. Create the Freelancer company entity (without 'status' as it lives on user)
             $freelancerData = [
                 'nombre' => trim($data['freelancer_nombre']),
-                'rif' => trim($data['freelancer_rif'] ?? ''),
+                'rif' => $rif,
                 'correo' => strtolower(trim($data['email'])),
                 'telefono_1' => trim($data['freelancer_telefono_1'] ?? ''),
                 'telefono_2' => trim($data['freelancer_telefono_2'] ?? ''),
                 'direccion' => trim($data['freelancer_direccion'] ?? ''),
-                'color_primario' => trim($data['freelancer_color_primario'] ?? ''),
-                'status' => isset($data['status']) ? (bool) $data['status'] : true,
+                'color_primario' => trim($data['freelancer_color_primario'] ?? '#E87217'),
+                'logo_url' => trim($data['freelancer_logo_url'] ?? ''),
+                'hoja_membrete_config' => $data['freelancer_hoja_membrete_config'] ?? [],
             ];
 
             $freelancer = Freelancer::create($freelancerData);
@@ -139,17 +145,36 @@ class UserFreelancerService
             if ($user->freelancer) {
                 $freelancerUpdateData = [];
                 if (isset($data['freelancer_nombre'])) $freelancerUpdateData['nombre'] = trim($data['freelancer_nombre']);
-                if (isset($data['freelancer_rif'])) $freelancerUpdateData['rif'] = trim($data['freelancer_rif']);
+                if (isset($data['freelancer_rif']) && trim($data['freelancer_rif']) !== '') {
+                    $freelancerUpdateData['rif'] = trim($data['freelancer_rif']);
+                }
                 if (isset($data['email'])) $freelancerUpdateData['correo'] = strtolower(trim($data['email'])); // keep email in sync
                 if (isset($data['freelancer_telefono_1'])) $freelancerUpdateData['telefono_1'] = trim($data['freelancer_telefono_1']);
                 if (isset($data['freelancer_telefono_2'])) $freelancerUpdateData['telefono_2'] = trim($data['freelancer_telefono_2']);
                 if (isset($data['freelancer_direccion'])) $freelancerUpdateData['direccion'] = trim($data['freelancer_direccion']);
                 if (isset($data['freelancer_color_primario'])) $freelancerUpdateData['color_primario'] = trim($data['freelancer_color_primario']);
-                if (isset($data['status'])) $freelancerUpdateData['status'] = (bool) $data['status'];
 
                 if (!empty($freelancerUpdateData)) {
                     $user->freelancer->update($freelancerUpdateData);
                 }
+            } else if (!empty($data['freelancer_nombre'])) {
+                $rif = trim($data['freelancer_rif'] ?? '');
+                if (empty($rif)) {
+                    $rif = 'F-' . strtoupper(substr(uniqid(), -8));
+                }
+                $newFreelancer = Freelancer::create([
+                    'nombre' => trim($data['freelancer_nombre']),
+                    'rif' => $rif,
+                    'correo' => strtolower(trim($data['email'] ?? $user->email)),
+                    'telefono_1' => trim($data['freelancer_telefono_1'] ?? ''),
+                    'telefono_2' => trim($data['freelancer_telefono_2'] ?? ''),
+                    'direccion' => trim($data['freelancer_direccion'] ?? ''),
+                    'color_primario' => trim($data['freelancer_color_primario'] ?? '#E87217'),
+                    'logo_url' => trim($data['freelancer_logo_url'] ?? ''),
+                    'hoja_membrete_config' => $data['freelancer_hoja_membrete_config'] ?? [],
+                ]);
+                $user->id_freelancer = $newFreelancer->id;
+                $user->save();
             }
 
             // Update Commissions
@@ -167,16 +192,8 @@ class UserFreelancerService
     public function toggleStatus(User $user): User
     {
         return DB::transaction(function () use ($user) {
-            $newStatus = !$user->status;
-            
-            $user->status = $newStatus;
+            $user->status = !$user->status;
             $user->save();
-
-            // Also toggle the freelancer company status
-            if ($user->freelancer) {
-                $user->freelancer->status = $newStatus;
-                $user->freelancer->save();
-            }
 
             return $user->load(['comisiones', 'freelancer']);
         });

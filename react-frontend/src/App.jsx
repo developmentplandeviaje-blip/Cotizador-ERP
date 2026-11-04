@@ -16,6 +16,7 @@ import UserAliadoList from './components/users/aliados/UserAliadoList';
 import MetodoPagoList from './components/finance/metodos_pago/MetodoPagoList';
 import NuevaCotizacion from './components/cotizacion/NuevaCotizacion';
 import RegistroCotizaciones from './components/cotizacion/RegistroCotizaciones';
+import VentasList from './components/ventas/VentasList';
 
 // Configure default base URL for Axios
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -40,6 +41,7 @@ const routeTitles = {
   ventas_cotizaciones: { parent: 'Ventas', title: 'Registro de Cotizaciones' },
   ventas_agencia: { parent: 'Ventas', title: 'Agencia' },
   ventas_freelancer: { parent: 'Ventas', title: 'Freelancer' },
+  ventas_aliados: { parent: 'Ventas', title: 'Aliados' },
   reportes_operativo: { parent: 'Reportes', title: 'Operativo' },
   reportes_comisiones: { parent: 'Reportes', title: 'Comisiones' },
   reportes_ventas: { parent: 'Reportes', title: 'Reporte Ventas' },
@@ -316,9 +318,12 @@ function App() {
         </div>
       )}
       {activeRoute === 'ventas_cotizaciones' && <RegistroCotizaciones user={user} onNuevaCotizacion={() => setActiveRoute('nueva_cotizacion')} />}
+      {activeRoute === 'ventas_agencia' && <VentasList tipo="agencia" user={user} />}
+      {activeRoute === 'ventas_freelancer' && <VentasList tipo="freelancer" user={user} />}
+      {activeRoute === 'ventas_aliados' && <VentasList tipo="aliados" user={user} />}
       {activeRoute === 'dashboard' && renderDashboard()}
 
-      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'servicios_aerolineas' && activeRoute !== 'usuarios_agencia' && activeRoute !== 'usuarios_freelancer' && activeRoute !== 'usuarios_aliados' && activeRoute !== 'metodos_pago' && activeRoute !== 'nueva_cotizacion' && activeRoute !== 'ventas_cotizaciones' && activeRoute !== 'dashboard' && (
+      {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'servicios_aerolineas' && activeRoute !== 'usuarios_agencia' && activeRoute !== 'usuarios_freelancer' && activeRoute !== 'usuarios_aliados' && activeRoute !== 'metodos_pago' && activeRoute !== 'nueva_cotizacion' && activeRoute !== 'ventas_cotizaciones' && activeRoute !== 'ventas_agencia' && activeRoute !== 'ventas_freelancer' && activeRoute !== 'ventas_aliados' && activeRoute !== 'dashboard' && (
         <div style={{
           background: 'rgba(30, 41, 59, 0.72)',
           border: '1px solid rgba(255, 255, 255, 0.12)',

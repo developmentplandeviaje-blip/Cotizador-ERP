@@ -23,12 +23,11 @@ class Freelancer extends Model
         'color_primario',
         'logo_url',
         'hoja_membrete_config',
-        'status',
+        'notify_link',
     ];
 
     protected $casts = [
         'hoja_membrete_config' => 'array',
-        'status' => 'boolean',
     ];
 
     public function usuarios(): HasMany

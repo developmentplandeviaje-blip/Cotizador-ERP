@@ -26,6 +26,7 @@ class VueloVenta extends Model
         'precio_nino',
         'precio_infante',
         'fecha_vuelo',
+        'fecha_retorno',
         'boleto_internacional',
         'comision_internacional',
     ];

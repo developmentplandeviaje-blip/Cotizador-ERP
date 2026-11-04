@@ -339,7 +339,7 @@ export default function UserAgenciaList({ user: currentUser }) {
         background: 'rgba(188, 192, 215, 0.09)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: '16px',
-        overflow: 'visible',
+        overflow: 'hidden',
 
         boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
       }}>

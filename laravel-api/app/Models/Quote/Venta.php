@@ -98,4 +98,9 @@ class Venta extends Model
     {
         return $this->hasMany(OtroVenta::class, 'id_venta');
     }
+
+    public function pagos(): HasMany
+    {
+        return $this->hasMany(\App\Models\Finance\PagoVenta::class, 'id_venta');
+    }
 }

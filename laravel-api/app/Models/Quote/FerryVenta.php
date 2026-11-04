@@ -19,6 +19,8 @@ class FerryVenta extends Model
         'infantes',
         'vehiculos',
         'itinerario',
+        'fecha_salida',
+        'fecha_retorno',
         'costo_adulto',
         'costo_nino',
         'costo_infante',

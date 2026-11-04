@@ -17,6 +17,7 @@ class TrasladoVenta extends Model
         'id_chofer',
         'id_vuelo',
         'fecha_traslado',
+        'fecha_retorno',
         'adultos',
         'ninos',
         'infantes',
