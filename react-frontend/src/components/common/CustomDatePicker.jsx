@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 const MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -31,6 +32,10 @@ export default function CustomDatePicker({
   const [placement, setPlacement] = useState({
     openUp: false,
     alignRight: false,
+    top: 8,
+    bottom: 8,
+    left: 8,
+    width: 320,
   });
 
   const containerRef = useRef(null);
@@ -107,31 +112,8 @@ export default function CustomDatePicker({
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
 
-    // Find closest scrollable ancestor (e.g. modal body, main, or document)
-    let scrollParent = containerRef.current.parentElement;
-    while (scrollParent && scrollParent !== document.body && scrollParent !== document.documentElement) {
-      const style = window.getComputedStyle(scrollParent);
-      const overflowY = style.overflowY;
-      if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') {
-        break;
-      }
-      scrollParent = scrollParent.parentElement;
-    }
-    if (!scrollParent || scrollParent === document.body) {
-      scrollParent = document.documentElement;
-    }
-
-    const scrollParentRect = scrollParent && scrollParent.getBoundingClientRect ? scrollParent.getBoundingClientRect() : null;
-
-    const viewportBottom = scrollParentRect
-      ? Math.min(window.innerHeight, scrollParentRect.bottom)
-      : window.innerHeight;
-    const viewportTop = scrollParentRect
-      ? Math.max(0, scrollParentRect.top)
-      : 0;
-
-    const spaceBelow = viewportBottom - rect.bottom;
-    const spaceAbove = rect.top - viewportTop;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
 
     // Calendar needs approx 365px (date) or 400px (datetime-local)
     const neededHeight = isDateTime ? 400 : 365;
@@ -142,10 +124,19 @@ export default function CustomDatePicker({
     // Check if horizontal space to the right is tight (popover is 320px wide)
     const spaceRight = window.innerWidth - rect.left;
     const shouldAlignRight = spaceRight < 330 && rect.right >= 320;
+    const popoverWidth = Math.max(0, Math.min(320, window.innerWidth - 16));
+    const popoverLeft = Math.max(8, Math.min(
+      shouldAlignRight ? rect.right - popoverWidth : rect.left,
+      window.innerWidth - popoverWidth - 8
+    ));
 
     setPlacement({
       openUp: shouldOpenUp,
       alignRight: shouldAlignRight,
+      top: Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - 8)),
+      bottom: Math.max(8, window.innerHeight - rect.top + 8),
+      left: popoverLeft,
+      width: popoverWidth,
     });
   }, [isDateTime]);
 
@@ -170,7 +161,11 @@ export default function CustomDatePicker({
   // Close calendar or sub-dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target) &&
+        !popoverRef.current?.contains(e.target)
+      ) {
         setIsOpen(false);
         setShowMonthDropdown(false);
         setShowYearDropdown(false);
@@ -491,17 +486,20 @@ export default function CustomDatePicker({
       </div>
 
       {/* Calendar Popover */}
-      {isOpen && (
+      {isOpen && createPortal(
         <div
           ref={popoverRef}
           className={`erp-calendar-popover ${placement.openUp ? 'open-up' : ''} ${placement.alignRight ? 'align-right' : ''}`}
           style={{
+            position: 'fixed',
             ...(placement.openUp
-              ? { top: 'auto', bottom: 'calc(100% + 8px)' }
-              : { top: 'calc(100% + 8px)', bottom: 'auto' }),
-            ...(placement.alignRight
-              ? { left: 'auto', right: 0 }
-              : { left: 0, right: 'auto' }),
+              ? { top: 'auto', bottom: placement.bottom }
+              : { top: placement.top, bottom: 'auto' }),
+            left: placement.left,
+            right: 'auto',
+            width: placement.width,
+            maxHeight: 'calc(100vh - 16px)',
+            overflowY: 'auto',
           }}
         >
           {/* Top Blue Pill Accent */}
@@ -702,7 +700,8 @@ export default function CustomDatePicker({
               </button>
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

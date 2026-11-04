@@ -25,6 +25,7 @@ import {
 import HotelAsociadoSelect from './HotelAsociadoSelect';
 import DocumentScannerButton from './DocumentScannerButton';
 import { showToast } from '../../utils/toast';
+import { normalizeHotelAdolescentPassengers } from '../../utils/quotePricing';
 import BatchDocumentScannerButton from './BatchDocumentScannerButton';
 import ConfirmationModal from '../common/ConfirmationModal';
 
@@ -173,12 +174,14 @@ export default function CotizacionTabContent({
     setItems(prev => prev.map(item => {
       if (item.tipo !== 'hotel') return item;
 
-      const data = {
+      const itemData = {
         ...item.data,
         fecha_checkin: updatedFechas.checkin,
         fecha_checkout: updatedFechas.checkout,
         noches,
       };
+      const hotel = (catalogos.hoteles || []).find(h => String(h.id) === String(itemData.id_hotel));
+      const data = normalizeHotelAdolescentPassengers(itemData, hotel, catalogos.is_freelancer);
       const adultos = Number(data.adultos || 0);
       const adolescentes = Number(data.adolescente || 0);
       const ninos = Number(data.ninos || 0);
@@ -1185,8 +1188,16 @@ export default function CotizacionTabContent({
       }
       const hotelObj = selectedHotel || {};
       const habObj = selectedHabitacion || {};
-      const subtotalAdultos = pax.adultos * hotelForm.precio_noche_adulto * nochesEstadia;
-      const subtotalAdol = pax.adolescentes * hotelForm.precio_noche_adolescente * nochesEstadia;
+      const hotelPricing = normalizeHotelAdolescentPassengers({
+        adultos: pax.adultos,
+        adolescente: pax.adolescentes,
+        precio_noche_adulto: hotelForm.precio_noche_adulto,
+        precio_noche_adolescente: hotelForm.precio_noche_adolescente,
+        costo_noche_adulto: hotelForm.costo_noche_adulto,
+        costo_noche_adolescente: hotelForm.costo_noche_adolescente,
+      }, hotelObj, catalogos.is_freelancer);
+      const subtotalAdultos = hotelPricing.adultos * hotelForm.precio_noche_adulto * nochesEstadia;
+      const subtotalAdol = hotelPricing.adolescente * hotelForm.precio_noche_adolescente * nochesEstadia;
       const subtotalNinos = pax.ninos * hotelForm.precio_noche_nino * nochesEstadia;
       const totalItem = subtotalAdultos + subtotalAdol + subtotalNinos;
 
@@ -1194,14 +1205,14 @@ export default function CotizacionTabContent({
         uid,
         tipo: 'hotel',
         titulo: `${hotelObj.nombre || 'Hotel'} (${habObj.habitacion || 'Habitación'})`,
-        detalle: `${nochesEstadia} noches • ${diasEstadia} días • ${pax.adultos} adultos(ADL), ${pax.adolescentes} adolescentes(YNG), ${pax.ninos} niños(CHD)`,
+        detalle: `${diasEstadia}D / ${nochesEstadia}N • ${hotelPricing.adultos} adultos(ADL)${hotelPricing.adolescente ? `, ${hotelPricing.adolescente} adolescentes(YNG)` : ''}, ${pax.ninos} niños(CHD), ${pax.infantes} infantes(INF)`,
         precio: totalItem,
         data: {
           id_hotel: Number(hotelForm.id_hotel),
           id_habitacion: Number(hotelForm.id_habitacion || 0),
           noches: nochesEstadia,
-          adultos: pax.adultos,
-          adolescente: pax.adolescentes,
+          adultos: hotelPricing.adultos,
+          adolescente: hotelPricing.adolescente,
           ninos: pax.ninos,
           infantes: pax.infantes,
           precio_noche_adulto: hotelForm.precio_noche_adulto,
@@ -1225,13 +1236,14 @@ export default function CotizacionTabContent({
       const precioAd = Number(vueloForm.precio_adulto || '');
       const precioNi = Number(vueloForm.precio_nino || '');
       const precioInf = Number(vueloForm.precio_infante || '');
-      const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi) + (pax.infantes * precioInf);
+      const adultosConAdolescentes = pax.adultos + pax.adolescentes;
+      const totalItem = (adultosConAdolescentes * precioAd) + (pax.ninos * precioNi) + (pax.infantes * precioInf);
 
       return {
         uid,
         tipo: 'vuelo',
         titulo: `${aeroObj.nombre || 'Aerolínea'} - ${vueloForm.itinerario || 'Ruta'}`,
-        detalle: `Salida: ${vueloForm.fecha_vuelo || 'Por definir'} • Retorno: ${vueloForm.fecha_retorno || 'Por definir'} • ${pax.adultos} ad${pax.ninos > 0 ? `, ${pax.ninos} niños` : ''}${pax.infantes > 0 ? `, ${pax.infantes} inf` : ''}`,
+        detalle: `Salida: ${vueloForm.fecha_vuelo || 'Por definir'} • Retorno: ${vueloForm.fecha_retorno || 'Por definir'} • ${adultosConAdolescentes}ADL ${pax.ninos > 0 ? `, ${pax.ninos}CHD` : ''}${pax.infantes > 0 ? `, ${pax.infantes}INF` : ''}`,
         precio: totalItem,
         hotel_item_uid: vueloForm.hotel_item_uid || null,
         data: {
@@ -1239,7 +1251,7 @@ export default function CotizacionTabContent({
           itinerario: vueloForm.itinerario,
           fecha_vuelo: vueloForm.fecha_vuelo,
           fecha_retorno: vueloForm.fecha_retorno,
-          adultos: pax.adultos,
+          adultos: adultosConAdolescentes,
           ninos: pax.ninos,
           infantes: pax.infantes,
           precio_adulto: precioAd,
@@ -1265,7 +1277,7 @@ export default function CotizacionTabContent({
       let detallePax = totalPax > 1 ? `Todos los pasajeros (${totalPax} pax)` : `1 pasajero`;
       let obsBase = trasladoForm.observacion ? trasladoForm.observacion.trim() : '';
       let obsFinal = obsBase;
-      let adultosCount = pax.adultos;
+      let adultosCount = pax.adultos + pax.adolescentes;
       let ninosCount = pax.ninos;
       let infantesCount = pax.infantes;
 
@@ -1329,18 +1341,19 @@ export default function CotizacionTabContent({
       const excObj = (catalogos.excursiones || []).find(e => String(e.id) === String(excursionForm.id_excursion)) || {};
       const precioAd = Number(excursionForm.precio_adulto || excObj.precio_adulto || '');
       const precioNi = Number(excursionForm.precio_nino || excObj.precio_nino || '');
-      const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi);
+      const adultosConAdolescentes = pax.adultos + pax.adolescentes;
+      const totalItem = (adultosConAdolescentes * precioAd) + (pax.ninos * precioNi);
       return {
         uid,
         tipo: 'excursion',
         titulo: `${excObj.tipo_excursion || 'Excursión'}`,
-        detalle: `Fecha: ${excursionForm.fecha || 'Por definir'} • ${pax.adultos} adultos(ADL), ${pax.ninos} niños(CHD)`,
+        detalle: `Fecha: ${excursionForm.fecha || 'Por definir'} • ${adultosConAdolescentes} adultos(ADL), ${pax.ninos} niños(CHD), ${pax.infantes} infantes(INF)`,
         precio: totalItem,
         hotel_item_uid: excursionForm.hotel_item_uid || null,
         data: {
           id_excursion: Number(excursionForm.id_excursion),
           fecha: excursionForm.fecha,
-          adultos: pax.adultos,
+          adultos: adultosConAdolescentes,
           ninos: pax.ninos,
           infantes: pax.infantes,
           precio_adulto: precioAd,
@@ -1362,18 +1375,19 @@ export default function CotizacionTabContent({
       const paqObj = (catalogos.paquetes || []).find(p => String(p.id) === String(paqueteForm.id_paquete)) || {};
       const precioAd = Number(paqueteForm.precio_adulto || paqObj.precio_adulto || 0);
       const precioNi = Number(paqueteForm.precio_nino || paqObj.precio_nino || 0);
-      const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi);
+      const adultosConAdolescentes = pax.adultos + pax.adolescentes;
+      const totalItem = (adultosConAdolescentes * precioAd) + (pax.ninos * precioNi);
       return {
         uid,
         tipo: 'paquete',
         titulo: `${paqObj.paquete || 'Paquete Turístico'}`,
-        detalle: `Fecha: ${paqueteForm.fecha || 'Por definir'} • ${pax.adultos} adultos(ADL), ${pax.ninos} niños(CHD)`,
+        detalle: `Fecha: ${paqueteForm.fecha || 'Por definir'} • ${adultosConAdolescentes} adultos(ADL), ${pax.ninos} niños(CHD), ${pax.infantes} infantes(INF)`,
         precio: totalItem,
         hotel_item_uid: paqueteForm.hotel_item_uid || null,
         data: {
           id_paquete: Number(paqueteForm.id_paquete),
           fecha: paqueteForm.fecha,
-          adultos: pax.adultos,
+          adultos: adultosConAdolescentes,
           ninos: pax.ninos,
           infantes: pax.infantes,
           precio_adulto: precioAd,
@@ -1396,7 +1410,7 @@ export default function CotizacionTabContent({
         uid,
         tipo: 'vehiculo',
         titulo: `${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`,
-        detalle: `${vehiculoForm.dias} días • Desde: ${vehiculoForm.desde || 'Por definir'} hasta: ${vehiculoForm.hasta || 'Por definir'}`,
+        detalle: `${vehiculoForm.dias} días • Desde: ${vehiculoForm.desde || 'Por definir'} • hasta: ${vehiculoForm.hasta || 'Por definir'}`,
         precio: totalItem,
         hotel_item_uid: vehiculoForm.hotel_item_uid || null,
         data: {
@@ -1422,12 +1436,13 @@ export default function CotizacionTabContent({
       const precioNi = Number(ferryForm.precio_nino || '');
       const precioInf = Number(ferryForm.precio_infante ||'');
       const precioVeh = Number(ferryForm.precio_vehiculo || '');
-      const totalItem = (pax.adultos * precioAd) + (pax.ninos * precioNi) + (pax.infantes * precioInf) + (ferryForm.vehiculos * precioVeh);
+      const adultosConAdolescentes = pax.adultos + pax.adolescentes;
+      const totalItem = (adultosConAdolescentes * precioAd) + (pax.ninos * precioNi) + (pax.infantes * precioInf) + (ferryForm.vehiculos * precioVeh);
       return {
         uid,
         tipo: 'ferry',
         titulo: `${ferryForm.ruta || 'Ruta'} (${ferryForm.clase})`,
-        detalle: `Salida: ${ferryForm.fecha_salida || 'Por definir'} • Retorno: ${ferryForm.fecha_retorno || 'Por definir'} • ${pax.adultos} adultos(ADL)${pax.ninos > 0 ? `, ${pax.ninos} niños(CHD)` : ''}${pax.infantes > 0 ? `, ${pax.infantes} infantes(INF)` : ''}, ${ferryForm.vehiculos} veh`,
+        detalle: `Salida: ${ferryForm.fecha_salida || 'Por definir'} • Retorno: ${ferryForm.fecha_retorno || 'Por definir'} • ${adultosConAdolescentes} adultos(ADL)${pax.ninos > 0 ? `, ${pax.ninos} niños(CHD)` : ''}${pax.infantes > 0 ? `, ${pax.infantes} infantes(INF)` : ''}, ${ferryForm.vehiculos} veh`,
         precio: totalItem,
         hotel_item_uid: ferryForm.hotel_item_uid || null,
         data: {
@@ -1436,7 +1451,7 @@ export default function CotizacionTabContent({
           itinerario: ferryForm.itinerario,
           fecha_salida: ferryForm.fecha_salida,
           fecha_retorno: ferryForm.fecha_retorno,
-          adultos: pax.adultos,
+          adultos: adultosConAdolescentes,
           ninos: pax.ninos,
           infantes: pax.infantes,
           vehiculos: Number(ferryForm.vehiculos),
@@ -3236,7 +3251,7 @@ export default function CotizacionTabContent({
                 >
                   <option value="">Seleccione aerolínea...</option>
                   {(catalogos.aerolineas || []).map(a => (
-                    <option key={a.id} value={a.id}>{a.nombre}{a.codigo ? ` (${a.codigo})` : ''}</option>
+                    <option key={a.id} value={a.id}>{`${a.nombre}${a.codigo ? ` (${a.codigo})` : ''}`}</option>
                   ))}
                 </CustomSelect>
               </div>
@@ -3827,6 +3842,14 @@ export default function CotizacionTabContent({
                   onChange={e => setOtroForm({ ...otroForm, descripcion: e.target.value.slice(0, 60) })}
                   maxLength={60}
                   className="erp-input"
+                />
+              </div>
+
+              <div style={{ width: '160px', flexShrink: 0 }}>
+                <label className='erp-label'>Fecha</label>
+                <CustomDatePicker
+                  value={otroForm.fecha || ''}
+                  onChange={e => setOtroForm({ ...otroForm, fecha: e.target.value })}
                 />
               </div>
 

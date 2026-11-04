@@ -6,6 +6,7 @@ import CustomDatePicker from '../../common/CustomDatePicker';
 import CustomNumberInput from '../../common/CustomNumberInput';
 import { PRODUCT_COLOR_MAP } from '../NuevaCotizacion';
 import { formatFlightItinerary, handlePriceInputKeyClamp, sanitizePrecioCostoValue } from '../../../utils/validation';
+import { normalizeHotelAdolescentPassengers } from '../../../utils/quotePricing';
 import HotelAsociadoSelect from '../HotelAsociadoSelect';
 
 export default function EditarProductoModal({
@@ -65,6 +66,11 @@ export default function EditarProductoModal({
     return (catalogos.hoteles || []).find(h => String(h.id) === String(formData.id_hotel));
   }, [catalogos.hoteles, formData.id_hotel, tipo]);
 
+  const hotelPricingData = useMemo(
+    () => normalizeHotelAdolescentPassengers(formData, selectedHotel, catalogos.is_freelancer),
+    [formData, selectedHotel, catalogos.is_freelancer]
+  );
+
   // Selected room
   const selectedHabitacion = useMemo(() => {
     if (!selectedHotel?.habitaciones) return null;
@@ -95,8 +101,8 @@ export default function EditarProductoModal({
   const totalCalculado = useMemo(() => {
     const d = formData;
     if (tipo === 'hotel') {
-      const subAdultos = Number(d.adultos || 0) * Number(d.precio_noche_adulto || 0) * nochesEstadia;
-      const subAdol = Number(d.adolescente || 0) * Number(d.precio_noche_adolescente || 0) * nochesEstadia;
+      const subAdultos = Number(hotelPricingData.adultos || 0) * Number(d.precio_noche_adulto || 0) * nochesEstadia;
+      const subAdol = Number(hotelPricingData.adolescente || 0) * Number(d.precio_noche_adolescente || 0) * nochesEstadia;
       const subNinos = Number(d.ninos || 0) * Number(d.precio_noche_nino || 0) * nochesEstadia;
       return Math.max(0, subAdultos + subAdol + subNinos);
     }
@@ -128,20 +134,20 @@ export default function EditarProductoModal({
       return Math.max(0, Number(d.precio || 0));
     }
     return Math.max(0, Number(d.precio || 0));
-  }, [tipo, formData, nochesEstadia]);
+  }, [tipo, formData, hotelPricingData, nochesEstadia]);
 
   const handleSubmit = (e) => {
     e?.preventDefault();
 
     let updatedTitulo = item.titulo;
     let updatedDetalle = item.detalle;
-    const finalData = { ...formData };
+    const finalData = tipo === 'hotel' ? { ...hotelPricingData } : { ...formData };
 
     if (tipo === 'hotel') {
       const hotelObj = (catalogos.hoteles || []).find(h => String(h.id) === String(formData.id_hotel)) || {};
       const habObj = (hotelObj.habitaciones || []).find(hab => String(hab.id) === String(formData.id_habitacion)) || {};
       updatedTitulo = `${hotelObj.nombre || item.titulo.split(' (')[0]} (${habObj.habitacion || 'Habitación'})`;
-      updatedDetalle = `${nochesEstadia} noches • ${diasEstadia} días • ${formData.adultos} adultos, ${formData.adolescente} adol, ${formData.ninos} niños`;
+      updatedDetalle = `${nochesEstadia} noches • ${diasEstadia} días • ${finalData.adultos} adultos${finalData.adolescente ? `, ${finalData.adolescente} adol` : ''}, ${formData.ninos} niños`;
       finalData.id_hotel = Number(formData.id_hotel);
       finalData.id_habitacion = Number(formData.id_habitacion || 0);
       finalData.noches = nochesEstadia;
@@ -435,7 +441,7 @@ export default function EditarProductoModal({
               >
                 <option value="">Seleccione aerolínea...</option>
                 {(catalogos.aerolineas || []).map(a => (
-                  <option key={a.id} value={a.id}>{a.nombre}</option>
+                  <option key={a.id} value={a.id}>{`${a.tipo === 'nacional' ? 'Nacional' : a.tipo === 'internacional' ? 'Internacional' : 'Sin clasificar'} · ${a.nombre}`}</option>
                 ))}
               </CustomSelect>
             </div>

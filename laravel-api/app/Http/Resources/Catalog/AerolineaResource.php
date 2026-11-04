@@ -16,6 +16,7 @@ class AerolineaResource extends JsonResource
         $data = [
             'id' => $this->id,
             'nombre' => $this->nombre,
+            'tipo' => $this->tipo,
             'vuelos_count' => (int) ($this->vuelos_count ?? $this->vuelosCount()),
             'date_creation' => $this->date_creation
                 ? (is_string($this->date_creation) ? $this->date_creation : $this->date_creation->format('Y-m-d H:i:s'))

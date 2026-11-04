@@ -203,6 +203,19 @@ class CotizacionTest extends TestCase
             'habitacion' => 'Standard',
             'cantidad_personas' => 2,
         ]);
+        $hotelSinTarifaAdolescente = Hotel::create([
+            'nombre' => 'Hotel Sin Tarifa Adolescente',
+            'id_ubicacion' => $ubicacion->id,
+            'tipo' => 'Nacional',
+            'edad_adolescentes' => '',
+            'edad_ninos' => '5 - 11 Años',
+            'edad_infantes' => '0 - 4 Años',
+            'status' => true,
+        ]);
+        $habSinTarifaAdolescente = $hotelSinTarifaAdolescente->habitaciones()->create([
+            'habitacion' => 'Standard',
+            'cantidad_personas' => 2,
+        ]);
 
         $aerolinea = Aerolinea::create([
             'nombre' => 'Laser Airlines',
@@ -254,6 +267,17 @@ class CotizacionTest extends TestCase
                     'precio_noche_adolescente' => 90.00,
                     'costo_noche_adulto' => 80.00,
                     'costo_noche_adolescente' => 60.00,
+                ],
+                [
+                    'id_hotel' => $hotelSinTarifaAdolescente->id,
+                    'id_habitacion' => $habSinTarifaAdolescente->id,
+                    'noches' => 5,
+                    'adultos' => 1,
+                    'adolescente' => 1,
+                    'ninos' => 0,
+                    'infantes' => 0,
+                    'precio_noche_adulto' => 120.00,
+                    'costo_noche_adulto' => 80.00,
                 ],
             ],
             'vuelos' => [
@@ -309,6 +333,14 @@ class CotizacionTest extends TestCase
             'id_aerolinea' => $aerolinea->id,
             'itinerario' => 'CCS - PMV / PMV - CCS',
             'fecha_retorno' => '2026-12-15 17:30:00',
+        ]);
+
+        $this->assertDatabaseHas('hotel_venta', [
+            'id_hotel' => $hotelSinTarifaAdolescente->id,
+            'adultos' => 2,
+            'adolescente' => 0,
+            'precio_noche_adulto' => 120.00,
+            'costo_noche_adulto' => 80.00,
         ]);
     }
 

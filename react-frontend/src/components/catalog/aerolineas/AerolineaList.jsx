@@ -234,6 +234,9 @@ export default function AerolineaList({ user }) {
               >
                 Nombre de la Aerolínea{getSortIndicator('nombre')}
               </th>
+              <th style={{ padding: '14px 18px', color: '#FFFFFF', fontWeight: '600', width: '170px' }}>
+                Tipo
+              </th>
               <th
                 onClick={() => handleSort('vuelos_count')}
                 style={{ padding: '14px 18px', color: '#FFFFFF', fontWeight: '600', cursor: 'pointer', textAlign: 'center', width: '200px' }}
@@ -256,13 +259,13 @@ export default function AerolineaList({ user }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={isFreelancer ? 4 : 5} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   Cargando catálogo de aerolíneas...
                 </td>
               </tr>
             ) : aerolineas.length === 0 ? (
               <tr>
-                <td colSpan={isFreelancer ? 4 : 5} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   {search ? 'No se encontraron aerolíneas que coincidan con la búsqueda.' : 'No hay aerolíneas registradas en el catálogo.'}
                 </td>
               </tr>
@@ -282,6 +285,9 @@ export default function AerolineaList({ user }) {
                   </td>
                   <td style={{ padding: '14px 18px', color: '#F8FAFC', fontWeight: '600' }}>
                     {item.nombre}
+                  </td>
+                  <td style={{ padding: '14px 18px', color: '#b9c8ddff' }}>
+                    {item.tipo ? item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1) : 'Sin clasificar'}
                   </td>
                   <td style={{ padding: '14px 18px', textAlign: 'center' }}>
                     <Badge variant={item.vuelos_count > 0 ? 'success' : 'neutral'} style={{ minWidth: '85px' }}>

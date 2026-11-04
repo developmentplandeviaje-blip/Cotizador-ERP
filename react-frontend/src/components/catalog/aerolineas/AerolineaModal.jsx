@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
+import CustomSelect from '../../common/CustomSelect';
 import axios from 'axios';
 
 export default function AerolineaModal({ isOpen, onClose, onSaveSuccess, aerolineaToEdit = null }) {
   const [nombre, setNombre] = useState('');
+  const [tipo, setTipo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -12,8 +14,10 @@ export default function AerolineaModal({ isOpen, onClose, onSaveSuccess, aerolin
       setErrorMessage('');
       if (aerolineaToEdit) {
         setNombre(aerolineaToEdit.nombre || '');
+        setTipo(aerolineaToEdit.tipo || '');
       } else {
         setNombre('');
+        setTipo('');
       }
     }
   }, [isOpen, aerolineaToEdit]);
@@ -25,6 +29,10 @@ export default function AerolineaModal({ isOpen, onClose, onSaveSuccess, aerolin
       setErrorMessage('El nombre de la aerolínea es obligatorio.');
       return;
     }
+    if (!tipo) {
+      setErrorMessage('Debe seleccionar si la aerolínea es nacional o internacional.');
+      return;
+    }
 
     setIsSubmitting(true);
     setErrorMessage('');
@@ -33,10 +41,12 @@ export default function AerolineaModal({ isOpen, onClose, onSaveSuccess, aerolin
       if (aerolineaToEdit) {
         await axios.put(`/v1/catalog/aerolineas/${aerolineaToEdit.id}`, {
           nombre: cleanNombre,
+          tipo,
         });
       } else {
         await axios.post('/v1/catalog/aerolineas', {
           nombre: cleanNombre,
+          tipo,
         });
       }
       onSaveSuccess();
@@ -44,6 +54,8 @@ export default function AerolineaModal({ isOpen, onClose, onSaveSuccess, aerolin
       console.error('Error guardando aerolínea:', err);
       if (err.response?.data?.errors?.nombre) {
         setErrorMessage(err.response.data.errors.nombre[0]);
+      } else if (err.response?.data?.errors?.tipo) {
+        setErrorMessage(err.response.data.errors.tipo[0]);
       } else if (err.response?.data?.message) {
         setErrorMessage(err.response.data.message);
       } else {
@@ -99,6 +111,26 @@ export default function AerolineaModal({ isOpen, onClose, onSaveSuccess, aerolin
           </span>
         </div>
 
+        <div className="form-row">
+          <label className="erp-label">
+            Tipo de Aerolínea <span className="req">*</span>
+          </label>
+          <CustomSelect
+            value={tipo}
+            onChange={(e) => {
+              setTipo(e.target.value);
+              if (errorMessage) setErrorMessage('');
+            }}
+            disabled={isSubmitting}
+            required
+            searchable={false}
+          >
+            <option value="">Seleccione el tipo...</option>
+            <option value="nacional">Nacional</option>
+            <option value="internacional">Internacional</option>
+          </CustomSelect>
+        </div>
+
         {/* Action Buttons */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '28px' }}>
           <button
@@ -112,7 +144,7 @@ export default function AerolineaModal({ isOpen, onClose, onSaveSuccess, aerolin
           <button
             type="submit"
             className="btn-form-nxt"
-            disabled={isSubmitting || !nombre.trim()}
+            disabled={isSubmitting || !nombre.trim() || !tipo}
           >
             {isSubmitting ? 'Guardando...' : (aerolineaToEdit ? 'Actualizar Aerolínea' : 'Crear Aerolínea')}
           </button>

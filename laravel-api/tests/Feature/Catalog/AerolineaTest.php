@@ -76,15 +76,18 @@ class AerolineaTest extends TestCase
 
         $payload = [
             'nombre' => 'Conviasa',
+            'tipo' => 'nacional',
         ];
 
         $response = $this->postJson('/api/v1/catalog/aerolineas', $payload);
 
         $response->assertStatus(201)
-            ->assertJsonPath('data.nombre', 'Conviasa');
+            ->assertJsonPath('data.nombre', 'Conviasa')
+            ->assertJsonPath('data.tipo', 'nacional');
 
         $this->assertDatabaseHas('aerolinea', [
             'nombre' => 'Conviasa',
+            'tipo' => 'nacional',
         ]);
     }
 
@@ -96,6 +99,7 @@ class AerolineaTest extends TestCase
 
         $response = $this->postJson('/api/v1/catalog/aerolineas', [
             'nombre' => 'Laser Airlines',
+            'tipo' => 'nacional',
         ]);
 
         $response->assertStatus(422)
@@ -108,6 +112,7 @@ class AerolineaTest extends TestCase
 
         $response = $this->postJson('/api/v1/catalog/aerolineas', [
             'nombre' => '',
+            'tipo' => '',
         ]);
 
         $response->assertStatus(422)
@@ -122,15 +127,36 @@ class AerolineaTest extends TestCase
 
         $response = $this->putJson("/api/v1/catalog/aerolineas/{$aerolinea->id}", [
             'nombre' => 'Laser Airlines C.A.',
+            'tipo' => 'internacional',
         ]);
 
         $response->assertStatus(200)
-            ->assertJsonPath('data.nombre', 'Laser Airlines C.A.');
+            ->assertJsonPath('data.nombre', 'Laser Airlines C.A.')
+            ->assertJsonPath('data.tipo', 'internacional');
 
         $this->assertDatabaseHas('aerolinea', [
             'id' => $aerolinea->id,
             'nombre' => 'Laser Airlines C.A.',
+            'tipo' => 'internacional',
         ]);
+    }
+
+    public function test_aerolineas_are_ordered_national_then_international_and_unclassified(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        Aerolinea::create(['nombre' => 'Zeta Internacional', 'tipo' => 'internacional']);
+        Aerolinea::create(['nombre' => 'Aerolínea Sin Clasificar']);
+        Aerolinea::create(['nombre' => 'Zulu Nacional', 'tipo' => 'nacional']);
+        Aerolinea::create(['nombre' => 'Alpha Nacional', 'tipo' => 'nacional']);
+
+        $response = $this->getJson('/api/v1/catalog/aerolineas?all=1');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.0.nombre', 'Alpha Nacional')
+            ->assertJsonPath('data.1.nombre', 'Zulu Nacional')
+            ->assertJsonPath('data.2.nombre', 'Zeta Internacional')
+            ->assertJsonPath('data.3.nombre', 'Aerolínea Sin Clasificar');
     }
 
     public function test_can_delete_unused_aerolinea(): void

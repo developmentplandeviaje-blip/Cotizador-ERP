@@ -33,6 +33,8 @@ class AerolineaService
             $query->where('nombre', 'like', $search);
         }
 
+        $query->orderByRaw("CASE tipo WHEN 'nacional' THEN 0 WHEN 'internacional' THEN 1 ELSE 2 END");
+
         // Sorting
         $sortBy = $filters['sort_by'] ?? 'nombre';
         $sortDir = strtolower($filters['sort_dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
@@ -60,6 +62,7 @@ class AerolineaService
         return DB::transaction(function () use ($data) {
             return Aerolinea::create([
                 'nombre' => trim($data['nombre']),
+                'tipo' => $data['tipo'],
             ]);
         });
     }
@@ -72,6 +75,7 @@ class AerolineaService
         return DB::transaction(function () use ($aerolinea, $data) {
             $aerolinea->update([
                 'nombre' => trim($data['nombre']),
+                'tipo' => $data['tipo'],
             ]);
             return $aerolinea->fresh();
         });

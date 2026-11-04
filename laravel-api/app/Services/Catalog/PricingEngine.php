@@ -35,6 +35,28 @@ class PricingEngine
         return round($basePrice + $markup, 2);
     }
 
+    public function normalizeHotelAdolescentPassengers(array $hotelData, ?string $adolescentAgeRange, bool $hideCosts = false): array
+    {
+        $adolescents = (int) ($hotelData['adolescente'] ?? 0);
+        if ($adolescents <= 0) {
+            return $hotelData;
+        }
+
+        $hasAdolescentAgeRange = preg_match('/\d/', trim($adolescentAgeRange ?? '')) === 1;
+        $hasAdolescentPrice = (float) ($hotelData['precio_noche_adolescente'] ?? 0) > 0;
+        $hasAdolescentCost = (float) ($hotelData['costo_noche_adolescente'] ?? 0) > 0;
+        $hasAdolescentRate = $hasAdolescentPrice && ($hideCosts || $hasAdolescentCost);
+
+        if ($hasAdolescentAgeRange && $hasAdolescentRate) {
+            return $hotelData;
+        }
+
+        $hotelData['adultos'] = (int) ($hotelData['adultos'] ?? 0) + $adolescents;
+        $hotelData['adolescente'] = 0;
+
+        return $hotelData;
+    }
+
     /**
      * Sanitize and format a rate object according to user permissions.
      */

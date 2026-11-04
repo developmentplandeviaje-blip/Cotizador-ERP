@@ -15,6 +15,7 @@ class StoreAerolineaRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:200', 'unique:aerolinea,nombre'],
+            'tipo' => ['required', 'in:nacional,internacional'],
         ];
     }
 
@@ -24,6 +25,8 @@ class StoreAerolineaRequest extends FormRequest
             'nombre.required' => 'El nombre de la aerolínea es obligatorio.',
             'nombre.max' => 'El nombre de la aerolínea no debe exceder los 200 caracteres.',
             'nombre.unique' => 'Ya existe una aerolínea registrada con este nombre.',
+            'tipo.required' => 'Debe seleccionar si la aerolínea es nacional o internacional.',
+            'tipo.in' => 'El tipo de aerolínea debe ser nacional o internacional.',
         ];
     }
 }

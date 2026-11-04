@@ -26,6 +26,7 @@ class UpdateAerolineaRequest extends FormRequest
                 'max:200',
                 Rule::unique('aerolinea', 'nombre')->ignore($aerolineaId),
             ],
+            'tipo' => ['required', 'in:nacional,internacional'],
         ];
     }
 
@@ -35,6 +36,8 @@ class UpdateAerolineaRequest extends FormRequest
             'nombre.required' => 'El nombre de la aerolínea es obligatorio.',
             'nombre.max' => 'El nombre de la aerolínea no debe exceder los 200 caracteres.',
             'nombre.unique' => 'Ya existe otra aerolínea registrada con este nombre.',
+            'tipo.required' => 'Debe seleccionar si la aerolínea es nacional o internacional.',
+            'tipo.in' => 'El tipo de aerolínea debe ser nacional o internacional.',
         ];
     }
 }

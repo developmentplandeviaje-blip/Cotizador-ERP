@@ -23,12 +23,15 @@ use App\Models\Quote\Venta;
 use App\Models\Quote\VueloVenta;
 use App\Models\SiteSetting;
 use App\Models\User;
+use App\Services\Catalog\PricingEngine;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CotizacionService
 {
+    public function __construct(private readonly PricingEngine $pricingEngine) {}
+
     /**
      * Obtiene los catálogos de productos para el cotizador,
      * aplicando enmascaramiento de costos netos si el usuario es Freelancer (US-03).
@@ -42,7 +45,9 @@ class CotizacionService
             ->where('status', true)
             ->orderBy('nombre')
             ->get();
-        $aerolineas = Aerolinea::orderBy('nombre')->get();
+        $aerolineas = Aerolinea::orderByRaw("CASE tipo WHEN 'nacional' THEN 0 WHEN 'internacional' THEN 1 ELSE 2 END")
+            ->orderBy('nombre')
+            ->get();
         $excursiones = Excursion::orderBy('tipo_excursion')->get();
         $paquetes = Paquete::orderBy('paquete')->get();
 
@@ -231,36 +236,42 @@ class CotizacionService
             // Guardar Ítems: Hoteles
             if (!empty($data['hoteles']) && is_array($data['hoteles'])) {
                 foreach ($data['hoteles'] as $h) {
+                    $hotel = Hotel::find($h['id_hotel']);
+                    $hotelData = $this->pricingEngine->normalizeHotelAdolescentPassengers(
+                        $h,
+                        $hotel?->edad_adolescentes,
+                        $user->level === 'Freelancer' || !empty($user->id_freelancer)
+                    );
                     HotelVenta::create([
                         'id_venta' => $venta->id,
-                        'id_hotel' => $h['id_hotel'],
-                        'id_habitacion' => $h['id_habitacion'] ?? 0,
-                        'tipo' => $h['tipo'] ?? 'Habitacion',
+                        'id_hotel' => $hotelData['id_hotel'],
+                        'id_habitacion' => $hotelData['id_habitacion'] ?? 0,
+                        'tipo' => $hotelData['tipo'] ?? 'Habitacion',
 
-                        'noches' => $h['noches'] ?? 1,
-                        'adultos' => $h['adultos'] ?? 0,
-                        'adolescente' => $h['adolescente'] ?? 0,
-                        'ninos' => $h['ninos'] ?? 0,
-                        'infantes' => $h['infantes'] ?? 0,
-                        'costo_noche_adulto' => $h['costo_noche_adulto'] ?? 0,
-                        'costo_noche_adolescente' => $h['costo_noche_adolescente'] ?? 0,
-                        'costo_noche_nino' => $h['costo_noche_nino'] ?? 0,
-                        'precio_noche_adulto' => $h['precio_noche_adulto'] ?? 0,
-                        'precio_noche_adolescente' => $h['precio_noche_adolescente'] ?? 0,
-                        'precio_noche_nino' => $h['precio_noche_nino'] ?? 0,
-                        'localizador' => $h['localizador'] ?? $localizador,
-                        'fecha_checkin' => $h['fecha_checkin'] ?? $venta->checkin,
-                        'fecha_checkout' => $h['fecha_checkout'] ?? $venta->checkout,
+                        'noches' => $hotelData['noches'] ?? 1,
+                        'adultos' => $hotelData['adultos'] ?? 0,
+                        'adolescente' => $hotelData['adolescente'] ?? 0,
+                        'ninos' => $hotelData['ninos'] ?? 0,
+                        'infantes' => $hotelData['infantes'] ?? 0,
+                        'costo_noche_adulto' => $hotelData['costo_noche_adulto'] ?? 0,
+                        'costo_noche_adolescente' => $hotelData['costo_noche_adolescente'] ?? 0,
+                        'costo_noche_nino' => $hotelData['costo_noche_nino'] ?? 0,
+                        'precio_noche_adulto' => $hotelData['precio_noche_adulto'] ?? 0,
+                        'precio_noche_adolescente' => $hotelData['precio_noche_adolescente'] ?? 0,
+                        'precio_noche_nino' => $hotelData['precio_noche_nino'] ?? 0,
+                        'localizador' => $hotelData['localizador'] ?? $localizador,
+                        'fecha_checkin' => $hotelData['fecha_checkin'] ?? $venta->checkin,
+                        'fecha_checkout' => $hotelData['fecha_checkout'] ?? $venta->checkout,
                         'estado' => 'Pendiente',
-                        'fecha_limite' => $h['fecha_limite'] ?? now()->addDays(2)->toDateTimeString(),
-                        'precio_noche_adulto_descuento' => $h['precio_noche_adulto_descuento'] ?? 0,
+                        'fecha_limite' => $hotelData['fecha_limite'] ?? now()->addDays(2)->toDateTimeString(),
+                        'precio_noche_adulto_descuento' => $hotelData['precio_noche_adulto_descuento'] ?? 0,
 
-                        'precio_noche_adolescente_descuento' => $h['precio_noche_adolescente_descuento'] ?? 0,
-                        'precio_noche_nino_descuento' => $h['precio_noche_nino_descuento'] ?? 0,
-                        'total_descuento' => $h['total_descuento'] ?? 0,
-                        'ninos_gratis' => $h['ninos_gratis'] ?? 0,
-                        'noches_gratis' => $h['noches_gratis'] ?? 0,
-                        'promocion' => $h['promocion'] ?? 0,
+                        'precio_noche_adolescente_descuento' => $hotelData['precio_noche_adolescente_descuento'] ?? 0,
+                        'precio_noche_nino_descuento' => $hotelData['precio_noche_nino_descuento'] ?? 0,
+                        'total_descuento' => $hotelData['total_descuento'] ?? 0,
+                        'ninos_gratis' => $hotelData['ninos_gratis'] ?? 0,
+                        'noches_gratis' => $hotelData['noches_gratis'] ?? 0,
+                        'promocion' => $hotelData['promocion'] ?? 0,
                     ]);
                 }
             }
@@ -493,16 +504,21 @@ class CotizacionService
             $items = [];
 
             foreach ($v->hoteles as $h) {
-                $monto = ($h->precio_noche_adulto * max(1, (int)$h->adultos)
-                    + $h->precio_noche_adolescente * (int)($h->adolescente ?? 0)
-                    + $h->precio_noche_nino * (int)($h->ninos ?? 0)) * max(1, (int)$h->noches);
+                $hotelData = $this->pricingEngine->normalizeHotelAdolescentPassengers(
+                    $h->toArray(),
+                    $h->hotel?->edad_adolescentes,
+                    $user->level === 'Freelancer' || !empty($user->id_freelancer)
+                );
+                $monto = ($hotelData['precio_noche_adulto'] * max(1, (int)$hotelData['adultos'])
+                    + $hotelData['precio_noche_adolescente'] * (int)($hotelData['adolescente'] ?? 0)
+                    + $hotelData['precio_noche_nino'] * (int)($hotelData['ninos'] ?? 0)) * max(1, (int)$hotelData['noches']);
                 $totalUSD += $monto;
                 $items[] = [
                     'tipo' => 'hotel',
                     'titulo' => 'Hotel: ' . ($h->hotel?->nombre ?? 'Hotel'),
-                    'detalle' => "{$h->noches} noches • Habitación: " . ($h->tipo_habitacion ?? 'Estándar'),
+                    'detalle' => "{$hotelData['noches']} noches • Habitación: " . ($h->tipo_habitacion ?? 'Estándar'),
                     'precio' => $monto,
-                    'data' => $h,
+                    'data' => $hotelData,
                 ];
             }
 

@@ -15,6 +15,7 @@ class Aerolinea extends Model
 
     protected $fillable = [
         'nombre',
+        'tipo',
     ];
 
     protected $casts = [

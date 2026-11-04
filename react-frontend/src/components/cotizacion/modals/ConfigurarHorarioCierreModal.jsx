@@ -18,6 +18,10 @@ export default function ConfigurarHorarioCierreModal({
   const [saving, setSaving] = useState(false);
   const [executingManual, setExecutingManual] = useState(false);
   const [showCleanupConfirmation, setShowCleanupConfirmation] = useState(false);
+  const [hora24 = '18', minutos = '00'] = (hora || '18:00').split(':');
+  const hora24Numero = Number(hora24);
+  const hora12 = String((hora24Numero % 12) || 12).padStart(2, '0');
+  const periodo = hora24Numero >= 12 ? 'pm' : 'am';
 
   useEffect(() => {
     if (config) {
@@ -171,16 +175,50 @@ export default function ConfigurarHorarioCierreModal({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: '600', color: '#E2E8F0', marginBottom: '6px' }}>
-              Hora de Cierre / Corte
+              Hora de Cierre
             </label>
-            <input
-              type="time"
-              value={hora}
-              onChange={(e) => setHora(e.target.value)}
-              disabled={!activo}
-              required
-              className='erp-input'
-            />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: '6px' }}>
+              <CustomSelect
+                value={hora12}
+                onChange={(e) => {
+                  const hour = (Number(e.target.value) % 12) + (periodo === 'pm' ? 12 : 0);
+                  setHora(`${String(hour).padStart(2, '0')}:${minutos}`);
+                }}
+                disabled={!activo}
+                searchable={false}
+                className="select-tipo-doc"
+              >
+                {Array.from({ length: 12 }, (_, index) => {
+                  const value = String(index === 0 ? 12 : index).padStart(2, '0');
+                  return <option key={value} value={value}>{value}</option>;
+                })}
+              </CustomSelect>
+              <CustomSelect
+                value={minutos}
+                onChange={(e) => setHora(`${hora24}:${e.target.value}`)}
+                disabled={!activo}
+                searchable={false}
+                className="select-tipo-doc"
+              >
+                {Array.from({ length: 60 }, (_, minute) => {
+                  const value = String(minute).padStart(2, '0');
+                  return <option key={value} value={value}>{value}</option>;
+                })}
+              </CustomSelect>
+              <CustomSelect
+                value={periodo}
+                onChange={(e) => {
+                  const hour = (hora24Numero % 12) + (e.target.value === 'pm' ? 12 : 0);
+                  setHora(`${String(hour).padStart(2, '0')}:${minutos}`);
+                }}
+                disabled={!activo}
+                searchable={false}
+                className="select-tipo-doc"
+              >
+                <option value="am">a. m.</option>
+                <option value="pm">p. m.</option>
+              </CustomSelect>
+            </div>
           </div>
 
           <div>
