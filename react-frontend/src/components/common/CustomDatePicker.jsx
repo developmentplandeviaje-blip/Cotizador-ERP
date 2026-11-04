@@ -36,6 +36,7 @@ export default function CustomDatePicker({
     bottom: 8,
     left: 8,
     width: 320,
+    maxHeight: 365,
   });
 
   const containerRef = useRef(null);
@@ -115,8 +116,7 @@ export default function CustomDatePicker({
     const spaceBelow = window.innerHeight - rect.bottom;
     const spaceAbove = rect.top;
 
-    // Calendar needs approx 365px (date) or 400px (datetime-local)
-    const neededHeight = isDateTime ? 400 : 365;
+    const neededHeight = popoverRef.current?.scrollHeight || (isDateTime ? 400 : 365);
 
     // Flip upwards if space below is insufficient and space above is greater
     const shouldOpenUp = spaceBelow < neededHeight && spaceAbove > spaceBelow;
@@ -137,6 +137,7 @@ export default function CustomDatePicker({
       bottom: Math.max(8, window.innerHeight - rect.top + 8),
       left: popoverLeft,
       width: popoverWidth,
+      maxHeight: Math.max(120, Math.min(neededHeight, Math.max(spaceAbove, spaceBelow) - 16)),
     });
   }, [isDateTime]);
 
@@ -498,7 +499,7 @@ export default function CustomDatePicker({
             left: placement.left,
             right: 'auto',
             width: placement.width,
-            maxHeight: 'calc(100vh - 16px)',
+            maxHeight: `${placement.maxHeight}px`,
             overflowY: 'auto',
           }}
         >

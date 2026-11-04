@@ -1243,7 +1243,7 @@ export default function CotizacionTabContent({
         uid,
         tipo: 'vuelo',
         titulo: `${aeroObj.nombre || 'Aerolínea'} - ${vueloForm.itinerario || 'Ruta'}`,
-        detalle: `Salida: ${vueloForm.fecha_vuelo || 'Por definir'} • Retorno: ${vueloForm.fecha_retorno || 'Por definir'} • ${adultosConAdolescentes}ADL ${pax.ninos > 0 ? `, ${pax.ninos}CHD` : ''}${pax.infantes > 0 ? `, ${pax.infantes}INF` : ''}`,
+        detalle: `Salida: ${vueloForm.fecha_vuelo || 'Por definir'} • Retorno: ${vueloForm.fecha_retorno || 'Por definir'} • ${adultosConAdolescentes} ADL ${pax.ninos > 0 ? `, ${pax.ninos} CHD` : ''}${pax.infantes > 0 ? `, ${pax.infantes} INF` : ''}`,
         precio: totalItem,
         hotel_item_uid: vueloForm.hotel_item_uid || null,
         data: {
