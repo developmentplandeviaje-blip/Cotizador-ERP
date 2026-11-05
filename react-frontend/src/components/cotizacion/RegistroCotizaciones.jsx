@@ -44,14 +44,12 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
       if (!searchTerm.trim()) return true;
 
       const term = searchTerm.toLowerCase();
-      const loc = (item.localizador || '').toLowerCase();
       const ficha = String(item.numero_ficha || '').toLowerCase();
       const cliente = (item.cliente?.nombre_completo || item.cliente?.nombres || '').toLowerCase();
       const doc = (item.cliente?.documento || '').toLowerCase();
       const asesor = (item.asesor || '').toLowerCase();
 
       return (
-        loc.includes(term) ||
         ficha.includes(term) ||
         cliente.includes(term) ||
         doc.includes(term) ||
@@ -233,7 +231,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
           <input
             type="text"
             className="erp-input"
-            placeholder="Buscar por cliente, cédula, localizador o asesor..."
+            placeholder="Buscar por ficha, cliente, cédula o asesor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
@@ -388,7 +386,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                     letterSpacing: '0.05em',
                   }}
                 >
-                  <th style={{ padding: '14px 18px' }}>Localizador / Ficha</th>
+                  <th style={{ padding: '14px 18px' }}>Número de ficha</th>
                   <th style={{ padding: '14px 18px' }}>Fecha y Hora</th>
                   <th style={{ padding: '14px 18px' }}>Cliente Principal</th>
                   <th style={{ padding: '14px 18px' }}>Asesor</th>
@@ -416,7 +414,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
                       onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 0.03)'}
                     >
-                      {/* Localizador */}
+                      {/* Número de ficha */}
                       <td style={{ padding: '14px 18px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span
@@ -427,11 +425,8 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                               fontSize: '0.9rem',
                             }}
                           >
-                            {cotiz.localizador}
+                            {cotiz.numero_ficha || cotiz.id}
                           </span>
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#b9c8dd' }}>
-                          Ficha #{cotiz.numero_ficha || cotiz.id}
                         </div>
                       </td>
 

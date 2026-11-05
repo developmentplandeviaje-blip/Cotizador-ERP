@@ -12,6 +12,7 @@ class Venta extends Model
 {
     protected $table = 'ventas';
     public $timestamps = false;
+    protected $hidden = ['localizador'];
 
     protected $fillable = [
         'id_user',
@@ -38,6 +39,17 @@ class Venta extends Model
         'descuento_monto' => 'decimal:2',
         'descuento_referidos_monto' => 'decimal:2',
     ];
+
+    public static function formatearNumeroFicha(?User $user, int|string $id): string
+    {
+        $nombre = trim((string) $user?->first_name);
+        $apellido = trim((string) $user?->last_name);
+        $iniciales = mb_strtoupper(
+            mb_substr($nombre, 0, 1) . mb_substr($apellido, 0, 1)
+        );
+
+        return ($iniciales !== '' ? $iniciales : 'US') . $id;
+    }
 
     public function user(): BelongsTo
     {

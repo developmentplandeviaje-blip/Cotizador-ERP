@@ -36,6 +36,7 @@ export default function HotelList({ user }) {
   const [deleteError, setDeleteError] = useState('');
 
   const isFreelancer = user?.level === 'Freelancer';
+  const canManageHotelTypes = ['Admin', 'Administrador', 'Sub Gerente'].includes(user?.level);
 
   useEffect(() => {
     fetchHotels();
@@ -117,6 +118,7 @@ export default function HotelList({ user }) {
           fetchHotels();
         }}
         isFreelancer={isFreelancer}
+        canManageHotelTypes={canManageHotelTypes}
       />
     );
   }
@@ -520,6 +522,7 @@ export default function HotelList({ user }) {
         onSaveSuccess={fetchHotels}
         hotelToEdit={hotelToEdit}
         isFreelancer={isFreelancer}
+        canManageHotelTypes={canManageHotelTypes}
       />
 
       <DescuentoMasivoModal

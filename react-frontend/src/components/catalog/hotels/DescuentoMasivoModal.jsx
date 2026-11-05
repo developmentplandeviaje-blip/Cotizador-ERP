@@ -121,7 +121,6 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
                     <CustomSelect
                         value={ubicacionId}
                         onChange={(e) => setUbicacionId(e.target.value)}
-                        className="erp-select"
                         disabled={isSubmitting}
                     >
                         <option value="ALL">Todas las Ubicaciones</option>

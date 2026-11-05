@@ -25,7 +25,6 @@ use App\Models\SiteSetting;
 use App\Models\User;
 use App\Services\Catalog\PricingEngine;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CotizacionService
@@ -178,15 +177,11 @@ class CotizacionService
     public function crearCotizacion(User $user, array $data): Venta
     {
         return DB::transaction(function () use ($user, $data) {
-            $maxFicha = Venta::max('numero_ficha') ?? 1000;
-            $numeroFicha = $maxFicha + 1;
-            $localizador = 'COT-' . strtoupper(Str::random(6));
-
             $venta = Venta::create([
                 'id_user' => $user->id,
                 'id_referidos' => $data['id_referidos'] ?? null,
-                'numero_ficha' => $numeroFicha,
-                'localizador' => $localizador,
+                'numero_ficha' => 'PENDING',
+                'localizador' => 'PENDING',
                 'estado' => 'Cotizacion',
                 'tipo_pago' => $data['tipo_pago'] ?? 'Total',
                 'checkin' => $data['checkin'] ?? null,
@@ -199,6 +194,12 @@ class CotizacionService
                 'observacion' => $data['observacion'] ?? null,
                 'fecha_creacion' => now(),
             ]);
+            $numeroFicha = Venta::formatearNumeroFicha($user, $venta->id);
+            $venta->update([
+                'numero_ficha' => $numeroFicha,
+                'localizador' => $numeroFicha,
+            ]);
+            $localizador = $numeroFicha;
 
             // Cliente principal
             if (!empty($data['cliente'])) {
@@ -621,7 +622,6 @@ class CotizacionService
                 'uid' => 'venta_' . $v->id,
                 'tipo_registro' => 'formal',
                 'tipo_label' => 'Cotización Formal',
-                'localizador' => $v->localizador,
                 'numero_ficha' => $v->numero_ficha,
                 'fecha' => $v->fecha_creacion,
                 'asesor' => $v->user?->name ?? 'Asesor',
@@ -663,8 +663,7 @@ class CotizacionService
                 'uid' => 'rapida_' . $r->id,
                 'tipo_registro' => 'rapida',
                 'tipo_label' => 'Cotización Rápida',
-                'localizador' => 'RAP-' . str_pad($r->id, 5, '0', STR_PAD_LEFT),
-                'numero_ficha' => $r->id,
+                'numero_ficha' => $r->numero_ficha,
                 'fecha' => $r->fecha,
                 'asesor' => $r->asesor?->name ?? 'Asesor',
                 'cliente' => [

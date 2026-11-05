@@ -91,7 +91,7 @@ export default function UserAliadoModal({ isOpen, onClose, onSave, aliadoToEdit 
       title={aliadoToEdit ? 'Editar Empresa Aliada' : 'Nueva Empresa Aliada'}
       width="500px"
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px' }}>
+      <form onSubmit={handleSubmit} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px' }}>
         {errorMessage && (
           <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '8px', color: '#FCA5A5', padding: '12px', fontSize: '0.875rem' }}>
             {errorMessage}
@@ -100,45 +100,51 @@ export default function UserAliadoModal({ isOpen, onClose, onSave, aliadoToEdit 
 
         <div>
           <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>Razón Social <span style={{ color: '#EF4444' }}>*</span></label>
-          <input type="text" required maxLength={100} value={razonSocial} onChange={(e) => setRazonSocial(e.target.value.slice(0, 100))} className="erp-input" style={{ width: '100%', borderColor: errors.razon_social ? '#EF4444' : undefined }} />
+          <input type="text" autoComplete="off" required maxLength={100} value={razonSocial} onChange={(e) => setRazonSocial(e.target.value.slice(0, 100))} className="erp-input" placeholder='Ej. Travel Agency C.A.' style={{ width: '100%', borderColor: errors.razon_social ? '#EF4444' : undefined }} />
           {errors.razon_social && <span style={{ fontSize: '0.75rem', color: '#EF4444' }}>{errors.razon_social[0]}</span>}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>RIF / Identificación (máx. 12 dígitos)</label>
-            <input type="text" maxLength={12} value={rif} onChange={(e) => setRif(formatCedula(e.target.value))} placeholder="12345678" className="erp-input" style={{ width: '100%', borderColor: errors.rif ? '#EF4444' : undefined }} />
+            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>RIF <span style={{ color: '#EF4444' }}>*</span></label>
+            <input type="text" autoComplete="off" required maxLength={12} value={rif} onChange={(e) => setRif(formatCedula(e.target.value))} placeholder="12345678" className="erp-input" style={{ width: '100%', borderColor: errors.rif ? '#EF4444' : undefined }} />
             {errors.rif && <span style={{ fontSize: '0.75rem', color: '#EF4444' }}>{errors.rif[0]}</span>}
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>Contacto Principal</label>
-            <input type="text" maxLength={60} value={contactoPrincipal} onChange={(e) => setContactoPrincipal(e.target.value.slice(0, 60))} placeholder="Nombre del contacto" className="erp-input" style={{ width: '100%' }} />
+            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>Contacto Principal  <span style={{ color: '#EF4444' }}>*</span></label>
+            <input type="text" autoComplete="off" required maxLength={60} value={contactoPrincipal} onChange={(e) => setContactoPrincipal(e.target.value.slice(0, 60))} placeholder="Nombre del contacto" className="erp-input" style={{ width: '100%' }} />
           </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>Teléfono (máx. 15 dígitos)</label>
-            <input type="text" maxLength={15} value={telefono} onChange={(e) => setTelefono(formatTelefono(e.target.value))} placeholder="+584121234567" className="erp-input" style={{ width: '100%' }} />
+            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>Teléfono:  <span style={{ color: '#EF4444' }}>*</span></label>
+            <input type="text" autoComplete="off" required maxLength={15} value={telefono} onChange={(e) => setTelefono(formatTelefono(e.target.value))} placeholder="+584121234567" className="erp-input" style={{ width: '100%' }} />
           </div>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: 0 }}>Correo Electrónico</label>
+              <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: 0 }}>Correo Electrónico <span style={{ color: '#EF4444' }}>*</span></label>
               {correo && (
                 <span style={{ fontSize: '0.7rem', color: validateEmail(correo).isValid ? '#10B981' : '#F59E0B' }}>
                   {validateEmail(correo).isValid ? '✓ Válido' : validateEmail(correo).message}
                 </span>
               )}
             </div>
-            <input type="email" maxLength={50} value={correo} onChange={(e) => setCorreo(formatEmail(e.target.value))} placeholder="aliado@correo.com" className="erp-input" style={{ width: '100%' }} />
+            <input type="email" autoComplete="off" required maxLength={50} value={correo} onChange={(e) => setCorreo(formatEmail(e.target.value))} placeholder="aliado@correo.com" className="erp-input" style={{ width: '100%' }} />
           </div>
         </div>
 
         <div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem', marginTop: '8px' }}>
-            <input type="checkbox" checked={status} onChange={(e) => setStatus(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#2563EB', cursor: 'pointer' }} />
-            <span>Habilitado (Activo)</span>
-          </label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={status}
+            onClick={() => setStatus((currentStatus) => !currentStatus)}
+            className={`status-toggle-button${status ? ' is-active' : ''}`}
+            style={{ marginTop: '8px' }}
+          >
+            {status ? 'Habilitado' : 'Desactivado'}
+          </button>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>

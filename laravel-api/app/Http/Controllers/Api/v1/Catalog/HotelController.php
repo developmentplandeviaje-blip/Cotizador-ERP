@@ -7,16 +7,108 @@ use App\Http\Requests\Catalog\StoreHotelRequest;
 use App\Http\Requests\Catalog\UpdateHotelRequest;
 use App\Http\Resources\Catalog\HotelResource;
 use App\Models\Catalog\Hotel;
+use App\Models\Catalog\HotelTipo;
 use App\Services\Catalog\HotelService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\Rule;
 
 class HotelController extends Controller
 {
+    private const DEFAULT_HOTEL_TYPES = [
+        'Todo Incluido',
+        'Pensión Completa',
+        'Media Pensión',
+        'Solo Desayuno',
+    ];
+
     public function __construct(
         protected HotelService $hotelService
     ) {}
+
+    public function tipos(): JsonResponse
+    {
+        $tipos = HotelTipo::query()
+            ->orderBy('nombre')
+            ->get()
+            ->map(fn (HotelTipo $tipo) => [
+                'id' => $tipo->id,
+                'nombre' => $tipo->nombre,
+                'eliminable' => !in_array($tipo->nombre, self::DEFAULT_HOTEL_TYPES, true),
+            ]);
+
+        Hotel::query()
+            ->select('tipo')
+            ->distinct()
+            ->orderBy('tipo')
+            ->pluck('tipo')
+            ->map(fn (string $tipo) => trim($tipo))
+            ->filter()
+            ->each(function (string $tipo) use ($tipos): void {
+                if (!$tipos->contains(fn (array $catalogType) => mb_strtolower($catalogType['nombre']) === mb_strtolower($tipo))) {
+                    $tipos->push([
+                        'id' => null,
+                        'nombre' => $tipo,
+                        'eliminable' => false,
+                    ]);
+                }
+            });
+
+        return response()->json(['data' => $tipos]);
+    }
+
+    public function storeTipo(Request $request): JsonResponse
+    {
+        $this->ensureAdmin($request);
+        $request->merge(['nombre' => trim((string) $request->input('nombre'))]);
+
+        $validated = $request->validate([
+            'nombre' => [
+                'required',
+                'string',
+                'max:300',
+                Rule::unique('hotel_tipo', 'nombre'),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (Hotel::query()->whereRaw('LOWER(TRIM(tipo)) = ?', [mb_strtolower(trim($value))])->exists()) {
+                        $fail('Este tipo de hotel ya existe.');
+                    }
+                },
+            ],
+        ], [
+            'nombre.required' => 'El nombre del tipo de hotel es obligatorio.',
+            'nombre.unique' => 'Este tipo de hotel ya existe.',
+        ]);
+
+        $tipo = HotelTipo::create(['nombre' => $validated['nombre']]);
+
+        return response()->json([
+            'data' => [
+                'id' => $tipo->id,
+                'nombre' => $tipo->nombre,
+                'eliminable' => true,
+            ],
+        ], 201);
+    }
+
+    public function destroyTipo(Request $request, HotelTipo $hotelTipo): JsonResponse
+    {
+        $this->ensureAdmin($request);
+
+        if (in_array($hotelTipo->nombre, self::DEFAULT_HOTEL_TYPES, true)) {
+            return response()->json(['message' => 'Los tipos de hotel predeterminados no se pueden eliminar.'], 422);
+        }
+
+        if (Hotel::query()->where('tipo', $hotelTipo->nombre)->exists()) {
+            return response()->json([
+                'message' => 'No se puede eliminar este tipo porque está asignado a uno o más hoteles.',
+            ], 409);
+        }
+
+        $hotelTipo->delete();
+
+        return response()->json(['message' => 'Tipo de hotel eliminado correctamente.']);
+    }
 
     public function index(Request $request): AnonymousResourceCollection
     {
@@ -87,6 +179,14 @@ class HotelController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error aplicando el descuento masivo', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function ensureAdmin(Request $request): void
+    {
+        $user = $request->user();
+        if (!$user || !in_array($user->level, ['Admin', 'Administrador', 'Sub Gerente'], true)) {
+            abort(403, 'Acceso restringido a administradores.');
         }
     }
 }

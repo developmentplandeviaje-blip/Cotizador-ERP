@@ -184,7 +184,6 @@ class VentaService
             $lista[] = [
                 'id' => $v->id,
                 'numero_ficha' => $v->numero_ficha,
-                'localizador' => $v->localizador,
                 'estado' => $v->estado,
                 'tipo_pago' => $v->tipo_pago,
                 'fecha_creacion' => $v->fecha_creacion,
@@ -710,7 +709,7 @@ class VentaService
                 FerryVenta::where('id_venta', $venta->id)->delete();
                 OtroVenta::where('id_venta', $venta->id)->delete();
 
-                $localizador = $venta->localizador;
+                $localizador = $venta->numero_ficha;
 
                 if (!empty($data['hoteles']) && is_array($data['hoteles'])) {
                     foreach ($data['hoteles'] as $h) {

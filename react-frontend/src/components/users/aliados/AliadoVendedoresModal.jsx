@@ -189,7 +189,7 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
         {!isFormOpen ? (
           <>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={handleOpenCreate} className="btn-primary" style={{ padding: '6px 14px', fontSize: '0.8125rem' }}>
+              <button onClick={handleOpenCreate} className="btn-accent" style={{ padding: '6px 14px', fontSize: '0.8125rem' }}>
                 + Agregar Vendedor
               </button>
             </div>
@@ -320,7 +320,7 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
             </div>
           </>
         ) : (
-          <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSave} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '1rem', color: '#FFF', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
               {vendedorToEdit ? `Editar Vendedor: ${vendedorToEdit.first_name} ${vendedorToEdit.last_name}` : 'Nuevo Vendedor'}
             </h3>
@@ -384,58 +384,47 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '4px' }}>Nombres *</label>
-                    <input type="text" required maxLength={50} value={firstName} onChange={e => setFirstName(e.target.value.slice(0, 50))} className="erp-input" style={{ width: '100%', borderColor: errors.first_name ? '#EF4444' : undefined }} />
+                    <label style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '4px' }}>Nombres <span style={{ color: '#EF4444', fontSize: '1rem', fontWeight: '700' }}>*</span></label>
+                    <input type="text" autoComplete="off" required maxLength={50} value={firstName} onChange={e => setFirstName(e.target.value.slice(0, 50))} className="erp-input" placeholder="Ej. Carlos" style={{ width: '100%', borderColor: errors.first_name ? '#EF4444' : undefined }} />
                     {errors.first_name && <span style={{ fontSize: '0.75rem', color: '#EF4444' }}>{errors.first_name[0]}</span>}
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '4px' }}>Apellidos *</label>
-                    <input type="text" required maxLength={50} value={lastName} onChange={e => setLastName(e.target.value.slice(0, 50))} className="erp-input" style={{ width: '100%', borderColor: errors.last_name ? '#EF4444' : undefined }} />
+                    <label style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '4px' }}>Apellidos <span style={{ color: '#EF4444', fontSize: '1rem', fontWeight: '700' }}>*</span></label>
+                    <input type="text" autoComplete="off" required maxLength={50} value={lastName} onChange={e => setLastName(e.target.value.slice(0, 50))} className="erp-input" placeholder="Ej. Pérez" style={{ width: '100%', borderColor: errors.last_name ? '#EF4444' : undefined }} />
                     {errors.last_name && <span style={{ fontSize: '0.75rem', color: '#EF4444' }}>{errors.last_name[0]}</span>}
                   </div>
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <label style={{ fontSize: '0.8125rem', color: '#E2E8F0', margin: 0 }}>Correo Electrónico *</label>
+                    <label style={{ fontSize: '0.8125rem', color: '#E2E8F0', margin: 0 }}>Correo Electrónico <span style={{ color: '#EF4444', fontSize: '1rem', fontWeight: '700' }}>*</span></label>
                     {email && (
                       <span style={{ fontSize: '0.7rem', color: validateEmail(email).isValid ? '#10B981' : '#F59E0B' }}>
                         {validateEmail(email).isValid ? '✓ Válido' : validateEmail(email).message}
                       </span>
                     )}
                   </div>
-                  <input type="email" required maxLength={50} value={email} onChange={e => setEmail(formatEmail(e.target.value))} className="erp-input" style={{ width: '100%', borderColor: errors.email || (email && !validateEmail(email).isValid) ? '#EF4444' : undefined }} />
+                  <input type="email" autoComplete="off" required maxLength={50} value={email} onChange={e => setEmail(formatEmail(e.target.value))} className="erp-input" placeholder="VendedorAliado@ejemplo.com" style={{ width: '100%', borderColor: errors.email || (email && !validateEmail(email).isValid) ? '#EF4444' : undefined }} />
                   {errors.email && <span style={{ fontSize: '0.75rem', color: '#EF4444' }}>{errors.email[0]}</span>}
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '4px' }}>Contraseña {vendedorToEdit ? '(en blanco para mantener actual)' : '*'}</label>
-                  <input type="password" required={!vendedorToEdit} maxLength={50} value={password} onChange={e => setPassword(e.target.value.slice(0, 50))} className="erp-input" style={{ width: '100%', borderColor: errors.password ? '#EF4444' : undefined }} />
+                  <label style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '4px' }}>Contraseña {vendedorToEdit ? <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>(Dejar en blanco para conservar contraseña actual)</span> : <span style={{ color: '#EF4444', fontSize: '1rem', fontWeight: '700' }}>*</span>}</label>
+                  
+                  <input type="password" autoComplete="new-password" required={!vendedorToEdit} maxLength={50} value={password} onChange={e => setPassword(e.target.value.slice(0, 50))} className="erp-input" placeholder={vendedorToEdit ? '••••••••' : 'Mínimo 6 caracteres'} style={{ width: '100%', borderColor: errors.password ? '#EF4444' : undefined }} />
                   {errors.password && <span style={{ fontSize: '0.75rem', color: '#EF4444' }}>{errors.password[0]}</span>}
                 </div>
 
                 <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '8px' }}>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                    fontSize: '0.8125rem',
-                    fontWeight: '500',
-                    color: status ? '#38BDF8' : '#b9c8ddff',
-                    padding: '10px 16px',
-                    borderRadius: '12px',
-                    background: 'rgb(30, 41, 59)',
-                    transition: 'all 0.2s ease',
-                    boxShadow: status
-                      ? 'inset 3px 3px 6px rgb(0 0 0 / 74%), inset -3px -3px 6px rgb(255 255 255 / 22%)'
-                      : '3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.05)',
-                    border: status ? '1px solid rgba(37, 99, 235, 0.5)' : '1px solid transparent',
-                    userSelect: 'none'
-                  }}>
-                    <input type="checkbox" checked={status} onChange={(e) => setStatus(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#2563EB' }} />
-                    <span>Habilitado (Activo)</span>
-                  </label>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={status}
+                    onClick={() => setStatus((currentStatus) => !currentStatus)}
+                    className={`status-toggle-button${status ? ' is-active' : ''}`}
+                  >
+                    {status ? 'Habilitado' : 'Desactivado'}
+                  </button>
                 </div>
               </div>
             )}

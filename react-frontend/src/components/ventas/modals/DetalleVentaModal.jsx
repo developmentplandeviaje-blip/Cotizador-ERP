@@ -19,7 +19,7 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Ficha de Venta: ${venta.localizador}`}
+      title={`Ficha de Venta: ${venta.numero_ficha || venta.id}`}
       maxWidth="840px"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -100,7 +100,7 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
               </span>
             </div>
             <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: '6px' }}>
-              Ficha #{venta.numero_ficha || venta.id} • {venta.pax_total || 1} Pasajeros
+              Ficha {venta.numero_ficha || venta.id} • {venta.pax_total || 1} Pasajeros
             </div>
             {venta.fecha_confirmacion && (
               <div style={{ fontSize: '0.725rem', color: '#4ADE80', marginTop: '2px' }}>

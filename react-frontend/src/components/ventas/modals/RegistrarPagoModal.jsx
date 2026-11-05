@@ -166,7 +166,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
         >
           <div>
             <div style={{ fontSize: '0.75rem', color: '#94A3B8', textTransform: 'uppercase' }}>
-              Venta: <strong style={{ color: '#FFFFFF' }}>{venta.localizador}</strong> • Ficha #{venta.numero_ficha || venta.id}
+              Venta: <strong style={{ color: '#FFFFFF' }}>{venta.numero_ficha || venta.id}</strong>
             </div>
             <div style={{ fontSize: '0.925rem', fontWeight: '700', color: '#FFFFFF', marginTop: '2px' }}>
               {venta.cliente?.nombre_completo || 'Cliente General'}

@@ -7,7 +7,7 @@ import imgAgregar from '../../../assets/Agregar.svg';
 import HotelModal from './HotelModal';
 
 
-export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }) {
+export default function HabitacionDetail({ hotel, onBack, isFreelancer = false, canManageHotelTypes = false }) {
   const [habitaciones, setHabitaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedRoomId, setExpandedRoomId] = useState(null);
@@ -335,6 +335,7 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false }
         }}
         hotelToEdit={{ ...hotel, habitaciones }}
         isFreelancer={isFreelancer}
+        canManageHotelTypes={canManageHotelTypes}
         initialStep={2}
       />
     </div>

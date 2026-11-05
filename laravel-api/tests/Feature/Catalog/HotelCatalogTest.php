@@ -62,6 +62,80 @@ class HotelCatalogTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_list_and_add_hotel_types(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        $typesResponse = $this->getJson('/api/v1/catalog/hoteles/tipos')->assertOk();
+        $this->assertContains('Todo Incluido', array_column($typesResponse->json('data'), 'nombre'));
+        $this->assertContains('Solo Desayuno', array_column($typesResponse->json('data'), 'nombre'));
+
+        $this->postJson('/api/v1/catalog/hoteles/tipos', ['nombre' => 'Solo alojamiento'])
+            ->assertCreated()
+            ->assertJsonPath('data.nombre', 'Solo alojamiento')
+            ->assertJsonPath('data.eliminable', true);
+
+        $updatedTypesResponse = $this->getJson('/api/v1/catalog/hoteles/tipos')->assertOk();
+        $this->assertContains('Solo alojamiento', array_column($updatedTypesResponse->json('data'), 'nombre'));
+
+        $this->postJson('/api/v1/catalog/hoteles/tipos', ['nombre' => ' solo alojamiento '])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['nombre']);
+    }
+
+    public function test_admin_can_delete_unused_custom_hotel_type(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+        $type = \App\Models\Catalog\HotelTipo::create(['nombre' => 'Solo alojamiento']);
+
+        $this->deleteJson("/api/v1/catalog/hoteles/tipos/{$type->id}")
+            ->assertOk();
+
+        $this->assertDatabaseMissing('hotel_tipo', ['id' => $type->id]);
+    }
+
+    public function test_default_hotel_types_cannot_be_deleted(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+        $type = \App\Models\Catalog\HotelTipo::where('nombre', 'Todo Incluido')->firstOrFail();
+
+        $this->deleteJson("/api/v1/catalog/hoteles/tipos/{$type->id}")
+            ->assertUnprocessable();
+
+        $this->assertDatabaseHas('hotel_tipo', ['id' => $type->id]);
+    }
+
+    public function test_cannot_delete_hotel_type_used_by_hotels(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+        $type = \App\Models\Catalog\HotelTipo::create(['nombre' => 'Solo alojamiento']);
+        Hotel::create([
+            'id_ubicacion' => $this->ubicacion->id,
+            'nombre' => 'Hotel con tipo asignado',
+            'tipo' => $type->nombre,
+            'edad_adolescentes' => '12 - 17 Años',
+            'edad_ninos' => '5 - 11 Años',
+            'edad_infantes' => '0 - 4 Años',
+            'status' => true,
+        ]);
+
+        $this->deleteJson("/api/v1/catalog/hoteles/tipos/{$type->id}")
+            ->assertStatus(409)
+            ->assertJsonPath('message', 'No se puede eliminar este tipo porque está asignado a uno o más hoteles.');
+
+        $this->assertDatabaseHas('hotel_tipo', ['id' => $type->id]);
+    }
+
+    public function test_non_admin_cannot_add_hotel_types(): void
+    {
+        Sanctum::actingAs($this->freelancerUser);
+
+        $this->postJson('/api/v1/catalog/hoteles/tipos', ['nombre' => 'Tipo no autorizado'])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('hotel_tipo', ['nombre' => 'Tipo no autorizado']);
+    }
+
     /**
      * Test hotel listing for Admin shows net costs and prices.
      */
@@ -185,12 +259,15 @@ class HotelCatalogTest extends TestCase
                             'hasta' => '2026-10-31',
                             'desde_venta' => '2026-09-01',
                             'hasta_venta' => '2026-10-15',
-                            'costo_noche_adulto' => 60.00,
+                            'costo_noche_adulto' => null,
                             'precio_noche_adulto' => 80.00,
-                            'costo_noche_adolescente' => 40.00,
-                            'precio_noche_adolescente' => 60.00,
-                            'costo_noche_nino' => 20.00,
-                            'precio_noche_nino' => 30.00,
+                            'costo_noche_adolescente' => null,
+                            'precio_noche_adolescente' => null,
+                            'costo_noche_nino' => null,
+                            'precio_noche_nino' => null,
+                            'porcentaje_adulto' => null,
+                            'porcentaje_adolescente' => null,
+                            'porcentaje_nino' => null,
                             'moneda' => 'USD',
                         ]
                     ]
@@ -206,6 +283,63 @@ class HotelCatalogTest extends TestCase
         $this->assertDatabaseHas('hotel', ['nombre' => 'Coche Paradise']);
         $this->assertDatabaseHas('habitacion_hotel', ['habitacion' => 'Cabaña Estándar']);
         $this->assertDatabaseHas('tarifa_habitacion', ['precio_noche_adulto' => 80.00]);
+        $this->assertDatabaseHas('tarifa_habitacion', [
+            'precio_noche_adulto' => 80.00,
+            'costo_noche_adulto' => 0,
+            'costo_noche_adolescente' => 0,
+            'precio_noche_adolescente' => 0,
+            'costo_noche_nino' => 0,
+            'precio_noche_nino' => 0,
+            'porcentaje_adulto' => 0,
+            'porcentaje_adolescente' => 0,
+            'porcentaje_nino' => 0,
+        ]);
+    }
+
+    public function test_can_create_tariff_with_empty_optional_rates(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        $hotel = Hotel::create([
+            'id_ubicacion' => $this->ubicacion->id,
+            'nombre' => 'Hotel Tarifa Opcional',
+            'tipo' => 'Todo Incluido',
+            'edad_adolescentes' => '12 - 17 Años',
+            'edad_ninos' => '5 - 11 Años',
+            'edad_infantes' => '0 - 4 Años',
+            'status' => true,
+        ]);
+        $habitacion = $hotel->habitaciones()->create([
+            'habitacion' => 'Doble',
+            'cantidad_personas' => 2,
+        ]);
+
+        $response = $this->postJson('/api/v1/catalog/tarifas', [
+            'id_habitacion' => $habitacion->id,
+            'desde' => '2026-11-19',
+            'hasta' => '2026-12-05',
+            'costo_noche_adulto' => null,
+            'precio_noche_adulto' => 120,
+            'costo_noche_adolescente' => null,
+            'precio_noche_adolescente' => null,
+            'costo_noche_nino' => null,
+            'precio_noche_nino' => null,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.costo_noche_adolescente', 0)
+            ->assertJsonPath('data.precio_noche_adolescente', 0);
+
+        $this->assertDatabaseHas('tarifa_habitacion', [
+            'id_habitacion' => $habitacion->id,
+            'desde' => '2026-11-19 00:00:00',
+            'hasta' => '2026-12-05 00:00:00',
+            'costo_noche_adulto' => 0,
+            'costo_noche_adolescente' => 0,
+            'precio_noche_adolescente' => 0,
+            'costo_noche_nino' => 0,
+            'precio_noche_nino' => 0,
+        ]);
     }
 
     /**

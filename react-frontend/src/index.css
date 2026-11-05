@@ -193,6 +193,24 @@ input:valid~label {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
 }
 
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:focus,
+.login-input:-webkit-autofill:active,
+.login-input:autofill {
+  -webkit-text-fill-color: #FFFFFF;
+  caret-color: #FFFFFF;
+  -webkit-box-shadow: 0 0 0 1000px rgb(255 255 255 / 25%) inset;
+  box-shadow: 0 0 0 1000px rgb(255 255 255 / 25%) inset;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.login-input:-webkit-autofill:focus,
+.login-input:autofill:focus {
+  border-color: rgba(192, 185, 185, 0.45);
+  box-shadow: 0 0 0 1000px rgb(255 255 255 / 25%) inset, 0 0 0 3px rgba(255, 255, 255, 0.05);
+}
+
 .login-button {
   background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
   border: none;

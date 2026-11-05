@@ -724,7 +724,7 @@ export default function EditarCotizacion({ ventaId, user, onVolver, tipoScope = 
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
               <h1 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 800, color: '#FFFFFF' }}>
-                {isConfirmed ? `Venta: ${venta.localizador}` : `Editar Cotización: ${venta.localizador}`}
+                {isConfirmed ? `Venta: ${venta.numero_ficha}` : `Editar Cotización: ${venta.numero_ficha}`}
               </h1>
               <Badge variant={isConfirmed ? 'success' : 'warning'}>
                 {isConfirmed ? 'Venta Confirmada' : 'Cotizacion'}
@@ -787,9 +787,9 @@ export default function EditarCotizacion({ ventaId, user, onVolver, tipoScope = 
         }}
       >
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
-          <span style={{ fontSize: '0.78rem', color: '#94A3B8', textTransform: 'uppercase' }}>Ficha / Localizador</span>
+          <span style={{ fontSize: '0.78rem', color: '#94A3B8', textTransform: 'uppercase' }}>Número de ficha</span>
           <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#FFFFFF', marginTop: '4px' }}>
-            #{venta.numero_ficha || 'N/A'} <span style={{ fontSize: '0.85rem', color: '#94A3B8' }}>({venta.localizador})</span>
+            {venta.numero_ficha || 'N/A'}
           </div>
         </div>
 

@@ -1,14 +1,113 @@
 import React, { useState, useEffect } from 'react';
 import { showToast } from '../../../utils/toast';
 import Modal from '../../common/Modal';
+import ConfirmationModal from '../../common/ConfirmationModal';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import TarifaModal from './TarifaModal';
 import axios from 'axios';
 
-export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit = null, isFreelancer = false, initialStep = 1 }) {
+const HOTEL_TIPOS_BASE = ['Todo Incluido', 'Pensión Completa', 'Media Pensión', 'Solo Desayuno'];
+const HOTEL_TIPOS_BASE_OPTIONS = HOTEL_TIPOS_BASE.map((nombre) => ({
+  id: null,
+  nombre,
+  eliminable: false,
+}));
+
+function AddHotelTipoModal({ isOpen, onClose, onCreated }) {
+  const [nombre, setNombre] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleClose = () => {
+    if (!saving) {
+      setNombre('');
+      setErrorMessage('');
+      onClose();
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setErrorMessage('');
+
+    try {
+      const response = await axios.post('/v1/catalog/hoteles/tipos', { nombre: nombre.trim() });
+      onCreated(response.data.data);
+      setNombre('');
+      onClose();
+    } catch (error) {
+      const validationErrors = error.response?.data?.errors;
+      const firstValidationError = validationErrors
+        ? Object.values(validationErrors).flat()[0]
+        : null;
+      setErrorMessage(
+        firstValidationError
+        || error.response?.data?.message
+        || 'No se pudo agregar el tipo de hotel.'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={handleClose} title="Agregar tipo de hotel" width="460px" zIndex={1100}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {errorMessage && (
+          <div
+            role="alert"
+            style={{
+              padding: '12px 16px',
+              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              borderRadius: '8px',
+              color: '#FCA5A5',
+              fontSize: '0.875rem',
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
+        <div>
+          <label htmlFor="hotel-tipo-nombre" className="erp-label">
+            Nombre del tipo <span className="req">*</span>
+          </label>
+          <input
+            id="hotel-tipo-nombre"
+            type="text"
+            required
+            maxLength={300}
+            value={nombre}
+            onChange={(event) => setNombre(event.target.value)}
+            placeholder="Ej. Solo alojamiento"
+            className="erp-input"
+            style={{ width: '100%' }}
+          />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+          <button type="button" onClick={handleClose} disabled={saving} className="btn-form-cancel">
+            Cancelar
+          </button>
+          <button type="submit" disabled={saving || !nombre.trim()} className="btn-form-nxt">
+            {saving ? 'Guardando...' : 'Agregar tipo'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit = null, isFreelancer = false, initialStep = 1, canManageHotelTypes = false }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [ubicaciones, setUbicaciones] = useState([]);
+  const [tiposHotel, setTiposHotel] = useState(HOTEL_TIPOS_BASE_OPTIONS);
+  const [tiposHotelError, setTiposHotelError] = useState('');
+  const [isTipoHotelModalOpen, setIsTipoHotelModalOpen] = useState(false);
+  const [hotelTipoToDelete, setHotelTipoToDelete] = useState(null);
+  const [isDeletingHotelTipo, setIsDeletingHotelTipo] = useState(false);
+  const [deleteHotelTipoError, setDeleteHotelTipoError] = useState('');
   const [isTarifaModalOpen, setIsTarifaModalOpen] = useState(false);
   const [tarifaToEditIndex, setTarifaToEditIndex] = useState(null);
   const [activeHabitacionIndex, setActiveHabitacionIndex] = useState(0);
@@ -51,7 +150,26 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(initialStep);
+      setTiposHotelError('');
       fetchUbicaciones();
+      axios
+        .get('/v1/catalog/hoteles/tipos')
+        .then((res) => {
+          const receivedTypes = (res.data.data || []).map((tipo) => (
+            typeof tipo === 'string'
+              ? { id: null, nombre: tipo, eliminable: false }
+              : tipo
+          ));
+          const allTypes = [...HOTEL_TIPOS_BASE_OPTIONS, ...receivedTypes];
+          setTiposHotel(allTypes.filter((tipo, index) => (
+            allTypes.findIndex((other) => other.nombre.toLowerCase() === tipo.nombre.toLowerCase()) === index
+          )));
+          setTiposHotelError('');
+        })
+        .catch((err) => {
+          console.error('Error cargando tipos de hotel', err);
+          setTiposHotelError('No se pudieron cargar otros tipos de hotel.');
+        });
 
       if (hotelToEdit) {
         const parseAgeRange = (str, defDesde, defHasta) => {
@@ -246,12 +364,55 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
   };
 
   const currentHabitacion = habitaciones[activeHabitacionIndex] || habitaciones[0];
+  const hotelTipoOptions = tiposHotel.map((tipo) => ({
+    value: tipo.nombre,
+    label: tipo.nombre,
+    id: tipo.id,
+    eliminable: tipo.eliminable,
+  }));
+  if (!hotelTipoOptions.some((tipo) => tipo.value === hotelInfo.tipo) && hotelInfo.tipo) {
+    hotelTipoOptions.push({
+      value: hotelInfo.tipo,
+      label: hotelInfo.tipo,
+      eliminable: false,
+    });
+  }
+
+  const handleDeleteHotelTipo = async () => {
+    if (!hotelTipoToDelete) return;
+    setIsDeletingHotelTipo(true);
+    setDeleteHotelTipoError('');
+
+    try {
+      await axios.delete(`/v1/catalog/hoteles/tipos/${hotelTipoToDelete.id}`);
+      setTiposHotel((currentTypes) => currentTypes.filter((tipo) => tipo.id !== hotelTipoToDelete.id));
+      setHotelInfo((currentInfo) => (
+        currentInfo.tipo === hotelTipoToDelete.nombre
+          ? { ...currentInfo, tipo: HOTEL_TIPOS_BASE[0] }
+          : currentInfo
+      ));
+      showToast(`Tipo de hotel "${hotelTipoToDelete.nombre}" eliminado.`, 'success');
+      setHotelTipoToDelete(null);
+    } catch (error) {
+      setDeleteHotelTipoError(
+        error.response?.data?.message || 'No se pudo eliminar el tipo de hotel.'
+      );
+    } finally {
+      setIsDeletingHotelTipo(false);
+    }
+  };
+
+  const handleClose = () => {
+    setIsTipoHotelModalOpen(false);
+    setHotelTipoToDelete(null);
+    onClose();
+  };
 
   return (
     <>
       <Modal
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={handleClose}
         steps={['Información del hotel', 'Información de habitación y tarifas']}
         currentStep={currentStep}
         width="750px"
@@ -274,16 +435,60 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
               </div>
               <div>
                 <label className="erp-label">Tipo: <span className="req">*</span></label>
-                <CustomSelect
-                  className="erp-select"
-                  value={hotelInfo.tipo}
-                  onChange={(e) => setHotelInfo({ ...hotelInfo, tipo: e.target.value })}
-                >
-                  <option value="Todo Incluido">Todo Incluido</option>
-                  <option value="Pensión Completa">Pensión Completa</option>
-                  <option value="Media Pensión">Media Pensión</option>
-                  <option value="Solo Desayuno">Solo Desayuno</option>
-                </CustomSelect>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CustomSelect
+                    value={hotelInfo.tipo}
+                    onChange={(e) => setHotelInfo({ ...hotelInfo, tipo: e.target.value })}
+                    style={{ flex: 1, minWidth: 0 }}
+                    options={hotelTipoOptions}
+                    renderOptionAction={(tipo, closeDropdown) => canManageHotelTypes && tipo.eliminable && (
+                      <button
+                        type="button"
+                        aria-label={`Eliminar tipo ${tipo.label}`}
+                        title={`Eliminar ${tipo.label}`}
+                        disabled={isDeletingHotelTipo}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          closeDropdown();
+                          setDeleteHotelTipoError('');
+                          setHotelTipoToDelete(tiposHotel.find((item) => item.id === tipo.id));
+                        }}
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          flex: '0 0 24px',
+                          padding: 0,
+                          border: '1px solid rgba(248, 113, 113, 0.35)',
+                          borderRadius: '6px',
+                          background: 'rgba(127, 29, 29, 0.28)',
+                          color: '#FCA5A5',
+                          fontSize: '18px',
+                          lineHeight: 1,
+                          cursor: isDeletingHotelTipo ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  >
+                  </CustomSelect>
+                  {canManageHotelTypes && (
+                    <button
+                      type="button"
+                      onClick={() => setIsTipoHotelModalOpen(true)}
+                      className="btn-secondary-form"
+                      style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}
+                    >
+                      + Agregar
+                    </button>
+                  )}
+                </div>
+                {tiposHotelError && (
+                  <span role="alert" style={{ display: 'block', marginTop: '6px', fontSize: '0.75rem', color: '#FCA5A5' }}>
+                    {tiposHotelError}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -356,7 +561,6 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
               <div>
                 <label className="erp-label">Ubicación: <span className="req">*</span></label>
                 <CustomSelect
-                  className="erp-select"
                   value={hotelInfo.id_ubicacion}
                   onChange={(e) => setHotelInfo({ ...hotelInfo, id_ubicacion: e.target.value })}
                 >
@@ -751,6 +955,29 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
         isFreelancer={isFreelancer}
         showAdolescentes={showAdolescentes}
         tarifaToEdit={tarifaToEditIndex !== null ? habitaciones[activeHabitacionIndex]?.tarifas[tarifaToEditIndex] : null}
+      />
+      <AddHotelTipoModal
+        isOpen={isTipoHotelModalOpen}
+        onClose={() => setIsTipoHotelModalOpen(false)}
+        onCreated={(tipoHotel) => {
+          setTiposHotel((tiposActuales) => [...tiposActuales, tipoHotel]);
+          setHotelInfo((infoActual) => ({ ...infoActual, tipo: tipoHotel.nombre }));
+        }}
+      />
+      <ConfirmationModal
+        isOpen={!!hotelTipoToDelete}
+        onClose={() => !isDeletingHotelTipo && setHotelTipoToDelete(null)}
+        onCancel={() => !isDeletingHotelTipo && setHotelTipoToDelete(null)}
+        onConfirm={handleDeleteHotelTipo}
+        isDeleting={isDeletingHotelTipo}
+        error={deleteHotelTipoError}
+        title="Eliminar tipo de hotel"
+        subtitle="Esta acción no se puede deshacer."
+        content={
+          <>¿Desea eliminar el tipo <strong style={{ color: '#FCA5A5' }}>{hotelTipoToDelete?.nombre}</strong>?</>
+        }
+        confirmText="Sí, eliminar"
+        zIndex={1200}
       />
     </>
   );

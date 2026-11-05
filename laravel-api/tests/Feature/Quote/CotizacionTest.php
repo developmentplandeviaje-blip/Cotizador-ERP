@@ -304,13 +304,16 @@ class CotizacionTest extends TestCase
                 'cotizacion' => [
                     'id',
                     'numero_ficha',
-                    'localizador',
                     'estado',
                     'personas',
                     'hoteles',
                     'vuelos',
                 ],
             ]);
+        $response->assertJsonPath(
+            'cotizacion.numero_ficha',
+            Venta::formatearNumeroFicha($this->adminUser, $response->json('cotizacion.id'))
+        )->assertJsonMissingPath('cotizacion.localizador');
 
         $this->assertDatabaseHas('ventas', [
             'id_user' => $this->adminUser->id,
@@ -362,11 +365,16 @@ class CotizacionTest extends TestCase
                 'message',
                 'data' => [
                     'id',
+                    'numero_ficha',
                     'id_asesor',
                     'fecha',
                     'data',
                 ],
             ]);
+        $response->assertJsonPath(
+            'data.numero_ficha',
+            Venta::formatearNumeroFicha($this->adminUser, $response->json('data.id'))
+        );
 
         $this->assertDatabaseHas('cotizaciones_rapidas', [
             'id_asesor' => $this->adminUser->id,

@@ -1948,7 +1948,7 @@ export default function CotizacionTabContent({
       showToast({
         type: 'success',
         message: '¡Cotización registrada y guardada exitosamente!',
-        subtitle: `Ficha: #${cotizGuardada.numero_ficha || cotizGuardada.id}`,
+        subtitle: `Ficha: ${cotizGuardada.numero_ficha || cotizGuardada.id}`,
         duration: 8000,
         actions: [
           {
@@ -2032,7 +2032,7 @@ export default function CotizacionTabContent({
     try {
       const res = await axios.post('/v1/cotizaciones/rapida', payload);
       const rapidaGuardada = res.data.data;
-      const rapidaLocalizador = `RAP-${String(rapidaGuardada.id).padStart(5, '0')}`;
+      const rapidaNumeroFicha = rapidaGuardada.numero_ficha;
       showToast({
         type: 'success',
         message: '¡Cotización rápida guardada exitosamente!',
@@ -2055,8 +2055,7 @@ export default function CotizacionTabContent({
       const normalizedRapida = {
         id: rapidaGuardada.id,
         tipo_registro: 'rapida',
-        localizador: rapidaLocalizador,
-        numero_ficha: rapidaGuardada.id,
+        numero_ficha: rapidaNumeroFicha,
         fecha: rapidaGuardada.fecha || new Date().toISOString(),
         cliente: {
           nombre_completo: cliente.nombres ? `${cliente.nombres} ${cliente.apellidos}`.trim() : 'Cliente Rápido',
@@ -2182,6 +2181,7 @@ export default function CotizacionTabContent({
             </h2>
             <DocumentScannerButton
                 onScanComplete={handleOcrTitularComplete}
+                clearOnly
                 label="Escanear"
                 title="Escanear Cédula, RIF o Pasaporte con IA (En memoria)"
                 isClearMode={hasClienteInfo}
@@ -2437,10 +2437,10 @@ export default function CotizacionTabContent({
             </h2>
             {pasajeros.length > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <BatchDocumentScannerButton
+                {/*<BatchDocumentScannerButton
                   maxFiles={pasajeros.length}
                   onBatchComplete={handleOcrBatchAcompanantes}
-                />
+                />*/}
                 <button
                   type="button"
                   disabled={!hasAcompananteData}
@@ -2723,6 +2723,7 @@ export default function CotizacionTabContent({
 
                       <DocumentScannerButton
                         compact={true}
+                        clearOnly
                         label="Escanear"
                         title="Escanear Cédula o Pasaporte de este acompañante con IA"
                         onScanComplete={(docData) => handleOcrAcompananteComplete(p.originalIndex, docData)}

@@ -9,7 +9,13 @@ import { formatFlightItinerary, handlePriceInputKeyClamp, sanitizePrecioCostoVal
 import { normalizeHotelAdolescentPassengers } from '../../../utils/quotePricing';
 import HotelAsociadoSelect from '../HotelAsociadoSelect';
 
-export default function EditarProductoModal({
+export default function EditarProductoModal(props) {
+  if (!props.isOpen || !props.item) return null;
+
+  return <EditarProductoModalContent {...props} />;
+}
+
+function EditarProductoModalContent({
   isOpen,
   item,
   catalogos = {},
@@ -21,8 +27,6 @@ export default function EditarProductoModal({
   onClose,
   onSave,
 }) {
-  if (!isOpen || !item) return null;
-
   const tipo = item.tipo || 'otro';
   const [formData, setFormData] = useState({});
 

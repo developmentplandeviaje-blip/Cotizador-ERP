@@ -14,10 +14,6 @@ export default function InformeCotizacionRapidaModal({
 
   // Normalización de datos recibidos (compatible con Venta, CotizacionRapida y normalized items)
   const isVenta = cotizacion.tipo_registro === 'formal' || !!cotizacion.hoteles;
-  const localizador =
-    cotizacion.localizador ||
-    (cotizacion.data?.localizador) ||
-    `COT-${cotizacion.id || 'N/A'}`;
   const numeroFicha =
     cotizacion.numero_ficha ||
     cotizacion.id ||
@@ -195,7 +191,7 @@ export default function InformeCotizacionRapidaModal({
     }
 
     const text = `🛫 *COTIZACIÓN RÁPIDA - PLAN DE VIAJE* 🏖️
-*Localizador:* ${localizador}
+*Número de ficha:* ${numeroFicha}
 *Fecha:* ${new Date(fechaEmision).toLocaleDateString()}
 *Asesor:* ${asesorNombre}
 
@@ -314,7 +310,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                 border: '1px solid rgba(232, 114, 23, 0.4)',
               }}
             >
-              {localizador}
+              Ficha {numeroFicha}
             </span>
           </div>
 
@@ -481,10 +477,10 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                   INFORME DE COTIZACIÓN RÁPIDA
                 </div>
                 <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#0F172A' }}>
-                  Localizador: <span style={{ color: '#E87217' }}>{localizador}</span>
+                  Número de ficha: <span style={{ color: '#E87217' }}>{numeroFicha}</span>
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
-                  Ficha #{numeroFicha} • Emisión: {new Date(fechaEmision).toLocaleString('es-VE')}
+                  Emisión: {new Date(fechaEmision).toLocaleString('es-VE')}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
                   Asesor: <strong>{asesorNombre}</strong>

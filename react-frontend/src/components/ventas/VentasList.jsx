@@ -88,7 +88,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
     setIsConfirmingSale(true);
     try {
       await axios.patch(`/v1/ventas/${confirmingVenta.id}/confirmar`);
-      showToast.success(`Venta ${confirmingVenta.localizador} confirmada con éxito.`);
+      showToast.success(`Venta ${confirmingVenta.numero_ficha || confirmingVenta.id} confirmada con éxito.`);
       setConfirmingVenta(null);
       fetchVentas();
     } catch (err) {
@@ -114,7 +114,6 @@ export default function VentasList({ tipo = 'agencia', user }) {
       if (!searchTerm.trim()) return true;
 
       const term = searchTerm.toLowerCase();
-      const loc = (v.localizador || '').toLowerCase();
       const ficha = String(v.numero_ficha || '').toLowerCase();
       const cliente = (v.cliente?.nombre_completo || '').toLowerCase();
       const doc = (v.cliente?.documento || '').toLowerCase();
@@ -122,7 +121,6 @@ export default function VentasList({ tipo = 'agencia', user }) {
       const aliado = (v.aliado?.razon_social || '').toLowerCase();
 
       return (
-        loc.includes(term) ||
         ficha.includes(term) ||
         cliente.includes(term) ||
         doc.includes(term) ||
@@ -180,21 +178,6 @@ export default function VentasList({ tipo = 'agencia', user }) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div
-            style={{
-              width: '46px',
-              height: '46px',
-              borderRadius: '12px',
-              background: 'rgba(232, 114, 23, 0.15)',
-              border: '1px solid rgba(232, 114, 23, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.4rem',
-            }}
-          >
-            {infoConfig.icon}
-          </div>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', color: '#FFFFFF' }}>
               {infoConfig.title}
@@ -226,7 +209,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
             }}
             title="Recargar lista de ventas"
           >
-            🔄 <span>{loading ? 'Cargando...' : 'Actualizar'}</span>
+            <span>{loading ? 'Cargando...' : 'Actualizar'}</span>
           </button>
         </div>
       </div>
@@ -346,7 +329,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '700', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              🏢 Consolidado por Empresa Aliada
+              Consolidado por Empresa Aliada
             </h3>
             {filterAliadoId && (
               <button
@@ -449,7 +432,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
           <input
             type="text"
             className="erp-input"
-            placeholder="Buscar por localizador, cliente, ficha o asesor..."
+            placeholder="Buscar por ficha, cliente o asesor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
@@ -558,12 +541,13 @@ export default function VentasList({ tipo = 'agencia', user }) {
 
       {/* Tabla de Ventas */}
       <div
+        className="custom-scrollbar"
         style={{
-          background: 'rgba(16, 28, 68, 0.72)',
+          background: 'rgba(188, 192, 215, 0.09)',
           border: '1px solid rgba(255, 255, 255, 0.18)',
-          borderRadius: '16px',
+          borderRadius: '14px',
           overflow: 'hidden',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
         }}
       >
         <div style={{ overflowX: 'auto' }}>
@@ -571,18 +555,18 @@ export default function VentasList({ tipo = 'agencia', user }) {
             <thead>
               <tr
                 style={{
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  color: '#94A3B8',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-                  fontSize: '0.775rem',
+                  background: 'rgba(232, 114, 23, 0.15)',
+                  color: '#fff',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.18)',
+                  fontSize: '0.735rem',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
+                  letterSpacing: '0.05em',
                 }}
               >
-                <th style={{ padding: '14px 18px' }}>Localizador / Ficha</th>
+                <th style={{ padding: '14px 18px' }}>N° Ficha</th>
                 <th style={{ padding: '14px 18px' }}>Fecha</th>
                 <th style={{ padding: '14px 18px' }}>Cliente Principal</th>
-                <th style={{ padding: '14px 18px' }}>Asesor / Vendedor</th>
+                <th style={{ padding: '14px 18px' }}>Asesor</th>
                 {tipo === 'aliados' && <th style={{ padding: '14px 18px' }}>Empresa Aliada</th>}
                 <th style={{ padding: '14px 18px', textAlign: 'center' }}>Pax</th>
                 <th style={{ padding: '14px 18px', textAlign: 'right' }}>Total Venta</th>
@@ -594,7 +578,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={tipo === 'aliados' ? 10 : 9} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                  <td colSpan={tipo === 'aliados' ? 10 : 9} style={{ padding: '60px', textAlign: 'center', color: '#FFFFFF' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                       <span className="spinner" />
                       <span>Cargando listado de ventas...</span>
@@ -603,7 +587,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                 </tr>
               ) : filteredVentas.length === 0 ? (
                 <tr>
-                  <td colSpan={tipo === 'aliados' ? 10 : 9} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                  <td colSpan={tipo === 'aliados' ? 10 : 9} style={{ padding: '60px', textAlign: 'center', color: '#FFFFFF' }}>
                     No se encontraron ventas para los criterios seleccionados.
                   </td>
                 </tr>
@@ -617,19 +601,16 @@ export default function VentasList({ tipo = 'agencia', user }) {
                     <tr
                       key={v.id}
                       style={{
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.22)',
                         transition: 'background 0.15s',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
-                      {/* Localizador y Ficha */}
+                      {/* Número de ficha */}
                       <td style={{ padding: '14px 18px' }}>
                         <div style={{ fontWeight: '700', color: '#FFFFFF', fontFamily: 'monospace', fontSize: '0.9rem' }}>
-                          {v.localizador}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: '2px' }}>
-                          Ficha #{v.numero_ficha || v.id}
+                          {v.numero_ficha || v.id}
                         </div>
                       </td>
 
@@ -654,8 +635,8 @@ export default function VentasList({ tipo = 'agencia', user }) {
                           {v.asesor?.name || 'Asesor'}
                         </div>
                         {v.freelancer && (
-                          <div style={{ fontSize: '0.7rem', color: '#FB923C' }}>
-                            👤 {v.freelancer.nombre}
+                          <div style={{ fontSize: '0.7rem', color: '#CBD5E1' }}>
+                            {v.freelancer.nombre}
                           </div>
                         )}
                       </td>
@@ -717,7 +698,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                               border: `1px solid ${isConfirmed ? 'rgba(34, 197, 94, 0.4)' : 'rgba(232, 114, 23, 0.4)'}`,
                             }}
                           >
-                            {v.estado}
+                            {isConfirmed ? 'Venta' : v.estado}
                           </span>
                           <span
                             style={{
@@ -835,7 +816,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
           isOpen={true}
           type="success"
           title="Confirmar Venta"
-          subtitle={`¿Desea confirmar formalmente la venta con localizador ${confirmingVenta.localizador}?`}
+          subtitle={`¿Desea confirmar formalmente la ficha ${confirmingVenta.numero_ficha || confirmingVenta.id}?`}
           content="Al confirmar esta cotización como venta formal, quedará habilitada para seguimiento operativo y facturación definitiva."
           confirmText="Sí, Confirmar Venta"
           isConfirming={isConfirmingSale}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
@@ -14,6 +14,116 @@ const LOGOS = [
   { value: 'bancamiga3.png', label: 'Bancamiga' },
   { value: 'LOGO-ZELLE.png', label: 'Zelle' },
 ];
+
+function AddMetodoPagoLogoModal({ isOpen, onClose, onCreated }) {
+  const [nombre, setNombre] = useState('');
+  const [imagen, setImagen] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const formRef = useRef(null);
+
+  const resetForm = () => {
+    setNombre('');
+    setImagen(null);
+    setErrorMessage('');
+    formRef.current?.reset();
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setErrorMessage('');
+
+    const formData = new FormData();
+    formData.append('nombre', nombre.trim());
+    formData.append('imagen', imagen);
+
+    try {
+      const response = await axios.post('/v1/finance/metodos-pago/logos', formData);
+      onCreated(response.data.data);
+      resetForm();
+      onClose();
+    } catch (error) {
+      const validationErrors = error.response?.data?.errors;
+      const firstValidationError = validationErrors
+        ? Object.values(validationErrors).flat()[0]
+        : null;
+      setErrorMessage(
+        firstValidationError
+        || error.response?.data?.message
+        || 'No se pudo guardar el logo.'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (!saving) {
+      resetForm();
+      onClose();
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={handleClose} title="Agregar Logo Identificador" width="480px" zIndex={1100}>
+      <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {errorMessage && (
+          <div
+            role="alert"
+            style={{
+              padding: '12px 16px',
+              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              borderRadius: '8px',
+              color: '#FCA5A5',
+              fontSize: '0.875rem',
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
+        <div>
+          <label htmlFor="metodo-pago-logo-nombre" style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '6px' }}>
+            Nombre del logo <span style={{ color: '#EF4444' }}>*</span>
+          </label>
+          <input
+            id="metodo-pago-logo-nombre"
+            type="text"
+            required
+            maxLength={100}
+            value={nombre}
+            onChange={(event) => setNombre(event.target.value)}
+            placeholder="Ej. Banco o plataforma de pago"
+            className="erp-input"
+            style={{ width: '100%' }}
+          />
+        </div>
+        <div>
+          <label htmlFor="metodo-pago-logo-imagen" style={{ display: 'block', fontSize: '0.8125rem', color: '#E2E8F0', marginBottom: '6px' }}>
+            Imagen (PNG, JPG o WEBP; máximo 2 MB) <span style={{ color: '#EF4444' }}>*</span>
+          </label>
+          <input
+            id="metodo-pago-logo-imagen"
+            type="file"
+            required
+            accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+            onChange={(event) => setImagen(event.target.files?.[0] || null)}
+            style={{ width: '100%', color: '#CBD5E1' }}
+          />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+          <button type="button" onClick={handleClose} disabled={saving} className="btn-form-cancel">
+            Cancelar
+          </button>
+          <button type="submit" disabled={saving || !imagen} className="btn-form-nxt">
+            {saving ? 'Guardando...' : 'Agregar logo'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
 
 export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit = null }) {
   const [currentStep, setCurrentStep] = useState(1); // 'general' | 'asesores'
@@ -42,6 +152,9 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
   const [availableAsesores, setAvailableAsesores] = useState([]);
   const [selectedAsesores, setSelectedAsesores] = useState([]);
   const [loadingAsesores, setLoadingAsesores] = useState(false);
+  const [uploadedLogos, setUploadedLogos] = useState([]);
+  const [logosError, setLogosError] = useState('');
+  const [isAddLogoOpen, setIsAddLogoOpen] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -65,6 +178,17 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
         })
         .finally(() => {
           setLoadingAsesores(false);
+        });
+
+      axios
+        .get('/v1/finance/metodos-pago/logos')
+        .then((res) => {
+          setUploadedLogos(res.data.data || []);
+          setLogosError('');
+        })
+        .catch((err) => {
+          console.error('Error cargando logos de métodos de pago:', err);
+          setLogosError('No se pudieron cargar los logos agregados.');
         });
 
       if (metodoToEdit) {
@@ -121,6 +245,11 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
   }, [isOpen, metodoToEdit]);
 
   if (!isOpen) return null;
+
+  const handleClose = () => {
+    setIsAddLogoOpen(false);
+    onClose();
+  };
 
   const handleToggleAsesor = (asesorId) => {
     setSelectedAsesores((prev) =>
@@ -189,9 +318,10 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
   };
 
   return (
+    <>
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title={metodoToEdit ? 'Editar Método de Pago' : 'Nuevo Método de Pago'}
       width="720px"
     >
@@ -298,17 +428,32 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
                     Logo Identificador
                   </label>
-                  <CustomSelect
-                    value={logo}
-                    onChange={(e) => setLogo(e.target.value)}
-                    style={{ width: '100%' }}
-                  >
-                    {LOGOS.map((lg) => (
-                      <option key={lg.value} value={lg.value}>
-                        {lg.label}
-                      </option>
-                    ))}
-                  </CustomSelect>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CustomSelect
+                      value={logo}
+                      onChange={(e) => setLogo(e.target.value)}
+                      style={{ width: '100%', flex: 1 }}
+                    >
+                      {[...LOGOS, ...uploadedLogos].map((lg) => (
+                        <option key={lg.value} value={lg.value}>
+                          {lg.label}
+                        </option>
+                      ))}
+                    </CustomSelect>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddLogoOpen(true)}
+                      className="btn-secondary-form"
+                      style={{ minWidth: '90px', padding: '10px 12px' }}
+                    >
+                      + Agregar
+                    </button>
+                  </div>
+                  {logosError && (
+                    <span role="alert" style={{ display: 'block', marginTop: '6px', fontSize: '0.75rem', color: '#FCA5A5' }}>
+                      {logosError}
+                    </span>
+                  )}
                 </div>
 
                 <div>
@@ -316,15 +461,15 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                     Estado Operativo
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', height: '42px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
-                      <input
-                        type="checkbox"
-                        checked={status}
-                        onChange={(e) => setStatus(e.target.checked)}
-                        style={{ width: '18px', height: '18px', accentColor: '#2563EB', cursor: 'pointer' }}
-                      />
-                      <span>{status ? 'Habilitado para cobros' : 'Deshabilitado'}</span>
-                    </label>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={status}
+                      onClick={() => setStatus((currentStatus) => !currentStatus)}
+                      className={`status-toggle-button${status ? ' is-active' : ''}`}
+                    >
+                      {status ? 'Habilitado' : 'Desactivado'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -382,7 +527,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                        Documento / RIF (máx. 12 dígitos) <span style={{ color: '#EF4444' }}>*</span>
+                        N° Documento <span style={{ color: '#EF4444' }}>*</span>
                       </label>
                       <input
                         type="text"
@@ -429,7 +574,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                        Teléfono Pago Móvil (máx. 15 dígitos)
+                        Teléfono Pago Móvil
                       </label>
                       <input
                         type="text"
@@ -533,7 +678,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                        Código Postal (ZIP)
+                        Código Postal
                       </label>
                       <input
                         type="text"
@@ -548,7 +693,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
-                        Dirección de Facturación (máx. 300 caracteres)
+                        Dirección de Facturación
                       </label>
                       <input
                         type="text"
@@ -659,7 +804,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
         >
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={saving}
             className="btn-form-cancel"
           >
@@ -675,5 +820,14 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
         </div>
       </form>
     </Modal>
+    <AddMetodoPagoLogoModal
+      isOpen={isAddLogoOpen}
+      onClose={() => setIsAddLogoOpen(false)}
+      onCreated={(newLogo) => {
+        setUploadedLogos((currentLogos) => [...currentLogos, newLogo]);
+        setLogo(newLogo.value);
+      }}
+    />
+    </>
   );
 }

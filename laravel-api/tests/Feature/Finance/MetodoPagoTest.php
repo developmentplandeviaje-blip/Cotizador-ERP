@@ -6,10 +6,13 @@ use App\Models\Finance\MetodoPago;
 use App\Models\Finance\MetodoPagoAsesor;
 use App\Models\Finance\MetodoPagoBanco;
 use App\Models\Finance\MetodoPagoDigital;
+use App\Models\Finance\MetodoPagoLogo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -198,6 +201,41 @@ class MetodoPagoTest extends TestCase
             'nombre' => 'Efectivo Dólares',
             'tipo' => 'efectivo',
         ]);
+    }
+
+    public function test_admin_can_upload_and_list_payment_method_logos(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+        Storage::fake('public');
+
+        $response = $this->post('/api/v1/finance/metodos-pago/logos', [
+            'nombre' => 'Banco de prueba',
+            'imagen' => UploadedFile::fake()->image('banco.png'),
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.label', 'Banco de prueba');
+
+        $logo = MetodoPagoLogo::where('nombre', 'Banco de prueba')->firstOrFail();
+        Storage::disk('public')->assertExists($logo->ruta);
+
+        $this->getJson('/api/v1/finance/metodos-pago/logos')
+            ->assertOk()
+            ->assertJsonPath('data.0.value', $logo->ruta)
+            ->assertJsonPath('data.0.label', 'Banco de prueba');
+    }
+
+    public function test_non_admin_cannot_upload_payment_method_logos(): void
+    {
+        Sanctum::actingAs($this->freelancerUser);
+        Storage::fake('public');
+
+        $this->post('/api/v1/finance/metodos-pago/logos', [
+            'nombre' => 'Logo no autorizado',
+            'imagen' => UploadedFile::fake()->image('logo.png'),
+        ])->assertForbidden();
+
+        $this->assertDatabaseMissing('metodo_pago_logo', ['nombre' => 'Logo no autorizado']);
     }
 
     public function test_validation_errors_when_creating_metodo_pago(): void

@@ -13,6 +13,7 @@ export default function CustomSelect({
   disabled = false,
   required = false,
   searchable,
+  renderOptionAction,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -211,14 +212,18 @@ export default function CustomSelect({
         },
       });
     }
+    closeDropdown();
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+  };
+
+  const closeDropdown = () => {
     setIsOpen(false);
     setIsSearching(false);
     setIsFocused(false);
     setSearchTerm('');
     setHighlightedIndex(-1);
-    if (inputRef.current) {
-      inputRef.current.blur();
-    }
   };
 
   // Toggle chevron ( > ): desplegar / recoger opciones
@@ -478,12 +483,14 @@ export default function CustomSelect({
             currentOptionsList.map((opt, idx) => {
               const isSelected = String(opt.value) === String(normalizedValue);
               const isHighlighted = idx === highlightedIndex;
+              const optionAction = renderOptionAction?.(opt, closeDropdown);
               return (
                 <div
                   key={`${opt.value}-${idx}`}
                   data-index={idx}
                   title={opt.label}
                   className={`option ${isSelected ? 'active' : ''} ${isHighlighted ? 'highlighted' : ''} ${opt.disabled ? 'disabled' : ''}`}
+                  style={optionAction ? { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' } : undefined}
                   onMouseEnter={() => setHighlightedIndex(idx)}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -492,7 +499,8 @@ export default function CustomSelect({
                     }
                   }}
                 >
-                  {opt.label}
+                  <span>{opt.label}</span>
+                  {optionAction}
                 </div>
               );
             })

@@ -81,7 +81,7 @@ export default function Login({ onLoginSuccess }) {
           <div className="login-title">Inicio de Sesión</div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="login-form">
+          <form onSubmit={handleSubmit} className="login-form" autoComplete="off">
             {error && <div className="error-message">{error}</div>}
             {success && <div className="success-message">{success}</div>}
 
@@ -90,12 +90,13 @@ export default function Login({ onLoginSuccess }) {
               <input
                 type="email"
                 id="email"
+                name="login_identifier"
                 className="login-input"
                 maxLength={50}
                 value={email}
                 onChange={(e) => setEmail(formatEmail(e.target.value))}
                 disabled={loading}
-                autoComplete="email"
+                autoComplete="off"
                 required
               />
               <label className="input-label" htmlFor="email">Usuario:</label>
@@ -107,6 +108,7 @@ export default function Login({ onLoginSuccess }) {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
+                  name="login_secret"
                   className="login-input"
                   maxLength={50}
                   style={{ paddingRight: '48px' }}
@@ -114,7 +116,7 @@ export default function Login({ onLoginSuccess }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value.slice(0, 50))}
                   disabled={loading}
-                  autoComplete="current-password"
+                  autoComplete="off"
                   required
                 />
                 <label className="input-label" htmlFor="password">Contraseña:</label>

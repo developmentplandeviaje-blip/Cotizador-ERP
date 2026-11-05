@@ -140,7 +140,6 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
         <div style={{ marginBottom: '16px' }}>
           <label className="erp-label">Moneda <span className="req">*</span></label>
           <CustomSelect
-            className="erp-select"
             value={formData.moneda}
             onChange={(e) => handleChange('moneda', e.target.value)}
           >

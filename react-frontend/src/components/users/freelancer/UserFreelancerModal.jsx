@@ -195,7 +195,7 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
       onStepChange={(step) => setCurrentStep(step)}
       width="600px"
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ padding: '10px', display: 'flex', flexDirection: 'column' }}>
           {errorMessage && (
             <div
@@ -224,6 +224,7 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   </label>
                   <input
                     type="text"
+                    autoComplete="off"
                     required
                     maxLength={50}
                     value={firstName}
@@ -249,6 +250,7 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   </label>
                   <input
                     type="text"
+                    autoComplete="off"
                     required
                     maxLength={50}
                     value={lastName}
@@ -282,6 +284,7 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                 </div>
                 <input
                   type="email"
+                  autoComplete="off"
                   required
                   maxLength={50}
                   value={email}
@@ -304,10 +307,11 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
-                    Contraseña {userToEdit ? <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>(en blanco = actual)</span> : <span style={{ color: '#EF4444' }}>*</span>}
+                    Contraseña {userToEdit ? <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>(Dejar en blanco para conservar contraseña actual)</span> : <span style={{ color: '#EF4444' }}>*</span>}
                   </label>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     maxLength={50}
                     value={password}
                     onChange={(e) => setPassword(e.target.value.slice(0, 50))}
@@ -331,20 +335,15 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                     Estado de Acceso
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', height: '42px', gap: '12px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
-                      <input
-                        type="checkbox"
-                        checked={status}
-                        onChange={(e) => setStatus(e.target.checked)}
-                        style={{
-                          width: '18px',
-                          height: '18px',
-                          accentColor: '#2563EB',
-                          cursor: 'pointer',
-                        }}
-                      />
-                      <span>{status ? 'Habilitado (Activo)' : 'Deshabilitado'}</span>
-                    </label>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={status}
+                      onClick={() => setStatus((currentStatus) => !currentStatus)}
+                      className={`status-toggle-button${status ? ' is-active' : ''}`}
+                    >
+                      {status ? 'Habilitado' : 'Desactivado'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -366,6 +365,7 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   </label>
                   <input
                     type="text"
+                    autoComplete="off"
                     required
                     maxLength={100}
                     value={freelancerNombre}
@@ -391,6 +391,7 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   </label>
                   <input
                     type="text"
+                    autoComplete="off"
                     maxLength={12}
                     value={freelancerRif}
                     onChange={(e) => setFreelancerRif(formatCedula(e.target.value))}
@@ -417,6 +418,7 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   </label>
                   <input
                     type="text"
+                    autoComplete="off"
                     maxLength={15}
                     value={freelancerTelefono1}
                     onChange={(e) => setFreelancerTelefono1(formatTelefono(e.target.value))}
@@ -432,6 +434,7 @@ export default function UserFreelancerModal({ isOpen, onClose, onSave, userToEdi
                   </label>
                   <input
                     type="text"
+                    autoComplete="off"
                     maxLength={15}
                     value={freelancerTelefono2}
                     onChange={(e) => setFreelancerTelefono2(formatTelefono(e.target.value))}

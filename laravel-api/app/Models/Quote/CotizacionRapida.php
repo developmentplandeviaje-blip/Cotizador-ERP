@@ -10,6 +10,7 @@ class CotizacionRapida extends Model
 {
     protected $table = 'cotizaciones_rapidas';
     public $timestamps = false;
+    protected $appends = ['numero_ficha'];
 
     protected $fillable = [
         'id_asesor',
@@ -20,5 +21,10 @@ class CotizacionRapida extends Model
     public function asesor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id_asesor');
+    }
+
+    public function getNumeroFichaAttribute(): string
+    {
+        return Venta::formatearNumeroFicha($this->asesor, $this->id);
     }
 }

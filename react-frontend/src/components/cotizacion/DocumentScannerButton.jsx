@@ -10,6 +10,7 @@ export default function DocumentScannerButton({
   className = '',
   style = {},
   isClearMode = false,
+  clearOnly = false,
   onClear,
   clearLabel = 'Limpiar',
   clearTitle = 'Limpiar campos de datos',
@@ -79,18 +80,20 @@ export default function DocumentScannerButton({
 
   const handleClick = () => {
     if (loading) return;
-    if (isClearMode) {
+    if (clearOnly || isClearMode) {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
       setStatusMsg(null);
-      if (onClear) {
+      if (isClearMode && onClear) {
         onClear();
       }
       return;
     }
     fileInputRef.current?.click();
   };
+
+  const isClearButton = clearOnly || isClearMode;
 
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
@@ -100,14 +103,14 @@ export default function DocumentScannerButton({
         accept="image/jpeg,image/png,image/webp,image/jpg"
         onChange={handleFileChange}
         style={{ display: 'none' }}
-        disabled={loading}
+        disabled={loading || clearOnly}
       />
 
       <button
         type="button"
         onClick={handleClick}
-        disabled={loading}
-        title={isClearMode ? clearTitle : title}
+        disabled={loading || (clearOnly && !isClearMode)}
+        title={clearOnly || isClearMode ? clearTitle : title}
         className={className || (compact ? 'btn-icon-scanner' : 'btn-secondary-form')}
         style={{
           display: 'inline-flex',
@@ -115,9 +118,13 @@ export default function DocumentScannerButton({
           gap: compact ? '4px' : '6px',
           padding: compact ? '4px 8px' : '8px 14px',
           borderRadius: '6px',
-          background: compact ? 'rgba(232, 114, 23, 0.15)' : 'rgba(232, 114, 23, 0.2)',
-          border: '1px solid rgba(232, 114, 23, 0.45)',
-          color: '#FFA756',
+          background: isClearButton
+            ? 'rgba(239, 68, 68, 0.15)'
+            : compact ? 'rgba(232, 114, 23, 0.15)' : 'rgba(232, 114, 23, 0.2)',
+          border: isClearButton
+            ? '1px solid rgba(239, 68, 68, 0.5)'
+            : '1px solid rgba(232, 114, 23, 0.45)',
+          color: isClearButton ? '#FCA5A5' : '#FFA756',
           fontSize: compact ? '0.75rem' : '0.8125rem',
           fontWeight: '600',
           cursor: loading ? 'wait' : 'pointer',
@@ -144,7 +151,7 @@ export default function DocumentScannerButton({
             </svg>
             <span>{compact ? 'Leyendo...' : 'Escaneando...'}</span>
           </>
-        ) : isClearMode ? (
+        ) : clearOnly || isClearMode ? (
           <>
             {/* Clear / Eraser Icon */}
             <svg

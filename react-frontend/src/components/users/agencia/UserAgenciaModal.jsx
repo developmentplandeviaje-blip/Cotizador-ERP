@@ -160,7 +160,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
       onStepChange={(step) => setCurrentStep(step)}
       width="580px"
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ padding: '10px', display: 'flex', flexDirection: 'column' }}>
           {errorMessage && (
             <div
@@ -187,6 +187,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                   </label>
                   <input
                     type="text"
+                    autoComplete="off"
                     required
                     maxLength={50}
                     value={firstName}
@@ -212,6 +213,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                   </label>
                   <input
                     type="text"
+                    autoComplete="off"
                     required
                     maxLength={50}
                     value={lastName}
@@ -245,6 +247,7 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                 </div>
                 <input
                   type="email"
+                  autoComplete="off"
                   required
                   maxLength={50}
                   value={email}
@@ -294,20 +297,15 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                     Estado de Acceso
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', height: '42px', gap: '12px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 'px', cursor: 'pointer', color: '#E2E8F0', fontSize: '0.875rem' }}>
-                      <input
-                        type="checkbox"
-                        checked={status}
-                        onChange={(e) => setStatus(e.target.checked)}
-                        style={{
-                          width: '18px',
-                          height: '18px',
-                          accentColor: '#2563EB',
-                          cursor: 'pointer',
-                        }}
-                      />
-                      <span>{status ? 'Habilitado (Activo)' : 'Deshabilitado (Bloqueado)'}</span>
-                    </label>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={status}
+                      onClick={() => setStatus((currentStatus) => !currentStatus)}
+                      className={`status-toggle-button${status ? ' is-active' : ''}`}
+                    >
+                      {status ? 'Habilitado' : 'Desactivado'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -315,10 +313,11 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
               {/* Password */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '4px' }}>
-                  Contraseña {userToEdit ? <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>(dejar en blanco para conservar actual)</span> : <span style={{ color: '#EF4444' }}>*</span>}
+                  Contraseña {userToEdit ? <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>(Dejar en blanco para conservar contraseña actual)</span> : <span style={{ color: '#EF4444' }}>*</span>}
                 </label>
                 <input
                   type="password"
+                  autoComplete="new-password"
                   maxLength={50}
                   value={password}
                   onChange={(e) => setPassword(e.target.value.slice(0, 50))}

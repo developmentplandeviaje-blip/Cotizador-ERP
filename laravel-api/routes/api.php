@@ -68,6 +68,9 @@ Route::middleware('auth:sanctum')->group(function () {
     ]);
 
     // Catalog: Hoteles
+    Route::get('/v1/catalog/hoteles/tipos', [HotelController::class, 'tipos']);
+    Route::post('/v1/catalog/hoteles/tipos', [HotelController::class, 'storeTipo']);
+    Route::delete('/v1/catalog/hoteles/tipos/{hotelTipo}', [HotelController::class, 'destroyTipo']);
     Route::apiResource('/v1/catalog/hoteles', HotelController::class)->parameters([
         'hoteles' => 'hotel'
     ]);
@@ -114,6 +117,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/v1/users/aliados/{aliado}/vendedores/{user}', [\App\Http\Controllers\Api\v1\User\UserAliadoController::class, 'destroyVendedor']);
 
     // Finance: Métodos de Pago
+    Route::get('/v1/finance/metodos-pago/logos', [MetodoPagoController::class, 'logos']);
+    Route::post('/v1/finance/metodos-pago/logos', [MetodoPagoController::class, 'storeLogo']);
     Route::apiResource('/v1/finance/metodos-pago', MetodoPagoController::class)->parameters([
         'metodos-pago' => 'metodoPago'
     ]);
@@ -142,4 +147,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/v1/ventas/{id}/confirmar', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'confirmar']);
     Route::post('/v1/ventas/{id}/pagos', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'registrarPago']);
 });
-
