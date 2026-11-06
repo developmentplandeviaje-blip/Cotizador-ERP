@@ -4,6 +4,9 @@ import { InformeCotizacionRapidaModal } from './modals';
 import imgSearch from '../../assets/lupa.svg';
 import imgreport from '../../assets/reportes.svg';
 import Badge from '../common/Badge';
+import Pagination from '../common/Pagination';
+
+const PAGE_SIZE = 10;
 
 export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
   const [cotizaciones, setCotizaciones] = useState([]);
@@ -11,6 +14,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTipo, setFilterTipo] = useState('todos'); // 'todos' | 'formal' | 'rapida'
+  const [page, setPage] = useState(1);
   const [selectedCotizacion, setSelectedCotizacion] = useState(null);
 
   // Cargar registro de cotizaciones desde el backend
@@ -57,6 +61,13 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
       );
     });
   }, [cotizaciones, filterTipo, searchTerm]);
+
+  const lastPage = Math.ceil(filteredCotizaciones.length / PAGE_SIZE);
+  const currentPage = Math.min(page, Math.max(lastPage, 1));
+  const paginatedCotizaciones = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredCotizaciones.slice(start, start + PAGE_SIZE);
+  }, [filteredCotizaciones, currentPage]);
 
   // Métricas rápidas
   const totalCotizaciones = cotizaciones.length;
@@ -229,11 +240,14 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
             <img src={imgSearch} alt="" style={{ width: '20px', height: '20px' }} />
           </span>
           <input
-            type="text"
+            type="search"
             className="erp-input"
             placeholder="Buscar por ficha, cliente, cédula o asesor..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
             style={{
               paddingLeft: '38px',
               paddingRight: searchTerm ? '34px' : '16px',
@@ -248,7 +262,10 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
           {searchTerm && (
             <button
               type="button"
-              onClick={() => setSearchTerm('')}
+              onClick={() => {
+                setSearchTerm('');
+                setPage(1);
+              }}
               style={{
                 position: 'absolute',
                 right: '12px',
@@ -283,7 +300,10 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setFilterTipo(tab.id)}
+                onClick={() => {
+                  setFilterTipo(tab.id);
+                  setPage(1);
+                }}
                 style={{
                   height: '38px',
                   padding: '0 20px',
@@ -397,7 +417,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredCotizaciones.map((cotiz, idx) => {
+                {paginatedCotizaciones.map((cotiz, idx) => {
                   const clienteNombre = cotiz.cliente?.nombre_completo || cotiz.cliente?.nombres || 'Cliente General';
                   const clienteDoc = cotiz.cliente?.documento ? `${cotiz.cliente?.tipo_documento || 'V'}-${cotiz.cliente.documento}` : '';
                   const totalPax = cotiz.pax?.total || (cotiz.pax?.adultos || 1);
@@ -526,6 +546,25 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+        {!loading && filteredCotizaciones.length > 0 && (
+          <div
+            style={{
+              padding: '12px 20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              fontSize: '0.8125rem',
+              color: '#94A3B8',
+            }}
+          >
+            <span>
+              Mostrando {(currentPage - 1) * PAGE_SIZE + 1}-
+              {Math.min(currentPage * PAGE_SIZE, filteredCotizaciones.length)} de {filteredCotizaciones.length}
+            </span>
+            <Pagination page={currentPage} lastPage={lastPage} setPage={setPage} />
           </div>
         )}
       </div>

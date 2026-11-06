@@ -254,7 +254,14 @@ const createBlankItem = (tipo, context = {}) => {
   }
 };
 
-export default function EditarCotizacion({ ventaId, user, onVolver, tipoScope = 'agencia' }) {
+export default function EditarCotizacion({
+  ventaId,
+  user,
+  onVolver,
+  tipoScope = 'agencia',
+  sectionLabel = 'Ventas',
+  backLabel = '← Volver a Ventas',
+}) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [venta, setVenta] = useState(null);
@@ -662,7 +669,7 @@ export default function EditarCotizacion({ ventaId, user, onVolver, tipoScope = 
         <h3 style={{ color: '#FFFFFF' }}>Registro no encontrado</h3>
         <p style={{ color: '#94A3B8' }}>No se pudo recuperar la cotización solicitada.</p>
         <button type="button" className="btn-primary" onClick={onVolver}>
-          ← Volver a Ventas
+          {backLabel}
         </button>
       </div>
     );
@@ -711,12 +718,12 @@ export default function EditarCotizacion({ ventaId, user, onVolver, tipoScope = 
               transition: 'all 0.2s',
             }}
           >
-            ← Volver a Ventas
+            {backLabel}
           </button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>
-                Ventas › <span style={{ textTransform: 'capitalize' }}>{tipoScope}</span> ›
+                {sectionLabel} › <span style={{ textTransform: 'capitalize' }}>{tipoScope}</span> ›
               </span>
               <span style={{ fontSize: '0.8rem', color: '#E87217', fontWeight: 600 }}>
                 {isConfirmed ? 'Ficha de Venta' : 'Editar Cotización'}

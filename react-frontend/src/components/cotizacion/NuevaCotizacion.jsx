@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import CotizacionTabContent from './CotizacionTabContent';
 import RegistroCotizaciones from './RegistroCotizaciones';
+import EditarCotizacion from '../ventas/EditarCotizacion';
 import imgAgregar from '../../assets/Agregar.svg';
 import { PRODUCT_TABS, PRODUCT_COLOR_MAP } from './cotizacionConstants';
 import { showToast } from '../../utils/toast';
-import { ConfigurarHorarioCierreModal } from './modals';
+import { ConfigurarHorarioCierreModal, InformeCotizacionRapidaModal } from './modals';
 import ConfirmationModal from '../common/ConfirmationModal';
 
 const MAX_TABS = 35;
@@ -27,11 +28,12 @@ export default function NuevaCotizacion({ user }) {
   });
   const [loadingCatalogs, setLoadingCatalogs] = useState(true);
   const [tabToConfirmClose, setTabToConfirmClose] = useState(null);
+  const [cotizacionInforme, setCotizacionInforme] = useState(null);
 
   const storageTabsKey = user?.id ? `cotizador_open_tabs_${user.id}` : 'cotizador_open_tabs';
 
   // Tabs management
-  // Each tab: { id: string, initialNumber: number, clientName: string }
+  // Tabs can hold a draft or an existing quotation in edit mode.
   const [tabs, setTabs] = useState(() => {
     try {
       const raw = localStorage.getItem(storageTabsKey);
@@ -67,6 +69,7 @@ export default function NuevaCotizacion({ user }) {
 
   // Tab search / filter
   const [tabFilter, setTabFilter] = useState('');
+  const [showFavoriteTabsOnly, setShowFavoriteTabsOnly] = useState(false);
 
   // Normalize string for accent and case insensitive search
   const normalizeText = (str) =>
@@ -77,11 +80,12 @@ export default function NuevaCotizacion({ user }) {
 
   // Filtered tabs matching search query
   const filteredTabs = tabs.filter((tab) => {
+    if (showFavoriteTabsOnly && !tab.favorite) return false;
     if (!tabFilter.trim()) return true;
     const q = normalizeText(tabFilter.trim());
     const num = String(tab.initialNumber);
     const client = normalizeText(tab.clientName);
-    const title = normalizeText(`Cotización ${tab.initialNumber}`);
+    const title = normalizeText(tab.mode === 'editing' ? tab.numeroFicha : `Cotización ${tab.initialNumber}`);
     return client.includes(q) || num.includes(q) || title.includes(q);
   });
 
@@ -171,8 +175,10 @@ export default function NuevaCotizacion({ user }) {
 
     // 4. Actualizar estados locales de NuevaCotizacion
     setTabs([cleanTab]);
+    tabsRef.current = [cleanTab];
     setActiveTabId(cleanTab.id);
     setTabFilter('');
+    setShowFavoriteTabsOnly(false);
 
     // 5. Persistir nuevo estado limpio
     try {
@@ -314,6 +320,55 @@ export default function NuevaCotizacion({ user }) {
     });
   }, []);
 
+  const handleCotizacionCreada = useCallback((tabId, cotizacion) => {
+    const currentTabs = tabsRef.current;
+    const currentTab = currentTabs.find((tab) => tab.id === tabId);
+    if (!currentTab) return;
+
+    const tabEnEdicion = {
+      ...currentTab,
+      mode: 'editing',
+      ventaId: cotizacion.id,
+      numeroFicha: cotizacion.numero_ficha || String(cotizacion.id),
+    };
+
+    if (currentTabs.length >= MAX_TABS) {
+      const updatedTabs = currentTabs.map((tab) => (tab.id === tabId ? tabEnEdicion : tab));
+      tabsRef.current = updatedTabs;
+      setTabs(updatedTabs);
+      setActiveTabId(tabId);
+      showToast(
+        `La cotización ${tabEnEdicion.numeroFicha} quedó abierta en edición. No se pudo abrir otra pestaña porque se alcanzó el límite de ${MAX_TABS}.`,
+        'warning'
+      );
+      return;
+    }
+
+    const newNum = nextTabNumberRef.current++;
+    const nuevaPestana = {
+      id: `cotiz_${Date.now()}_${newNum}`,
+      initialNumber: newNum,
+      clientName: '',
+    };
+    const updatedTabs = [
+      ...currentTabs.filter((tab) => tab.id !== tabId && tab.mode !== 'editing'),
+      nuevaPestana,
+      ...currentTabs.filter((tab) => tab.mode === 'editing'),
+      tabEnEdicion,
+    ];
+
+    tabsRef.current = updatedTabs;
+    setTabs(updatedTabs);
+    setActiveTabId(nuevaPestana.id);
+    setTabFilter('');
+    setShowFavoriteTabsOnly(false);
+
+    setTimeout(() => {
+      const selectedTab = tabsScrollRef.current?.querySelector(`[data-tab-id="${nuevaPestana.id}"]`);
+      selectedTab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }, 50);
+  }, []);
+
   // Refs for the outer floating pill and the scrollable tabs list
   const outerBarRef = useRef(null);
   const tabsScrollRef = useRef(null);
@@ -358,7 +413,8 @@ export default function NuevaCotizacion({ user }) {
 
   // Add a new quotation tab (max 35 tabs)
   const handleAddTab = () => {
-    if (tabs.length >= MAX_TABS) {
+    const currentTabs = tabsRef.current;
+    if (currentTabs.length >= MAX_TABS) {
       showToast(`Límite alcanzado: solo se permite un máximo de ${MAX_TABS} pestañas abiertas.`, 'warning');
       return;
     }
@@ -369,21 +425,41 @@ export default function NuevaCotizacion({ user }) {
       initialNumber: newNum,
       clientName: '',
     };
-    setTabs(prev => {
-      if (prev.length >= MAX_TABS) return prev;
-      return [...prev, newTab];
-    });
+    const newDraftTabs = [...currentTabs.filter((tab) => tab.mode !== 'editing'), newTab]
+      .sort((a, b) => a.initialNumber - b.initialNumber);
+    const updatedTabs = [
+      ...newDraftTabs,
+      ...currentTabs.filter((tab) => tab.mode === 'editing'),
+    ];
+    tabsRef.current = updatedTabs;
+    setTabs(updatedTabs);
     setActiveTabId(newTab.id);
+    setShowFavoriteTabsOnly(false);
 
     // Smoothly scroll to the new tab
     setTimeout(() => {
-      if (tabsScrollRef.current) {
-        tabsScrollRef.current.scrollTo({
-          left: tabsScrollRef.current.scrollWidth,
-          behavior: 'smooth',
-        });
-      }
+      const selectedTab = tabsScrollRef.current?.querySelector(`[data-tab-id="${newTab.id}"]`);
+      selectedTab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }, 50);
+  };
+
+  const handleToggleFavoriteTab = (tabId, event) => {
+    event.stopPropagation();
+    const targetTab = tabsRef.current.find((tab) => tab.id === tabId);
+    const updatedTabs = tabsRef.current.map((tab) => (
+      tab.id === tabId ? { ...tab, favorite: !tab.favorite } : tab
+    ));
+    tabsRef.current = updatedTabs;
+    setTabs(updatedTabs);
+
+    if (showFavoriteTabsOnly && targetTab?.favorite && activeTabId === tabId) {
+      const nextFavorite = updatedTabs.find((tab) => tab.favorite);
+      if (nextFavorite) {
+        setActiveTabId(nextFavorite.id);
+      } else {
+        setShowFavoriteTabsOnly(false);
+      }
+    }
   };
 
   // Close quotation tab
@@ -391,8 +467,9 @@ export default function NuevaCotizacion({ user }) {
     if (e) e.stopPropagation();
 
     const tabToClose = tabs.find(t => t.id === tabIdToClose);
-    const tabTitle =
-      tabToClose?.clientName && tabToClose.clientName.trim() !== ''
+    const tabTitle = tabToClose?.mode === 'editing'
+      ? tabToClose.numeroFicha
+      : tabToClose?.clientName && tabToClose.clientName.trim() !== ''
         ? tabToClose.clientName.trim()
         : `Cotización ${tabToClose?.initialNumber || ''}`;
 
@@ -525,14 +602,17 @@ export default function NuevaCotizacion({ user }) {
         >
         {filteredTabs.map((tab) => {
           const isActive = tab.id === activeTabId;
-          const title =
-            tab.clientName && tab.clientName.trim() !== ''
+          const isFavorite = Boolean(tab.favorite);
+          const title = tab.mode === 'editing'
+            ? tab.numeroFicha
+            : tab.clientName && tab.clientName.trim() !== ''
               ? tab.clientName.trim()
               : `Cotización ${tab.initialNumber}`;
 
           return (
             <div
               key={tab.id}
+              data-tab-id={tab.id}
               onClick={(e) => {
                 setActiveTabId(tab.id);
                 e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
@@ -543,35 +623,57 @@ export default function NuevaCotizacion({ user }) {
                 alignItems: 'center',
                 gap: '10px',
                 padding: '8px 16px',
-                background: isActive
-                  ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.28) 0%, rgba(56, 189, 248, 0.22) 100%)'
-                  : 'rgba(255, 255, 255, 0.04)',
-                color: isActive ? '#FFFFFF' : '#94A3B8',
-                border: isActive
-                  ? '1px solid #2563EB'
-                  : '1px solid rgba(255, 255, 255, 0.08)',
+                background: isFavorite
+                  ? (isActive ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.34), rgba(250, 204, 21, 0.2))' : 'rgba(234, 179, 8, 0.1)')
+                  : (isActive ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.28) 0%, rgba(56, 189, 248, 0.22) 100%)' : 'rgba(255, 255, 255, 0.04)'),
+                color: isActive ? '#FFFFFF' : (isFavorite ? '#FDE68A' : '#94A3B8'),
+                border: isFavorite
+                  ? '1px solid rgba(250, 204, 21, 0.75)'
+                  : (isActive ? '1px solid #2563EB' : '1px solid rgba(255, 255, 255, 0.08)'),
                 borderRadius: '10px',
                 cursor: 'pointer',
                 userSelect: 'none',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 maxWidth: '220px',
                 minWidth: '110px',
-                boxShadow: isActive ? '0 0 15px rgba(37, 99, 235, 0.35)' : 'none',
+                boxShadow: isFavorite
+                  ? '0 0 12px rgba(250, 204, 21, 0.2)'
+                  : (isActive ? '0 0 15px rgba(37, 99, 235, 0.35)' : 'none'),
                 flexShrink: 0,
               }}
               onMouseEnter={(e) => {
-                if (!isActive) {
+                if (!isActive && !isFavorite) {
                   e.currentTarget.style.background = 'rgba(26, 38, 68, 0.65)';
                   e.currentTarget.style.color = '#E2E8F0';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
-                  e.currentTarget.style.color = '#94A3B8';
+                  e.currentTarget.style.background = isFavorite ? 'rgba(234, 179, 8, 0.1)' : 'rgba(255, 255, 255, 0.04)';
+                  e.currentTarget.style.color = isFavorite ? '#FDE68A' : '#94A3B8';
                 }
               }}
             >
+
+              <button
+                type="button"
+                aria-label={isFavorite ? `Quitar destacado ${title}` : `Destacar ${title}`}
+                aria-pressed={isFavorite}
+                onClick={(e) => handleToggleFavoriteTab(tab.id, e)}
+                title={isFavorite ? 'Quitar de destacadas' : 'Destacar pestaña'}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: isFavorite ? '#FACC15' : '#64748B',
+                  padding: 0,
+                  fontSize: '17px',
+                  lineHeight: 1,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                {isFavorite ? '★' : '☆'}
+              </button>
 
               {/* Tab Title (Cotización $i or Client Name) */}
               <span
@@ -582,7 +684,7 @@ export default function NuevaCotizacion({ user }) {
                   fontSize: '0.875rem',
                   fontWeight: isActive ? '600' : '500',
                   flex: 1,
-                  color: isActive ? '#FFFFFF' : '#94A3B8',
+                  color: isActive ? '#FFFFFF' : (isFavorite ? '#FDE68A' : '#94A3B8'),
                 }}
               >
                 {title}
@@ -625,7 +727,7 @@ export default function NuevaCotizacion({ user }) {
         })}
 
         {/* Mensaje cuando ningún tab coincide con el filtro */}
-        {tabFilter && filteredTabs.length === 0 && (
+        {(tabFilter || showFavoriteTabsOnly) && filteredTabs.length === 0 && (
           <span
             style={{
               fontSize: '0.8125rem',
@@ -639,7 +741,9 @@ export default function NuevaCotizacion({ user }) {
               flexShrink: 0,
             }}
           >
-            Sin coincidencias para "{tabFilter}"
+            {showFavoriteTabsOnly && !tabFilter
+              ? 'No hay pestañas destacadas.'
+              : `Sin coincidencias para "${tabFilter}"`}
           </span>
         )}
 
@@ -749,6 +853,36 @@ export default function NuevaCotizacion({ user }) {
           </button>
         )}
 
+        <button
+          type="button"
+          onClick={() => {
+            const shouldFilterFavorites = !showFavoriteTabsOnly;
+            setShowFavoriteTabsOnly(shouldFilterFavorites);
+            if (shouldFilterFavorites && !tabs.find((tab) => tab.id === activeTabId)?.favorite) {
+              const firstFavorite = tabs.find((tab) => tab.favorite);
+              if (firstFavorite) setActiveTabId(firstFavorite.id);
+            }
+          }}
+          aria-pressed={showFavoriteTabsOnly}
+          title={showFavoriteTabsOnly ? 'Mostrar todas las pestañas' : 'Mostrar solo pestañas destacadas'}
+          style={{
+            height: '30px',
+            minWidth: '32px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '0 7px',
+            background: showFavoriteTabsOnly ? 'rgba(234, 179, 8, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+            border: showFavoriteTabsOnly ? '1px solid rgba(250, 204, 21, 0.75)' : '1px solid rgba(255, 255, 255, 0.16)',
+            borderRadius: '8px',
+            color: showFavoriteTabsOnly ? '#FACC15' : '#94A3B8',
+            cursor: 'pointer',
+            fontSize: '16px',
+            flexShrink: 0,
+          }}
+        >
+          <span style={{ fontSize: '16px', position: 'relative', bottom: '2px' }}>★</span>
+        </button>
         <div
           style={{
             display: 'flex',
@@ -871,15 +1005,28 @@ export default function NuevaCotizacion({ user }) {
                 width: '100%',
               }}
             >
-              <CotizacionTabContent
-                user={user}
-                catalogos={catalogos}
-                tabNumber={tab.initialNumber}
-                tabId={tab.id}
-                onUpdateClientName={(name) => handleUpdateClientName(tab.id, name)}
-                onCloseTab={() => handleCloseTab(tab.id)}
-                onVerRegistro={() => setActiveTabId('registro')}
-              />
+              {tab.mode === 'editing' ? (
+                <EditarCotizacion
+                  ventaId={tab.ventaId}
+                  user={user}
+                  tipoScope="cotizaciones"
+                  sectionLabel="Cotizaciones"
+                  backLabel="← Volver al registro"
+                  onVolver={() => setActiveTabId('registro')}
+                />
+              ) : (
+                <CotizacionTabContent
+                  user={user}
+                  catalogos={catalogos}
+                  tabNumber={tab.initialNumber}
+                  tabId={tab.id}
+                  onUpdateClientName={(name) => handleUpdateClientName(tab.id, name)}
+                  onCloseTab={() => handleCloseTab(tab.id)}
+                  onVerRegistro={() => setActiveTabId('registro')}
+                  onCotizacionCreada={(cotizacion) => handleCotizacionCreada(tab.id, cotizacion)}
+                  onMostrarInforme={setCotizacionInforme}
+                />
+              )}
             </div>
           ))
         )}
@@ -894,6 +1041,12 @@ export default function NuevaCotizacion({ user }) {
           onManualCleanup={() => executeTabsCleanup('manual')}
         />
       )}
+      <InformeCotizacionRapidaModal
+        isOpen={!!cotizacionInforme}
+        onClose={() => setCotizacionInforme(null)}
+        cotizacion={cotizacionInforme}
+        tasaReferencialVES={62.50}
+      />
     </div>
   );
 }

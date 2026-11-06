@@ -50,6 +50,8 @@ export default function CotizacionTabContent({
   onUpdateClientName,
   onCloseTab,
   onVerRegistro,
+  onCotizacionCreada,
+  onMostrarInforme,
 }) {
   const [showClearPassengersConfirmation, setShowClearPassengersConfirmation] = useState(false);
   const storageDraftKey = tabId
@@ -1954,7 +1956,13 @@ export default function CotizacionTabContent({
           {
             label: 'Ver Informe de Cotización Rápida',
             primary: true,
-            onClick: () => setInformeModalCotizacion(normalizedCotiz),
+            onClick: () => {
+              if (onMostrarInforme) {
+                onMostrarInforme(normalizedCotiz);
+              } else {
+                setInformeModalCotizacion(normalizedCotiz);
+              }
+            },
           },
           ...(onVerRegistro ? [{
             label: 'Ir al Registro de Guardado',
@@ -1979,7 +1987,10 @@ export default function CotizacionTabContent({
       };
 
       setLastSavedCotizacion(normalizedCotiz);
-      setInformeModalCotizacion(normalizedCotiz);
+      if (!onCotizacionCreada) {
+        setInformeModalCotizacion(normalizedCotiz);
+      }
+      onCotizacionCreada?.(cotizGuardada);
 
       // Limpiar formulario para permitir nueva carga
       setItems([]);

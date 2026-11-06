@@ -624,7 +624,7 @@ class CotizacionService
                 'tipo_label' => 'Cotización Formal',
                 'numero_ficha' => $v->numero_ficha,
                 'fecha' => $v->fecha_creacion,
-                'asesor' => $v->user?->name ?? 'Asesor',
+                'asesor' => $this->nombreAsesor($v->user),
                 'cliente' => [
                     'nombres' => $clienteP?->nombres ?? '',
                     'apellidos' => $clienteP?->apellidos ?? '',
@@ -665,7 +665,7 @@ class CotizacionService
                 'tipo_label' => 'Cotización Rápida',
                 'numero_ficha' => $r->numero_ficha,
                 'fecha' => $r->fecha,
-                'asesor' => $r->asesor?->name ?? 'Asesor',
+                'asesor' => $this->nombreAsesor($r->asesor),
                 'cliente' => [
                     'nombre_completo' => is_string($clienteRaw) ? $clienteRaw : ($clienteRaw['nombres'] ?? 'Cliente Rápido'),
                     'documento' => is_array($clienteRaw) ? ($clienteRaw['documento'] ?? '') : '',
@@ -688,5 +688,10 @@ class CotizacionService
         });
 
         return $lista;
+    }
+
+    private function nombreAsesor(?User $asesor): string
+    {
+        return trim(($asesor?->first_name ?? '') . ' ' . ($asesor?->last_name ?? '')) ?: 'Asesor';
     }
 }

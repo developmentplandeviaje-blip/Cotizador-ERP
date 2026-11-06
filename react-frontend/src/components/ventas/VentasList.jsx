@@ -3,10 +3,16 @@ import axios from 'axios';
 import Badge from '../common/Badge';
 import ConfirmationModal from '../common/ConfirmationModal';
 import CustomSelect from '../common/CustomSelect';
+import Pagination from '../common/Pagination';
 import { DetalleVentaModal, RegistrarPagoModal } from './modals';
 import EditarCotizacion from './EditarCotizacion';
 import { showToast } from '../../utils/toast';
 import imgSearch from '../../assets/lupa.svg';
+import imgpago from '../../assets/cash-stack.svg';
+import imgconfirmar from '../../assets/check-all.svg';
+import imgedit from '../../assets/pencil-square.svg';
+
+const PAGE_SIZE = 10;
 
 export default function VentasList({ tipo = 'agencia', user }) {
   const [ventas, setVentas] = useState([]);
@@ -19,6 +25,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
   const [filterEstado, setFilterEstado] = useState('todos'); // 'todos' | 'Confirmada' | 'Cotizacion'
   const [filterPago, setFilterPago] = useState('todos'); // 'todos' | 'pagado' | 'pendiente'
   const [filterAliadoId, setFilterAliadoId] = useState('');
+  const [page, setPage] = useState(1);
 
   // Modales y Edición
   const [editingVentaId, setEditingVentaId] = useState(null);
@@ -33,20 +40,20 @@ export default function VentasList({ tipo = 'agencia', user }) {
       case 'freelancer':
         return {
           title: 'Ventas Freelancer',
-          subtitle: 'Control de operaciones, cotizaciones y comisiones generadas por asesores independientes.',
+          subtitle: '',
           icon: '👤',
         };
       case 'aliados':
         return {
           title: 'Ventas Aliados Comerciales',
-          subtitle: 'Consolidación de ventas, ingresos y recaudos agrupados por Empresa Aliada.',
+          subtitle: '',
           icon: '🏢',
         };
       case 'agencia':
       default:
         return {
           title: 'Ventas Agencia',
-          subtitle: 'Gestión y seguimiento de ventas realizadas por el equipo interno de la agencia.',
+          subtitle: '',
           icon: '💼',
         };
     }
@@ -129,6 +136,13 @@ export default function VentasList({ tipo = 'agencia', user }) {
       );
     });
   }, [ventas, filterPago, searchTerm]);
+
+  const lastPage = Math.ceil(filteredVentas.length / PAGE_SIZE);
+  const currentPage = Math.min(page, Math.max(lastPage, 1));
+  const paginatedVentas = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredVentas.slice(start, start + PAGE_SIZE);
+  }, [filteredVentas, currentPage]);
 
   // Lista de aliados únicos para el filtro desplegable
   const aliadosList = useMemo(() => {
@@ -334,7 +348,10 @@ export default function VentasList({ tipo = 'agencia', user }) {
             {filterAliadoId && (
               <button
                 type="button"
-                onClick={() => setFilterAliadoId('')}
+                onClick={() => {
+                  setFilterAliadoId('');
+                  setPage(1);
+                }}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -361,7 +378,10 @@ export default function VentasList({ tipo = 'agencia', user }) {
               return (
                 <div
                   key={al.id}
-                  onClick={() => setFilterAliadoId(isSelected ? '' : String(al.id))}
+                  onClick={() => {
+                    setFilterAliadoId(isSelected ? '' : String(al.id));
+                    setPage(1);
+                  }}
                   style={{
                     background: isSelected ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255, 255, 255, 0.04)',
                     border: isSelected ? '1px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
@@ -434,7 +454,10 @@ export default function VentasList({ tipo = 'agencia', user }) {
             className="erp-input"
             placeholder="Buscar por ficha, cliente o asesor..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
             style={{
               width: '100%',
               paddingLeft: '40px',
@@ -453,7 +476,10 @@ export default function VentasList({ tipo = 'agencia', user }) {
           {searchTerm && (
             <button
               type="button"
-              onClick={() => setSearchTerm('')}
+              onClick={() => {
+                setSearchTerm('');
+                setPage(1);
+              }}
               style={{
                 position: 'absolute',
                 right: '12px',
@@ -486,7 +512,10 @@ export default function VentasList({ tipo = 'agencia', user }) {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setFilterEstado(tab.id)}
+                onClick={() => {
+                  setFilterEstado(tab.id);
+                  setPage(1);
+                }}
                 style={{
                   height: '38px',
                   padding: '0 18px',
@@ -512,7 +541,10 @@ export default function VentasList({ tipo = 'agencia', user }) {
           {/* Filtro Estado de Pago */}
           <CustomSelect
             value={filterPago}
-            onChange={(e) => setFilterPago(e.target.value)}
+            onChange={(e) => {
+              setFilterPago(e.target.value);
+              setPage(1);
+            }}
             options={[
               { value: 'todos', label: 'Todos los pagos' },
               { value: 'pagado', label: 'Totalmente Pagado' },
@@ -525,7 +557,10 @@ export default function VentasList({ tipo = 'agencia', user }) {
           {tipo === 'aliados' && aliadosList.length > 0 && (
             <CustomSelect
               value={filterAliadoId}
-              onChange={(e) => setFilterAliadoId(e.target.value)}
+              onChange={(e) => {
+                setFilterAliadoId(e.target.value);
+                setPage(1);
+              }}
               options={[
                 { value: '', label: 'Todas las Empresas' },
                 ...aliadosList.map((al) => ({
@@ -551,7 +586,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
         }}
       >
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem', padding: '0px 20px',}}>
             <thead>
               <tr
                 style={{
@@ -563,16 +598,16 @@ export default function VentasList({ tipo = 'agencia', user }) {
                   letterSpacing: '0.05em',
                 }}
               >
-                <th style={{ padding: '14px 18px' }}>N° Ficha</th>
+                <th style={{ padding: '14px 18px 14px 30px' }}>N° Ficha</th>
                 <th style={{ padding: '14px 18px' }}>Fecha</th>
                 <th style={{ padding: '14px 18px' }}>Cliente Principal</th>
                 <th style={{ padding: '14px 18px' }}>Asesor</th>
                 {tipo === 'aliados' && <th style={{ padding: '14px 18px' }}>Empresa Aliada</th>}
-                <th style={{ padding: '14px 18px', textAlign: 'center' }}>Pax</th>
+                {/*<th style={{ padding: '14px 18px', textAlign: 'center' }}>Pax</th>*/}
                 <th style={{ padding: '14px 18px', textAlign: 'right' }}>Total Venta</th>
                 <th style={{ padding: '14px 18px', textAlign: 'right' }}>Pagado / Saldo</th>
                 <th style={{ padding: '14px 18px', textAlign: 'center' }}>Estado</th>
-                <th style={{ padding: '14px 18px', textAlign: 'center' }}>Acciones</th>
+                <th style={{ padding: '14px 30px 14px 18px', textAlign: 'center' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -592,7 +627,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                   </td>
                 </tr>
               ) : (
-                filteredVentas.map((v) => {
+                paginatedVentas.map((v) => {
                   const isConfirmed = v.estado === 'Confirmada';
                   const saldo = v.saldo_pendiente || 0;
                   const isPaid = saldo <= 0.01 && (v.total_pagado || 0) > 0;
@@ -608,7 +643,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
                       {/* Número de ficha */}
-                      <td style={{ padding: '14px 18px' }}>
+                      <td style={{ padding: '14px 18px 14px 30px' }}>
                         <div style={{ fontWeight: '700', color: '#FFFFFF', fontFamily: 'monospace', fontSize: '0.9rem' }}>
                           {v.numero_ficha || v.id}
                         </div>
@@ -658,9 +693,9 @@ export default function VentasList({ tipo = 'agencia', user }) {
                       )}
 
                       {/* Pasajeros (Pax) */}
-                      <td style={{ padding: '14px 18px', textAlign: 'center', color: '#CBD5E1' }}>
+                      {/*<td style={{ padding: '14px 18px', textAlign: 'center', color: '#CBD5E1' }}>
                         {v.pax_total || 1}
-                      </td>
+                      </td>*/}
 
                       {/* Total Venta */}
                       <td style={{ padding: '14px 18px', textAlign: 'right', fontWeight: '700', color: '#E87217', fontSize: '0.925rem' }}>
@@ -716,13 +751,16 @@ export default function VentasList({ tipo = 'agencia', user }) {
                       </td>
 
                       {/* Acciones */}
-                      <td style={{ padding: '14px 18px', textAlign: 'center' }}>
+                      <td style={{ padding: '14px 30px 14px 18px', textAlign: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                           {/* Editar Cotización / Venta */}
                           <button
                             type="button"
                             onClick={() => setEditingVentaId(v.id)}
                             style={{
+                              display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
                               background: 'rgba(255, 255, 255, 0.08)',
                               border: '1px solid rgba(255, 255, 255, 0.15)',
                               borderRadius: '8px',
@@ -734,7 +772,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                             }}
                             title="Editar cotización / venta"
                           >
-                            👁️
+                            <img src={imgedit} alt="Editar" />
                           </button>
 
                           {/* Registrar Pago */}
@@ -742,6 +780,9 @@ export default function VentasList({ tipo = 'agencia', user }) {
                             type="button"
                             onClick={() => setSelectedVentaPago(v)}
                             style={{
+                              display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
                               background: 'rgba(34, 197, 94, 0.15)',
                               border: '1px solid rgba(34, 197, 94, 0.35)',
                               borderRadius: '8px',
@@ -753,7 +794,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                             }}
                             title="Registrar abono o liquidación"
                           >
-                            💵
+                            <img src={imgpago} alt="Registrar Pago" style={{ color: 'white' }}/>
                           </button>
 
                           {/* Confirmar Venta (si no está confirmada) */}
@@ -762,18 +803,21 @@ export default function VentasList({ tipo = 'agencia', user }) {
                               type="button"
                               onClick={() => setConfirmingVenta(v)}
                               style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
                                 background: 'rgba(232, 114, 23, 0.15)',
                                 border: '1px solid rgba(232, 114, 23, 0.35)',
                                 borderRadius: '8px',
-                                padding: '6px 10px',
+                                padding: '4px 8px',
                                 color: '#FB923C',
                                 cursor: 'pointer',
-                                fontSize: '0.8rem',
+                                fontSize: '1rem',
                                 transition: 'all 0.2s',
                               }}
                               title="Confirmar venta formalmente"
                             >
-                              ✅
+                              <img src={imgconfirmar} alt="Confirmar" style={{ width:'20px', height: '20px' }}/>
                             </button>
                           )}
                         </div>
@@ -785,6 +829,25 @@ export default function VentasList({ tipo = 'agencia', user }) {
             </tbody>
           </table>
         </div>
+        {!loading && filteredVentas.length > 0 && (
+          <div
+            style={{
+              padding: '12px 20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              fontSize: '0.8125rem',
+              color: '#94A3B8',
+            }}
+          >
+            <span>
+              Mostrando {(currentPage - 1) * PAGE_SIZE + 1}-
+              {Math.min(currentPage * PAGE_SIZE, filteredVentas.length)} de {filteredVentas.length}
+            </span>
+            <Pagination page={currentPage} lastPage={lastPage} setPage={setPage} />
+          </div>
+        )}
       </div>
 
       {/* Modal de Detalle de Venta */}

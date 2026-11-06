@@ -14,11 +14,11 @@ return new class extends Migration
         });
 
         DB::table('ventas')
-            ->leftJoin('users', 'users.id', '=', 'ventas.id_user')
+            ->leftJoin('user', 'user.id', '=', 'ventas.id_user')
             ->select([
                 'ventas.id',
-                'users.first_name',
-                'users.last_name',
+                'user.first_name',
+                'user.last_name',
             ])
             ->orderBy('ventas.id')
             ->chunkById(500, function ($ventas): void {

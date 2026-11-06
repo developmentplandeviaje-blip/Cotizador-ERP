@@ -164,7 +164,7 @@ function App() {
       }
 
       // 4. Cédula / Documento: máx. 12 dígitos y solo números
-      else if (tagName === 'INPUT' && (name.includes('documento') || name.includes('cedula') || id.includes('documento') || id.includes('cedula') || placeholder.includes('cédula') || placeholder.includes('cedula') || placeholder.includes('documento'))) {
+      else if (tagName === 'INPUT' && type !== 'search' && (name.includes('documento') || name.includes('cedula') || id.includes('documento') || id.includes('cedula') || placeholder.includes('cédula') || placeholder.includes('cedula') || placeholder.includes('documento'))) {
         let val = target.value.replace(/\D/g, '').slice(0, 12);
         if (target.value !== val) target.value = val;
       }

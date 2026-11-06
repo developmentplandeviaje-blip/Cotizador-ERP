@@ -440,10 +440,31 @@ class CotizacionTest extends TestCase
 
     public function test_listar_cotizaciones_retorna_registro_de_guardado(): void
     {
+        Venta::create([
+            'id_user' => $this->adminUser->id,
+            'numero_ficha' => 'AU1001',
+            'localizador' => 'AU1001',
+            'estado' => 'Cotizacion',
+            'tipo_pago' => 'Total',
+            'checkin' => '2026-11-06',
+            'checkout' => '2026-11-10',
+        ]);
+        CotizacionRapida::create([
+            'id_asesor' => $this->adminUser->id,
+            'fecha' => now(),
+            'data' => json_encode([
+                'cliente' => 'Cliente Rápido',
+                'pax' => ['adultos' => 1],
+            ]),
+        ]);
+
         $response = $this->actingAs($this->adminUser, 'sanctum')
             ->getJson('/api/v1/cotizaciones');
 
         $response->assertStatus(200)
-            ->assertJsonIsArray();
+            ->assertJsonIsArray()
+            ->assertJsonFragment([
+                'asesor' => 'Admin User',
+            ]);
     }
 }
