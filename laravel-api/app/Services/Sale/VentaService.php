@@ -588,6 +588,66 @@ class VentaService
     }
 
     /**
+     * Corrige un pago/abono ya registrado (monto, método, moneda, referencia, etc.)
+     * recalculando su equivalente en USD, comisión y desglose.
+     */
+    public function actualizarPago(int $idVenta, int $idPago, array $data, User $user): PagoVenta
+    {
+        return DB::transaction(function () use ($idVenta, $idPago, $data, $user) {
+            $venta = Venta::findOrFail($idVenta);
+
+            $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
+            if (!$isAdminOrLeader && $venta->id_user !== $user->id) {
+                abort(403, 'No tiene autorización para modificar pagos de esta venta.');
+            }
+
+            $pago = PagoVenta::where('id', $idPago)->where('id_venta', $venta->id)->firstOrFail();
+
+            $montoOriginal = (float)($data['monto_original'] ?? $pago->monto_original);
+            if ($montoOriginal <= 0) {
+                throw new InvalidArgumentException('El monto del abono debe ser mayor a cero.');
+            }
+
+            $monedaPago = strtoupper(trim($data['moneda_pago'] ?? $pago->moneda_pago ?? 'USD'));
+            $tasaCambio = (float)($data['tasa_cambio'] ?? $pago->tasa_cambio ?? 1.0);
+            if ($tasaCambio <= 0) {
+                $tasaCambio = 1.0;
+            }
+
+            if ($monedaPago === 'USD') {
+                $montoUSD = $montoOriginal;
+                $tasaCambio = 1.0000;
+            } else {
+                $montoUSD = round($montoOriginal / $tasaCambio, 2);
+            }
+
+            $idMetodo = $data['id_metodo'] ?? $pago->id_metodo;
+            $comisionBancaria = 0.00;
+            $metodo = MetodoPago::find($idMetodo);
+            if ($metodo && strtolower($metodo->tipo ?? '') === 'digital') {
+                $comisionBancaria = round($montoUSD * 0.03, 2);
+            }
+
+            $pago->update([
+                'id_metodo' => $idMetodo,
+                'numero_transaccion' => $data['numero_transaccion'] ?? $pago->numero_transaccion,
+                'tipo_pago' => $data['tipo_pago'] ?? $pago->tipo_pago,
+                'moneda_pago' => $monedaPago,
+                'monto_original' => $montoOriginal,
+                'tasa_cambio' => $tasaCambio,
+                'monto_usd' => $montoUSD,
+                'comision_bancaria' => $comisionBancaria,
+                'quien_envia' => $data['quien_envia'] ?? $pago->quien_envia,
+                'observacion' => array_key_exists('observacion', $data) ? $data['observacion'] : $pago->observacion,
+            ]);
+
+            PagoVentaDetalle::where('id_pago', $pago->id)->update(['monto_asignado_usd' => $montoUSD]);
+
+            return $pago->fresh(['metodoPago', 'detalles']);
+        });
+    }
+
+    /**
      * Obtiene el detalle completo de una venta.
      */
     public function getDetalleVenta(int $id, User $user): array
@@ -641,6 +701,7 @@ class VentaService
                 abort(403, 'No tiene autorización para modificar este registro.');
             }
 
+            $isFreelancer = strtolower($user->level ?? '') === 'freelancer' || !empty($user->id_freelancer);
             $isCotizacion = strtolower($venta->estado ?? '') === 'cotizacion';
 
             // 1. Actualización de datos generales
@@ -717,7 +778,7 @@ class VentaService
                         $hotelData = $this->pricingEngine->normalizeHotelAdolescentPassengers(
                             $h,
                             $hotel?->edad_adolescentes,
-                            $user->level === 'Freelancer' || !empty($user->id_freelancer)
+                            $isFreelancer
                         );
                         HotelVenta::create([
                             'id_venta' => $venta->id,
@@ -859,16 +920,6 @@ class VentaService
                         ]);
                     }
                 }
-
-                // Recalcular y sincronizar total_usd en la cotización
-                $venta->load([
-                    'hoteles.hotel', 'vuelos.aerolinea', 'excursiones.excursion',
-                    'paquetes.paquete', 'traslados.traslado', 'vehiculos.vehiculo',
-                    'ferries', 'otros'
-                ]);
-                $nuevoCalculo = $this->calcularTotalesVenta($venta, $isFreelancer);
-                $venta->total_usd = $nuevoCalculo['total_usd'];
-                $venta->save();
             }
 
             return $this->getDetalleVenta($venta->id, $user);

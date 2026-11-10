@@ -1,6 +1,5 @@
-import React from 'react';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
-import { PRODUCT_COLOR_MAP } from '../NuevaCotizacion';
+import { PRODUCT_COLOR_MAP } from '../cotizacionConstants';
 
 export default function EliminarProductoModal({
   isOpen,

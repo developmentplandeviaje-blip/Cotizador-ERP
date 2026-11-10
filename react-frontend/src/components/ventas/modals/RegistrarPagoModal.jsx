@@ -4,7 +4,8 @@ import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
 import { showToast } from '../../../utils/toast';
 
-export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }) {
+export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, pago = null }) {
+  const isEditing = Boolean(pago);
   const [metodos, setMetodos] = useState([]);
   const [loadingMetodos, setLoadingMetodos] = useState(false);
   const [idMetodo, setIdMetodo] = useState('');
@@ -26,15 +27,25 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
     setErrorMsg('');
     setSubmitting(false);
 
-    // Inicializar campos con datos de la venta
+    // Inicializar campos con datos de la venta (o del pago en modo edición)
     const clienteNombre = venta?.cliente?.nombre_completo || '';
-    setQuienEnvia(clienteNombre);
-    setTipoPago('abono_cuota');
-    setMonedaPago('USD');
-    setTasaCambio(1.0);
-    setMontoOriginal('');
-    setNumeroTransaccion('');
-    setObservacion('');
+    if (pago) {
+      setQuienEnvia(pago.quien_envia || clienteNombre);
+      setTipoPago(pago.tipo_pago || 'abono_cuota');
+      setMonedaPago(pago.moneda_pago || 'USD');
+      setTasaCambio(Number(pago.tasa_cambio) || 1.0);
+      setMontoOriginal(String(Number(pago.monto_original ?? pago.monto_usd ?? 0)));
+      setNumeroTransaccion(pago.numero_transaccion || '');
+      setObservacion(pago.observacion || '');
+    } else {
+      setQuienEnvia(clienteNombre);
+      setTipoPago('abono_cuota');
+      setMonedaPago('USD');
+      setTasaCambio(1.0);
+      setMontoOriginal('');
+      setNumeroTransaccion('');
+      setObservacion('');
+    }
 
     setLoadingMetodos(true);
     axios
@@ -43,7 +54,9 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
         const list = res.data?.data || res.data || [];
         const active = list.filter((m) => m.status !== false);
         setMetodos(active);
-        if (active.length > 0) {
+        if (pago?.id_metodo) {
+          setIdMetodo(String(pago.id_metodo));
+        } else if (active.length > 0) {
           setIdMetodo(String(active[0].id));
         }
       })
@@ -78,7 +91,8 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
     return Math.round((parsedMontoOriginal / parsedTasa) * 100) / 100;
   }, [parsedMontoOriginal, parsedTasa, monedaPago]);
 
-  const saldoPendiente = venta?.saldo_pendiente || 0;
+  // En edición, el saldo disponible incluye el monto del pago que se está corrigiendo
+  const saldoPendiente = Math.max(0, (venta?.saldo_pendiente || 0) + (isEditing ? Number(pago.monto_usd || 0) : 0));
   const nuevoSaldoPendiente = Math.max(0, Math.round((saldoPendiente - montoUSDCalculado) * 100) / 100);
 
   // Auto-completar monto para pagar la totalidad del saldo pendiente
@@ -125,9 +139,13 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
         observacion: observacion.trim() || undefined,
       };
 
-      await axios.post(`/v1/ventas/${venta.id}/pagos`, payload);
-
-      showToast.success(`Pago por $${montoUSDCalculado.toFixed(2)} USD registrado con éxito.`);
+      if (isEditing) {
+        await axios.put(`/v1/ventas/${venta.id}/pagos/${pago.id}`, payload);
+        showToast.success(`Pago actualizado: $${montoUSDCalculado.toFixed(2)} USD.`);
+      } else {
+        await axios.post(`/v1/ventas/${venta.id}/pagos`, payload);
+        showToast.success(`Pago por $${montoUSDCalculado.toFixed(2)} USD registrado con éxito.`);
+      }
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
@@ -146,7 +164,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Registrar Abono / Pago"
+      title={isEditing ? 'Editar Pago / Abono' : 'Registrar Abono'}
       maxWidth="680px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -209,7 +227,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
               fontSize: '0.85rem',
             }}
           >
-            ⚠️ {errorMsg}
+            {errorMsg}
           </div>
         )}
 
@@ -243,16 +261,16 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
               value={tipoPago}
               onChange={(e) => setTipoPago(e.target.value)}
               options={[
-                { value: 'abono_cuota', label: 'Abono / Cuota Parcial' },
-                { value: 'pago_inicial', label: 'Pago Inicial / Reserva' },
-                { value: 'pago_total', label: 'Liquidación / Pago Total' },
+                { value: 'abono_cuota', label: 'Abono' },
+                { value: 'pago_inicial', label: 'Pago Inicial' },
+                { value: 'pago_total', label: 'Pago Total' },
               ]}
             />
           </div>
         </div>
 
         {/* Fila 2: Moneda, Tasa de Cambio y Monto */}
-        <div style={{ display: 'grid', gridTemplateColumns: monedaPago === 'USD' ? '1fr 2fr' : '1fr 1fr 1.5fr', gap: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: monedaPago === 'USD' ? '1fr 2fr' : '0.7fr 1fr 1fr', gap: '12px' }}>
           {/* Selector de Moneda */}
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
@@ -322,16 +340,10 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
                 <button
                   type="button"
                   onClick={handlePagarTodo}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#38BDF8',
-                    fontSize: '0.725rem',
-                    cursor: 'pointer',
-                    textDecoration: 'underline',
-                    padding: 0,
-                  }}
+                  className="btn-pagar-todo"
+                  title="Completar el monto con el saldo restante"
                 >
+                  <span aria-hidden="true"></span>
                   Pagar todo el saldo
                 </button>
               )}
@@ -384,11 +396,11 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
               style={{
                 fontSize: '1.1rem',
                 fontWeight: '700',
-                color: nuevoSaldoPendiente <= 0 ? '#4ADE80' : '#FBBF24',
+                color: nuevoSaldoPendiente <= 0 ? '#4ADE80' : '#E87217',
                 marginTop: '2px',
               }}
             >
-              ${nuevoSaldoPendiente.toFixed(2)} USD {nuevoSaldoPendiente <= 0 && '🎉 Liquidado'}
+              ${nuevoSaldoPendiente.toFixed(2)} USD {nuevoSaldoPendiente <= 0 && 'Liquidado'}
             </div>
           </div>
         </div>
@@ -445,7 +457,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
         {/* Fila 4: Observaciones */}
         <div>
           <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
-            Observaciones / Notas
+            Observaciones
           </label>
           <textarea
             rows="2"
@@ -479,7 +491,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
         >
           <button
             type="button"
-            className="btn-secondary"
+            className="btn-form-cancel"
             onClick={onClose}
             disabled={submitting}
             style={{ padding: '8px 18px', borderRadius: '8px', cursor: 'pointer' }}
@@ -488,7 +500,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
           </button>
           <button
             type="submit"
-            className="btn-primary"
+            className="btn-form-nxt"
             disabled={submitting || parsedMontoOriginal <= 0}
             style={{
               padding: '8px 24px',
@@ -500,7 +512,9 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess }
               gap: '8px',
             }}
           >
-            {submitting ? 'Procesando Pago...' : 'Registrar Pago'}
+            {submitting
+              ? (isEditing ? 'Guardando...' : 'Procesando Pago...')
+              : (isEditing ? 'Guardar Cambios' : 'Registrar Pago')}
           </button>
         </div>
       </form>

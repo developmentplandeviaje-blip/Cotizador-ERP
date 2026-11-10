@@ -74,4 +74,24 @@ class VentaController extends Controller
             'pago' => $pago,
         ], 201);
     }
+
+    public function actualizarPago(Request $request, int $id, int $pagoId): JsonResponse
+    {
+        $validated = $request->validate([
+            'id_metodo' => 'nullable|integer',
+            'monto_original' => 'required|numeric|min:0.01',
+            'moneda_pago' => 'nullable|string|in:USD,VES,EUR',
+            'tasa_cambio' => 'nullable|numeric|min:0.0001',
+            'tipo_pago' => 'nullable|string|in:pago_inicial,abono_cuota,pago_total',
+            'numero_transaccion' => 'nullable|string|max:100',
+            'quien_envia' => 'nullable|string|max:150',
+            'observacion' => 'nullable|string|max:500',
+        ]);
+
+        $pago = $this->service->actualizarPago($id, $pagoId, $validated, $request->user());
+        return response()->json([
+            'message' => 'Pago actualizado exitosamente.',
+            'pago' => $pago,
+        ]);
+    }
 }

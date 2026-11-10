@@ -1,11 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import Modal from '../../common/Modal';
-import Badge from '../../common/Badge';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import CustomNumberInput from '../../common/CustomNumberInput';
-import { PRODUCT_COLOR_MAP } from '../NuevaCotizacion';
-import { formatFlightItinerary, handlePriceInputKeyClamp, sanitizePrecioCostoValue } from '../../../utils/validation';
+import { formatFlightItinerary, sanitizePrecioCostoValue } from '../../../utils/validation';
 import { normalizeHotelAdolescentPassengers } from '../../../utils/quotePricing';
 import HotelAsociadoSelect from '../HotelAsociadoSelect';
 
@@ -21,14 +19,26 @@ function EditarProductoModalContent({
   catalogos = {},
   allPassengers = [],
   registeredHotels = [],
-  nochesEstadia,
-  diasEstadia,
-  fechasViaje,
+  nochesEstadia = 0,
+  fechasViaje = {},
   onClose,
   onSave,
 }) {
   const tipo = item.tipo || 'otro';
   const [formData, setFormData] = useState({});
+  const fechasEfectivas = useMemo(() => ({
+    checkin: fechasViaje?.checkin || item.data?.fecha_checkin || '',
+    checkout: fechasViaje?.checkout || item.data?.fecha_checkout || '',
+  }), [fechasViaje?.checkin, fechasViaje?.checkout, item.data?.fecha_checkin, item.data?.fecha_checkout]);
+  const nochesHotel = useMemo(() => {
+    if (nochesEstadia > 0) return nochesEstadia;
+    if (!fechasEfectivas.checkin || !fechasEfectivas.checkout) return 0;
+    const checkinTime = Date.parse(`${fechasEfectivas.checkin}T00:00:00Z`);
+    const checkoutTime = Date.parse(`${fechasEfectivas.checkout}T00:00:00Z`);
+    if (!Number.isFinite(checkinTime) || !Number.isFinite(checkoutTime)) return 0;
+    return Math.max(0, Math.round((checkoutTime - checkinTime) / 86400000));
+  }, [nochesEstadia, fechasEfectivas.checkin, fechasEfectivas.checkout]);
+  const diasHotel = nochesHotel > 0 ? nochesHotel + 1 : 0;
 
   // Sync state when item changes
   useEffect(() => {
@@ -105,9 +115,9 @@ function EditarProductoModalContent({
   const totalCalculado = useMemo(() => {
     const d = formData;
     if (tipo === 'hotel') {
-      const subAdultos = Number(hotelPricingData.adultos || 0) * Number(d.precio_noche_adulto || 0) * nochesEstadia;
-      const subAdol = Number(hotelPricingData.adolescente || 0) * Number(d.precio_noche_adolescente || 0) * nochesEstadia;
-      const subNinos = Number(d.ninos || 0) * Number(d.precio_noche_nino || 0) * nochesEstadia;
+      const subAdultos = Number(hotelPricingData.adultos || 0) * Number(d.precio_noche_adulto || 0) * nochesHotel;
+      const subAdol = Number(hotelPricingData.adolescente || 0) * Number(d.precio_noche_adolescente || 0) * nochesHotel;
+      const subNinos = Number(d.ninos || 0) * Number(d.precio_noche_nino || 0) * nochesHotel;
       return Math.max(0, subAdultos + subAdol + subNinos);
     }
     if (tipo === 'vuelo') {
@@ -138,7 +148,7 @@ function EditarProductoModalContent({
       return Math.max(0, Number(d.precio || 0));
     }
     return Math.max(0, Number(d.precio || 0));
-  }, [tipo, formData, hotelPricingData, nochesEstadia]);
+  }, [tipo, formData, hotelPricingData, nochesHotel]);
 
   const handleSubmit = (e) => {
     e?.preventDefault();
@@ -151,12 +161,12 @@ function EditarProductoModalContent({
       const hotelObj = (catalogos.hoteles || []).find(h => String(h.id) === String(formData.id_hotel)) || {};
       const habObj = (hotelObj.habitaciones || []).find(hab => String(hab.id) === String(formData.id_habitacion)) || {};
       updatedTitulo = `${hotelObj.nombre || item.titulo.split(' (')[0]} (${habObj.habitacion || 'Habitación'})`;
-      updatedDetalle = `${nochesEstadia} noches • ${diasEstadia} días • ${finalData.adultos} adultos${finalData.adolescente ? `, ${finalData.adolescente} adol` : ''}, ${formData.ninos} niños`;
+      updatedDetalle = `${nochesHotel} noches • ${diasHotel} días • ${finalData.adultos} adultos${finalData.adolescente ? `, ${finalData.adolescente} adol` : ''}, ${formData.ninos} niños`;
       finalData.id_hotel = Number(formData.id_hotel);
       finalData.id_habitacion = Number(formData.id_habitacion || 0);
-      finalData.noches = nochesEstadia;
-      finalData.fecha_checkin = fechasViaje.checkin;
-      finalData.fecha_checkout = fechasViaje.checkout;
+      finalData.noches = nochesHotel;
+      finalData.fecha_checkin = fechasEfectivas.checkin || null;
+      finalData.fecha_checkout = fechasEfectivas.checkout || null;
       finalData.precio_noche_adulto = Number(formData.precio_noche_adulto || 0);
       finalData.precio_noche_adolescente = Number(formData.precio_noche_adolescente || 0);
       finalData.precio_noche_nino = Number(formData.precio_noche_nino || 0);
@@ -336,7 +346,7 @@ function EditarProductoModalContent({
             <div style={{ gridColumnStart: 2, gridRowStart: 3, minWidth: 0 }}>
               <label className="erp-label">Estadía calculada</label>
               <div style={{ color: '#CBD5E1', fontSize: '0.875rem', padding: '10px 0' }}>
-                {nochesEstadia > 0 ? `${nochesEstadia} noches · ${diasEstadia} días` : 'Verifique las fechas'}
+                {nochesHotel > 0 ? `${nochesHotel} noches · ${diasHotel} días` : 'Verifique las fechas'}
               </div>
             </div>
 
