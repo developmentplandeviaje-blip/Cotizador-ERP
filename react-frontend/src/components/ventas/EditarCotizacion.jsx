@@ -417,6 +417,8 @@ export default function EditarCotizacion({
   const [itemToEdit, setItemToEdit] = useState(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [pagoToDelete, setPagoToDelete] = useState(null);
+  const [isDeletingPago, setIsDeletingPago] = useState(false);
 
   // Carga inicial de catálogos
   useEffect(() => {
@@ -691,9 +693,25 @@ export default function EditarCotizacion({
         const effAdolescentes = Number(normalizedData.adolescente || 0);
         const effNinos = Number(normalizedData.ninos || 0);
 
-        const precioUnitAdulto = Number(normalizedData.precio_noche_adulto || 0);
-        const precioUnitAdol = Number(normalizedData.precio_noche_adolescente || 0);
-        const precioUnitNino = Number(normalizedData.precio_noche_nino || 0);
+        // Buscar tarifas en el catálogo de hoteles por si faltan en el ítem (ej. cuando se agregan niños o adol que no existían)
+        const hab = (hotel?.habitaciones || []).find(h => String(h.id) === String(itemData.id_habitacion));
+        const tarifa = hab?.tarifas?.[0];
+
+        let precioUnitAdulto = Number(normalizedData.precio_noche_adulto || 0);
+        let precioUnitAdol = Number(normalizedData.precio_noche_adolescente || 0);
+        let precioUnitNino = Number(normalizedData.precio_noche_nino || 0);
+
+        if (tarifa) {
+          if (!precioUnitAdulto || precioUnitAdulto <= 0) precioUnitAdulto = Number(tarifa.precio_noche_adulto || 0);
+          if (!precioUnitAdol || precioUnitAdol <= 0) precioUnitAdol = Number(tarifa.precio_noche_adolescente || 0);
+          if (!precioUnitNino || precioUnitNino <= 0) precioUnitNino = Number(tarifa.precio_noche_nino || 0);
+        }
+
+        // Si aún así precioUnitAdulto es 0 pero item tenía un precio base y noches
+        if (precioUnitAdulto <= 0 && Number(item.precio || 0) > 0 && noches > 0) {
+          const prevAdults = Math.max(1, Number(item.data.adultos || 1));
+          precioUnitAdulto = Number(item.precio) / (noches * prevAdults);
+        }
 
         const precio =
           (effAdultos * precioUnitAdulto +
@@ -703,7 +721,7 @@ export default function EditarCotizacion({
 
         return {
           ...item,
-          precio,
+          precio: Math.max(0, precio),
           detalle: `${noches} noches • ${dias} días • ${effAdultos} adultos${effAdolescentes ? `, ${effAdolescentes} adol` : ''}, ${effNinos} niños`,
           data: {
             ...normalizedData,
@@ -711,66 +729,136 @@ export default function EditarCotizacion({
             adolescente: effAdolescentes,
             ninos: effNinos,
             infantes: inf,
+            precio_noche_adulto: precioUnitAdulto,
+            precio_noche_adolescente: precioUnitAdol,
+            precio_noche_nino: precioUnitNino,
           },
         };
       }
 
       if (tipo === 'vuelo') {
         const totalAdults = ad + adol;
+        let precioAd = Number(item.data.precio_adulto || 0);
+        let precioNi = Number(item.data.precio_nino || 0);
+        let precioInf = Number(item.data.precio_infante || 0);
+
+        if (precioAd <= 0 && Number(item.precio || 0) > 0) {
+          const prevAdults = Math.max(1, Number(item.data.adultos || 1));
+          precioAd = Number(item.precio) / prevAdults;
+        }
+
         const precio =
-          totalAdults * Number(item.data.precio_adulto || 0) +
-          ni * Number(item.data.precio_nino || 0) +
-          inf * Number(item.data.precio_infante || 0);
+          totalAdults * precioAd +
+          ni * precioNi +
+          inf * precioInf;
 
         return {
           ...item,
-          precio,
+          precio: Math.max(0, precio),
           detalle: `Salida: ${item.data.fecha_vuelo || 'Por definir'} • Retorno: ${item.data.fecha_retorno || 'Por definir'} • ${totalAdults} ad${ni > 0 ? `, ${ni} niños` : ''}${inf > 0 ? `, ${inf} inf` : ''}`,
           data: {
             ...item.data,
             adultos: totalAdults,
             ninos: ni,
             infantes: inf,
+            precio_adulto: precioAd,
           },
         };
       }
 
       if (tipo === 'ferry') {
         const veh = Number(item.data.vehiculos || 0);
+        let precioAd = Number(item.data.precio_adulto || 0);
+        let precioNi = Number(item.data.precio_nino || 0);
+        let precioInf = Number(item.data.precio_infante || 0);
+        let precioVeh = Number(item.data.precio_vehiculo || 0);
+
+        if (precioAd <= 0 && Number(item.precio || 0) > 0) {
+          const prevAdults = Math.max(1, Number(item.data.adultos || 1));
+          precioAd = Number(item.precio) / prevAdults;
+        }
+
         const precio =
-          ad * Number(item.data.precio_adulto || 0) +
-          ni * Number(item.data.precio_nino || 0) +
-          inf * Number(item.data.precio_infante || 0) +
-          veh * Number(item.data.precio_vehiculo || 0);
+          ad * precioAd +
+          ni * precioNi +
+          inf * precioInf +
+          veh * precioVeh;
 
         return {
           ...item,
-          precio,
+          precio: Math.max(0, precio),
           detalle: `Salida: ${item.data.fecha_salida || 'Por definir'} • Retorno: ${item.data.fecha_retorno || 'Por definir'} • ${ad} ad${ni > 0 ? `, ${ni} niños` : ''}${inf > 0 ? `, ${inf} inf` : ''}, ${veh} veh`,
           data: {
             ...item.data,
             adultos: ad,
             ninos: ni,
             infantes: inf,
+            precio_adulto: precioAd,
           },
         };
       }
 
       if (tipo === 'excursion' || tipo === 'paquete') {
-        const precio =
-          ad * Number(item.data.precio_adulto || 0) +
-          ni * Number(item.data.precio_nino || 0);
+        const totalAdults = ad + adol;
+        let precioAd = Number(item.data.precio_adulto || 0);
+        let precioNi = Number(item.data.precio_nino || 0);
+
+        if (tipo === 'excursion') {
+          const exc = (catalogos.excursiones || []).find((e) => String(e.id) === String(item.data.id_excursion));
+          if (exc) {
+            if (!precioAd || precioAd <= 0) precioAd = Number(exc.precio_adulto || 0);
+            if (!precioNi || precioNi <= 0) precioNi = Number(exc.precio_nino || 0);
+          }
+        } else if (tipo === 'paquete') {
+          const paq = (catalogos.paquetes || []).find((p) => String(p.id) === String(item.data.id_paquete));
+          if (paq) {
+            if (!precioAd || precioAd <= 0) precioAd = Number(paq.precio_adulto || 0);
+            if (!precioNi || precioNi <= 0) precioNi = Number(paq.precio_nino || 0);
+          }
+        }
+
+        if (precioAd <= 0 && Number(item.precio || 0) > 0) {
+          const prevAdults = Math.max(1, Number(item.data.adultos || 1));
+          precioAd = Number(item.precio) / prevAdults;
+        }
+
+        const precio = totalAdults * precioAd + ni * precioNi;
 
         return {
           ...item,
-          precio,
-          detalle: `Fecha: ${item.data.fecha || 'Por definir'} • ${ad} ad, ${ni} niños`,
+          precio: Math.max(0, precio),
+          detalle: `Fecha: ${item.data.fecha || 'Por definir'} • ${totalAdults} ad${ni > 0 ? `, ${ni} niños` : ''}`,
           data: {
             ...item.data,
-            adultos: ad,
+            adultos: totalAdults,
             ninos: ni,
+            precio_adulto: precioAd,
+            precio_nino: precioNi,
           },
         };
+      }
+
+      if (tipo === 'traslado') {
+        const totalPax = ad + adol + ni + inf;
+        if (item.data.tipo_asignacion === 'todos' || !item.data.tipo_asignacion) {
+          let precioUnit = Number(item.data.precio_unitario || 0);
+          if (precioUnit <= 0 && Number(item.precio || 0) > 0) {
+            precioUnit = Number(item.precio) / Math.max(1, Number(item.data.adultos || 1));
+          }
+          if (precioUnit > 0) {
+            const precio = precioUnit * totalPax;
+            return {
+              ...item,
+              precio,
+              detalle: item.detalle ? item.detalle.replace(/Todos los pasajeros \(\d+ pax\)/, `Todos los pasajeros (${totalPax} pax)`) : `Todos los pasajeros (${totalPax} pax)`,
+              data: {
+                ...item.data,
+                adultos: totalPax,
+                precio_unitario: precioUnit,
+              },
+            };
+          }
+        }
       }
 
       return item;
@@ -833,46 +921,50 @@ export default function EditarCotizacion({
   // Manejo de Pasajeros
   const handleAddPasajero = (categoria = 'adulto') => {
     const cfg = CATEGORIA_CONFIG[categoria] || CATEGORIA_CONFIG.adulto;
-    const newPax = {
-      uid: `new_${Date.now()}_${pasajeros.length + 1}`,
-      nombres: '',
-      apellidos: '',
-      tipo_documento: categoria === 'infante' ? 'NAC' : 'V',
-      documento: '',
-      edad: cfg.defaultEdad,
-      tipo_pax: categoria,
-      telefono: '',
-      correo: '',
-    };
-    const nextPasajeros = [...pasajeros, newPax];
-    setPasajeros(nextPasajeros);
+    setPasajeros((prevPasajeros) => {
+      const newPax = {
+        uid: `new_${Date.now()}_${prevPasajeros.length + 1}_${Math.random().toString(36).substr(2, 4)}`,
+        nombres: '',
+        apellidos: '',
+        tipo_documento: categoria === 'infante' ? 'NAC' : 'V',
+        documento: '',
+        edad: cfg.defaultEdad,
+        tipo_pax: categoria,
+        telefono: '',
+        correo: '',
+      };
+      const nextPasajeros = [...prevPasajeros, newPax];
+      const nextCounts = computePaxCounts(nextPasajeros);
 
-    // Sincronizar automáticamente la cantidad de pax en los productos agregados
-    const nextCounts = computePaxCounts(nextPasajeros);
-    setItems((prev) =>
-      prev.map((it) => {
-        if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete'].includes(it.tipo)) {
-          return recalculateItemWithPax(it, nextCounts);
-        }
-        return it;
-      })
-    );
+      // Sincronizar automáticamente la cantidad de pax en los productos agregados
+      setItems((prevItems) =>
+        prevItems.map((it) => {
+          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado'].includes(it.tipo)) {
+            return recalculateItemWithPax(it, nextCounts);
+          }
+          return it;
+        })
+      );
+      return nextPasajeros;
+    });
   };
 
   const handleRemovePasajero = (uid) => {
-    const nextPasajeros = pasajeros.filter((p) => p.uid !== uid);
-    setPasajeros(nextPasajeros);
+    setPasajeros((prevPasajeros) => {
+      const nextPasajeros = prevPasajeros.filter((p) => p.uid !== uid);
+      const nextCounts = computePaxCounts(nextPasajeros);
 
-    // Ajustar el precio y pax de los productos al remover pasajero
-    const nextCounts = computePaxCounts(nextPasajeros);
-    setItems((prev) =>
-      prev.map((it) => {
-        if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete'].includes(it.tipo)) {
-          return recalculateItemWithPax(it, nextCounts);
-        }
-        return it;
-      })
-    );
+      // Ajustar el precio y pax de los productos al remover pasajero
+      setItems((prevItems) =>
+        prevItems.map((it) => {
+          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado'].includes(it.tipo)) {
+            return recalculateItemWithPax(it, nextCounts);
+          }
+          return it;
+        })
+      );
+      return nextPasajeros;
+    });
   };
 
   const handlePasajeroChange = (uid, field, value) => {
@@ -882,69 +974,73 @@ export default function EditarCotizacion({
   };
 
   const handleCategoriaChange = (uid, newCat) => {
-    const nextPasajeros = pasajeros.map((p) => {
-      if (p.uid !== uid) return p;
-      const cfg = CATEGORIA_CONFIG[newCat] || CATEGORIA_CONFIG.adulto;
-      let newEdad = p.edad;
-      let newTipoDoc = p.tipo_documento;
+    setPasajeros((prevPasajeros) => {
+      const nextPasajeros = prevPasajeros.map((p) => {
+        if (p.uid !== uid) return p;
+        const cfg = CATEGORIA_CONFIG[newCat] || CATEGORIA_CONFIG.adulto;
+        let newEdad = p.edad;
+        let newTipoDoc = p.tipo_documento;
 
-      if (newCat === 'infante') {
-        if (newEdad >= 2 || !newEdad) newEdad = 1;
-        if (newTipoDoc !== 'NAC' && newTipoDoc !== 'P') newTipoDoc = 'NAC';
-      } else if (newCat === 'nino') {
-        if (newEdad < 2 || newEdad >= 12 || !newEdad) newEdad = 8;
-        if (newTipoDoc === 'NAC') newTipoDoc = 'V';
-      } else if (newCat === 'adolescente') {
-        if (newEdad < 12 || newEdad >= 18 || !newEdad) newEdad = 15;
-        if (newTipoDoc === 'NAC') newTipoDoc = 'V';
-      } else {
-        if (newEdad < 18 || !newEdad) newEdad = 25;
-        if (newTipoDoc === 'NAC') newTipoDoc = 'V';
-      }
-
-      return {
-        ...p,
-        tipo_pax: newCat,
-        edad: newEdad,
-        tipo_documento: newTipoDoc,
-      };
-    });
-
-    setPasajeros(nextPasajeros);
-    const nextCounts = computePaxCounts(nextPasajeros);
-    setItems((prev) =>
-      prev.map((it) => {
-        if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete'].includes(it.tipo)) {
-          return recalculateItemWithPax(it, nextCounts);
+        if (newCat === 'infante') {
+          if (newEdad >= 2 || !newEdad) newEdad = 1;
+          if (newTipoDoc !== 'NAC' && newTipoDoc !== 'P') newTipoDoc = 'NAC';
+        } else if (newCat === 'nino') {
+          if (newEdad < 2 || newEdad >= 12 || !newEdad) newEdad = 8;
+          if (newTipoDoc === 'NAC') newTipoDoc = 'V';
+        } else if (newCat === 'adolescente') {
+          if (newEdad < 12 || newEdad >= 18 || !newEdad) newEdad = 15;
+          if (newTipoDoc === 'NAC') newTipoDoc = 'V';
+        } else {
+          if (newEdad < 18 || !newEdad) newEdad = 25;
+          if (newTipoDoc === 'NAC') newTipoDoc = 'V';
         }
-        return it;
-      })
-    );
+
+        return {
+          ...p,
+          tipo_pax: newCat,
+          edad: newEdad,
+          tipo_documento: newTipoDoc,
+        };
+      });
+
+      const nextCounts = computePaxCounts(nextPasajeros);
+      setItems((prevItems) =>
+        prevItems.map((it) => {
+          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado'].includes(it.tipo)) {
+            return recalculateItemWithPax(it, nextCounts);
+          }
+          return it;
+        })
+      );
+      return nextPasajeros;
+    });
   };
 
   const handleEdadChange = (uid, val) => {
     const edad = parseInt(val || 0, 10);
     const newCat = getTipoPaxFromEdad(edad);
-    const nextPasajeros = pasajeros.map((p) => {
-      if (p.uid !== uid) return p;
-      return {
-        ...p,
-        edad,
-        tipo_pax: newCat,
-        tipo_documento: newCat === 'infante' && p.tipo_documento !== 'P' ? 'NAC' : p.tipo_documento,
-      };
-    });
+    setPasajeros((prevPasajeros) => {
+      const nextPasajeros = prevPasajeros.map((p) => {
+        if (p.uid !== uid) return p;
+        return {
+          ...p,
+          edad,
+          tipo_pax: newCat,
+          tipo_documento: newCat === 'infante' && p.tipo_documento !== 'P' ? 'NAC' : p.tipo_documento,
+        };
+      });
 
-    setPasajeros(nextPasajeros);
-    const nextCounts = computePaxCounts(nextPasajeros);
-    setItems((prev) =>
-      prev.map((it) => {
-        if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete'].includes(it.tipo)) {
-          return recalculateItemWithPax(it, nextCounts);
-        }
-        return it;
-      })
-    );
+      const nextCounts = computePaxCounts(nextPasajeros);
+      setItems((prevItems) =>
+        prevItems.map((it) => {
+          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado'].includes(it.tipo)) {
+            return recalculateItemWithPax(it, nextCounts);
+          }
+          return it;
+        })
+      );
+      return nextPasajeros;
+    });
   };
 
   // Manejo de Productos / Servicios
@@ -1017,6 +1113,23 @@ export default function EditarCotizacion({
     setItems((prev) => prev.filter((it) => it.uid !== uid));
     setItemToDelete(null);
     showToast('Producto eliminado de la cotización.', 'info');
+  };
+
+  const handleConfirmDeletePago = async () => {
+    if (!pagoToDelete) return;
+    setIsDeletingPago(true);
+    try {
+      await axios.delete(`/v1/ventas/${ventaId}/pagos/${pagoToDelete.id}`);
+      showToast('Pago eliminado correctamente.', 'success');
+      setPagoToDelete(null);
+      await fetchVentaDetalle();
+    } catch (err) {
+      console.error('Error al eliminar pago:', err);
+      const msg = err.response?.data?.message || err.response?.data?.error || 'No se pudo eliminar el pago.';
+      showToast(msg, 'error');
+    } finally {
+      setIsDeletingPago(false);
+    }
   };
 
   // Totales financieros calculados en vivo según los ítems
@@ -1580,7 +1693,7 @@ export default function EditarCotizacion({
                 <span>•</span>
                 <span>{paxCounts.adultos} ADL</span>
                 {paxCounts.adolescentes > 0 && <span>• {paxCounts.adolescentes} ADOL</span>}
-                {paxCounts.ninos > 0 && <span>• {paxCounts.ninos} CHD</span>}
+                {paxCounts.ninos > 0 && <span>• {paxCounts.ninos} NIÑ</span>}
                 {paxCounts.infantes > 0 && <span>• {paxCounts.infantes} INF</span>}
               </div>
             </div>
@@ -2304,23 +2417,44 @@ export default function EditarCotizacion({
                         <Badge variant="success">Procesado</Badge>
                       </td>
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <button
-                          type="button"
-                          onClick={() => setPagoToEdit(p)}
-                          title="Editar este pago (corregir monto o datos)"
-                          style={{
-                            background: 'rgba(59, 130, 246, 0.15)',
-                            border: '1px solid rgba(59, 130, 246, 0.35)',
-                            color: '#93C5FD',
-                            borderRadius: '6px',
-                            padding: '4px 10px',
-                            cursor: 'pointer',
-                            fontSize: '0.78rem',
-                            fontWeight: 600,
-                          }}
-                        >
-                          ✏️ Editar
-                        </button>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setPagoToEdit(p)}
+                            title="Editar este pago (corregir monto o datos)"
+                            style={{
+                              background: 'rgba(59, 130, 246, 0.15)',
+                              border: '1px solid rgba(59, 130, 246, 0.35)',
+                              color: '#93C5FD',
+                              borderRadius: '6px',
+                              padding: '4px 10px',
+                              cursor: 'pointer',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPagoToDelete(p)}
+                            title="Eliminar este pago"
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.15)',
+                              border: '1px solid rgba(239, 68, 68, 0.35)',
+                              color: '#F87171',
+                              borderRadius: '6px',
+                              padding: '4px 10px',
+                              cursor: 'pointer',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -2475,6 +2609,31 @@ export default function EditarCotizacion({
             setIsRegistrarPagoOpen(false);
             setPagoToEdit(null);
           }}
+        />
+      )}
+
+      {/* MODAL 6: Confirmación de Eliminación de Pago */}
+      {Boolean(pagoToDelete) && (
+        <ConfirmationModal
+          isOpen={true}
+          type="danger"
+          title="Eliminar Pago"
+          subtitle="¿Está seguro de que desea eliminar este pago?"
+          content={
+            <div style={{ color: '#E2E8F0', fontSize: '0.875rem', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 10px 0' }}>
+                Se eliminará el pago de <strong>${Number(pagoToDelete.monto_usd || 0).toFixed(2)} USD</strong> ({pagoToDelete.metodo_pago?.nombre || pagoToDelete.tipo_pago || 'Transferencia'}) con transacción <strong>{pagoToDelete.numero_transaccion || 'N/A'}</strong>.
+              </p>
+              <p style={{ margin: 0, color: '#FCA5A5' }}>
+                Esta acción reajustará el total recaudado y el saldo pendiente de la venta.
+              </p>
+            </div>
+          }
+          confirmText="Sí, Eliminar Pago"
+          isConfirming={isDeletingPago}
+          onCancel={() => setPagoToDelete(null)}
+          onConfirm={handleConfirmDeletePago}
+          onClose={() => setPagoToDelete(null)}
         />
       )}
     </div>

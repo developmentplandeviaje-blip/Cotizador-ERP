@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import axios from 'axios';
 import imgNuevaCotizacion from '../../assets/NuevaCotizacion.svg';
@@ -133,6 +133,7 @@ export default function CotizacionTabContent({
   // Paginación por pestañas y búsqueda de pasajeros acompañantes (15 por grupo)
   const PAX_PER_GROUP = 15;
   const [activePaxGroup, setActivePaxGroup] = useState(0);
+  const [paxCollapsed, setPaxCollapsed] = useState(false);
   const [paxSearchTerm, setPaxSearchTerm] = useState('');
   const paxTabsScrollRef = useRef(null);
 
@@ -2445,6 +2446,41 @@ export default function CotizacionTabContent({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', margin: '0 0 16px 0' }}>
             <h2 style={{ fontSize: '1rem', color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <img src={imgUsuario} style={{ width: '18px', height: '18px' }} alt="" /> Pasajeros Acompañantes ({pasajeros.length})
+              <button
+                type="button"
+                onClick={() => setPaxCollapsed((c) => !c)}
+                aria-expanded={!paxCollapsed}
+                title={paxCollapsed ? 'Desplegar acompañantes' : 'Plegar acompañantes'}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  background: 'transparent',
+                  border: '0px solid rgba(255, 255, 255, 0.2)',
+                  color: '#CBD5E1',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ transform: paxCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+                {paxCollapsed ? '' : ''}
+              </button>
             </h2>
             {pasajeros.length > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -2486,6 +2522,8 @@ export default function CotizacionTabContent({
             )}
           </div>
 
+          {!paxCollapsed && (
+          <>
           {/* Group Tabs & Filter Row (Unificados en una sola fila como en Pestañas de Cotizaciones) */}
           <div
             style={{
@@ -2888,6 +2926,8 @@ export default function CotizacionTabContent({
               </div>
             )}
           </div>
+          </>
+          )}
         </div>
       )}
 

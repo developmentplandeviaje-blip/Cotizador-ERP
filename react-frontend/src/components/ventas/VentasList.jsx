@@ -628,7 +628,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                 </tr>
               ) : (
                 paginatedVentas.map((v) => {
-                  const isConfirmed = v.estado === 'Confirmada';
+                  const isConfirmed = ['confirmada', 'venta', 'confirmado'].includes((v.estado || '').toLowerCase());
                   const saldo = v.saldo_pendiente || 0;
                   const isPaid = saldo <= 0.01 && (v.total_pagado || 0) > 0;
 
@@ -775,27 +775,29 @@ export default function VentasList({ tipo = 'agencia', user }) {
                             <img src={imgedit} alt="Editar" />
                           </button>
 
-                          {/* Registrar Pago */}
-                          <button
-                            type="button"
-                            onClick={() => setSelectedVentaPago(v)}
-                            style={{
-                              display: 'inline-flex',
+                          {/* Registrar Pago (Solo si la ficha está en estado Venta/Confirmada) */}
+                          {isConfirmed && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedVentaPago(v)}
+                              style={{
+                                display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '6px',
-                              background: 'rgba(34, 197, 94, 0.15)',
-                              border: '1px solid rgba(34, 197, 94, 0.35)',
-                              borderRadius: '8px',
-                              padding: '6px 10px',
-                              color: '#4ADE80',
-                              cursor: 'pointer',
-                              fontSize: '0.8rem',
-                              transition: 'all 0.2s',
-                            }}
-                            title="Registrar abono o liquidación"
-                          >
-                            <img src={imgpago} alt="Registrar Pago" style={{ color: 'white' }}/>
-                          </button>
+                                background: 'rgba(34, 197, 94, 0.15)',
+                                border: '1px solid rgba(34, 197, 94, 0.35)',
+                                borderRadius: '8px',
+                                padding: '6px 10px',
+                                color: '#4ADE80',
+                                cursor: 'pointer',
+                                fontSize: '0.8rem',
+                                transition: 'all 0.2s',
+                              }}
+                              title="Registrar abono o liquidación"
+                            >
+                              <img src={imgpago} alt="Registrar Pago" style={{ color: 'white' }}/>
+                            </button>
+                          )}
 
                           {/* Confirmar Venta (si no está confirmada) */}
                           {!isConfirmed && (
@@ -879,8 +881,8 @@ export default function VentasList({ tipo = 'agencia', user }) {
           isOpen={true}
           type="success"
           title="Confirmar Venta"
-          subtitle={`¿Desea confirmar formalmente la ficha ${confirmingVenta.numero_ficha || confirmingVenta.id}?`}
-          content="Al confirmar esta cotización como venta formal, quedará habilitada para seguimiento operativo y facturación definitiva."
+          subtitle={`¿Desea confirmar la ficha ${confirmingVenta.numero_ficha || confirmingVenta.id}?`}
+          content="Al confirmar esta cotización como venta, quedará habilitada para seguimiento operativo y facturación definitiva."
           confirmText="Sí, Confirmar Venta"
           isConfirming={isConfirmingSale}
           onConfirm={handleConfirmSale}

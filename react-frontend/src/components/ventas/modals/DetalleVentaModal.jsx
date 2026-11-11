@@ -12,7 +12,7 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
   const aliado = venta.aliado;
   const freelancer = venta.freelancer;
 
-  const isConfirmed = venta.estado === 'Confirmada';
+  const isConfirmed = ['confirmada', 'venta', 'confirmado'].includes((venta.estado || '').toLowerCase());
   const isPaid = (venta.saldo_pendiente || 0) <= 0.01 && (venta.total_pagado || 0) > 0;
 
   return (
@@ -192,7 +192,7 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
               <Badge status="badge-neutral">{pagos.length} Pagos</Badge>
             </h4>
 
-            {onRegistrarPago && (venta.saldo_pendiente || 0) > 0.01 && (
+            {onRegistrarPago && isConfirmed && (venta.saldo_pendiente || 0) > 0.01 && (
               <button
                 type="button"
                 className="btn-primary"

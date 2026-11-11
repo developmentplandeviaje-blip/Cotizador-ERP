@@ -37,6 +37,13 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
   const sidebarWidth = isCollapsed ? "80px" : "240px";
 
+  // Datos para visualización de usuario
+  const displayName = user
+    ? (`${user.first_name || ''} ${user.last_name || ''}`.trim() || user.name || user.username || user.email || 'Usuario')
+    : 'Usuario';
+  const displayLevel = user?.level || 'Asesor';
+  const userInitial = displayName.charAt(0).toUpperCase() || 'U';
+
   const [openMenus, setOpenMenus] = useState({
     ventas: Boolean(activeRoute?.startsWith('ventas')),
     reportes: Boolean(activeRoute?.startsWith('reportes')),
@@ -132,6 +139,112 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
           </svg>
         </button>
       </div>
+
+      {/* User profile card in Sidebar */}
+      <div
+        style={{
+          margin: isCollapsed ? '8px auto 14px auto' : '6px 16px 14px 16px',
+          padding: isCollapsed ? '4px' : '9px 12px',
+          borderRadius: '12px',
+          background: isCollapsed ? 'transparent' : 'rgba(255, 255, 255, 0.05)',
+          border: isCollapsed ? 'none' : '1px solid rgba(255, 255, 255, 0.12)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          justifyContent: isCollapsed ? 'center' : 'flex-start',
+          transition: 'all 0.2s ease',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+        }}
+        title={isCollapsed ? `${displayName} (${displayLevel})` : undefined}
+      >
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <div
+            style={{
+              width: isCollapsed ? '36px' : '38px',
+              height: isCollapsed ? '36px' : '38px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #E87217 0%, #FF9248 100%)',
+              color: '#FFFFFF',
+              fontWeight: 700,
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(232, 114, 23, 0.35)',
+              border: '2px solid rgba(255, 255, 255, 0.2)',
+            }}
+          >
+            {userInitial}
+          </div>
+          <span
+            style={{
+              position: 'absolute',
+              bottom: '1px',
+              right: '1px',
+              width: '9px',
+              height: '9px',
+              backgroundColor: '#10B981',
+              border: '2px solid #090e24',
+              borderRadius: '50%',
+            }}
+            title="En línea"
+          />
+        </div>
+
+        {!isCollapsed && (
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+            <span
+              style={{
+                color: '#FFFFFF',
+                fontWeight: 700,
+                fontSize: '0.84rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                lineHeight: 1.2,
+              }}
+              title={displayName}
+            >
+              {displayName}
+            </span>
+            <div style={{ marginTop: '4px' }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  fontSize: '0.68rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.4px',
+                  padding: '2px 7px',
+                  borderRadius: '10px',
+                  background:
+                    displayLevel.toLowerCase() === 'freelancer'
+                      ? 'rgba(6, 182, 212, 0.2)'
+                      : displayLevel.toLowerCase() === 'administrador'
+                      ? 'rgba(232, 114, 23, 0.22)'
+                      : 'rgba(37, 99, 235, 0.22)',
+                  color:
+                    displayLevel.toLowerCase() === 'freelancer'
+                      ? '#67E8F9'
+                      : displayLevel.toLowerCase() === 'administrador'
+                      ? '#FDBA74'
+                      : '#93C5FD',
+                  border:
+                    displayLevel.toLowerCase() === 'freelancer'
+                      ? '1px solid rgba(6, 182, 212, 0.4)'
+                      : displayLevel.toLowerCase() === 'administrador'
+                      ? '1px solid rgba(232, 114, 23, 0.45)'
+                      : '1px solid rgba(37, 99, 235, 0.4)',
+                }}
+              >
+                {displayLevel}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Navigation List */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '0 16px', flex: 1 }}>
 

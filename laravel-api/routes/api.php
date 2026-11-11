@@ -147,4 +147,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/v1/ventas/{id}/confirmar', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'confirmar']);
     Route::post('/v1/ventas/{id}/pagos', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'registrarPago']);
     Route::put('/v1/ventas/{id}/pagos/{pagoId}', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'actualizarPago']);
+    Route::delete('/v1/ventas/{id}/pagos/{pagoId}', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'eliminarPago']);
 });

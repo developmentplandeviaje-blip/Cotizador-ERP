@@ -648,6 +648,31 @@ class VentaService
     }
 
     /**
+     * Elimina un pago/abono registrado y sus detalles asociados.
+     */
+    public function eliminarPago(int $idVenta, int $idPago, User $user): bool
+    {
+        return DB::transaction(function () use ($idVenta, $idPago, $user) {
+            $venta = Venta::findOrFail($idVenta);
+
+            $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
+            if (!$isAdminOrLeader && $venta->id_user !== $user->id) {
+                abort(403, 'No tiene autorización para eliminar pagos de esta venta.');
+            }
+
+            $pago = PagoVenta::where('id', $idPago)->where('id_venta', $venta->id)->firstOrFail();
+
+            // Eliminar detalles asignados al pago
+            PagoVentaDetalle::where('id_pago', $pago->id)->delete();
+
+            // Eliminar el pago
+            $pago->delete();
+
+            return true;
+        });
+    }
+
+    /**
      * Obtiene el detalle completo de una venta.
      */
     public function getDetalleVenta(int $id, User $user): array

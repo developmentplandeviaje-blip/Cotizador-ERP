@@ -94,4 +94,12 @@ class VentaController extends Controller
             'pago' => $pago,
         ]);
     }
+
+    public function eliminarPago(Request $request, int $id, int $pagoId): JsonResponse
+    {
+        $this->service->eliminarPago($id, $pagoId, $request->user());
+        return response()->json([
+            'message' => 'Pago eliminado exitosamente.',
+        ]);
+    }
 }

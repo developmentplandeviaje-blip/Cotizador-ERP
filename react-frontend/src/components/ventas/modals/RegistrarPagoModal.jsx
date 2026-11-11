@@ -164,7 +164,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Editar Pago / Abono' : 'Registrar Abono'}
+      title={isEditing ? 'Editar Pago' : 'Registrar Abono'}
       maxWidth="680px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -176,7 +176,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
             borderRadius: '12px',
             padding: '14px 18px',
             display: 'flex',
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: '12px',
