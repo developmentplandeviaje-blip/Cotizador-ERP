@@ -1163,6 +1163,24 @@ export default function EditarCotizacion({
       return;
     }
 
+    const invalidItem = items.find((it) => {
+      if (it.tipo === 'hotel') return !it.data?.id_hotel || Number(it.data?.id_hotel) <= 0;
+      if (it.tipo === 'vuelo') return !it.data?.id_aerolinea || Number(it.data?.id_aerolinea) <= 0;
+      if (it.tipo === 'excursion') return !it.data?.id_excursion || Number(it.data?.id_excursion) <= 0;
+      if (it.tipo === 'paquete') return !it.data?.id_paquete || Number(it.data?.id_paquete) <= 0;
+      if (it.tipo === 'traslado') return !it.data?.id_traslado || Number(it.data?.id_traslado) <= 0;
+      if (it.tipo === 'vehiculo') return !it.data?.id_vehiculo || Number(it.data?.id_vehiculo) <= 0;
+      return false;
+    });
+
+    if (invalidItem) {
+      showToast(
+        `El ítem "${invalidItem.titulo || invalidItem.tipo}" no tiene seleccionado un servicio o producto válido del catálogo. Por favor edítelo para seleccionarlo o elimínelo antes de guardar.`,
+        'warning'
+      );
+      return;
+    }
+
     setSaving(true);
     try {
       const payload = {
@@ -1177,12 +1195,12 @@ export default function EditarCotizacion({
         })),
         cambiar_a_confirmada: Boolean(cambiarAConfirmada),
         items_replace: !isConfirmed,
-        hoteles: items.filter((i) => i.tipo === 'hotel').map((i) => i.data || {}),
-        vuelos: items.filter((i) => i.tipo === 'vuelo').map((i) => i.data || {}),
-        excursiones: items.filter((i) => i.tipo === 'excursion').map((i) => i.data || {}),
-        paquetes: items.filter((i) => i.tipo === 'paquete').map((i) => i.data || {}),
-        traslados: items.filter((i) => i.tipo === 'traslado').map((i) => i.data || {}),
-        vehiculos: items.filter((i) => i.tipo === 'vehiculo').map((i) => i.data || {}),
+        hoteles: items.filter((i) => i.tipo === 'hotel' && Number(i.data?.id_hotel) > 0).map((i) => i.data || {}),
+        vuelos: items.filter((i) => i.tipo === 'vuelo' && Number(i.data?.id_aerolinea) > 0).map((i) => i.data || {}),
+        excursiones: items.filter((i) => i.tipo === 'excursion' && Number(i.data?.id_excursion) > 0).map((i) => i.data || {}),
+        paquetes: items.filter((i) => i.tipo === 'paquete' && Number(i.data?.id_paquete) > 0).map((i) => i.data || {}),
+        traslados: items.filter((i) => i.tipo === 'traslado' && Number(i.data?.id_traslado) > 0).map((i) => i.data || {}),
+        vehiculos: items.filter((i) => i.tipo === 'vehiculo' && Number(i.data?.id_vehiculo) > 0).map((i) => i.data || {}),
         ferries: items.filter((i) => i.tipo === 'ferry').map((i) => i.data || {}),
         otros: items.filter((i) => i.tipo === 'otro').map((i) => i.data || {}),
       };
@@ -1360,28 +1378,28 @@ export default function EditarCotizacion({
         }}
       >
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
-          <span style={{ fontSize: '0.78rem', color: '#94A3B8', textTransform: 'uppercase' }}>Número de ficha</span>
+          <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Número de ficha</span>
           <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#FFFFFF', marginTop: '4px' }}>
             {venta.numero_ficha || 'N/A'}
           </div>
         </div>
 
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
-          <span style={{ fontSize: '0.78rem', color: '#94A3B8', textTransform: 'uppercase' }}>Total Contratado</span>
+          <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Monto Total</span>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#E87217', marginTop: '4px' }}>
             ${Number(displayedTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
           </div>
         </div>
 
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
-          <span style={{ fontSize: '0.78rem', color: '#94A3B8', textTransform: 'uppercase' }}>Total Pagado</span>
+          <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Total Abonado</span>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#4ADE80', marginTop: '4px' }}>
             ${Number(totalPagado).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
           </div>
         </div>
 
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
-          <span style={{ fontSize: '0.78rem', color: '#94A3B8', textTransform: 'uppercase' }}>Saldo Pendiente</span>
+          <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Monto Pendiente</span>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: displayedSaldo > 0.01 ? '#F87171' : '#94A3B8', marginTop: '4px' }}>
             ${Number(displayedSaldo).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
           </div>
@@ -1647,11 +1665,10 @@ export default function EditarCotizacion({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    marginLeft: '6px',
                     padding: '4px 10px',
                     borderRadius: '8px',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    background: 'transparent',
+                    border: '0px solid rgba(255, 255, 255, 0.2)',
                     color: '#CBD5E1',
                     fontSize: '0.75rem',
                     fontWeight: 600,
@@ -1660,8 +1677,8 @@ export default function EditarCotizacion({
                   }}
                 >
                   <svg
-                    width="12"
-                    height="12"
+                    width="32"
+                    height="32"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -1672,7 +1689,7 @@ export default function EditarCotizacion({
                   >
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
-                  {paxCollapsed ? 'Desplegar' : 'Plegar'}
+                  {paxCollapsed ? '' : ''}
                 </button>
               </h2>
               {/* Badge resumen de categorías de pasajeros */}
@@ -1692,8 +1709,8 @@ export default function EditarCotizacion({
                 <strong style={{ color: '#FFFFFF' }}>{paxCounts.total} Pax</strong>
                 <span>•</span>
                 <span>{paxCounts.adultos} ADL</span>
-                {paxCounts.adolescentes > 0 && <span>• {paxCounts.adolescentes} ADOL</span>}
-                {paxCounts.ninos > 0 && <span>• {paxCounts.ninos} NIÑ</span>}
+                {paxCounts.adolescentes > 0 && <span>• {paxCounts.adolescentes} YNG</span>}
+                {paxCounts.ninos > 0 && <span>• {paxCounts.ninos} CHD</span>}
                 {paxCounts.infantes > 0 && <span>• {paxCounts.infantes} INF</span>}
               </div>
             </div>
@@ -2091,17 +2108,15 @@ export default function EditarCotizacion({
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', gap: '8px', alignItems: 'center' }}>
-                        <input
-                          type="number"
-                          min="0"
-                          max="120"
-                          className="erp-input"
-                          title={`Edad (${catConfig.sub})`}
-                          placeholder="Edad"
+                        <CustomNumberInput
+                          min={1}
+                          max={99}
+                          maxDigits={2}
                           value={paxItem.edad}
                           onChange={(e) => handleEdadChange(paxItem.uid, e.target.value)}
-                          style={{ width: '100%', minWidth: 0 }}
+                          width="100%"
                         />
+
                         <input
                           type="tel"
                           className="erp-input"
@@ -2123,7 +2138,7 @@ export default function EditarCotizacion({
       {/* SECCIÓN 2: Productos y Servicios Contratados */}
       <div
         style={{
-          background: 'rgba(16, 28, 68, 0.72)',
+          background: '#0412548f',
           borderRadius: '16px',
           border: '1px solid rgba(255, 255, 255, 0.18)',
           padding: '24px',
@@ -2135,9 +2150,9 @@ export default function EditarCotizacion({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h2 style={{ margin: 0, fontSize: '1.15rem', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>Servicios y Productos de la Cotización</span>
+              <span>Servicios de la Cotización</span>
             </h2>
-            <p style={{ margin: '4px 0 0 0', fontSize: '0.8125rem', color: '#94A3B8' }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.8125rem', color: '#CBD5E1' }}>
               {isConfirmed
                 ? 'Los productos de esta venta se encuentran asegurados por estar en estado Venta Confirmada.'
                 : 'Detalle de los servicios incluidos en el presupuesto. Puede editarlos, agregar nuevos o removerlos antes de confirmar.'}
@@ -2170,24 +2185,10 @@ export default function EditarCotizacion({
                 <button
                   type="button"
                   onClick={handleOpenAddProductTypeModal}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '7px 14px',
-                    borderRadius: '8px',
-                    background: 'linear-gradient(135deg, #E87217, #C25E10)',
-                    border: 'none',
-                    color: '#FFFFFF',
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 10px rgba(232, 114, 23, 0.25)',
-                    transition: 'all 0.2s',
-                  }}
+                  className="btn-accent"
                 >
                   <span>+</span>
-                  <span>Agregar Producto</span>
+                  <span>Agregar Servicio</span>
                 </button>
               </>
             )}
@@ -2200,7 +2201,7 @@ export default function EditarCotizacion({
             <thead>
               <tr style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#CBD5E1', borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
                 <th style={{ padding: '12px 16px', fontWeight: 600 }}>TIPO</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600 }}>SERVICIO / PRODUCTO</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600 }}>SERVICIO</th>
                 <th style={{ padding: '12px 16px', fontWeight: 600 }}>DETALLE</th>
                 <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'right' }}>MONTO USD</th>
                 {isConfirmed ? (
@@ -2213,8 +2214,8 @@ export default function EditarCotizacion({
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#94A3B8' }}>
-                    No se han registrado productos en esta cotización. Haga clic en "+ Agregar Producto" para incluir servicios.
+                  <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#CBD5E1' }}>
+                    No se han registrado servicios en esta cotización. Haga clic en "+ Agregar Servicio" para incluir servicios.
                   </td>
                 </tr>
               ) : (
@@ -2241,7 +2242,7 @@ export default function EditarCotizacion({
                     <td style={{ padding: '12px 16px', color: '#FFFFFF', fontWeight: 600 }}>
                       {it.titulo || 'Servicio'}
                     </td>
-                    <td style={{ padding: '12px 16px', color: '#94A3B8', fontSize: '0.8125rem' }}>
+                    <td style={{ padding: '12px 16px', color: '#F8FAFC', fontSize: '0.8125rem' }}>
                       {it.detalle || 'N/A'}
                     </td>
                     <td style={{ padding: '12px 16px', color: '#FFFFFF', fontWeight: 700, textAlign: 'right' }}>
@@ -2279,17 +2280,17 @@ export default function EditarCotizacion({
                               borderRadius: '6px',
                               padding: '4px 8px',
                               cursor: 'pointer',
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
                               display: 'flex',
                               alignItems: 'center',
                               gap: '4px',
                               transition: 'all 0.15s',
                             }}
-                            title="Editar este producto"
+                            title="Editar producto"
                           >
-                            <span></span>
-                            <span>Editar</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
                           </button>
 
                           <button
@@ -2311,7 +2312,10 @@ export default function EditarCotizacion({
                             }}
                             title="Eliminar este producto"
                           >
-                            <span>X</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
                           </button>
                         </div>
                       </td>
@@ -2324,11 +2328,11 @@ export default function EditarCotizacion({
         </div>
       </div>
 
-      {/* SECCIÓN 3: Módulo de Pagos y Abonos (Habilitado en Venta Confirmada) */}
+      {/* SECCIÓN 3: Abonos (Habilitado en Venta Confirmada) */}
       {isConfirmed && (
         <div
           style={{
-            background: 'rgba(16, 28, 68, 0.72)',
+            background: '#0412548f',
             borderRadius: '16px',
             border: '1px solid rgba(255, 255, 255, 0.18)',
             padding: '24px',
@@ -2341,7 +2345,7 @@ export default function EditarCotizacion({
             <div>
               <h2 style={{ margin: 0, fontSize: '1.15rem', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span></span>
-                <span>Módulo de Pagos y Abonos</span>
+                <span>Pagos Abonados</span>
               </h2>
               <p style={{ margin: '4px 0 0 0', fontSize: '0.8125rem', color: '#94A3B8' }}>
                 Registro y conciliación de los pagos efectuados para esta venta.
@@ -2380,7 +2384,7 @@ export default function EditarCotizacion({
                   <th style={{ padding: '12px 16px', fontWeight: 600 }}>TRANSACCIÓN</th>
                   <th style={{ padding: '12px 16px', fontWeight: 600 }}>MÉTODO</th>
                   <th style={{ padding: '12px 16px', fontWeight: 600 }}>FECHA</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'right' }}>MONTO USD</th>
+                  <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'right' }}>MONTO</th>
                   <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'center' }}>ESTADO</th>
                   <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'center' }}>ACCIONES</th>
                 </tr>
@@ -2404,10 +2408,10 @@ export default function EditarCotizacion({
                       <td style={{ padding: '12px 16px', color: '#FFFFFF', fontWeight: 600 }}>
                         {p.numero_transaccion || `Pago #${p.id}`}
                       </td>
-                      <td style={{ padding: '12px 16px', color: '#CBD5E1' }}>
+                      <td style={{ padding: '12px 16px', color: '#F8FAFC' }}>
                         {p.metodo_pago?.nombre || p.tipo_pago || 'Transferencia'}
                       </td>
-                      <td style={{ padding: '12px 16px', color: '#94A3B8', fontSize: '0.8125rem' }}>
+                      <td style={{ padding: '12px 16px', color: '#F8FAFC', fontSize: '0.8125rem' }}>
                         {(p.fecha_pago || p.fecha_creacion) ? String(p.fecha_pago || p.fecha_creacion).split(/[T ]/)[0] : 'N/A'}
                       </td>
                       <td style={{ padding: '12px 16px', color: '#4ADE80', fontWeight: 700, textAlign: 'right' }}>
@@ -2434,7 +2438,10 @@ export default function EditarCotizacion({
                               transition: 'all 0.15s ease',
                             }}
                           >
-                            Editar
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
                           </button>
                           <button
                             type="button"
@@ -2452,7 +2459,10 @@ export default function EditarCotizacion({
                               transition: 'all 0.15s ease',
                             }}
                           >
-                            Eliminar
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
                           </button>
                         </div>
                       </td>

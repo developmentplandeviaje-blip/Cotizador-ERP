@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
+import CustomNumberInput from '../../common/CustomNumberInput';
 import { showToast } from '../../../utils/toast';
 
 export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, pago = null }) {
@@ -183,7 +184,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
           }}
         >
           <div>
-            <div style={{ fontSize: '0.75rem', color: '#94A3B8', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '0.75rem', color: '#CBD5E1', textTransform: 'uppercase' }}>
               Venta: <strong style={{ color: '#FFFFFF' }}>{venta.numero_ficha || venta.id}</strong>
             </div>
             <div style={{ fontSize: '0.925rem', fontWeight: '700', color: '#FFFFFF', marginTop: '2px' }}>
@@ -193,7 +194,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
 
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>Total Venta</div>
+              <div style={{ fontSize: '0.7rem', color: '#CBD5E1' }}>Monto Total</div>
               <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#E87217' }}>
                 ${Number(venta.total_usd || 0).toFixed(2)} USD
               </div>
@@ -202,7 +203,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
             <div style={{ width: '1px', height: '24px', background: 'rgba(255, 255, 255, 0.15)' }} />
 
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>Saldo Pendiente</div>
+              <div style={{ fontSize: '0.7rem', color: '#CBD5E1' }}>Monto Pendiente</div>
               <div
                 style={{
                   fontSize: '1rem',
@@ -270,10 +271,10 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
         </div>
 
         {/* Fila 2: Moneda, Tasa de Cambio y Monto */}
-        <div style={{ display: 'grid', gridTemplateColumns: monedaPago === 'USD' ? '1fr 2fr' : '0.7fr 1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: monedaPago === 'USD' ? '1fr 2fr' : '0.7fr 0.92fr 1fr', gap: '12px' }}>
           {/* Selector de Moneda */}
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#CBD5E1', margin: '6px 0px 12px' }}>
               Moneda
             </label>
             <div style={{ display: 'flex', gap: '4px' }}>
@@ -304,27 +305,18 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
           {/* Tasa de Cambio (visible si no es USD) */}
           {monedaPago !== 'USD' && (
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#CBD5E1', margin: '6px 0px 9px' }}>
                 Tasa de Cambio ({monedaPago}/USD)
               </label>
-              <input
-                type="number"
-                step="0.0001"
-                min="0.0001"
-                value={tasaCambio}
-                onChange={(e) => setTasaCambio(e.target.value)}
+              <CustomNumberInput
                 placeholder="Ej. 45.50"
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#FFFFFF',
-                  fontSize: '0.875rem',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
+                step={0.01}
+                min={0.01}
+                max={999.99}
+                allowDecimals
+                width="50%"
+                value={tasaCambio}
+                onChange={e => setTasaCambio(e.target.value)}
                 required
               />
             </div>
@@ -334,7 +326,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#CBD5E1' }}>
-                Monto Original ({monedaPago}) <span style={{ color: '#EF4444' }}>*</span>
+                Monto ({monedaPago}) <span style={{ color: '#EF4444' }}>*</span>
               </label>
               {saldoPendiente > 0.01 && (
                 <button
@@ -344,28 +336,19 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
                   title="Completar el monto con el saldo restante"
                 >
                   <span aria-hidden="true"></span>
-                  Pagar todo el saldo
+                  Pagar Monto Total
                 </button>
               )}
             </div>
-            <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={montoOriginal}
-              onChange={(e) => setMontoOriginal(e.target.value)}
+            <CustomNumberInput
               placeholder="0.00"
-              style={{
-                width: '100%',
-                padding: '9px 12px',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#FFFFFF',
-                fontSize: '0.875rem',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
+              step={0.01}
+              min={0}
+              max={99999.99}
+              allowDecimals
+              width="45%"
+              value={montoOriginal}
+              onChange={e => setMontoOriginal(e.target.value)}
               required
             />
           </div>
@@ -384,14 +367,14 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
           }}
         >
           <div>
-            <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Abono Registrado (Equivalente USD):</span>
+            <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Abono Registrado: </span>
             <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#4ADE80', marginTop: '2px' }}>
               ${montoUSDCalculado.toFixed(2)} USD
             </div>
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Nuevo Saldo Restante:</span>
+            <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Monto Restante:</span>
             <div
               style={{
                 fontSize: '1.1rem',
@@ -416,12 +399,8 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
               value={numeroTransaccion}
               onChange={(e) => setNumeroTransaccion(e.target.value)}
               placeholder="Ej. TRX-982341"
+              className='erp-input'
               style={{
-                width: '100%',
-                padding: '9px 12px',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
                 color: '#FFFFFF',
                 fontSize: '0.875rem',
                 outline: 'none',
@@ -439,12 +418,8 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
               value={quienEnvia}
               onChange={(e) => setQuienEnvia(e.target.value)}
               placeholder="Nombre del pagador"
+              className='erp-input'
               style={{
-                width: '100%',
-                padding: '9px 12px',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
                 color: '#FFFFFF',
                 fontSize: '0.875rem',
                 outline: 'none',
@@ -464,6 +439,8 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
             value={observacion}
             onChange={(e) => setObservacion(e.target.value)}
             placeholder="Detalles adicionales sobre este abono..."
+            maxLength={500}
+            className="erp-input custom-scrollbar"
             style={{
               width: '100%',
               padding: '9px 12px',

@@ -30,25 +30,18 @@ class VentaService
      */
     public function listarVentas(string $scope, User $currentUser, array $filters = []): array
     {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(120);
+
         $isAdminOrLeader = in_array(strtolower($currentUser->level ?? ''), ['admin', 'administrador', 'lider']);
 
         $query = Venta::with([
             'user.aliado',
             'user.freelancer',
             'clientePrincipal',
-            'personas',
-            'hoteles.hotel',
-            'vuelos.aerolinea',
-            'excursiones.excursion',
-            'paquetes.paquete',
-            'traslados.traslado',
-            'vehiculos.vehiculo',
-            'ferries',
-            'otros',
-            'referido',
-            'pagos.metodoPago',
-            'pagos.detalles',
-        ])->latest('id');
+        ])
+        ->withCount('personas')
+        ->latest('id');
 
         // Filtrado por alcance de negocio (Agencia, Freelancer, Aliados)
         if ($scope === 'agencia') {
@@ -103,8 +96,77 @@ class VentaService
         }
 
         $ventas = $query->get();
+        if ($ventas->isEmpty()) {
+            return [
+                'scope' => $scope,
+                'ventas' => [],
+                'stats' => [
+                    'total_ventas_usd' => 0.00,
+                    'total_pagado_usd' => 0.00,
+                    'total_saldo_pendiente_usd' => 0.00,
+                    'cantidad_ventas' => 0,
+                    'empresas_aliadas_count' => 0,
+                    'aliados_resumen' => [],
+                ],
+            ];
+        }
 
-        $isFreelancerUser = strtolower($currentUser->level ?? '') === 'freelancer' || !empty($currentUser->id_freelancer);
+        $ventaIds = $ventas->pluck('id')->toArray();
+
+        // Agregaciones SQL directas de alta eficiencia para evitar saturación de memoria
+        $hotelesSum = DB::table('hotel_venta')
+            ->whereIn('id_venta', $ventaIds)
+            ->select('id_venta', DB::raw('SUM((precio_noche_adulto * IF(adultos > 0, adultos, 1) + precio_noche_adolescente * IFNULL(adolescente, 0) + precio_noche_nino * IFNULL(ninos, 0)) * IF(noches > 0, noches, 1)) as total'))
+            ->groupBy('id_venta')
+            ->pluck('total', 'id_venta');
+
+        $vuelosSum = DB::table('vuelo_venta')
+            ->whereIn('id_venta', $ventaIds)
+            ->select('id_venta', DB::raw('SUM(precio_adulto * IF(adultos > 0, adultos, 1) + precio_nino * IFNULL(ninos, 0) + precio_infante * IFNULL(infantes, 0)) as total'))
+            ->groupBy('id_venta')
+            ->pluck('total', 'id_venta');
+
+        $trasladosSum = DB::table('traslado_venta')
+            ->whereIn('id_venta', $ventaIds)
+            ->select('id_venta', DB::raw('SUM(precio_historico) as total'))
+            ->groupBy('id_venta')
+            ->pluck('total', 'id_venta');
+
+        $excursionesSum = DB::table('excursion_venta')
+            ->whereIn('id_venta', $ventaIds)
+            ->select('id_venta', DB::raw('SUM(precio_adulto * IF(adultos > 0, adultos, 1) + precio_nino * IFNULL(ninos, 0)) as total'))
+            ->groupBy('id_venta')
+            ->pluck('total', 'id_venta');
+
+        $paquetesSum = DB::table('paquete_venta')
+            ->whereIn('id_venta', $ventaIds)
+            ->select('id_venta', DB::raw('SUM(precio_adulto * IF(adultos > 0, adultos, 1) + precio_nino * IFNULL(ninos, 0)) as total'))
+            ->groupBy('id_venta')
+            ->pluck('total', 'id_venta');
+
+        $vehiculosSum = DB::table('vehiculo_venta')
+            ->whereIn('id_venta', $ventaIds)
+            ->select('id_venta', DB::raw('SUM(precio_unitario * IF(dias > 0, dias, 1)) as total'))
+            ->groupBy('id_venta')
+            ->pluck('total', 'id_venta');
+
+        $ferriesSum = DB::table('ferry_venta')
+            ->whereIn('id_venta', $ventaIds)
+            ->select('id_venta', DB::raw('SUM(precio_adulto * IF(adultos > 0, adultos, 1) + precio_nino * IFNULL(ninos, 0) + precio_vehiculo * IFNULL(vehiculos, 0)) as total'))
+            ->groupBy('id_venta')
+            ->pluck('total', 'id_venta');
+
+        $otrosSum = DB::table('otro_venta')
+            ->whereIn('id_venta', $ventaIds)
+            ->select('id_venta', DB::raw('SUM(precio) as total'))
+            ->groupBy('id_venta')
+            ->pluck('total', 'id_venta');
+
+        $pagosSum = DB::table('pago_venta')
+            ->whereIn('id_venta', $ventaIds)
+            ->select('id_venta', DB::raw('SUM(monto_usd) as total'))
+            ->groupBy('id_venta')
+            ->pluck('total', 'id_venta');
 
         $lista = [];
         $totalVentasUSD = 0;
@@ -113,10 +175,19 @@ class VentaService
         $aliadosResumen = [];
 
         foreach ($ventas as $v) {
-            $calculos = $this->calcularTotalesVenta($v, $isFreelancerUser);
-            $totalUSD = $calculos['total_usd'];
-            $totalPagado = $calculos['total_pagado'];
-            $saldoPendiente = $calculos['saldo_pendiente'];
+            $vId = $v->id;
+            $rawTotal = (float)($hotelesSum[$vId] ?? 0)
+                + (float)($vuelosSum[$vId] ?? 0)
+                + (float)($trasladosSum[$vId] ?? 0)
+                + (float)($excursionesSum[$vId] ?? 0)
+                + (float)($paquetesSum[$vId] ?? 0)
+                + (float)($vehiculosSum[$vId] ?? 0)
+                + (float)($ferriesSum[$vId] ?? 0)
+                + (float)($otrosSum[$vId] ?? 0);
+
+            $totalUSD = max(0, $rawTotal - (float)($v->descuento_monto ?? 0));
+            $totalPagado = (float)($pagosSum[$vId] ?? 0);
+            $saldoPendiente = max(0, $totalUSD - $totalPagado);
 
             $isConfirmada = in_array(strtolower($v->estado ?? ''), ['confirmada', 'venta', 'confirmado']);
 
@@ -181,6 +252,15 @@ class VentaService
                 $estadoPago = $saldoPendiente <= 0.01 ? 'Pagado' : 'Abonado';
             }
 
+            $checkinFormatted = null;
+            if ($v->checkin) {
+                $checkinFormatted = is_string($v->checkin) ? substr($v->checkin, 0, 10) : $v->checkin->format('Y-m-d');
+            }
+            $checkoutFormatted = null;
+            if ($v->checkout) {
+                $checkoutFormatted = is_string($v->checkout) ? substr($v->checkout, 0, 10) : $v->checkout->format('Y-m-d');
+            }
+
             $lista[] = [
                 'id' => $v->id,
                 'numero_ficha' => $v->numero_ficha,
@@ -188,8 +268,8 @@ class VentaService
                 'tipo_pago' => $v->tipo_pago,
                 'fecha_creacion' => $v->fecha_creacion,
                 'fecha_confirmacion' => $v->fecha_confirmacion,
-                'checkin' => $v->checkin ? $v->checkin->format('Y-m-d') : null,
-                'checkout' => $v->checkout ? $v->checkout->format('Y-m-d') : null,
+                'checkin' => $checkinFormatted,
+                'checkout' => $checkoutFormatted,
                 'cliente' => [
                     'nombre_completo' => $nombreCliente,
                     'tipo_documento' => $clienteP?->tipo_documento ?? 'V',
@@ -205,29 +285,15 @@ class VentaService
                 ],
                 'aliado' => $aliadoData,
                 'freelancer' => $freelancerData,
-                'pax_total' => max(1, $v->personas->count()),
-                'total_usd' => $totalUSD,
-                'total_pagado' => $totalPagado,
-                'saldo_pendiente' => $saldoPendiente,
+                'pax_total' => max(1, (int)($v->personas_count ?? 1)),
+                'total_usd' => round($totalUSD, 2),
+                'total_pagado' => round($totalPagado, 2),
+                'saldo_pendiente' => round($saldoPendiente, 2),
                 'estado_pago' => $estadoPago,
                 'descuento_monto' => (float)$v->descuento_monto,
                 'observacion' => $v->observacion,
-                'items' => $calculos['items'],
-                'pagos' => $v->pagos->map(function ($p) {
-                    return [
-                        'id' => $p->id,
-                        'numero_transaccion' => $p->numero_transaccion,
-                        'tipo_pago' => $p->tipo_pago,
-                        'moneda_pago' => $p->moneda_pago,
-                        'monto_original' => (float)$p->monto_original,
-                        'tasa_cambio' => (float)$p->tasa_cambio,
-                        'monto_usd' => (float)$p->monto_usd,
-                        'comision_bancaria' => (float)$p->comision_bancaria,
-                        'quien_envia' => $p->quien_envia,
-                        'metodo' => $p->metodoPago?->nombre ?? 'N/A',
-                        'fecha_pago' => $p->fecha_pago ? $p->fecha_pago->format('Y-m-d H:i') : null,
-                    ];
-                }),
+                'items' => [],
+                'pagos' => [],
             ];
         }
 
@@ -799,15 +865,18 @@ class VentaService
 
                 if (!empty($data['hoteles']) && is_array($data['hoteles'])) {
                     foreach ($data['hoteles'] as $h) {
-                        $hotel = Hotel::find($h['id_hotel']);
+                        $idHotel = !empty($h['id_hotel']) ? (int)$h['id_hotel'] : 0;
+                        if ($idHotel <= 0) continue;
+                        $hotel = Hotel::find($idHotel);
+                        if (!$hotel) continue;
                         $hotelData = $this->pricingEngine->normalizeHotelAdolescentPassengers(
                             $h,
-                            $hotel?->edad_adolescentes,
+                            $hotel->edad_adolescentes,
                             $isFreelancer
                         );
                         HotelVenta::create([
                             'id_venta' => $venta->id,
-                            'id_hotel' => $hotelData['id_hotel'],
+                            'id_hotel' => $idHotel,
                             'id_habitacion' => $hotelData['id_habitacion'] ?? 0,
                             'tipo' => $hotelData['tipo'] ?? 'Habitacion',
                             'noches' => $hotelData['noches'] ?? 1,
@@ -832,9 +901,11 @@ class VentaService
 
                 if (!empty($data['vuelos']) && is_array($data['vuelos'])) {
                     foreach ($data['vuelos'] as $v) {
+                        $idAerolinea = !empty($v['id_aerolinea']) ? (int)$v['id_aerolinea'] : 0;
+                        if ($idAerolinea <= 0) continue;
                         VueloVenta::create([
                             'id_venta' => $venta->id,
-                            'id_aerolinea' => $v['id_aerolinea'],
+                            'id_aerolinea' => $idAerolinea,
                             'itinerario' => $v['itinerario'] ?? '',
                             'localizador' => $v['localizador'] ?? $localizador,
                             'adultos' => $v['adultos'] ?? 0,
@@ -854,9 +925,11 @@ class VentaService
 
                 if (!empty($data['excursiones']) && is_array($data['excursiones'])) {
                     foreach ($data['excursiones'] as $e) {
+                        $idExcursion = !empty($e['id_excursion']) ? (int)$e['id_excursion'] : 0;
+                        if ($idExcursion <= 0) continue;
                         ExcursionVenta::create([
                             'id_venta' => $venta->id,
-                            'id_excursion' => $e['id_excursion'],
+                            'id_excursion' => $idExcursion,
                             'fecha' => $e['fecha'] ?? '',
                             'adultos' => $e['adultos'] ?? 0,
                             'ninos' => $e['ninos'] ?? 0,
@@ -872,9 +945,11 @@ class VentaService
 
                 if (!empty($data['paquetes']) && is_array($data['paquetes'])) {
                     foreach ($data['paquetes'] as $p) {
+                        $idPaquete = !empty($p['id_paquete']) ? (int)$p['id_paquete'] : 0;
+                        if ($idPaquete <= 0) continue;
                         PaqueteVenta::create([
                             'id_venta' => $venta->id,
-                            'id_paquete' => $p['id_paquete'],
+                            'id_paquete' => $idPaquete,
                             'fecha' => $p['fecha'] ?? '',
                             'adultos' => $p['adultos'] ?? 0,
                             'ninos' => $p['ninos'] ?? 0,
@@ -889,9 +964,11 @@ class VentaService
 
                 if (!empty($data['traslados']) && is_array($data['traslados'])) {
                     foreach ($data['traslados'] as $t) {
+                        $idTraslado = !empty($t['id_traslado']) ? (int)$t['id_traslado'] : 0;
+                        if ($idTraslado <= 0) continue;
                         TrasladoVenta::create([
                             'id_venta' => $venta->id,
-                            'id_traslado' => $t['id_traslado'],
+                            'id_traslado' => $idTraslado,
                             'fecha_traslado' => $t['fecha_traslado'] ?? now()->toDateTimeString(),
                             'fecha_retorno' => $t['fecha_retorno'] ?? null,
                             'adultos' => $t['adultos'] ?? 0,
@@ -905,9 +982,11 @@ class VentaService
 
                 if (!empty($data['vehiculos']) && is_array($data['vehiculos'])) {
                     foreach ($data['vehiculos'] as $veh) {
+                        $idVehiculo = !empty($veh['id_vehiculo']) ? (int)$veh['id_vehiculo'] : 0;
+                        if ($idVehiculo <= 0) continue;
                         VehiculoVenta::create([
                             'id_venta' => $venta->id,
-                            'id_vehiculo' => $veh['id_vehiculo'],
+                            'id_vehiculo' => $idVehiculo,
                             'dias' => $veh['dias'] ?? 1,
                             'precio_diario' => $veh['precio_diario'] ?? 0,
                             'costo_diario' => $veh['costo_diario'] ?? 0,

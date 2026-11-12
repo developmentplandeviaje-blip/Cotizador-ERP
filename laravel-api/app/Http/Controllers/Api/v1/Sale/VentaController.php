@@ -11,7 +11,10 @@ class VentaController extends Controller
 {
     public function __construct(
         protected VentaService $service
-    ) {}
+    ) {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(120);
+    }
 
     public function indexAgencia(Request $request): JsonResponse
     {

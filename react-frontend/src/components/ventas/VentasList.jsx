@@ -186,9 +186,6 @@ export default function VentasList({ tipo = 'agencia', user }) {
           flexWrap: 'wrap',
           gap: '16px',
           padding: '20px 24px',
-          background: 'rgba(16, 28, 68, 0.72)',
-          borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -246,7 +243,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
           }}
         >
           <span style={{ fontSize: '0.78rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Total Facturado USD
+            Ventas Totales
           </span>
           <div style={{ fontSize: '1.6rem', fontWeight: '800', color: '#E87217', marginTop: '4px' }}>
             ${Number(stats?.total_ventas_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -263,14 +260,14 @@ export default function VentasList({ tipo = 'agencia', user }) {
           }}
         >
           <span style={{ fontSize: '0.78rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Total Recaudado / Pagado
+            Total Abonado
           </span>
           <div style={{ fontSize: '1.6rem', fontWeight: '800', color: '#4ADE80', marginTop: '4px' }}>
             ${Number(stats?.total_pagado_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
 
-        {/* Saldo Pendiente */}
+        {/* Monto Pendiente */}
         <div
           style={{
             background: 'rgb(6, 18, 81)',
@@ -280,7 +277,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
           }}
         >
           <span style={{ fontSize: '0.78rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Saldo Pendiente por Cobrar
+            Monto Pendiente
           </span>
           <div
             style={{
@@ -304,7 +301,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
           }}
         >
           <span style={{ fontSize: '0.78rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Operaciones / Ventas
+            Operaciones
           </span>
           <div style={{ fontSize: '1.6rem', fontWeight: '800', color: '#FFFFFF', marginTop: '4px' }}>
             {stats?.cantidad_ventas || ventas.length}
@@ -409,7 +406,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                       <strong style={{ color: '#E87217' }}>${Number(al.total_ventas_usd).toFixed(2)}</strong>
                     </div>
                     <div>
-                      <span style={{ color: '#94A3B8', fontSize: '0.7rem' }}>Saldo: </span>
+                      <span style={{ color: '#94A3B8', fontSize: '0.7rem' }}>Monto: </span>
                       <strong style={{ color: al.total_saldo_usd > 0 ? '#F87171' : '#4ADE80' }}>
                         ${Number(al.total_saldo_usd).toFixed(2)}
                       </strong>
@@ -504,7 +501,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
           {/* Pestañas Estado Venta */}
           {[
             { id: 'todos', label: 'Todos' },
-            { id: 'Confirmada', label: 'Confirmadas' },
+            { id: 'Confirmada', label: 'Ventas' },
             { id: 'Cotizacion', label: 'Cotizaciones' },
           ].map((tab) => {
             const active = filterEstado === tab.id;
@@ -546,9 +543,9 @@ export default function VentasList({ tipo = 'agencia', user }) {
               setPage(1);
             }}
             options={[
-              { value: 'todos', label: 'Todos los pagos' },
+              { value: 'todos', label: 'Todos' },
               { value: 'pagado', label: 'Totalmente Pagado' },
-              { value: 'pendiente', label: 'Con Saldo Pendiente' },
+              { value: 'pendiente', label: 'Con Monto Pendiente' },
             ]}
             style={{ width: '190px' }}
           />
@@ -604,8 +601,8 @@ export default function VentasList({ tipo = 'agencia', user }) {
                 <th style={{ padding: '14px 18px' }}>Asesor</th>
                 {tipo === 'aliados' && <th style={{ padding: '14px 18px' }}>Empresa Aliada</th>}
                 {/*<th style={{ padding: '14px 18px', textAlign: 'center' }}>Pax</th>*/}
-                <th style={{ padding: '14px 18px', textAlign: 'right' }}>Total Venta</th>
-                <th style={{ padding: '14px 18px', textAlign: 'right' }}>Pagado / Saldo</th>
+                <th style={{ padding: '14px 18px', textAlign: 'right' }}>Monto Total</th>
+                <th style={{ padding: '14px 18px', textAlign: 'right' }}>Abono / Pendiente</th>
                 <th style={{ padding: '14px 18px', textAlign: 'center' }}>Estado</th>
                 <th style={{ padding: '14px 30px 14px 18px', textAlign: 'center' }}>Acciones</th>
               </tr>
@@ -650,7 +647,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                       </td>
 
                       {/* Fecha */}
-                      <td style={{ padding: '14px 18px', color: '#CBD5E1', fontSize: '0.825rem' }}>
+                      <td style={{ padding: '14px 18px', color: '#F8FAFC', fontSize: '0.825rem' }}>
                         {v.fecha_creacion ? new Date(v.fecha_creacion).toLocaleDateString('es-VE') : 'N/A'}
                       </td>
 
@@ -659,14 +656,14 @@ export default function VentasList({ tipo = 'agencia', user }) {
                         <div style={{ fontWeight: '600', color: '#FFFFFF' }}>
                           {v.cliente?.nombre_completo || 'Cliente General'}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#CBD5E1' }}>
                           {v.cliente?.documento ? `${v.cliente.tipo_documento || 'V'}-${v.cliente.documento}` : 'Sin documento'}
                         </div>
                       </td>
 
                       {/* Asesor */}
                       <td style={{ padding: '14px 18px' }}>
-                        <div style={{ color: '#CBD5E1', fontWeight: '500' }}>
+                        <div style={{ color: '#F8FAFC', fontWeight: '500' }}>
                           {v.asesor?.name || 'Asesor'}
                         </div>
                         {v.freelancer && (
@@ -684,7 +681,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                               <div style={{ fontWeight: '600', color: '#38BDF8', fontSize: '0.825rem' }}>
                                 {v.aliado.razon_social}
                               </div>
-                              <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>{v.aliado.rif}</div>
+                              <div style={{ fontSize: '0.7rem', color: '#F8FAFC' }}>{v.aliado.rif}</div>
                             </div>
                           ) : (
                             <span style={{ color: '#64748B', fontSize: '0.75rem' }}>N/A</span>
@@ -702,10 +699,10 @@ export default function VentasList({ tipo = 'agencia', user }) {
                         ${Number(v.total_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
 
-                      {/* Pagado / Saldo */}
+                      {/* Abono / Pendiente */}
                       <td style={{ padding: '14px 18px', textAlign: 'right' }}>
                         <div style={{ fontSize: '0.8rem', color: '#4ADE80', fontWeight: '600' }}>
-                          Pagado: ${Number(v.total_pagado || 0).toFixed(2)}
+                          Abono: ${Number(v.total_pagado || 0).toFixed(2)}
                         </div>
                         <div
                           style={{
@@ -715,7 +712,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                             marginTop: '2px',
                           }}
                         >
-                          Saldo: ${Number(saldo).toFixed(2)}
+                          Pendiente: ${Number(saldo).toFixed(2)}
                         </div>
                       </td>
 

@@ -96,9 +96,6 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
           flexWrap: 'wrap',
           gap: '16px',
           padding: '20px 24px',
-          background: 'rgba(16, 28, 68, 0.72)',
-          borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>

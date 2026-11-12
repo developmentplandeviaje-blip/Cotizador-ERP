@@ -1472,13 +1472,15 @@ input[type="radio"] {
 .btn-pagar-todo {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 11px;
+  justify-content: center;
+  width: 45%;
+  /*gap: 5px;
+  padding: 3px 11px;*/
   border-radius: 999px;
   border: 1px solid #8cd2ffb3;
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(45, 212, 191, 0.22));
   color: #8cd2ff;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 0 12px rgba(45, 212, 191, 0.18);

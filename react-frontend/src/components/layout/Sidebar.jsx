@@ -141,7 +141,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
       </div>
 
       {/* User profile card in Sidebar */}
-      <div
+      {/* <div
         style={{
           margin: isCollapsed ? '8px auto 14px auto' : '6px 16px 14px 16px',
           padding: isCollapsed ? '4px' : '9px 12px',
@@ -243,7 +243,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             </div>
           </div>
         )}
-      </div>
+      </div>*/}
 
       {/* Navigation List */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '0 16px', flex: 1 }}>

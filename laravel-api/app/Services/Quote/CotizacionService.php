@@ -280,9 +280,11 @@ class CotizacionService
             // Guardar Ítems: Vuelos
             if (!empty($data['vuelos']) && is_array($data['vuelos'])) {
                 foreach ($data['vuelos'] as $v) {
+                    $idAerolinea = !empty($v['id_aerolinea']) ? (int)$v['id_aerolinea'] : 0;
+                    if ($idAerolinea <= 0) continue;
                     VueloVenta::create([
                         'id_venta' => $venta->id,
-                        'id_aerolinea' => $v['id_aerolinea'],
+                        'id_aerolinea' => $idAerolinea,
                         'itinerario' => $v['itinerario'] ?? '',
                         'localizador' => $v['localizador'] ?? $localizador,
                         'adultos' => $v['adultos'] ?? 0,
@@ -305,9 +307,11 @@ class CotizacionService
             // Guardar Ítems: Excursiones
             if (!empty($data['excursiones']) && is_array($data['excursiones'])) {
                 foreach ($data['excursiones'] as $e) {
+                    $idExcursion = !empty($e['id_excursion']) ? (int)$e['id_excursion'] : 0;
+                    if ($idExcursion <= 0) continue;
                     ExcursionVenta::create([
                         'id_venta' => $venta->id,
-                        'id_excursion' => $e['id_excursion'],
+                        'id_excursion' => $idExcursion,
                         'fecha' => $e['fecha'] ?? '',
                         'adultos' => $e['adultos'] ?? 0,
                         'ninos' => $e['ninos'] ?? 0,
@@ -325,9 +329,11 @@ class CotizacionService
             // Guardar Ítems: Paquetes
             if (!empty($data['paquetes']) && is_array($data['paquetes'])) {
                 foreach ($data['paquetes'] as $p) {
+                    $idPaquete = !empty($p['id_paquete']) ? (int)$p['id_paquete'] : 0;
+                    if ($idPaquete <= 0) continue;
                     PaqueteVenta::create([
                         'id_venta' => $venta->id,
-                        'id_paquete' => $p['id_paquete'],
+                        'id_paquete' => $idPaquete,
                         'fecha' => $p['fecha'] ?? '',
                         'adultos' => $p['adultos'] ?? 0,
                         'ninos' => $p['ninos'] ?? 0,
@@ -344,9 +350,11 @@ class CotizacionService
             // Guardar Ítems: Traslados
             if (!empty($data['traslados']) && is_array($data['traslados'])) {
                 foreach ($data['traslados'] as $t) {
+                    $idTraslado = !empty($t['id_traslado']) ? (int)$t['id_traslado'] : 0;
+                    if ($idTraslado <= 0) continue;
                     TrasladoVenta::create([
                         'id_venta' => $venta->id,
-                        'id_traslado' => $t['id_traslado'],
+                        'id_traslado' => $idTraslado,
                         'id_chofer' => $t['id_chofer'] ?? null,
                         'id_vuelo' => $t['id_vuelo'] ?? null,
                         'fecha_traslado' => $t['fecha_traslado'] ?? now()->toDateTimeString(),
@@ -365,9 +373,11 @@ class CotizacionService
             // Guardar Ítems: Vehículos
             if (!empty($data['vehiculos']) && is_array($data['vehiculos'])) {
                 foreach ($data['vehiculos'] as $veh) {
+                    $idVehiculo = !empty($veh['id_vehiculo']) ? (int)$veh['id_vehiculo'] : 0;
+                    if ($idVehiculo <= 0) continue;
                     VehiculoVenta::create([
                         'id_venta' => $venta->id,
-                        'id_vehiculo' => $veh['id_vehiculo'],
+                        'id_vehiculo' => $idVehiculo,
                         'desde' => $veh['desde'] ?? now()->toDateTimeString(),
                         'hasta' => $veh['hasta'] ?? now()->addDays(1)->toDateTimeString(),
                         'dias' => $veh['dias'] ?? 1,

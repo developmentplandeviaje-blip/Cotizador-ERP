@@ -64,6 +64,19 @@ return [
             ]) : [],
         ],
 
+        'cotizador_legacy' => [
+            'driver' => 'mysql',
+            'host' => env('LEGACY_DB_HOST', '127.0.0.1'),
+            'port' => env('LEGACY_DB_PORT', '3306'),
+            'database' => env('LEGACY_DB_DATABASE', 'plandv-cotizador'),
+            'username' => env('LEGACY_DB_USERNAME', 'root'),
+            'password' => env('LEGACY_DB_PASSWORD', ''),
+            'charset' => 'latin1', // Importante: la BD origen usa latin1
+            'collation' => 'latin1_swedish_ci',
+            'prefix' => '',
+            'strict' => false, // Evita fallos con fechas '0000-00-00 00:00:00' del origen[cite: 1]
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

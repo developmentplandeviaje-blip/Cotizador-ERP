@@ -5,6 +5,7 @@ import CustomDatePicker from '../../common/CustomDatePicker';
 import CustomNumberInput from '../../common/CustomNumberInput';
 import { formatFlightItinerary, sanitizePrecioCostoValue } from '../../../utils/validation';
 import { normalizeHotelAdolescentPassengers } from '../../../utils/quotePricing';
+import { showToast } from '../../../utils/toast';
 import HotelAsociadoSelect from '../HotelAsociadoSelect';
 
 export default function EditarProductoModal(props) {
@@ -152,6 +153,31 @@ function EditarProductoModalContent({
 
   const handleSubmit = (e) => {
     e?.preventDefault();
+
+    if (tipo === 'hotel' && (!formData.id_hotel || Number(formData.id_hotel) <= 0)) {
+      showToast('Debe seleccionar un hotel del catálogo.', 'warning');
+      return;
+    }
+    if (tipo === 'vuelo' && (!formData.id_aerolinea || Number(formData.id_aerolinea) <= 0)) {
+      showToast('Debe seleccionar una aerolínea del catálogo.', 'warning');
+      return;
+    }
+    if (tipo === 'excursion' && (!formData.id_excursion || Number(formData.id_excursion) <= 0)) {
+      showToast('Debe seleccionar una excursión del catálogo.', 'warning');
+      return;
+    }
+    if (tipo === 'paquete' && (!formData.id_paquete || Number(formData.id_paquete) <= 0)) {
+      showToast('Debe seleccionar un paquete del catálogo.', 'warning');
+      return;
+    }
+    if (tipo === 'traslado' && (!formData.id_traslado || Number(formData.id_traslado) <= 0)) {
+      showToast('Debe seleccionar una ruta de traslado del catálogo.', 'warning');
+      return;
+    }
+    if (tipo === 'vehiculo' && (!formData.id_vehiculo || Number(formData.id_vehiculo) <= 0)) {
+      showToast('Debe seleccionar un vehículo del catálogo.', 'warning');
+      return;
+    }
 
     let updatedTitulo = item.titulo;
     let updatedDetalle = item.detalle;
