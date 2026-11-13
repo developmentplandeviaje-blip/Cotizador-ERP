@@ -22,17 +22,68 @@ export default function VentasList({ tipo = 'agencia', user }) {
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterEstado, setFilterEstado] = useState('todos'); // 'todos' | 'Confirmada' | 'Cotizacion'
+  const [filterEstado, setFilterEstado] = useState('todos'); // 'todos' | 'Venta' | 'Cotizacion'
   const [filterPago, setFilterPago] = useState('todos'); // 'todos' | 'pagado' | 'pendiente'
   const [filterAliadoId, setFilterAliadoId] = useState('');
   const [page, setPage] = useState(1);
 
-  // Modales y Edición
-  const [editingVentaId, setEditingVentaId] = useState(null);
+  // Modales y Edición con persistencia de URL y sessionStorage
+  const getInitialEditingVentaId = () => {
+    try {
+      const hash = window.location.hash || '';
+      if (hash.includes('?')) {
+        const queryString = hash.split('?')[1] || '';
+        const params = new URLSearchParams(queryString);
+        const urlId = params.get('editar') || params.get('id');
+        if (urlId) return urlId;
+      }
+      const saved = sessionStorage.getItem(`editing_venta_${tipo}`);
+      if (saved) return saved;
+    } catch {}
+    return null;
+  };
+
+  const [editingVentaId, setEditingVentaId] = useState(getInitialEditingVentaId);
+
+  const handleSelectEditingVenta = useCallback((id) => {
+    setEditingVentaId(id);
+    try {
+      if (id) {
+        sessionStorage.setItem(`editing_venta_${tipo}`, String(id));
+        window.location.hash = `ventas_${tipo}?editar=${id}`;
+      } else {
+        sessionStorage.removeItem(`editing_venta_${tipo}`);
+        window.location.hash = `ventas_${tipo}`;
+      }
+    } catch {}
+  }, [tipo]);
+
   const [selectedVentaDetalle, setSelectedVentaDetalle] = useState(null);
   const [selectedVentaPago, setSelectedVentaPago] = useState(null);
   const [confirmingVenta, setConfirmingVenta] = useState(null);
   const [isConfirmingSale, setIsConfirmingSale] = useState(false);
+
+  // Código Diario de Administrador para desbloqueo
+  const isAdminOrLeader = ['administrador', 'admin', 'lider'].includes((user?.level || '').toLowerCase());
+  const [dailyCode, setDailyCode] = useState(null);
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  useEffect(() => {
+    if (!isAdminOrLeader) return;
+    axios.get('/v1/ventas/autorizacion/codigo-diario')
+      .then((res) => {
+        if (res.data?.codigo) setDailyCode(res.data.codigo);
+      })
+      .catch((err) => console.warn('Error al cargar código diario en ventas:', err));
+  }, [isAdminOrLeader]);
+
+  const handleCopyCode = () => {
+    if (!dailyCode) return;
+    navigator.clipboard.writeText(dailyCode);
+    setCopiedCode(true);
+    showToast.success(`Código copiado: ${dailyCode}`);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
 
   // Título e información según el tipo
   const infoConfig = useMemo(() => {
@@ -89,6 +140,48 @@ export default function VentasList({ tipo = 'agencia', user }) {
     fetchVentas();
   }, [fetchVentas]);
 
+  // Listener para sincronización de acceso rápido desde menú lateral y recarga/navegación de URL
+  useEffect(() => {
+    const handleResetView = (e) => {
+      if (e.detail === `ventas_${tipo}` || e.detail === tipo) {
+        try {
+          sessionStorage.removeItem(`editing_venta_${tipo}`);
+        } catch {}
+        setEditingVentaId(null);
+        window.location.hash = `ventas_${tipo}`;
+        fetchVentas();
+      }
+    };
+
+    const handleHashChange = () => {
+      const raw = window.location.hash || '';
+      const [path, queryString] = raw.replace(/^#/, '').split('?');
+      if (path === `ventas_${tipo}`) {
+        const params = new URLSearchParams(queryString || '');
+        const idFromUrl = params.get('editar') || params.get('id');
+        if (!idFromUrl && editingVentaId) {
+          try {
+            sessionStorage.removeItem(`editing_venta_${tipo}`);
+          } catch {}
+          setEditingVentaId(null);
+          fetchVentas();
+        } else if (idFromUrl && idFromUrl !== editingVentaId) {
+          try {
+            sessionStorage.setItem(`editing_venta_${tipo}`, idFromUrl);
+          } catch {}
+          setEditingVentaId(idFromUrl);
+        }
+      }
+    };
+
+    window.addEventListener('app:reset_view', handleResetView);
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('app:reset_view', handleResetView);
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [tipo, editingVentaId, fetchVentas]);
+
   // Confirmar Venta
   const handleConfirmSale = async () => {
     if (!confirmingVenta) return;
@@ -110,10 +203,14 @@ export default function VentasList({ tipo = 'agencia', user }) {
   // Filtrado reactivo en memoria
   const filteredVentas = useMemo(() => {
     return ventas.filter((v) => {
-      // Filtro por Estado de Pago
+      const isConfirmed = ['confirmada', 'venta', 'confirmado'].includes((v.estado || '').toLowerCase());
+
+      // Filtro por Estado de Pago: únicamente aplica a fichas en estado de Venta Confirmada
       if (filterPago === 'pagado') {
+        if (!isConfirmed) return false;
         if ((v.saldo_pendiente || 0) > 0.01) return false;
       } else if (filterPago === 'pendiente') {
+        if (!isConfirmed) return false;
         if ((v.saldo_pendiente || 0) <= 0.01) return false;
       }
 
@@ -158,7 +255,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
         user={user}
         tipoScope={tipo}
         onVolver={() => {
-          setEditingVentaId(null);
+          handleSelectEditingVenta(null);
           fetchVentas();
         }}
       />
@@ -199,7 +296,46 @@ export default function VentasList({ tipo = 'agencia', user }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {isAdminOrLeader && dailyCode && (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 14px',
+                background: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid rgba(245, 158, 11, 0.35)',
+                borderRadius: '10px',
+              }}
+            >
+              <span style={{ fontSize: '0.78rem', color: '#FCD34D', fontWeight: 600 }}>
+                🔐 Código Diario:
+              </span>
+              <strong style={{ color: '#FFFFFF', fontFamily: 'monospace', letterSpacing: '0.5px', fontSize: '0.9rem' }}>
+                {dailyCode}
+              </strong>
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                style={{
+                  background: copiedCode ? '#10B981' : 'linear-gradient(135deg, #F59E0B, #D97706)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#FFFFFF',
+                  padding: '3px 8px',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                title="Copiar código diario para compartirlo"
+              >
+                {copiedCode ? '✓ Copiado' : 'Copiar'}
+              </button>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={fetchVentas}
@@ -501,7 +637,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
           {/* Pestañas Estado Venta */}
           {[
             { id: 'todos', label: 'Todos' },
-            { id: 'Confirmada', label: 'Ventas' },
+            { id: 'Venta', label: 'Ventas' },
             { id: 'Cotizacion', label: 'Cotizaciones' },
           ].map((tab) => {
             const active = filterEstado === tab.id;
@@ -732,18 +868,20 @@ export default function VentasList({ tipo = 'agencia', user }) {
                           >
                             {isConfirmed ? 'Venta' : v.estado}
                           </span>
-                          <span
-                            style={{
-                              padding: '2px 6px',
-                              borderRadius: '6px',
-                              fontSize: '0.675rem',
-                              fontWeight: '600',
-                              background: isPaid ? 'rgba(59, 130, 246, 0.2)' : (v.total_pagado > 0 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(148, 163, 184, 0.15)'),
-                              color: isPaid ? '#60A5FA' : (v.total_pagado > 0 ? '#FBBF24' : '#94A3B8'),
-                            }}
-                          >
-                            {v.estado_pago || 'Pendiente'}
-                          </span>
+                          {isConfirmed && (
+                            <span
+                              style={{
+                                padding: '2px 6px',
+                                borderRadius: '6px',
+                                fontSize: '0.675rem',
+                                fontWeight: '600',
+                                background: isPaid ? 'rgba(59, 130, 246, 0.2)' : (v.total_pagado > 0 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(148, 163, 184, 0.15)'),
+                                color: isPaid ? '#60A5FA' : (v.total_pagado > 0 ? '#FBBF24' : '#94A3B8'),
+                              }}
+                            >
+                              {v.estado_pago || 'Pendiente'}
+                            </span>
+                          )}
                         </div>
                       </td>
 
@@ -753,7 +891,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                           {/* Editar Cotización / Venta */}
                           <button
                             type="button"
-                            onClick={() => setEditingVentaId(v.id)}
+                            onClick={() => handleSelectEditingVenta(v.id)}
                             style={{
                               display: 'inline-flex',
                                 alignItems: 'center',

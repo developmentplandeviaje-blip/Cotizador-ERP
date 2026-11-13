@@ -31,14 +31,22 @@ class Venta extends Model
         'observacion',
         'fecha_creacion',
         'fecha_confirmacion',
+        'desbloqueado_hasta',
     ];
 
     protected $casts = [
         'checkin' => 'datetime',
         'checkout' => 'datetime',
+        'fecha_confirmacion' => 'datetime',
+        'desbloqueado_hasta' => 'datetime',
         'descuento_monto' => 'decimal:2',
         'descuento_referidos_monto' => 'decimal:2',
     ];
+
+    public function isDesbloqueadoEdicion(): bool
+    {
+        return $this->desbloqueado_hasta !== null && now()->lessThan($this->desbloqueado_hasta);
+    }
 
     public static function formatearNumeroFicha(?User $user, int|string $id): string
     {

@@ -409,6 +409,13 @@ export default function EditarCotizacion({
   const [searchingClient, setSearchingClient] = useState(false);
   const [clientStatusMsg, setClientStatusMsg] = useState(null);
 
+  // Modales de confirmación para pasajeros (Limpiar y Quitar)
+  const [showConfirmLimpiarTitular, setShowConfirmLimpiarTitular] = useState(false);
+  const [showConfirmLimpiarAcompanantes, setShowConfirmLimpiarAcompanantes] = useState(false);
+  const [paxToRemove, setPaxToRemove] = useState(null);
+  const [rememberRemovePaxChoice, setRememberRemovePaxChoice] = useState(false);
+  const [dontAskRemovePaxChecked, setDontAskRemovePaxChecked] = useState(false);
+
   // Modales
   const [isRegistrarPagoOpen, setIsRegistrarPagoOpen] = useState(false);
   const [pagoToEdit, setPagoToEdit] = useState(null);
@@ -419,6 +426,32 @@ export default function EditarCotizacion({
   const [itemToDelete, setItemToDelete] = useState(null);
   const [pagoToDelete, setPagoToDelete] = useState(null);
   const [isDeletingPago, setIsDeletingPago] = useState(false);
+
+  // Desbloqueo temporal de edición de productos por administrador (24 horas)
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [adminCode, setAdminCode] = useState('');
+  const [showAdminCode, setShowAdminCode] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState('');
+  const [desbloqueoInfo, setDesbloqueoInfo] = useState({
+    is_desbloqueado: false,
+    desbloqueado_hasta: null,
+    tiempo_restante_segundos: 0,
+  });
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
+
+  // Código Diario de Administrador
+  const isAdminOrLeader = ['administrador', 'admin', 'lider'].includes((user?.level || '').toLowerCase());
+  const [dailyAdminCode, setDailyAdminCode] = useState(null);
+
+  useEffect(() => {
+    if (!isAdminOrLeader) return;
+    axios.get('/v1/ventas/autorizacion/codigo-diario')
+      .then((res) => {
+        if (res.data?.codigo) setDailyAdminCode(res.data.codigo);
+      })
+      .catch((err) => console.warn('Error al cargar código diario en edición:', err));
+  }, [isAdminOrLeader]);
 
   // Carga inicial de catálogos
   useEffect(() => {
@@ -483,6 +516,16 @@ export default function EditarCotizacion({
       // Ítems de productos
       const itemsList = data.totales?.items || [];
       setItems(itemsList);
+
+      // Datos de desbloqueo temporal
+      const dHasta = v.desbloqueado_hasta || data.desbloqueo?.desbloqueado_hasta;
+      const isDesbloq = Boolean(dHasta && new Date(dHasta).getTime() > Date.now());
+      const secs = isDesbloq ? Math.max(0, Math.floor((new Date(dHasta).getTime() - Date.now()) / 1000)) : 0;
+      setDesbloqueoInfo({
+        is_desbloqueado: isDesbloq,
+        desbloqueado_hasta: dHasta,
+        tiempo_restante_segundos: secs,
+      });
     } catch (err) {
       console.error('Error al cargar detalle de venta para edición:', err);
       showToast('Error al cargar la información del registro.', 'error');
@@ -493,13 +536,82 @@ export default function EditarCotizacion({
 
   useEffect(() => {
     fetchVentaDetalle();
+    // Al abrir o cambiar de cotización/ficha, el estado de recordar elección siempre inicia en false
+    setRememberRemovePaxChoice(false);
   }, [fetchVentaDetalle]);
+
+  // Temporizador de cuenta regresiva en vivo para el desbloqueo temporal de 24 horas
+  useEffect(() => {
+    if (!desbloqueoInfo.is_desbloqueado || !desbloqueoInfo.desbloqueado_hasta) {
+      setRemainingSeconds(0);
+      return;
+    }
+
+    const targetTime = new Date(desbloqueoInfo.desbloqueado_hasta).getTime();
+    const updateRemaining = () => {
+      const now = Date.now();
+      const diff = Math.max(0, Math.floor((targetTime - now) / 1000));
+      setRemainingSeconds(diff);
+      if (diff <= 0) {
+        setDesbloqueoInfo((prev) => ({ ...prev, is_desbloqueado: false }));
+        showToast('El periodo de desbloqueo temporal de 24 horas ha expirado.', 'warning');
+      }
+    };
+
+    updateRemaining();
+    const interval = setInterval(updateRemaining, 1000);
+    return () => clearInterval(interval);
+  }, [desbloqueoInfo.is_desbloqueado, desbloqueoInfo.desbloqueado_hasta]);
+
+  const formatTimeRemaining = (totalSecs) => {
+    if (totalSecs <= 0) return '00:00:00';
+    const hours = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    return `${hours}h ${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
+  };
 
   const isConfirmed = useMemo(() => {
     if (!venta) return false;
     const est = (venta.estado || '').toLowerCase();
     return est === 'confirmada' || est === 'venta' || est === 'confirmado';
   }, [venta]);
+
+  const isServicesLocked = useMemo(() => {
+    return isConfirmed && !desbloqueoInfo.is_desbloqueado;
+  }, [isConfirmed, desbloqueoInfo.is_desbloqueado]);
+
+  const handleUnlockServices = async (e) => {
+    e?.preventDefault();
+    if (!adminCode.trim()) {
+      setUnlockError('Por favor ingrese el código de autorización o contraseña.');
+      return;
+    }
+    setUnlocking(true);
+    setUnlockError('');
+    try {
+      const res = await axios.post(`/v1/ventas/${ventaId}/desbloquear`, {
+        codigo: adminCode.trim(),
+      });
+      showToast('¡Edición de servicios desbloqueada con éxito! Dispone de 24 horas para agregar, modificar o eliminar productos.', 'success');
+      const dHasta = res.data?.desbloqueado_hasta;
+      const secs = res.data?.tiempo_restante_segundos || 86400;
+      setDesbloqueoInfo({
+        is_desbloqueado: true,
+        desbloqueado_hasta: dHasta,
+        tiempo_restante_segundos: secs,
+      });
+      setShowUnlockModal(false);
+      setAdminCode('');
+      await fetchVentaDetalle();
+    } catch (err) {
+      console.error('Error al desbloquear edición:', err);
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Código de autorización o credencial inválida.';
+      setUnlockError(msg);
+    } finally {
+      setUnlocking(false);
+    }
+  };
 
   // Conteos de pasajeros por categoría
   const paxCounts = useMemo(() => computePaxCounts(pasajeros), [pasajeros]);
@@ -588,7 +700,41 @@ export default function EditarCotizacion({
     return items.filter((it) => it.tipo === 'hotel');
   }, [items]);
 
-  const handleLimpiarTitular = () => {
+  // Determinar si el hotel registrado en la venta/cotización incluye tarifa para adolescente (YNG)
+  const isAdolescentAllowed = useMemo(() => {
+    const hotelItems = items.filter((it) => it.tipo === 'hotel');
+    if (hotelItems.length === 0) return true; // Si no hay hoteles en la cotización/venta, permitir por defecto
+
+    // Si hay hoteles, verificar si alguno incluye tarifa de adolescente activa
+    return hotelItems.some((it) => {
+      const hotelObj = (catalogos.hoteles || []).find((h) => String(h.id) === String(it.data?.id_hotel));
+      const ageRange = String(hotelObj?.edad_adolescentes || '').trim();
+      const hasAgeRange = /\d/.test(ageRange) && !ageRange.includes('0 - 0');
+      const hasPrice = Number(it.data?.precio_noche_adolescente || 0) > 0;
+      const hasCost = Number(it.data?.costo_noche_adolescente || 0) > 0;
+      return hasAgeRange && (hasPrice || hasCost);
+    });
+  }, [items, catalogos.hoteles]);
+
+  // Si no se permite adolescente, reasignar automáticamente los acompañantes tipo adolescente a adulto
+  useEffect(() => {
+    if (!isAdolescentAllowed && pasajeros.some((p) => p.tipo_pax === 'adolescente')) {
+      setPasajeros((prev) =>
+        prev.map((p) => {
+          if (p.tipo_pax === 'adolescente') {
+            return {
+              ...p,
+              tipo_pax: 'adulto',
+              tipo_documento: p.tipo_documento === 'NAC' ? 'V' : p.tipo_documento,
+            };
+          }
+          return p;
+        })
+      );
+    }
+  }, [isAdolescentAllowed, pasajeros]);
+
+  const executeLimpiarTitular = () => {
     setCliente((prev) => ({
       ...prev,
       documento: '',
@@ -598,6 +744,12 @@ export default function EditarCotizacion({
       correo: '',
     }));
     setClientStatusMsg(null);
+    showToast('Información del pasajero titular limpiada.', 'info');
+  };
+
+  const handleLimpiarTitular = () => {
+    if (!hasClienteInfo) return;
+    setShowConfirmLimpiarTitular(true);
   };
 
   const hasClienteInfo = Boolean(
@@ -651,7 +803,7 @@ export default function EditarCotizacion({
     );
   }, [pasajeros]);
 
-  const handleLimpiarAcompanantes = () => {
+  const executeLimpiarAcompanantes = () => {
     setPasajeros((prev) =>
       prev.map((p) => ({
         ...p,
@@ -663,6 +815,11 @@ export default function EditarCotizacion({
       }))
     );
     showToast('Campos de acompañantes limpiados.', 'info');
+  };
+
+  const handleLimpiarAcompanantes = () => {
+    if (!hasAcompananteData) return;
+    setShowConfirmLimpiarAcompanantes(true);
   };
 
   // Recalcular producto cuando cambian los pasajeros o la cantidad de pax
@@ -949,7 +1106,7 @@ export default function EditarCotizacion({
     });
   };
 
-  const handleRemovePasajero = (uid) => {
+  const executeRemovePasajero = (uid) => {
     setPasajeros((prevPasajeros) => {
       const nextPasajeros = prevPasajeros.filter((p) => p.uid !== uid);
       const nextCounts = computePaxCounts(nextPasajeros);
@@ -965,6 +1122,22 @@ export default function EditarCotizacion({
       );
       return nextPasajeros;
     });
+    showToast('Acompañante removido de la cotización.', 'info');
+  };
+
+  const handleRemovePasajero = (uid) => {
+    const targetPax = pasajeros.find((p) => p.uid === uid);
+    if (!targetPax) return;
+
+    // Si ya recordó la elección para esta cotización, quitar directamente sin preguntar
+    if (rememberRemovePaxChoice) {
+      executeRemovePasajero(uid);
+      return;
+    }
+
+    // Solicitar confirmación obligatoria con opción de recordar mi elección
+    setDontAskRemovePaxChecked(false);
+    setPaxToRemove(targetPax);
   };
 
   const handlePasajeroChange = (uid, field, value) => {
@@ -1138,9 +1311,9 @@ export default function EditarCotizacion({
   }, [items]);
 
   const displayedTotal = useMemo(() => {
-    if (isConfirmed && totales) return totales.total_usd;
+    if (isServicesLocked && totales) return totales.total_usd;
     return itemsTotalUSD;
-  }, [isConfirmed, totales, itemsTotalUSD]);
+  }, [isServicesLocked, totales, itemsTotalUSD]);
 
   const totalPagado = useMemo(() => {
     return Number(totales?.total_pagado || venta?.total_pagado || 0);
@@ -1194,7 +1367,7 @@ export default function EditarCotizacion({
           tipo_pax: p.tipo_pax || getTipoPaxFromEdad(p.edad),
         })),
         cambiar_a_confirmada: Boolean(cambiarAConfirmada),
-        items_replace: !isConfirmed,
+        items_replace: !isServicesLocked,
         hoteles: items.filter((i) => i.tipo === 'hotel' && Number(i.data?.id_hotel) > 0).map((i) => i.data || {}),
         vuelos: items.filter((i) => i.tipo === 'vuelo' && Number(i.data?.id_aerolinea) > 0).map((i) => i.data || {}),
         excursiones: items.filter((i) => i.tipo === 'excursion' && Number(i.data?.id_excursion) > 0).map((i) => i.data || {}),
@@ -1709,7 +1882,7 @@ export default function EditarCotizacion({
                 <strong style={{ color: '#FFFFFF' }}>{paxCounts.total} Pax</strong>
                 <span>•</span>
                 <span>{paxCounts.adultos} ADL</span>
-                {paxCounts.adolescentes > 0 && <span>• {paxCounts.adolescentes} YNG</span>}
+                {isAdolescentAllowed && paxCounts.adolescentes > 0 && <span>• {paxCounts.adolescentes} YNG</span>}
                 {paxCounts.ninos > 0 && <span>• {paxCounts.ninos} CHD</span>}
                 {paxCounts.infantes > 0 && <span>• {paxCounts.infantes} INF</span>}
               </div>
@@ -1767,27 +1940,29 @@ export default function EditarCotizacion({
                 <span>+ Adulto</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => handleAddPasajero('adolescente')}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '6px 11px',
-                  borderRadius: '8px',
-                  background: 'rgba(139, 92, 246, 0.16)',
-                  border: '1px solid rgba(139, 92, 246, 0.4)',
-                  color: '#C4B5FD',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-                title="Agregar Pasajero Adolescente (12 a 17 años)"
-              >
-                <span>+ Adolescente</span>
-              </button>
+              {isAdolescentAllowed && (
+                <button
+                  type="button"
+                  onClick={() => handleAddPasajero('adolescente')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '6px 11px',
+                    borderRadius: '8px',
+                    background: 'rgba(139, 92, 246, 0.16)',
+                    border: '1px solid rgba(139, 92, 246, 0.4)',
+                    color: '#C4B5FD',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                  title="Agregar Pasajero Adolescente (12 a 17 años)"
+                >
+                  <span>+ Adolescente</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -2035,7 +2210,7 @@ export default function EditarCotizacion({
                       <div
                         style={{
                           display: 'grid',
-                          gridTemplateColumns: 'repeat(4, 1fr)',
+                          gridTemplateColumns: isAdolescentAllowed ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
                           gap: '3px',
                           background: 'rgba(0, 0, 0, 0.35)',
                           padding: '2px',
@@ -2043,7 +2218,9 @@ export default function EditarCotizacion({
                           border: '1px solid rgba(255, 255, 255, 0.1)',
                         }}
                       >
-                        {Object.values(CATEGORIA_CONFIG).map((cat) => {
+                        {Object.values(CATEGORIA_CONFIG)
+                          .filter((cat) => isAdolescentAllowed || cat.id !== 'adolescente')
+                          .map((cat) => {
                           const isSelected = currentCat === cat.id;
                           return (
                             <button
@@ -2153,34 +2330,92 @@ export default function EditarCotizacion({
               <span>Servicios de la Cotización</span>
             </h2>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.8125rem', color: '#CBD5E1' }}>
-              {isConfirmed
+              {isServicesLocked
                 ? 'Los productos de esta venta se encuentran asegurados por estar en estado Venta Confirmada.'
+                : isConfirmed && desbloqueoInfo.is_desbloqueado
+                ? 'Permiso de edición activo por 24 horas. Puede agregar, modificar o eliminar servicios; los cambios se guardarán al presionar "Guardar Cambios".'
                 : 'Detalle de los servicios incluidos en el presupuesto. Puede editarlos, agregar nuevos o removerlos antes de confirmar.'}
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {isConfirmed ? (
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 14px',
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.35)',
-                  borderRadius: '8px',
-                  color: '#FCA5A5',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                }}
-              >
-                Servicios Bloqueados
-              </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {isServicesLocked ? (
+              <>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.35)',
+                    borderRadius: '8px',
+                    color: '#FCA5A5',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  Servicios Bloqueados
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdminCode('');
+                    setUnlockError('');
+                    setShowUnlockModal(true);
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #F59E0B',
+                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25))',
+                    color: '#FDE68A',
+                    fontSize: '0.8125rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.2)',
+                    transition: 'all 0.2s ease',
+                  }}
+                  title="Ingresar código de administrador para habilitar edición temporal por 24 horas"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                  </svg>
+                  Desbloquear edición con código
+                </button>
+              </>
             ) : (
               <>
-                <div>
-                </div>
+                {isConfirmed && desbloqueoInfo.is_desbloqueado && (
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '6px 14px',
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      border: '1px solid rgba(16, 185, 129, 0.4)',
+                      borderRadius: '8px',
+                      color: '#6EE7B7',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    <span>🔓 Desbloqueado (24h)</span>
+                    <span style={{ color: '#A7F3D0', fontWeight: 600, fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                      ⏱️ {formatTimeRemaining(remainingSeconds)}
+                    </span>
+                  </div>
+                )}
 
                 <button
                   type="button"
@@ -2204,7 +2439,7 @@ export default function EditarCotizacion({
                 <th style={{ padding: '12px 16px', fontWeight: 600 }}>SERVICIO</th>
                 <th style={{ padding: '12px 16px', fontWeight: 600 }}>DETALLE</th>
                 <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'right' }}>MONTO USD</th>
-                {isConfirmed ? (
+                {isServicesLocked ? (
                   <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'center' }}>ESTADO</th>
                 ) : (
                   <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'center', width: '130px' }}>ACCIONES</th>
@@ -2248,7 +2483,7 @@ export default function EditarCotizacion({
                     <td style={{ padding: '12px 16px', color: '#FFFFFF', fontWeight: 700, textAlign: 'right' }}>
                       ${Number(it.precio || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
-                    {isConfirmed ? (
+                    {isServicesLocked ? (
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                         <span
                           style={{
@@ -2571,7 +2806,7 @@ export default function EditarCotizacion({
       {showConfirmModal && (
         <ConfirmationModal
           isOpen={true}
-          type="warning"
+          type="success"
           title="Confirmar Pase a Venta Confirmada"
           subtitle="¿Está seguro de que desea confirmar esta venta?"
           content={
@@ -2579,7 +2814,7 @@ export default function EditarCotizacion({
               <p style={{ margin: '0 0 10px 0' }}>
                 Al pasar a <strong>Venta Confirmada</strong>:
               </p>
-              <ul style={{ margin: '0 0 10px 0', paddingLeft: '20px', color: '#FCD34D' }}>
+              <ul style={{ margin: '0 0 10px 0', paddingLeft: '20px', color: '#6EE7B7' }}>
                 <li>Los servicios y productos quedarán bloqueados</li>
                 <li>Se activará el módulo de pagos para el registro de abonos.</li>
                 <li>Podrá seguir actualizando los datos de los pasajeros o añadir nuevos viajeros.</li>
@@ -2644,6 +2879,265 @@ export default function EditarCotizacion({
           onCancel={() => setPagoToDelete(null)}
           onConfirm={handleConfirmDeletePago}
           onClose={() => setPagoToDelete(null)}
+        />
+      )}
+
+      {/* MODAL 7: Desbloqueo de Edición con Código de Administrador */}
+      {showUnlockModal && (
+        <Modal
+          isOpen={true}
+          onClose={() => {
+            if (!unlocking) {
+              setShowUnlockModal(false);
+              setAdminCode('');
+              setUnlockError('');
+            }
+          }}
+          title="Autorización de Administrador"
+          maxWidth="460px"
+        >
+          <form onSubmit={handleUnlockServices} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '10px', padding: '12px 14px' }}>
+              <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>🔐</span>
+              <div style={{ fontSize: '0.84rem', color: '#CBD5E1', lineHeight: 1.45 }}>
+                <strong style={{ color: '#FCD34D' }}>Desbloqueo temporal por 24 horas</strong>
+                <p style={{ margin: '4px 0 0 0' }}>
+                  Esta venta se encuentra asegurada. Ingrese el código de autorización o contraseña de un Administrador para habilitar la adición, modificación y eliminación de productos.
+                </p>
+              </div>
+            </div>
+
+            {isAdminOrLeader && dailyAdminCode && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 12px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px dashed rgba(245, 158, 11, 0.4)',
+                  borderRadius: '8px',
+                  fontSize: '0.8rem',
+                }}
+              >
+                <div>
+                  <span style={{ color: '#94A3B8' }}>Código diario (Admin): </span>
+                  <strong style={{ color: '#FCD34D', fontFamily: 'monospace' }}>{dailyAdminCode}</strong>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdminCode(dailyAdminCode);
+                    if (unlockError) setUnlockError('');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#38BDF8',
+                    cursor: 'pointer',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Usar mi código
+                </button>
+              </div>
+            )}
+
+            <div>
+              <label className="erp-label" style={{ marginBottom: '6px' }}>
+                Código o Contraseña de Administrador <span style={{ color: '#EF4444' }}>*</span>
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showAdminCode ? 'text' : 'password'}
+                  className="erp-input"
+                  placeholder="Ingrese el código de seguridad..."
+                  autoFocus
+                  value={adminCode}
+                  onChange={(e) => {
+                    setAdminCode(e.target.value);
+                    if (unlockError) setUnlockError('');
+                  }}
+                  disabled={unlocking}
+                  style={{
+                    width: '100%',
+                    paddingRight: '40px',
+                    borderColor: unlockError ? '#EF4444' : undefined,
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminCode(!showAdminCode)}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#94A3B8',
+                    cursor: 'pointer',
+                    fontSize: '1rem',
+                    padding: '2px',
+                  }}
+                  title={showAdminCode ? 'Ocultar código' : 'Mostrar código'}
+                >
+                  {showAdminCode ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+              {unlockError && (
+                <span style={{ display: 'block', marginTop: '6px', fontSize: '0.75rem', color: '#F87171' }}>
+                  {unlockError}
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={unlocking}
+                onClick={() => {
+                  setShowUnlockModal(false);
+                  setAdminCode('');
+                  setUnlockError('');
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn-accent"
+                disabled={unlocking || !adminCode.trim()}
+                style={{
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                  boxShadow: '0 2px 10px rgba(245, 158, 11, 0.3)',
+                }}
+              >
+                {unlocking ? 'Validando...' : '🔓 Validar y Desbloquear'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* MODAL 8: Confirmación para Limpiar Pasajero Titular */}
+      {showConfirmLimpiarTitular && (
+        <ConfirmationModal
+          isOpen={true}
+          type="danger"
+          title="Limpiar Pasajero Titular"
+          subtitle="¿Está seguro de que desea limpiar los datos del pasajero titular?"
+          content={
+            <div style={{ color: '#E2E8F0', fontSize: '0.875rem', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 8px 0' }}>
+                Se vaciarán los nombres, apellidos, documento, teléfono y correo electrónico ingresados para el cliente principal.
+              </p>
+              <p style={{ margin: 0, color: '#FCA5A5', fontSize: '0.8rem' }}>
+                Esta acción no se puede deshacer de forma automática.
+              </p>
+            </div>
+          }
+          confirmText="Sí, Limpiar Datos"
+          onCancel={() => setShowConfirmLimpiarTitular(false)}
+          onConfirm={() => {
+            setShowConfirmLimpiarTitular(false);
+            executeLimpiarTitular();
+          }}
+          onClose={() => setShowConfirmLimpiarTitular(false)}
+        />
+      )}
+
+      {/* MODAL 9: Confirmación para Limpiar Todos los Acompañantes */}
+      {showConfirmLimpiarAcompanantes && (
+        <ConfirmationModal
+          isOpen={true}
+          type="danger"
+          title="Limpiar Pasajeros Acompañantes"
+          subtitle="¿Está seguro de que desea limpiar los datos de todos los acompañantes?"
+          content={
+            <div style={{ color: '#E2E8F0', fontSize: '0.875rem', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 8px 0' }}>
+                Se vaciarán los nombres, apellidos, documentos y teléfonos de todos los acompañantes registrados.
+              </p>
+              <p style={{ margin: 0, color: '#FCA5A5', fontSize: '0.8rem' }}>
+                Las casillas y categorías de los acompañantes se conservarán.
+              </p>
+            </div>
+          }
+          confirmText="Sí, Limpiar Acompañantes"
+          onCancel={() => setShowConfirmLimpiarAcompanantes(false)}
+          onConfirm={() => {
+            setShowConfirmLimpiarAcompanantes(false);
+            executeLimpiarAcompanantes();
+          }}
+          onClose={() => setShowConfirmLimpiarAcompanantes(false)}
+        />
+      )}
+
+      {/* MODAL 10: Confirmación para Quitar Acompañante con opción de "Recordar mi elección" */}
+      {Boolean(paxToRemove) && (
+        <ConfirmationModal
+          isOpen={true}
+          type="danger"
+          title="Quitar Acompañante"
+          subtitle="¿Desea quitar este pasajero acompañante de la cotización?"
+          content={
+            <div style={{ color: '#E2E8F0', fontSize: '0.875rem', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 10px 0' }}>
+                Se removerá al acompañante{' '}
+                <strong>
+                  {(() => {
+                    const idx = pasajeros.findIndex((p) => p.uid === paxToRemove.uid);
+                    const numStr = idx >= 0 ? `#${idx + 2}` : '';
+                    const fullName = `${paxToRemove.nombres || ''} ${paxToRemove.apellidos || ''}`.trim();
+                    const catLabel = CATEGORIA_CONFIG[paxToRemove.tipo_pax]?.label || paxToRemove.tipo_pax || 'Acompañante';
+                    return fullName ? `${numStr} (${catLabel}: ${fullName})` : `${numStr} (${catLabel})`;
+                  })()}
+                </strong>
+                {paxToRemove.documento ? ` · Documento: ${paxToRemove.tipo_documento || 'V'}-${paxToRemove.documento}` : ''}.
+              </p>
+              <p style={{ margin: '0 0 14px 0', color: '#FCD34D', fontSize: '0.82rem' }}>
+                Los servicios calculados por persona se reajustarán automáticamente.
+              </p>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  userSelect: 'none',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={dontAskRemovePaxChecked}
+                  onChange={(e) => setDontAskRemovePaxChecked(e.target.checked)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#EF4444' }}
+                />
+                <span style={{ fontSize: '0.84rem', color: '#F1F5F9', fontWeight: 500 }}>
+                  Recordar mi elección para esta cotización (no volver a preguntar)
+                </span>
+              </label>
+            </div>
+          }
+          confirmText="Sí, Quitar Acompañante"
+          onCancel={() => setPaxToRemove(null)}
+          onConfirm={() => {
+            const uid = paxToRemove.uid;
+            if (dontAskRemovePaxChecked) {
+              setRememberRemovePaxChoice(true);
+            }
+            setPaxToRemove(null);
+            executeRemovePasajero(uid);
+          }}
+          onClose={() => setPaxToRemove(null)}
         />
       )}
     </div>

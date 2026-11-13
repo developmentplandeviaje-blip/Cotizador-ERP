@@ -65,17 +65,22 @@ const routeTitles = {
   usuarios_aliados: { parent: 'Usuarios', title: 'Aliados' },
 };
 
+function getBaseRoute(rawHash) {
+  const clean = (rawHash || window.location.hash || '').replace(/^#/, '');
+  return clean.split('?')[0] || 'dashboard';
+}
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeRoute, setActiveRouteState] = useState(() => {
-    return window.location.hash ? window.location.hash.substring(1) : 'dashboard';
+    return getBaseRoute(window.location.hash);
   });
 
   const [hasVisitedCotizador, setHasVisitedCotizador] = useState(() => {
     try {
-      const hash = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
-      if (hash === 'nueva_cotizacion') return true;
+      const base = getBaseRoute(window.location.hash);
+      if (base === 'nueva_cotizacion') return true;
       const saved = localStorage.getItem('cotizador_open_tabs');
       if (saved) return true;
     } catch {}
@@ -89,17 +94,30 @@ function App() {
   }, [activeRoute]);
 
   const setActiveRoute = (route) => {
-    window.location.hash = route;
+    const currentHash = (window.location.hash || '').replace(/^#/, '');
+    const currentBase = currentHash.split('?')[0];
+
+    // Si se navega explícitamente a un módulo de ventas desde el menú, limpiar estado de edición previo
+    if (route.startsWith('ventas_')) {
+      const subTipo = route.replace('ventas_', '');
+      try {
+        sessionStorage.removeItem(`editing_venta_${subTipo}`);
+      } catch {}
+    }
+
+    if (currentBase === route) {
+      // Si ya estábamos en esta ruta, limpiar parámetros de URL y forzar reseteo a la lista
+      window.location.hash = route;
+      window.dispatchEvent(new CustomEvent('app:reset_view', { detail: route }));
+    } else {
+      window.location.hash = route;
+    }
   };
 
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.substring(1);
-      if (hash) {
-        setActiveRouteState(hash);
-      } else {
-        setActiveRouteState('dashboard');
-      }
+      const base = getBaseRoute(window.location.hash);
+      setActiveRouteState(base);
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);

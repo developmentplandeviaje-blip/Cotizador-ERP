@@ -129,6 +129,10 @@ export default function CotizacionTabContent({
 
   // Additional passengers list
   const [pasajeros, setPasajeros] = useState(() => initialDraft?.pasajeros || []);
+  const [showConfirmLimpiarCliente, setShowConfirmLimpiarCliente] = useState(false);
+  const [indexAcompananteToClear, setIndexAcompananteToClear] = useState(null);
+  const [rememberClearAcompananteChoice, setRememberClearAcompananteChoice] = useState(false);
+  const [dontAskClearAcompananteChecked, setDontAskClearAcompananteChecked] = useState(false);
 
   // Paginación por pestañas y búsqueda de pasajeros acompañantes (15 por grupo)
   const PAX_PER_GROUP = 15;
@@ -581,7 +585,7 @@ export default function CotizacionTabContent({
   };
 
   // Limpiar campos del pasajero titular (cédula, nombres, apellidos, teléfono, correo)
-  const handleLimpiarCliente = () => {
+  const executeLimpiarCliente = () => {
     setCliente(prev => ({
       ...prev,
       documento: '',
@@ -594,6 +598,11 @@ export default function CotizacionTabContent({
     setClientStatusMsg(null);
   };
 
+  const handleLimpiarCliente = () => {
+    if (!hasClienteInfo) return;
+    setShowConfirmLimpiarCliente(true);
+  };
+
   const hasClienteInfo = Boolean(
     cliente.documento?.trim() ||
     cliente.nombres?.trim() ||
@@ -603,7 +612,7 @@ export default function CotizacionTabContent({
   );
 
   // Limpiar campos de un acompañante
-  const handleLimpiarAcompanante = (index) => {
+  const executeLimpiarAcompanante = (index) => {
     setPasajeros(prev => prev.map((pasajero, i) => {
       if (i !== index) return pasajero;
       return {
@@ -615,6 +624,21 @@ export default function CotizacionTabContent({
         edad: '',
       };
     }));
+  };
+
+  const handleLimpiarAcompanante = (index) => {
+    const target = pasajeros[index];
+    if (!target) return;
+    if (isPasajeroVacio(target)) {
+      executeLimpiarAcompanante(index);
+      return;
+    }
+    if (rememberClearAcompananteChoice) {
+      executeLimpiarAcompanante(index);
+      return;
+    }
+    setIndexAcompananteToClear(index);
+    setDontAskClearAcompananteChecked(false);
   };
 
   const handleDocumentoClienteChange = (e) => {
@@ -1034,6 +1058,60 @@ export default function CotizacionTabContent({
     if (!selectedHotel?.habitaciones) return null;
     return selectedHotel.habitaciones.find(hab => String(hab.id) === String(hotelForm.id_habitacion));
   }, [selectedHotel, hotelForm.id_habitacion]);
+
+  // Determinar si el hotel seleccionado o cotizado incluye tarifa para adolescente (YNG)
+  const isAdolescentePermitido = useMemo(() => {
+    // 1. Si hay un hotel seleccionado en el formulario
+    if (selectedHotel) {
+      const ageRange = String(selectedHotel.edad_adolescentes || '').trim();
+      const hasAgeRange = /\d/.test(ageRange) && !ageRange.includes('0 - 0');
+      if (!hasAgeRange) return false;
+
+      // Si ya tiene tarifas en hotelForm
+      const hasPriceInForm = Number(hotelForm.precio_noche_adolescente || 0) > 0;
+      const hasCostInForm = Number(hotelForm.costo_noche_adolescente || 0) > 0;
+      if (hasPriceInForm || hasCostInForm) return true;
+
+      // Si seleccionó habitación con tarifas precargadas
+      if (selectedHabitacion?.tarifas?.length > 0) {
+        return selectedHabitacion.tarifas.some(t => Number(t.precio_noche_adolescente || 0) > 0 || Number(t.costo_noche_adolescente || 0) > 0);
+      }
+
+      // Si no ha seleccionado habitación aún, verificar si el hotel tiene alguna habitación con tarifa de adolescente
+      if (selectedHotel.habitaciones?.length > 0) {
+        return selectedHotel.habitaciones.some(hab => hab.tarifas?.some(t => Number(t.precio_noche_adolescente || 0) > 0 || Number(t.costo_noche_adolescente || 0) > 0));
+      }
+      return false;
+    }
+
+    // 2. Si ya hay hoteles agregados en la lista de items
+    const hotelItems = items.filter(it => it.tipo === 'hotel');
+    if (hotelItems.length > 0) {
+      return hotelItems.some(it => {
+        const hotelObj = (catalogos.hoteles || []).find(h => String(h.id) === String(it.data?.id_hotel));
+        const ageRange = String(hotelObj?.edad_adolescentes || '').trim();
+        const hasAgeRange = /\d/.test(ageRange) && !ageRange.includes('0 - 0');
+        const hasPrice = Number(it.data?.precio_noche_adolescente || 0) > 0;
+        const hasCost = Number(it.data?.costo_noche_adolescente || 0) > 0;
+        return hasAgeRange && (hasPrice || hasCost);
+      });
+    }
+
+    // 3. Si no hay hotel seleccionado ni en items, permitir por defecto
+    return true;
+  }, [selectedHotel, selectedHabitacion, hotelForm.precio_noche_adolescente, hotelForm.costo_noche_adolescente, items, catalogos.hoteles]);
+
+  // Si no se permite adolescente para el hotel seleccionado, pasar automáticamente adolescentes a adultos
+  useEffect(() => {
+    if (!isAdolescentePermitido && (pax.adolescentes || 0) > 0) {
+      setPax(prev => ({
+        ...prev,
+        adultos: (prev.adultos || 1) + (prev.adolescentes || 0),
+        adolescentes: 0,
+      }));
+      showToast('El hotel seleccionado no incluye tarifa para adolescente (YNG). Los pasajeros adolescentes se han contabilizado como adultos.', 'info');
+    }
+  }, [isAdolescentePermitido, pax.adolescentes]);
 
   // When room changes, preload rates if available
   useEffect(() => {
@@ -1998,6 +2076,7 @@ export default function CotizacionTabContent({
       setDescuentoAdicional('0');
       setTipoDescuento('Porcentaje');
       setObservacion('');
+      setRememberClearAcompananteChoice(false);
 
       // Limpiar borrador persistente de esta cotización formalmente guardada
       try {
@@ -2110,6 +2189,78 @@ export default function CotizacionTabContent({
           handleLimpiarAcompanantes();
         }}
       />
+      {/* Modal confirmar limpiar titular */}
+      <ConfirmationModal
+        isOpen={showConfirmLimpiarCliente}
+        type="danger"
+        title="Limpiar Pasajero Titular"
+        subtitle="¿Desea limpiar los datos del pasajero titular?"
+        content={
+          <div style={{ color: '#E2E8F0', fontSize: '0.875rem', lineHeight: 1.5 }}>
+            <p style={{ margin: '0 0 8px 0' }}>
+              Se vaciarán el nombre, apellidos, documento, teléfono y correo electrónico ingresados para el titular.
+            </p>
+          </div>
+        }
+        confirmText="Limpiar titular"
+        onCancel={() => setShowConfirmLimpiarCliente(false)}
+        onConfirm={() => {
+          setShowConfirmLimpiarCliente(false);
+          executeLimpiarCliente();
+        }}
+        onClose={() => setShowConfirmLimpiarCliente(false)}
+      />
+
+      {/* Modal confirmar limpiar acompañante con opción de recordar elección */}
+      {indexAcompananteToClear !== null && (
+        <ConfirmationModal
+          isOpen={true}
+          type="danger"
+          title="Limpiar Acompañante"
+          subtitle={`¿Desea limpiar los datos del acompañante #${indexAcompananteToClear + 1}?`}
+          content={
+            <div style={{ color: '#E2E8F0', fontSize: '0.875rem', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 10px 0' }}>
+                Se vaciarán los datos personales (nombre, apellidos, documento) de esta casilla de acompañante.
+              </p>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  userSelect: 'none',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={dontAskClearAcompananteChecked}
+                  onChange={(e) => setDontAskClearAcompananteChecked(e.target.checked)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#EF4444' }}
+                />
+                <span style={{ fontSize: '0.84rem', color: '#F1F5F9', fontWeight: 500 }}>
+                  Recordar mi elección para esta cotización (no volver a preguntar)
+                </span>
+              </label>
+            </div>
+          }
+          confirmText="Limpiar acompañante"
+          onCancel={() => setIndexAcompananteToClear(null)}
+          onConfirm={() => {
+            const idx = indexAcompananteToClear;
+            if (dontAskClearAcompananteChecked) {
+              setRememberClearAcompananteChoice(true);
+            }
+            setIndexAcompananteToClear(null);
+            executeLimpiarAcompanante(idx);
+          }}
+          onClose={() => setIndexAcompananteToClear(null)}
+        />
+      )}
       {/* Header bar */}
       <div className="cotizacion-header-bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -2134,18 +2285,22 @@ export default function CotizacionTabContent({
               size="sm"
             />
           </div>
-          <div className="pax-divider" />
-          <div className="pax-item">
-            <span className="pax-label">Adolescentes</span>
-            <CustomNumberInput
-              min={0}
-              max={300}
-              maxDigits={3}
-              value={pax.adolescentes}
-              onChange={e => setPax({ ...pax, adolescentes: Math.max(0, Math.min(300, parseInt(e.target.value) || 0)) })}
-              size="sm"
-            />
-          </div>
+          {isAdolescentePermitido && (
+            <>
+              <div className="pax-divider" />
+              <div className="pax-item">
+                <span className="pax-label">Adolescentes</span>
+                <CustomNumberInput
+                  min={0}
+                  max={300}
+                  maxDigits={3}
+                  value={pax.adolescentes}
+                  onChange={e => setPax({ ...pax, adolescentes: Math.max(0, Math.min(300, parseInt(e.target.value) || 0)) })}
+                  size="sm"
+                />
+              </div>
+            </>
+          )}
           <div className="pax-divider" />
           <div className="pax-item">
             <span className="pax-label">Niños</span>

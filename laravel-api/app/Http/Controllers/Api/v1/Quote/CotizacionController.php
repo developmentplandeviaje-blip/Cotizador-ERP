@@ -13,11 +13,14 @@ class CotizacionController extends Controller
 {
     public function __construct(
         protected CotizacionService $service
-    ) {}
+    ) {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(120);
+    }
 
     public function index(Request $request): JsonResponse
     {
-        $data = $this->service->listarCotizaciones($request->user());
+        $data = $this->service->listarCotizaciones($request->user(), $request->only(['search']));
         return response()->json($data);
     }
 

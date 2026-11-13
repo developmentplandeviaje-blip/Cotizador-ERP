@@ -469,9 +469,13 @@ class CotizacionService
     /**
      * Lista todas las cotizaciones guardadas (formales y rápidas) normalizadas para el registro de guardado.
      */
-    public function listarCotizaciones(User $user): array
+    public function listarCotizaciones(User $user, array $filters = []): array
     {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(120);
+
         $isAdmin = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
+        $search = trim((string)($filters['search'] ?? ''));
 
         $ventasQuery = Venta::with([
             'user',
@@ -488,14 +492,33 @@ class CotizacionService
             'referido',
         ])
         ->where('estado', 'Cotizacion')
-        ->latest('id');
+        ->latest('id')
+        ->limit(300);
 
         $rapidasQuery = CotizacionRapida::with('asesor')
-            ->latest('id');
+            ->latest('id')
+            ->limit(300);
 
         if (!$isAdmin) {
             $ventasQuery->where('id_user', $user->id);
             $rapidasQuery->where('id_asesor', $user->id);
+        }
+
+        if (!empty($search)) {
+            $ventasQuery->where(function ($q) use ($search) {
+                $q->where('numero_ficha', 'like', "%{$search}%")
+                  ->orWhere('id', 'like', "%{$search}%")
+                  ->orWhereHas('clientePrincipal', function ($cq) use ($search) {
+                      $cq->where('nombres', 'like', "%{$search}%")
+                        ->orWhere('apellidos', 'like', "%{$search}%")
+                        ->orWhere('documento', 'like', "%{$search}%");
+                  });
+            });
+
+            $rapidasQuery->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhere('data', 'like', "%{$search}%");
+            });
         }
 
         $ventas = $ventasQuery->get();

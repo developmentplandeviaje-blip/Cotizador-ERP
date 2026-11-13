@@ -92,6 +92,27 @@ function EditarProductoModalContent({
     return selectedHotel.habitaciones.find(hab => String(hab.id) === String(formData.id_habitacion));
   }, [selectedHotel, formData.id_habitacion]);
 
+  // Determinar si el hotel permite y posee tarifa para adolescente (YNG)
+  const isHotelAdolescentAllowed = useMemo(() => {
+    if (tipo !== 'hotel') return true;
+    const hotelObj = selectedHotel;
+    const ageRange = String(hotelObj?.edad_adolescentes || '').trim();
+    const hasAgeRange = /\d/.test(ageRange) && !ageRange.includes('0 - 0');
+    const hasPrice = Number(formData.precio_noche_adolescente || 0) > 0 || (selectedHabitacion?.tarifas?.some(t => Number(t.precio_noche_adolescente || 0) > 0));
+    const hasCost = Number(formData.costo_noche_adolescente || 0) > 0 || (selectedHabitacion?.tarifas?.some(t => Number(t.costo_noche_adolescente || 0) > 0));
+    return hasAgeRange && (hasPrice || hasCost);
+  }, [tipo, selectedHotel, selectedHabitacion, formData.precio_noche_adolescente, formData.costo_noche_adolescente]);
+
+  useEffect(() => {
+    if (tipo === 'hotel' && !isHotelAdolescentAllowed && Number(formData.adolescente || 0) > 0) {
+      setFormData(prev => ({
+        ...prev,
+        adultos: Number(prev.adultos || 1) + Number(prev.adolescente || 0),
+        adolescente: 0,
+      }));
+    }
+  }, [tipo, isHotelAdolescentAllowed, formData.adolescente]);
+
   // When room changes in modal, auto-update rates if available
   const handleHabitacionChange = (habId) => {
     const hab = (selectedHotel?.habitaciones || []).find(h => String(h.id) === String(habId));
@@ -389,16 +410,18 @@ function EditarProductoModalContent({
                   />
                 </div>
 
-                <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
-                  <label className="erp-label">Adolescentes</label>
-                  <CustomNumberInput
-                    min={0}
-                    max={999}
-                    width="100%"
-                    value={formData.adolescente ?? 0}
-                    onChange={e => setFormData({ ...formData, adolescente: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
-                  />
-                </div>
+                {isHotelAdolescentAllowed && (
+                  <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
+                    <label className="erp-label">Adolescentes</label>
+                    <CustomNumberInput
+                      min={0}
+                      max={999}
+                      width="100%"
+                      value={formData.adolescente ?? 0}
+                      onChange={e => setFormData({ ...formData, adolescente: Math.max(0, Math.min(999, parseInt(e.target.value) || 0)) })}
+                    />
+                  </div>
+                )}
 
                 <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
                   <label className="erp-label">Niños</label>

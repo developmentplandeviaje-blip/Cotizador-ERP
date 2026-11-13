@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { showToast } from '../../utils/toast';
 import logoinicio from '../../assets/logo-pdv-sin-letras.png';
 import nuevacotizacion from '../../assets/NuevaCotizacion.svg';
 import ventas from '../../assets/Ventas.svg';
@@ -43,6 +45,28 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
     : 'Usuario';
   const displayLevel = user?.level || 'Asesor';
   const userInitial = displayName.charAt(0).toUpperCase() || 'U';
+  const isAdminOrLeader = ['administrador', 'admin', 'lider'].includes((user?.level || '').toLowerCase());
+
+  const [dailyCodeData, setDailyCodeData] = useState(null);
+  const [copiedDailyCode, setCopiedDailyCode] = useState(false);
+
+  useEffect(() => {
+    if (!isAdminOrLeader) return;
+    axios.get('/v1/ventas/autorizacion/codigo-diario')
+      .then((res) => {
+        if (res.data?.codigo) setDailyCodeData(res.data);
+      })
+      .catch((err) => console.warn('No se pudo cargar el código de autorización diario:', err));
+  }, [isAdminOrLeader]);
+
+  const handleCopyDailyCode = (e) => {
+    e?.stopPropagation();
+    if (!dailyCodeData?.codigo) return;
+    navigator.clipboard.writeText(dailyCodeData.codigo);
+    setCopiedDailyCode(true);
+    showToast(`Código copiado al portapapeles: ${dailyCodeData.codigo}`, 'success');
+    setTimeout(() => setCopiedDailyCode(false), 2500);
+  };
 
   const [openMenus, setOpenMenus] = useState({
     ventas: Boolean(activeRoute?.startsWith('ventas')),
@@ -620,6 +644,100 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         </div>
 
       </nav>
+
+      {/* Widget Código Diario (Solo para Administradores / Líderes) */}
+      {isAdminOrLeader && dailyCodeData && !isCollapsed && (
+        <div
+          style={{
+            margin: '12px 14px 4px 14px',
+            padding: '10px 12px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.12), rgba(217, 119, 6, 0.16))',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <span style={{ fontSize: '0.72rem', color: '#FCD34D', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>🔐</span> Código del Día
+            </span>
+            <span style={{ fontSize: '0.65rem', color: '#CBD5E1', opacity: 0.85 }}>
+              24h
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <span
+              style={{
+                fontSize: '0.95rem',
+                fontWeight: 800,
+                color: '#FFFFFF',
+                letterSpacing: '1px',
+                fontFamily: 'monospace',
+                background: 'rgba(0, 0, 0, 0.35)',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }}
+              title="Código de autorización diario para desbloquear ventas"
+            >
+              {dailyCodeData.codigo}
+            </span>
+
+            <button
+              type="button"
+              onClick={handleCopyDailyCode}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '5px 10px',
+                borderRadius: '6px',
+                border: '1px solid #F59E0B',
+                background: copiedDailyCode ? '#10B981' : 'linear-gradient(135deg, #F59E0B, #D97706)',
+                color: '#FFFFFF',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title="Copiar código para compartirlo"
+            >
+              {copiedDailyCode ? '✓ Copiado' : 'Copiar'}
+            </button>
+          </div>
+          <div style={{ fontSize: '0.65rem', color: '#94A3B8', marginTop: '6px' }}>
+            Cambia cada 24h a medianoche.
+          </div>
+        </div>
+      )}
+
+      {/* Versión compacta para Sidebar Colapsado */}
+      {isAdminOrLeader && dailyCodeData && isCollapsed && (
+        <div style={{ padding: '0 8px', margin: '8px 0', textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={handleCopyDailyCode}
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '10px',
+              border: '1px solid #F59E0B',
+              background: 'rgba(245, 158, 11, 0.2)',
+              color: '#FCD34D',
+              fontSize: '1.2rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              margin: '0 auto',
+            }}
+            title={`Código del Día: ${dailyCodeData.codigo} (Haga clic para copiar)`}
+          >
+            🔐
+          </button>
+        </div>
+      )}
 
       {/* Bottom Logout */}
       <div style={{ padding: '0 16px', marginTop: 'auto', paddingTop: '20px' }}>

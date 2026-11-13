@@ -383,7 +383,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
                 marginTop: '2px',
               }}
             >
-              ${nuevoSaldoPendiente.toFixed(2)} USD {nuevoSaldoPendiente <= 0 && 'Liquidado'}
+              ${nuevoSaldoPendiente.toFixed(2)} USD {nuevoSaldoPendiente <= 0 && ''}
             </div>
           </div>
         </div>

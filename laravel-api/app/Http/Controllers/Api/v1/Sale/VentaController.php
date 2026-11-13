@@ -49,6 +49,18 @@ class VentaController extends Controller
         ]);
     }
 
+    public function obtenerCodigoDiario(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
+        if (!$isAdminOrLeader) {
+            abort(403, 'Solo los usuarios administradores o líderes pueden consultar el código de autorización.');
+        }
+
+        $info = $this->service->obtenerCodigoDiario();
+        return response()->json($info);
+    }
+
     public function confirmar(Request $request, int $id): JsonResponse
     {
         $venta = $this->service->confirmarVenta($id, $request->user());
@@ -56,6 +68,16 @@ class VentaController extends Controller
             'message' => 'Venta confirmada exitosamente.',
             'venta' => $venta,
         ]);
+    }
+
+    public function desbloquearEdicion(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'codigo' => 'required|string',
+        ]);
+
+        $result = $this->service->desbloquearEdicion($id, $validated['codigo'], $request->user());
+        return response()->json($result);
     }
 
     public function registrarPago(Request $request, int $id): JsonResponse
