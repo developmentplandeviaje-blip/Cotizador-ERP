@@ -298,11 +298,11 @@ function App() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '24px' }}>
         <div style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '12px' }}>
           <span style={{ color: '#94A3B8', fontSize: '0.8125rem' }}>Meta Anual</span>
-          <h2 style={{ margin: '8px 0 0 0', color: '#E87217', fontSize: '1.5rem' }}>USD 112,645.65</h2>
+          <h2 style={{ margin: '8px 0 0 0', color: '#E87217', fontSize: '1.5rem' }}> 112,645.65</h2>
         </div>
         <div style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '12px' }}>
           <span style={{ color: '#94A3B8', fontSize: '0.8125rem' }}>Total Recibido</span>
-          <h2 style={{ margin: '8px 0 0 0', color: '#2563EB', fontSize: '1.5rem' }}>USD 101,325.11</h2>
+          <h2 style={{ margin: '8px 0 0 0', color: '#2563EB', fontSize: '1.5rem' }}> 101,325.11</h2>
         </div>
         <div style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '12px' }}>
           <span style={{ color: '#94A3B8', fontSize: '0.8125rem' }}>Rendimiento</span>

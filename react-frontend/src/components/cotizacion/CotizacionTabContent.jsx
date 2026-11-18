@@ -4130,7 +4130,7 @@ export default function CotizacionTabContent({
                     {registeredHotels.length > 0 && (
                       <th style={{ padding: '10px 8px', width: '140px' }}>Hotel Asociado</th>
                     )}
-                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Monto (USD)</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Monto</th>
                     <th style={{ padding: '10px 12px', textAlign: 'center' }}>Acciones</th>
                   </tr>
                 </thead>
@@ -4314,15 +4314,15 @@ export default function CotizacionTabContent({
                     <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF' }}>
                         <span>Pago Inicial:</span>
-                        <strong style={{ color: '#10B981' }}>${cuotasCalculadas.montoInicial.toFixed(2)} USD</strong>
+                        <strong style={{ color: '#10B981' }}>${cuotasCalculadas.montoInicial.toFixed(2)}</strong>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fff' }}>
                         <span>Monto Financiado:</span>
-                        <span style={{ color: '#E87217' }}>${cuotasCalculadas.montoRestante.toFixed(2)} USD</span>
+                        <span style={{ color: '#E87217' }}>${cuotasCalculadas.montoRestante.toFixed(2)}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FFF', borderTop: '1px solid rgba(255,255,255,0.51)', paddingTop: '6px' }}>
                         <span>{cuotasCalculadas.numeroCuotas} cuotas de:</span>
-                        <strong style={{ color: '#E87217' }}>${cuotasCalculadas.montoPorCuota.toFixed(2)} USD</strong>
+                        <strong style={{ color: '#E87217' }}>${cuotasCalculadas.montoPorCuota.toFixed(2)}</strong>
                       </div>
                     </div>
                   </div>
@@ -4383,13 +4383,13 @@ export default function CotizacionTabContent({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b9c8ddff', fontSize: '0.9375rem' }}>
                   <span>Subtotal Servicios:</span>
-                  <span style={{ color: '#FFF', fontWeight: '600' }}>${subtotalUSD.toFixed(2)} USD</span>
+                  <span style={{ color: '#FFF', fontWeight: '600' }}>${subtotalUSD.toFixed(2)}</span>
                 </div>
 
                 {referidoData && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10B981', fontSize: '0.9375rem' }}>
                     <span>Descuento Referido ({referidoData.codigo}):</span>
-                    <span>-$0.00 USD</span>
+                    <span>-$0.00</span>
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -4397,7 +4397,7 @@ export default function CotizacionTabContent({
                     Descuento Adicional:
                     {tipoDescuento === 'Porcentaje' && (parseFloat(descuentoAdicional) || 0) > 0 && (
                       <span style={{ display: 'block', fontSize: '0.75rem', color: '#10B981' }}>
-                        (-${descuentoCalculadoMonto.toFixed(2)} USD)
+                        (-${descuentoCalculadoMonto.toFixed(2)})
                       </span>
                     )}
                   </span>
@@ -4436,7 +4436,7 @@ export default function CotizacionTabContent({
                   <span style={{ fontSize: '1.125rem', color: '#FFF', fontWeight: '700' }}>Total a Pagar:</span>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#E87217' }}>
-                      ${totalUSD.toFixed(2)} USD
+                      ${totalUSD.toFixed(2)}
                     </div>
                     {/*<div style={{ fontSize: '0.8125rem', color: '#b9c8ddff' }}>
                       Bs. {totalVES} (Ref. BCV)

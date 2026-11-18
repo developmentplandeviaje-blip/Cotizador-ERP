@@ -163,14 +163,14 @@ export default function InformeCotizacionRapidaModal({
     if (hasHotels) {
       hotelItems.forEach(h => {
         const grouped = items.filter(it => it.tipo !== 'hotel' && (Array.isArray(it.hotel_item_uids) ? it.hotel_item_uids.includes(h.uid) : it.hotel_item_uid === h.uid));
-        serviciosFormatted += `🏨 *HOTEL: ${h.titulo}*\n`;
-        serviciosFormatted += `   • Tarifa base: $${Number(h.precio || 0).toFixed(2)} USD (${h.detalle})\n`;
+        serviciosFormatted += ` *HOTEL: ${h.titulo}*\n`;
+        serviciosFormatted += `   • Tarifa base: $${Number(h.precio || 0).toFixed(2)}  (${h.detalle})\n`;
         if (grouped.length > 0) {
           grouped.forEach(g => {
-            serviciosFormatted += `   ↳ [${(g.tipo || 'Servicio').toUpperCase()}] *${g.titulo}*: ${g.detalle} - $${Number(g.precio || 0).toFixed(2)} USD\n`;
+            serviciosFormatted += `   ↳ [${(g.tipo || 'Servicio').toUpperCase()}] *${g.titulo}*: ${g.detalle} - $${Number(g.precio || 0).toFixed(2)} \n`;
           });
           const subtotalHotel = Number(h.precio || 0) + grouped.reduce((sum, g) => sum + Number(g.precio || 0), 0);
-          serviciosFormatted += `   💰 *Subtotal Paquete Hotel:* $${subtotalHotel.toFixed(2)} USD\n\n`;
+          serviciosFormatted += `   *Subtotal Paquete Hotel:* $${subtotalHotel.toFixed(2)} \n\n`;
         } else {
           serviciosFormatted += '\n';
         }
@@ -182,16 +182,16 @@ export default function InformeCotizacionRapidaModal({
         return uids.length === 0 || !hotelItems.some(h => uids.includes(h.uid));
       });
       if (unassigned.length > 0) {
-        serviciosFormatted += `🌐 *SERVICIOS GENERALES:*\n`;
+        serviciosFormatted += ` *SERVICIOS GENERALES:*\n`;
         unassigned.forEach(it => {
-          serviciosFormatted += `• [${(it.tipo || 'Servicio').toUpperCase()}] *${it.titulo}*: ${it.detalle} - $${Number(it.precio || 0).toFixed(2)} USD\n`;
+          serviciosFormatted += `• [${(it.tipo || 'Servicio').toUpperCase()}] *${it.titulo}*: ${it.detalle} - $${Number(it.precio || 0).toFixed(2)}\n`;
         });
       }
     } else {
-      serviciosFormatted = items.map(it => `• *${it.titulo}*: ${it.detalle} - $${Number(it.precio || 0).toFixed(2)} USD`).join('\n');
+      serviciosFormatted = items.map(it => `• *${it.titulo}*: ${it.detalle} - $${Number(it.precio || 0).toFixed(2)}`).join('\n');
     }
 
-    const text = `🛫 *COTIZACIÓN RÁPIDA - PLAN DE VIAJE* 🏖️
+    const text = `*COTIZACIÓN RÁPIDA - PLAN DE VIAJE* 
 *Número de ficha:* ${numeroFicha}
 *Fecha:* ${new Date(fechaEmision).toLocaleDateString()}
 *Asesor:* ${asesorNombre}
@@ -204,7 +204,7 @@ ${clienteDoc ? `• *Documento:* ${clienteDoc}\n` : ''}${clienteTelefono ? `• 
 ${serviciosFormatted.trim()}
 
 *RESUMEN FINANCIERO:*
-${descuentoUSD > 0 ? `• Descuento: -$${descuentoUSD.toFixed(2)} USD\n` : ''}• *TOTAL:* $${totalUSD.toFixed(2)} USD
+${descuentoUSD > 0 ? `• Descuento: -$${descuentoUSD.toFixed(2)} \n` : ''}• *TOTAL:* $${totalUSD.toFixed(2)} 
 • *Ref. Oficial BCV:* Bs. ${totalVES}
 
 ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas sujetas a cambio y disponibilidad de cupos hasta confirmar pago formal._`;
@@ -296,9 +296,9 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '18px' }}>📄</span>
+            <span style={{ fontSize: '18px' }}></span>
             <span style={{ fontWeight: '700', fontSize: '1rem', color: '#FFFFFF' }}>
-              Documento: Informe de Cotización Rápida
+              Informe de Cotización Rápida
             </span>
             <span
               style={{
@@ -335,8 +335,8 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
               }}
               title="Imprimir documento oficial o guardar en PDF"
             >
-              <span>🖨️</span>
-              <span>Imprimir / PDF</span>
+              <span></span>
+              <span>Imprimir</span>
             </button>
 
             <button
@@ -358,7 +358,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
               }}
               title="Copiar resumen para WhatsApp o correo"
             >
-              <span>{copied ? '✓' : '📋'}</span>
+              <span>{copied ? '✓' : 'copy'}</span>
               <span>{copied ? '¡Copiado!' : 'Copiar Resumen'}</span>
             </button>
 
@@ -384,7 +384,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                 }}
                 title="Ver lista de cotizaciones guardadas"
               >
-                <span>📂 Ver en Registro</span>
+                <span>Ver en Registro</span>
               </button>
             )}
 
@@ -508,7 +508,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                 }}
               >
                 <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '8px', borderBottom: '1px solid #E2E8F0', paddingBottom: '4px' }}>
-                  👤 Datos del Pasajero Titular
+                  Datos del Pasajero Titular
                 </div>
                 <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#0F172A' }}>
                   {clienteNombre}
@@ -540,7 +540,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                 }}
               >
                 <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '8px', borderBottom: '1px solid #E2E8F0', paddingBottom: '4px' }}>
-                  🗓️ Parámetros del Viaje
+                  Parámetros del Viaje
                 </div>
                 <div style={{ fontSize: '0.85rem', color: '#0F172A' }}>
                   {checkin ? (
@@ -610,7 +610,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                             </div>
                           </div>
                           <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.9rem' }}>
-                            Subtotal Paquete: <span style={{ color: '#059669' }}>${subtotalHotel.toFixed(2)} USD</span>
+                            Subtotal Paquete: <span style={{ color: '#059669' }}>${subtotalHotel.toFixed(2)}</span>
                           </div>
                         </div>
 
@@ -620,7 +620,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                             <tr style={{ background: '#F8FAFC', color: '#475569', textAlign: 'left', borderBottom: '1px solid #E2E8F0' }}>
                               <th style={{ padding: '6px 12px' }}>Servicio</th>
                               <th style={{ padding: '6px 12px' }}>Descripción / Especificación</th>
-                              <th style={{ padding: '6px 12px', textAlign: 'right' }}>Total (USD)</th>
+                              <th style={{ padding: '6px 12px', textAlign: 'right' }}>Total</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -688,11 +688,11 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '1.1rem' }}>🌐</span>
+                            <span style={{ fontSize: '1.1rem' }}></span>
                             <strong style={{ color: '#0F172A', fontSize: '0.9rem' }}>Servicios Generales / Adicionales</strong>
                           </div>
                           <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.9rem' }}>
-                            Subtotal: <span style={{ color: '#2563EB' }}>${subtotalGen.toFixed(2)} USD</span>
+                            Subtotal: <span style={{ color: '#2563EB' }}>${subtotalGen.toFixed(2)}</span>
                           </div>
                         </div>
 
@@ -733,7 +733,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                     <tr style={{ background: '#0F172A', color: '#FFFFFF', textAlign: 'left' }}>
                       <th style={{ padding: '8px 12px', borderRadius: '6px 0 0 0' }}>Servicio</th>
                       <th style={{ padding: '8px 12px' }}>Descripción / Especificación</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right', borderRadius: '0 6px 0 0' }}>Total (USD)</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'right', borderRadius: '0 6px 0 0' }}>Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -785,11 +785,11 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B', marginBottom: '6px' }}>
                       <span>Subtotal:</span>
-                      <span>${subtotalUSD.toFixed(2)} USD</span>
+                      <span>${subtotalUSD.toFixed(2)} </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669', fontWeight: '600', marginBottom: '6px' }}>
                       <span>Descuento aplicado:</span>
-                      <span>-${descuentoUSD.toFixed(2)} USD</span>
+                      <span>-${descuentoUSD.toFixed(2)} </span>
                     </div>
                   </>
                 )}
@@ -807,7 +807,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                   <span style={{ fontSize: '1rem', fontWeight: '800', color: '#0F172A' }}>TOTAL:</span>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '1.25rem', fontWeight: '900', color: '#E87217' }}>
-                      ${totalUSD.toFixed(2)} USD
+                      ${totalUSD.toFixed(2)} 
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>
                       Bs. {totalVES} (Ref. BCV)

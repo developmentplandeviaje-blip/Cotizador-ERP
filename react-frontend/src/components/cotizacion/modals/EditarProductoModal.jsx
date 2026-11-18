@@ -330,7 +330,7 @@ function EditarProductoModalContent({
             <span style={{ color: '#E2E8F0', fontSize: '0.875rem' }}>{item.titulo}</span>
           </div>
           <span style={{ color: '#E87217', fontWeight: '700', fontSize: '1.125rem' }}>
-            ${totalCalculado.toFixed(2)} USD
+            ${totalCalculado.toFixed(2)}
           </span>
         </div>
 

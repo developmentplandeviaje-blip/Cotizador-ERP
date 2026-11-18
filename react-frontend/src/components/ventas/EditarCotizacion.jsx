@@ -1710,21 +1710,21 @@ export default function EditarCotizacion({
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
           <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Monto Total</span>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#E87217', marginTop: '4px' }}>
-            ${Number(displayedTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+            ${Number(displayedTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
 
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
           <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Total Abonado</span>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#4ADE80', marginTop: '4px' }}>
-            ${Number(totalPagado).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+            ${Number(totalPagado).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
 
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
           <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Monto Pendiente</span>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: displayedSaldo > 0.01 ? '#F87171' : '#94A3B8', marginTop: '4px' }}>
-            ${Number(displayedSaldo).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+            ${Number(displayedSaldo).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
       </div>
@@ -2616,7 +2616,7 @@ export default function EditarCotizacion({
                 <th style={{ padding: '12px 16px', fontWeight: 600 }}>TIPO</th>
                 <th style={{ padding: '12px 16px', fontWeight: 600 }}>SERVICIO</th>
                 <th style={{ padding: '12px 16px', fontWeight: 600 }}>DETALLE</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'right' }}>MONTO USD</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'right' }}>MONTO</th>
                 {isServicesLocked ? (
                   <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'center' }}>ESTADO</th>
                 ) : (
@@ -2998,7 +2998,7 @@ export default function EditarCotizacion({
                 <li>Podrá seguir actualizando los datos de los pasajeros o añadir nuevos viajeros.</li>
               </ul>
               <p style={{ margin: 0 }}>
-                Total a confirmar: <strong>${Number(displayedTotal).toFixed(2)} USD</strong>
+                Total a confirmar: <strong>${Number(displayedTotal).toFixed(2)}</strong>
               </p>
             </div>
           }
@@ -3045,7 +3045,7 @@ export default function EditarCotizacion({
           content={
             <div style={{ color: '#E2E8F0', fontSize: '0.875rem', lineHeight: 1.5 }}>
               <p style={{ margin: '0 0 10px 0' }}>
-                Se eliminará el pago de <strong>${Number(pagoToDelete.monto_usd || 0).toFixed(2)} USD</strong> ({pagoToDelete.metodo_pago?.nombre || pagoToDelete.tipo_pago || 'Transferencia'}) con transacción <strong>{pagoToDelete.numero_transaccion || 'N/A'}</strong>.
+                Se eliminará el pago de <strong>${Number(pagoToDelete.monto_usd || 0).toFixed(2)}</strong> ({pagoToDelete.metodo_pago?.nombre || pagoToDelete.tipo_pago || 'Transferencia'}) con transacción <strong>{pagoToDelete.numero_transaccion || 'N/A'}</strong>.
               </p>
               <p style={{ margin: 0, color: '#FCA5A5' }}>
                 Esta acción reajustará el total recaudado y el saldo pendiente de la venta.
@@ -3079,7 +3079,7 @@ export default function EditarCotizacion({
               <div style={{ fontSize: '0.84rem', color: '#CBD5E1', lineHeight: 1.45 }}>
                 <strong style={{ color: 'rgb(77 213 252)' }}>Desbloqueo por 24H</strong>
                 <p style={{ margin: '4px 0 0 0' }}>
-                  Ingrese el código de autorización de un Administrador para habilitar la adición, modificación y eliminación de productos.
+                  Ingrese el código de autorización de un Administrador para habilitar la edición, modificación y eliminación de productos.
                 </p>
               </div>
             </div>

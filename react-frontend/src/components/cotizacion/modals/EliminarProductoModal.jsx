@@ -22,7 +22,7 @@ export default function EliminarProductoModal({
           </p>
           <p style={{ margin: '4px 0' }}><strong>Producto:</strong> {item.titulo}</p>
           <p style={{ margin: '4px 0' }}><strong>Detalle:</strong> {item.detalle}</p>
-          <p style={{ margin: '4px 0' }}><strong>Monto:</strong> ${Number(item.precio || 0).toFixed(2)} USD</p>
+          <p style={{ margin: '4px 0' }}><strong>Monto:</strong> ${Number(item.precio || 0).toFixed(2)} </p>
         </div>
       }
       confirmText="Sí, Eliminar"

@@ -273,11 +273,11 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
           marginBottom: '16px',
         }}>
           <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#E87217', fontWeight: '600' }}>
-            Tarifa Adulto (USD)
+            Tarifa Adulto
           </h4>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
             <div>
-              <label className="erp-label">Costo Neto (USD) <span className="req">*</span></label>
+              <label className="erp-label">Costo Neto<span className="req">*</span></label>
               <CustomNumberInput
                 placeholder="0.00"
                 step={0.01}
@@ -292,7 +292,7 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
               />
             </div>
             <div>
-              <label className="erp-label">Precio Venta (USD) <span className="req">*</span></label>
+              <label className="erp-label">Precio Venta<span className="req">*</span></label>
               <CustomNumberInput
                 placeholder="0.00"
                 step={0.01}
@@ -331,11 +331,11 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
           marginBottom: '16px',
         }}>
           <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#E87217', fontWeight: '600' }}>
-            Tarifa Niño (USD)
+            Tarifa Niño
           </h4>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
             <div>
-              <label className="erp-label">Costo Neto (USD) <span className="req">*</span></label>
+              <label className="erp-label">Costo Neto<span className="req">*</span></label>
               <CustomNumberInput
                 placeholder="0.00"
                 step={0.01}
@@ -350,7 +350,7 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
               />
             </div>
             <div>
-              <label className="erp-label">Precio Venta (USD) <span className="req">*</span></label>
+              <label className="erp-label">Precio Venta<span className="req">*</span></label>
               <CustomNumberInput
                 placeholder="0.00"
                 step={0.01}

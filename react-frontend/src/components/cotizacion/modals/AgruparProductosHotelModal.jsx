@@ -104,7 +104,7 @@ export default function AgruparProductosHotelModal({
           <div style={{ textAlign: 'right' }}>
             <span style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block' }}>Tarifa Hotel</span>
             <strong style={{ color: '#E87217', fontSize: '1.15rem' }}>
-              ${Number(hotelItem.precio || 0).toFixed(2)} USD
+              ${Number(hotelItem.precio || 0).toFixed(2)}
             </strong>
           </div>
         </div>
@@ -286,7 +286,7 @@ export default function AgruparProductosHotelModal({
           <div>
             <span style={{ color: '#94A3B8' }}>Subtotal Hotel + Servicios: </span>
             <strong style={{ color: '#10B981', fontSize: '1.05rem', marginLeft: '6px' }}>
-              ${totalConHotel.toFixed(2)} USD
+              ${totalConHotel.toFixed(2)}
             </strong>
           </div>
         </div>

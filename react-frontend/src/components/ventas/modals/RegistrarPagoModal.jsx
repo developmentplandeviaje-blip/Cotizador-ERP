@@ -196,7 +196,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '0.7rem', color: '#CBD5E1' }}>Monto Total</div>
               <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#E87217' }}>
-                ${Number(venta.total_usd || 0).toFixed(2)} USD
+                ${Number(venta.total_usd || 0).toFixed(2)}
               </div>
             </div>
 
@@ -211,7 +211,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
                   color: saldoPendiente > 0.01 ? '#F87171' : '#4ADE80',
                 }}
               >
-                ${Number(saldoPendiente).toFixed(2)} USD
+                ${Number(saldoPendiente).toFixed(2)}
               </div>
             </div>
           </div>
@@ -369,7 +369,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
           <div>
             <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Abono Registrado: </span>
             <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#4ADE80', marginTop: '2px' }}>
-              ${montoUSDCalculado.toFixed(2)} USD
+              ${montoUSDCalculado.toFixed(2)}
             </div>
           </div>
 
@@ -383,7 +383,7 @@ export default function RegistrarPagoModal({ isOpen, onClose, venta, onSuccess, 
                 marginTop: '2px',
               }}
             >
-              ${nuevoSaldoPendiente.toFixed(2)} USD {nuevoSaldoPendiente <= 0 && ''}
+              ${nuevoSaldoPendiente.toFixed(2)} {nuevoSaldoPendiente <= 0 && ''}
             </div>
           </div>
         </div>

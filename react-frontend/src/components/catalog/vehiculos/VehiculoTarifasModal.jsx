@@ -181,7 +181,7 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
               </div>
 
               <div>
-                <label className="erp-label">Costo Neto (USD) <span className="req">*</span></label>
+                <label className="erp-label">Costo Neto<span className="req">*</span></label>
                 <CustomNumberInput
                   placeholder="0.00"
                   step={0.01}
@@ -195,7 +195,7 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
                 />
               </div>
               <div>
-                <label className="erp-label">Precio Venta (USD) <span className="req">*</span></label>
+                <label className="erp-label">Precio Venta<span className="req">*</span></label>
                 <CustomNumberInput
                   placeholder="0.00"
                   step={0.01}

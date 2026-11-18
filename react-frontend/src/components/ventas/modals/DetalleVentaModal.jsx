@@ -43,8 +43,8 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
             <div style={{ fontSize: '0.8rem', color: '#CBD5E1' }}>
               {cliente.documento ? `${cliente.tipo_documento || 'V'}-${cliente.documento}` : 'Sin documento'}
             </div>
-            {cliente.telefono && <div style={{ fontSize: '0.8rem', color: '#94A3B8' }}>📞 {cliente.telefono}</div>}
-            {cliente.correo && <div style={{ fontSize: '0.8rem', color: '#94A3B8' }}>✉️ {cliente.correo}</div>}
+            {cliente.telefono && <div style={{ fontSize: '0.8rem', color: '#94A3B8' }}> {cliente.telefono}</div>}
+            {cliente.correo && <div style={{ fontSize: '0.8rem', color: '#94A3B8' }}> {cliente.correo}</div>}
           </div>
 
           <div>
@@ -57,12 +57,12 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
             </div>
             {aliado && (
               <div style={{ marginTop: '6px', padding: '4px 8px', background: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '6px', fontSize: '0.75rem', color: '#38BDF8' }}>
-                🏢 Aliado: <strong>{aliado.razon_social}</strong> ({aliado.rif})
+                Aliado: <strong>{aliado.razon_social}</strong> ({aliado.rif})
               </div>
             )}
             {freelancer && (
               <div style={{ marginTop: '6px', padding: '4px 8px', background: 'rgba(232, 114, 23, 0.15)', border: '1px solid rgba(232, 114, 23, 0.3)', borderRadius: '6px', fontSize: '0.75rem', color: '#FB923C' }}>
-                👤 Freelancer: <strong>{freelancer.nombre}</strong> ({freelancer.rif})
+                Freelancer: <strong>{freelancer.nombre}</strong> ({freelancer.rif})
               </div>
             )}
           </div>
@@ -121,21 +121,21 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
           <div style={{ background: 'rgba(232, 114, 23, 0.1)', border: '1px solid rgba(232, 114, 23, 0.3)', borderRadius: '10px', padding: '12px 16px' }}>
             <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Total Venta</span>
             <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#E87217', marginTop: '2px' }}>
-              ${Number(venta.total_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              ${Number(venta.total_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
 
           <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '10px', padding: '12px 16px' }}>
             <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Total Pagado</span>
             <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#4ADE80', marginTop: '2px' }}>
-              ${Number(venta.total_pagado || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              ${Number(venta.total_pagado || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
 
           <div style={{ background: (venta.saldo_pendiente || 0) > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(148, 163, 184, 0.1)', border: `1px solid ${(venta.saldo_pendiente || 0) > 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(148, 163, 184, 0.3)'}`, borderRadius: '10px', padding: '12px 16px' }}>
             <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Saldo Pendiente</span>
             <div style={{ fontSize: '1.25rem', fontWeight: '800', color: (venta.saldo_pendiente || 0) > 0 ? '#F87171' : '#94A3B8', marginTop: '2px' }}>
-              ${Number(venta.saldo_pendiente || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              ${Number(venta.saldo_pendiente || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
         </div>
@@ -176,7 +176,7 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
                     </div>
                   </div>
                   <div style={{ fontWeight: '700', color: '#E87217', fontSize: '0.9rem' }}>
-                    ${Number(it.precio || 0).toFixed(2)} USD
+                    ${Number(it.precio || 0).toFixed(2)}
                   </div>
                 </div>
               ))}
@@ -221,7 +221,7 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
                     <th style={{ padding: '8px 12px' }}>Referencia</th>
                     <th style={{ padding: '8px 12px' }}>Moneda / Tasa</th>
                     <th style={{ padding: '8px 12px' }}>Monto Original</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'right' }}>Monto (USD)</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'right' }}>Monto</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -233,7 +233,7 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
                       <td style={{ padding: '8px 12px', color: '#CBD5E1' }}>{p.moneda_pago} {p.tasa_cambio > 1 ? `(Tasa: ${Number(p.tasa_cambio).toFixed(2)})` : ''}</td>
                       <td style={{ padding: '8px 12px', color: '#CBD5E1' }}>{Number(p.monto_original).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: '700', color: '#4ADE80' }}>
-                        ${Number(p.monto_usd).toFixed(2)} USD
+                        ${Number(p.monto_usd).toFixed(2)}
                       </td>
                     </tr>
                   ))}
