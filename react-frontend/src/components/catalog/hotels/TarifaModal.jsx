@@ -3,6 +3,7 @@ import { showToast } from '../../../utils/toast';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
+import CustomNumberInput from '../../common/CustomNumberInput';
 import { handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
 export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = false, showAdolescentes = true, tarifaToEdit = null }) {
@@ -114,22 +115,28 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
             <label className="erp-label">Cantidad de Niños Gratis</label>
-            <input
-              type="number"
-              min="0"
-              max="999"
-              className="erp-input"
+            <CustomNumberInput
+              placeholder="0"
+              step={0}
+              min={0}
+              max={999}
+              maxdigits={3}
+              allowDecimals
+              width="60%"
               value={formData.ninos_gratis}
               onChange={(e) => handleChange('ninos_gratis', e.target.value.slice(0, 3))}
             />
           </div>
           <div>
             <label className="erp-label">Cantidad de Noches Gratis</label>
-            <input
-              type="number"
-              min="0"
-              max="999"
-              className="erp-input"
+            <CustomNumberInput
+              placeholder="0"
+              step={0}
+              min={0}
+              max={999}
+              maxdigits={3}
+              allowDecimals
+              width="60%"
               value={formData.noches_gratis}
               onChange={(e) => handleChange('noches_gratis', e.target.value.slice(0, 3))}
             />
@@ -154,33 +161,31 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
           {!isFreelancer && (
             <div>
               <label className="erp-label">Costo Adulto <span className="req">*</span></label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
-                onInput={handlePriceInputKeyClamp}
-                className="erp-input"
-                placeholder="0.00"
-                value={formData.costo_noche_adulto}
-                onChange={(e) => {
-                  const val = formatPrecioCosto(e.target.value);
-                  handleChange('costo_noche_adulto', val);
-                  handleCalculatePercent('costo_noche_adulto', 'precio_noche_adulto', 'porcentaje_adulto', val, formData.precio_noche_adulto);
-                }}
-              />
+              <CustomNumberInput
+              placeholder="0.00"
+              step={0.01}
+              min={0}
+              max={99999.99}
+              onInput={handlePriceInputKeyClamp}
+              allowDecimals
+              value={formData.costo_noche_adulto}
+              onChange={(e) => {
+                const val = formatPrecioCosto(e.target.value);
+                handleChange('costo_noche_adulto', val);
+                handleCalculatePercent('costo_noche_adulto', 'precio_noche_adulto', 'porcentaje_adulto', val, formData.precio_noche_adulto);
+              }}
+            />
             </div>
           )}
           <div>
             <label className="erp-label">Precio Adulto <span className="req">*</span></label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              max="99999.99"
-              onInput={handlePriceInputKeyClamp}
-              className="erp-input"
+            <CustomNumberInput
               placeholder="0.00"
+              step={0.01}
+              min={0}
+              max={99999.99}
+              allowDecimals
+              onInput={handlePriceInputKeyClamp}
               value={formData.precio_noche_adulto}
               onChange={(e) => {
                 const val = formatPrecioCosto(e.target.value);
@@ -210,14 +215,13 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             {!isFreelancer && (
               <div>
                 <label className="erp-label">Costo Adolesc.</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  onInput={handlePriceInputKeyClamp}
-                  className="erp-input"
+                <CustomNumberInput
                   placeholder="0.00"
+                  step={0.01}
+                  min={0}
+                  max={99999.99}
+                  allowDecimals
+                  onInput={handlePriceInputKeyClamp}
                   value={formData.costo_noche_adolescente}
                   onChange={(e) => {
                     const val = formatPrecioCosto(e.target.value);
@@ -229,14 +233,13 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
             )}
             <div>
               <label className="erp-label">Precio Adolesc.</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
-                onInput={handlePriceInputKeyClamp}
-                className="erp-input"
+              <CustomNumberInput
                 placeholder="0.00"
+                step={0.01}
+                min={0}
+                max={99999.99}
+                allowDecimals
+                onInput={handlePriceInputKeyClamp}
                 value={formData.precio_noche_adolescente}
                 onChange={(e) => {
                   const val = formatPrecioCosto(e.target.value);
@@ -265,14 +268,13 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
           {!isFreelancer && (
             <div>
               <label className="erp-label">Costo Niño</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
-                onInput={handlePriceInputKeyClamp}
-                className="erp-input"
+              <CustomNumberInput
                 placeholder="0.00"
+                step={0.01}
+                min={0}
+                max={99999.99}
+                allowDecimals
+                onInput={handlePriceInputKeyClamp}
                 value={formData.costo_noche_nino}
                 onChange={(e) => {
                   const val = formatPrecioCosto(e.target.value);
@@ -284,14 +286,13 @@ export default function TarifaModal({ isOpen, onClose, onSave, isFreelancer = fa
           )}
           <div>
             <label className="erp-label">Precio Niño</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              max="99999.99"
-              onInput={handlePriceInputKeyClamp}
-              className="erp-input"
+            <CustomNumberInput
               placeholder="0.00"
+              step={0.01}
+              min={0}
+              max={99999.99}
+              allowDecimals
+              onInput={handlePriceInputKeyClamp}
               value={formData.precio_noche_nino}
               onChange={(e) => {
                 const val = formatPrecioCosto(e.target.value);

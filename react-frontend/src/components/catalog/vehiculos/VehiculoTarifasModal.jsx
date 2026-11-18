@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
 import { showToast } from '../../../utils/toast';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
+import CustomNumberInput from '../../common/CustomNumberInput';
 import Badge from '../../common/Badge';
 import CustomDatePicker from '../../common/CustomDatePicker';
 import axios from 'axios';
@@ -181,47 +182,41 @@ export default function VehiculoTarifasModal({ isOpen, onClose, vehiculo, isFree
 
               <div>
                 <label className="erp-label">Costo Neto (USD) <span className="req">*</span></label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  onInput={handlePriceInputKeyClamp}
-                  className="erp-input"
+                <CustomNumberInput
                   placeholder="0.00"
+                  step={0.01}
+                  min={0}
+                  max={99999.99}
+                  onInput={handlePriceInputKeyClamp}
                   value={costo}
                   onChange={(e) => handleCostoChange(e.target.value)}
                   required
                   disabled={isSubmitting}
                 />
               </div>
-
-              <div>
-                <label className="erp-label">% Margen</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="erp-input"
-                  placeholder="0.00%"
-                  value={porcentaje}
-                  onChange={(e) => handlePorcentajeChange(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-
               <div>
                 <label className="erp-label">Precio Venta (USD) <span className="req">*</span></label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="99999.99"
-                  onInput={handlePriceInputKeyClamp}
-                  className="erp-input"
+                <CustomNumberInput
                   placeholder="0.00"
+                  step={0.01}
+                  min={0}
+                  max={99999.99}
+                  onInput={handlePriceInputKeyClamp}
                   value={precio}
                   onChange={(e) => handlePrecioChange(e.target.value)}
                   required
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div>
+                <label className="erp-label">% Margen</label>
+                <input
+                  readOnly
+                  className="erp-input"
+                  style={{ opacity: 0.7 }}
+                  placeholder="0.00%"
+                  value={porcentaje}
+                  onChange={(e) => handlePorcentajeChange(e.target.value)}
                   disabled={isSubmitting}
                 />
               </div>

@@ -5,6 +5,10 @@ import MetodoPagoModal from './MetodoPagoModal';
 import AssignMetodosModal from './AssignMetodosModal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
+import imgAsignar from '../../../assets/Usuarios-01.svg';
+import imgBancaria from '../../../assets/cuenta-bancaria.svg';
+import imgDigital from '../../../assets/cuenta-digital.svg';
+import imgEfectivo from '../../../assets/efectivo.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
@@ -149,12 +153,15 @@ export default function MetodoPagoList({ user }) {
   const getTipoBadge = (tipo) => {
     switch (tipo) {
       case 'banco':
-        return <Badge variant="success" style={{ minWidth: '70px' }}>🏦 Banco</Badge>;
+        return <Badge variant="success" style={{ minWidth: '70px' }}>
+          <img src={imgBancaria} alt="Banco" style={{ width: '16px', height: '16px', marginRight: '4px' }} /> Banco</Badge>;
       case 'digital':
-        return <Badge variant="success" style={{ minWidth: '70px' }}>💳 Digital</Badge>;
+        return <Badge variant="success" style={{ minWidth: '70px' }}>
+          <img src={imgDigital} alt="Digital" style={{ width: '16px', height: '16px', marginRight: '4px' }} /> Digital</Badge>;
       case 'efectivo':
       default:
-        return <Badge variant="success" style={{ minWidth: '70px' }}>💵 Efectivo</Badge>;
+        return <Badge variant="success" style={{ minWidth: '70px' }}>
+          <img src={imgEfectivo} alt="Efectivo" style={{ width: '16px', height: '16px', marginRight: '4px' }} /> Efectivo</Badge>;
     }
   };
 
@@ -305,9 +312,9 @@ export default function MetodoPagoList({ user }) {
               <button
                 className="btn-secondary"
                 onClick={() => setIsAssignModalOpen(true)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#CBD5E1', fontSize: '1.2rem' }}
+                style={{ display: 'inline-flex', alignItems: 'center', color: '#CBD5E1', fontSize: '1.2rem' }}
                 title="Asignar métodos de pago a asesor">
-                👥
+                <img src={imgAsignar} alt="" style={{ width: '30px', height: '20px' }} />
               </button>
               <span className='title-input'>Asignar</span>
             </div>

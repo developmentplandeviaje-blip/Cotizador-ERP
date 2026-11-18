@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
 import { showToast } from '../../../utils/toast';
+import CustomNumberInput from '../../common/CustomNumberInput';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import axios from 'axios';
 
@@ -132,23 +133,24 @@ export default function DescuentoMasivoModal({ isOpen, onClose, tipoDescuento, o
 
                 <div style={{ marginBottom: '16px' }}>
                     <label className="erp-label">Porcentaje de Descuento (%): </label>
-                    <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.01"
+                    <CustomNumberInput
+                        step={0.01}
+                        min={0}
+                        max={ 100}
+                        maxDigits={3}
+                        allowDecimals
                         value={cantidad}
                         onInput={(e) => {
                           if (parseFloat(e.target.value) > 100) e.target.value = 100;
                         }}
-                        onChange={(e) => {
-                          const val = parseFloat(e.target.value);
+                        onChange={e => {
+                            const val = parseFloat(e.target.value);
                           if (isNaN(val)) setCantidad('');
                           else setCantidad(Math.min(100, Math.max(0, val)));
                         }}
-                        className="erp-input"
                         disabled={isSubmitting}
                     />
+
                     <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
                         %
                     </span>

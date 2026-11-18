@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import logonaranja from '../../../assets/logonaranjapdv.png';
+import imgHoteles from '../../../assets/Hoteles.svg';
 
 export default function InformeCotizacionRapidaModal({
   isOpen,
@@ -600,7 +601,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '1.1rem' }}>🏨</span>
+                            <img src={imgHoteles} alt="Hotel" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
                             <div>
                               <strong style={{ color: '#0F172A', fontSize: '0.9rem' }}>{hotelItem.titulo}</strong>
                               <span style={{ color: '#64748B', fontSize: '0.78rem', marginLeft: '8px' }}>

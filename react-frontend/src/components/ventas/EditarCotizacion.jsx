@@ -14,6 +14,10 @@ import { PRODUCT_COLOR_MAP, PRODUCT_TABS } from '../cotizacion/cotizacionConstan
 import { normalizeHotelAdolescentPassengers } from '../../utils/quotePricing';
 import imgSearch from '../../assets/lupa.svg';
 import imgUsuario from '../../assets/Usuario.svg';
+import imgCalendario from '../../assets/calendario-01.svg';
+import imgAbono from '../../assets/Alcontado.svg';
+import imgProductos from '../../assets/resumen-productos.svg';
+import imgUsuarios from '../../assets/Usuarios-01.svg';
 
 const TIPO_DOC_OPTIONS = [
   { value: 'V', label: 'V-' },
@@ -429,6 +433,7 @@ export default function EditarCotizacion({
 
   // Desbloqueo temporal de edición de productos por administrador (24 horas)
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [isLockHovered, setIsLockHovered] = useState(false);
   const [adminCode, setAdminCode] = useState('');
   const [showAdminCode, setShowAdminCode] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
@@ -580,38 +585,6 @@ export default function EditarCotizacion({
   const isServicesLocked = useMemo(() => {
     return isConfirmed && !desbloqueoInfo.is_desbloqueado;
   }, [isConfirmed, desbloqueoInfo.is_desbloqueado]);
-
-  const handleUnlockServices = async (e) => {
-    e?.preventDefault();
-    if (!adminCode.trim()) {
-      setUnlockError('Por favor ingrese el código de autorización o contraseña.');
-      return;
-    }
-    setUnlocking(true);
-    setUnlockError('');
-    try {
-      const res = await axios.post(`/v1/ventas/${ventaId}/desbloquear`, {
-        codigo: adminCode.trim(),
-      });
-      showToast('¡Edición de servicios desbloqueada con éxito! Dispone de 24 horas para agregar, modificar o eliminar productos.', 'success');
-      const dHasta = res.data?.desbloqueado_hasta;
-      const secs = res.data?.tiempo_restante_segundos || 86400;
-      setDesbloqueoInfo({
-        is_desbloqueado: true,
-        desbloqueado_hasta: dHasta,
-        tiempo_restante_segundos: secs,
-      });
-      setShowUnlockModal(false);
-      setAdminCode('');
-      await fetchVentaDetalle();
-    } catch (err) {
-      console.error('Error al desbloquear edición:', err);
-      const msg = err.response?.data?.message || err.response?.data?.error || 'Código de autorización o credencial inválida.';
-      setUnlockError(msg);
-    } finally {
-      setUnlocking(false);
-    }
-  };
 
   // Conteos de pasajeros por categoría
   const paxCounts = useMemo(() => computePaxCounts(pasajeros), [pasajeros]);
@@ -824,8 +797,13 @@ export default function EditarCotizacion({
 
   // Recalcular producto cuando cambian los pasajeros o la cantidad de pax
   const recalculateItemWithPax = useCallback(
-    (item, newPax) => {
+    (item, newPax, forceUnlock = false) => {
       if (!item || !item.data) return item;
+
+      // Si los servicios están asegurados/bloqueados en Venta Confirmada y no se fuerza el desbloqueo, no se alteran
+      if (isServicesLocked && !forceUnlock) {
+        return item;
+      }
 
       const tipo = item.tipo;
       const ad = Number(newPax.adultos || 1);
@@ -858,16 +836,28 @@ export default function EditarCotizacion({
         let precioUnitAdol = Number(normalizedData.precio_noche_adolescente || 0);
         let precioUnitNino = Number(normalizedData.precio_noche_nino || 0);
 
+        let costoUnitAdulto = Number(normalizedData.costo_noche_adulto || 0);
+        let costoUnitAdol = Number(normalizedData.costo_noche_adolescente || 0);
+        let costoUnitNino = Number(normalizedData.costo_noche_nino || 0);
+
         if (tarifa) {
           if (!precioUnitAdulto || precioUnitAdulto <= 0) precioUnitAdulto = Number(tarifa.precio_noche_adulto || 0);
           if (!precioUnitAdol || precioUnitAdol <= 0) precioUnitAdol = Number(tarifa.precio_noche_adolescente || 0);
           if (!precioUnitNino || precioUnitNino <= 0) precioUnitNino = Number(tarifa.precio_noche_nino || 0);
+
+          if (!costoUnitAdulto || costoUnitAdulto <= 0) costoUnitAdulto = Number(tarifa.costo_noche_adulto || 0);
+          if (!costoUnitAdol || costoUnitAdol <= 0) costoUnitAdol = Number(tarifa.costo_noche_adolescente || 0);
+          if (!costoUnitNino || costoUnitNino <= 0) costoUnitNino = Number(tarifa.costo_noche_nino || 0);
         }
 
         // Si aún así precioUnitAdulto es 0 pero item tenía un precio base y noches
         if (precioUnitAdulto <= 0 && Number(item.precio || 0) > 0 && noches > 0) {
           const prevAdults = Math.max(1, Number(item.data.adultos || 1));
           precioUnitAdulto = Number(item.precio) / (noches * prevAdults);
+        }
+        if (costoUnitAdulto <= 0 && Number(item.costo || 0) > 0 && noches > 0) {
+          const prevAdults = Math.max(1, Number(item.data.adultos || 1));
+          costoUnitAdulto = Number(item.costo) / (noches * prevAdults);
         }
 
         const precio =
@@ -876,9 +866,16 @@ export default function EditarCotizacion({
             effNinos * precioUnitNino) *
           noches;
 
+        const costo =
+          (effAdultos * costoUnitAdulto +
+            effAdolescentes * costoUnitAdol +
+            effNinos * costoUnitNino) *
+          noches;
+
         return {
           ...item,
           precio: Math.max(0, precio),
+          costo: Math.max(0, costo),
           detalle: `${noches} noches • ${dias} días • ${effAdultos} adultos${effAdolescentes ? `, ${effAdolescentes} adol` : ''}, ${effNinos} niños`,
           data: {
             ...normalizedData,
@@ -889,6 +886,9 @@ export default function EditarCotizacion({
             precio_noche_adulto: precioUnitAdulto,
             precio_noche_adolescente: precioUnitAdol,
             precio_noche_nino: precioUnitNino,
+            costo_noche_adulto: costoUnitAdulto,
+            costo_noche_adolescente: costoUnitAdol,
+            costo_noche_nino: costoUnitNino,
           },
         };
       }
@@ -899,9 +899,17 @@ export default function EditarCotizacion({
         let precioNi = Number(item.data.precio_nino || 0);
         let precioInf = Number(item.data.precio_infante || 0);
 
+        let costoAd = Number(item.data.costo_adulto || 0);
+        let costoNi = Number(item.data.costo_nino || 0);
+        let costoInf = Number(item.data.costo_infante || 0);
+
         if (precioAd <= 0 && Number(item.precio || 0) > 0) {
           const prevAdults = Math.max(1, Number(item.data.adultos || 1));
           precioAd = Number(item.precio) / prevAdults;
+        }
+        if (costoAd <= 0 && Number(item.costo || 0) > 0) {
+          const prevAdults = Math.max(1, Number(item.data.adultos || 1));
+          costoAd = Number(item.costo) / prevAdults;
         }
 
         const precio =
@@ -909,9 +917,15 @@ export default function EditarCotizacion({
           ni * precioNi +
           inf * precioInf;
 
+        const costo =
+          totalAdults * costoAd +
+          ni * costoNi +
+          inf * costoInf;
+
         return {
           ...item,
           precio: Math.max(0, precio),
+          costo: Math.max(0, costo),
           detalle: `Salida: ${item.data.fecha_vuelo || 'Por definir'} • Retorno: ${item.data.fecha_retorno || 'Por definir'} • ${totalAdults} ad${ni > 0 ? `, ${ni} niños` : ''}${inf > 0 ? `, ${inf} inf` : ''}`,
           data: {
             ...item.data,
@@ -919,6 +933,11 @@ export default function EditarCotizacion({
             ninos: ni,
             infantes: inf,
             precio_adulto: precioAd,
+            precio_nino: precioNi,
+            precio_infante: precioInf,
+            costo_adulto: costoAd,
+            costo_nino: costoNi,
+            costo_infante: costoInf,
           },
         };
       }
@@ -930,9 +949,18 @@ export default function EditarCotizacion({
         let precioInf = Number(item.data.precio_infante || 0);
         let precioVeh = Number(item.data.precio_vehiculo || 0);
 
+        let costoAd = Number(item.data.costo_adulto || 0);
+        let costoNi = Number(item.data.costo_nino || 0);
+        let costoInf = Number(item.data.costo_infante || 0);
+        let costoVeh = Number(item.data.costo_vehiculo || 0);
+
         if (precioAd <= 0 && Number(item.precio || 0) > 0) {
           const prevAdults = Math.max(1, Number(item.data.adultos || 1));
           precioAd = Number(item.precio) / prevAdults;
+        }
+        if (costoAd <= 0 && Number(item.costo || 0) > 0) {
+          const prevAdults = Math.max(1, Number(item.data.adultos || 1));
+          costoAd = Number(item.costo) / prevAdults;
         }
 
         const precio =
@@ -941,9 +969,16 @@ export default function EditarCotizacion({
           inf * precioInf +
           veh * precioVeh;
 
+        const costo =
+          ad * costoAd +
+          ni * costoNi +
+          inf * costoInf +
+          veh * costoVeh;
+
         return {
           ...item,
           precio: Math.max(0, precio),
+          costo: Math.max(0, costo),
           detalle: `Salida: ${item.data.fecha_salida || 'Por definir'} • Retorno: ${item.data.fecha_retorno || 'Por definir'} • ${ad} ad${ni > 0 ? `, ${ni} niños` : ''}${inf > 0 ? `, ${inf} inf` : ''}, ${veh} veh`,
           data: {
             ...item.data,
@@ -951,6 +986,13 @@ export default function EditarCotizacion({
             ninos: ni,
             infantes: inf,
             precio_adulto: precioAd,
+            precio_nino: precioNi,
+            precio_infante: precioInf,
+            precio_vehiculo: precioVeh,
+            costo_adulto: costoAd,
+            costo_nino: costoNi,
+            costo_infante: costoInf,
+            costo_vehiculo: costoVeh,
           },
         };
       }
@@ -959,18 +1001,24 @@ export default function EditarCotizacion({
         const totalAdults = ad + adol;
         let precioAd = Number(item.data.precio_adulto || 0);
         let precioNi = Number(item.data.precio_nino || 0);
+        let costoAd = Number(item.data.costo_adulto || 0);
+        let costoNi = Number(item.data.costo_nino || 0);
 
         if (tipo === 'excursion') {
           const exc = (catalogos.excursiones || []).find((e) => String(e.id) === String(item.data.id_excursion));
           if (exc) {
             if (!precioAd || precioAd <= 0) precioAd = Number(exc.precio_adulto || 0);
             if (!precioNi || precioNi <= 0) precioNi = Number(exc.precio_nino || 0);
+            if (!costoAd || costoAd <= 0) costoAd = Number(exc.costo_adulto || 0);
+            if (!costoNi || costoNi <= 0) costoNi = Number(exc.costo_nino || 0);
           }
         } else if (tipo === 'paquete') {
           const paq = (catalogos.paquetes || []).find((p) => String(p.id) === String(item.data.id_paquete));
           if (paq) {
             if (!precioAd || precioAd <= 0) precioAd = Number(paq.precio_adulto || 0);
             if (!precioNi || precioNi <= 0) precioNi = Number(paq.precio_nino || 0);
+            if (!costoAd || costoAd <= 0) costoAd = Number(paq.costo_adulto || 0);
+            if (!costoNi || costoNi <= 0) costoNi = Number(paq.costo_nino || 0);
           }
         }
 
@@ -978,12 +1026,18 @@ export default function EditarCotizacion({
           const prevAdults = Math.max(1, Number(item.data.adultos || 1));
           precioAd = Number(item.precio) / prevAdults;
         }
+        if (costoAd <= 0 && Number(item.costo || 0) > 0) {
+          const prevAdults = Math.max(1, Number(item.data.adultos || 1));
+          costoAd = Number(item.costo) / prevAdults;
+        }
 
         const precio = totalAdults * precioAd + ni * precioNi;
+        const costo = totalAdults * costoAd + ni * costoNi;
 
         return {
           ...item,
           precio: Math.max(0, precio),
+          costo: Math.max(0, costo),
           detalle: `Fecha: ${item.data.fecha || 'Por definir'} • ${totalAdults} ad${ni > 0 ? `, ${ni} niños` : ''}`,
           data: {
             ...item.data,
@@ -991,37 +1045,124 @@ export default function EditarCotizacion({
             ninos: ni,
             precio_adulto: precioAd,
             precio_nino: precioNi,
+            costo_adulto: costoAd,
+            costo_nino: costoNi,
           },
         };
       }
 
       if (tipo === 'traslado') {
         const totalPax = ad + adol + ni + inf;
-        if (item.data.tipo_asignacion === 'todos' || !item.data.tipo_asignacion) {
-          let precioUnit = Number(item.data.precio_unitario || 0);
-          if (precioUnit <= 0 && Number(item.precio || 0) > 0) {
-            precioUnit = Number(item.precio) / Math.max(1, Number(item.data.adultos || 1));
-          }
-          if (precioUnit > 0) {
-            const precio = precioUnit * totalPax;
-            return {
-              ...item,
-              precio,
-              detalle: item.detalle ? item.detalle.replace(/Todos los pasajeros \(\d+ pax\)/, `Todos los pasajeros (${totalPax} pax)`) : `Todos los pasajeros (${totalPax} pax)`,
-              data: {
-                ...item.data,
-                adultos: totalPax,
-                precio_unitario: precioUnit,
-              },
-            };
-          }
+        // Regla: Para traslados, el costo y precio NO se incrementa al aumentar la cantidad de pasajeros (tarifa fija por servicio / vehículo)
+        const basePrecio = Number(
+          item.precio ??
+          item.data?.precio_historico ??
+          item.data?.precio ??
+          0
+        );
+        const baseCosto = Number(
+          item.costo ??
+          item.data?.costo_historico ??
+          item.data?.costo ??
+          0
+        );
+
+        let newDetalle = item.detalle || '';
+        if (/Todos los pasajeros \(\d+ pax\)/.test(newDetalle)) {
+          newDetalle = newDetalle.replace(/Todos los pasajeros \(\d+ pax\)/, `Todos los pasajeros (${totalPax} pax)`);
         }
+
+        return {
+          ...item,
+          precio: basePrecio,
+          costo: baseCosto,
+          detalle: newDetalle,
+          data: {
+            ...item.data,
+            adultos: item.data?.tipo_asignacion === 'todos' || !item.data?.tipo_asignacion ? totalPax : (item.data?.adultos || 1),
+            precio: basePrecio,
+            precio_historico: basePrecio,
+            costo: baseCosto,
+            costo_historico: baseCosto,
+          },
+        };
+      }
+
+      if (tipo === 'vehiculo') {
+        // Regla: Para vehículos alquilados, el costo y precio NO se incrementa por la cantidad de pasajeros (depende exclusivamente de días de alquiler)
+        const dias = Number(item.data?.dias || 1);
+        const precioUnit = Number(item.data?.precio_unitario || item.data?.precio_diario || 0);
+        const basePrecio = dias > 0 && precioUnit > 0 ? dias * precioUnit : Number(item.precio ?? item.data?.precio ?? 0);
+        const baseCosto = Number(item.costo ?? item.data?.costo ?? item.data?.costo_diario ?? 0);
+
+        return {
+          ...item,
+          precio: basePrecio,
+          costo: baseCosto,
+          data: {
+            ...item.data,
+            dias,
+            precio: basePrecio,
+            costo: baseCosto,
+            precio_unitario: precioUnit,
+            precio_diario: precioUnit,
+            costo_diario: baseCosto,
+          },
+        };
       }
 
       return item;
     },
-    [catalogos]
+    [catalogos, isServicesLocked]
   );
+
+  // Desbloqueo temporal de servicios mediante autorización de administrador
+  const handleUnlockServices = async (e) => {
+    e?.preventDefault();
+    if (!adminCode.trim()) {
+      setUnlockError('Por favor ingrese el código de autorización o contraseña.');
+      return;
+    }
+    setUnlocking(true);
+    setUnlockError('');
+    try {
+      const res = await axios.post(`/v1/ventas/${ventaId}/desbloquear`, {
+        codigo: adminCode.trim(),
+      });
+      const dHasta = res.data?.desbloqueado_hasta;
+      const secs = res.data?.tiempo_restante_segundos || 86400;
+
+      // 1. Activar estado de desbloqueo
+      setDesbloqueoInfo({
+        is_desbloqueado: true,
+        desbloqueado_hasta: dHasta,
+        tiempo_restante_segundos: secs,
+      });
+      setVenta((prev) => (prev ? { ...prev, desbloqueado_hasta: dHasta } : prev));
+      setShowUnlockModal(false);
+      setAdminCode('');
+
+      // 2. Al desbloquear para edición, se actualiza el costo y precio de los productos
+      // de acuerdo a los tipos y cantidad de pasajeros actuales registrados
+      const currentCounts = computePaxCounts(pasajeros);
+      setItems((prevItems) =>
+        prevItems.map((it) => {
+          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado', 'vehiculo'].includes(it.tipo)) {
+            return recalculateItemWithPax(it, currentCounts, true);
+          }
+          return it;
+        })
+      );
+
+      showToast('¡Edición de servicios desbloqueada con éxito! Se han actualizado los costos de los productos según los pasajeros.', 'success');
+    } catch (err) {
+      console.error('Error al desbloquear edición:', err);
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Código de autorización o credencial inválida.';
+      setUnlockError(msg);
+    } finally {
+      setUnlocking(false);
+    }
+  };
 
   // Cambio de fechas del viaje (sincroniza noches y precios de hoteles)
   const handleTravelDateChange = (field, value) => {
@@ -1042,6 +1183,8 @@ export default function EditarCotizacion({
         ? Math.max(0, Math.round((checkoutTime - checkinTime) / 86400000))
         : 0;
     const dias = noches > 0 ? noches + 1 : 0;
+
+    if (isServicesLocked) return;
 
     if (noches > 0) {
       setItems((prev) =>
@@ -1064,10 +1207,17 @@ export default function EditarCotizacion({
               ninos * Number(normalizedData.precio_noche_nino || 0)) *
             noches;
 
+          const costo =
+            (adultos * Number(normalizedData.costo_noche_adulto || 0) +
+              adolescentes * Number(normalizedData.costo_noche_adolescente || 0) +
+              ninos * Number(normalizedData.costo_noche_nino || 0)) *
+            noches;
+
           return {
             ...item,
             data: normalizedData,
             precio,
+            costo,
             detalle: `${noches} noches • ${dias} días • ${adultos} adultos${adolescentes ? `, ${adolescentes} adol` : ''}, ${ninos} niños`,
           };
         })
@@ -1096,7 +1246,7 @@ export default function EditarCotizacion({
       // Sincronizar automáticamente la cantidad de pax en los productos agregados
       setItems((prevItems) =>
         prevItems.map((it) => {
-          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado'].includes(it.tipo)) {
+          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado', 'vehiculo'].includes(it.tipo)) {
             return recalculateItemWithPax(it, nextCounts);
           }
           return it;
@@ -1114,7 +1264,7 @@ export default function EditarCotizacion({
       // Ajustar el precio y pax de los productos al remover pasajero
       setItems((prevItems) =>
         prevItems.map((it) => {
-          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado'].includes(it.tipo)) {
+          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado', 'vehiculo'].includes(it.tipo)) {
             return recalculateItemWithPax(it, nextCounts);
           }
           return it;
@@ -1179,7 +1329,7 @@ export default function EditarCotizacion({
       const nextCounts = computePaxCounts(nextPasajeros);
       setItems((prevItems) =>
         prevItems.map((it) => {
-          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado'].includes(it.tipo)) {
+          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado', 'vehiculo'].includes(it.tipo)) {
             return recalculateItemWithPax(it, nextCounts);
           }
           return it;
@@ -1206,7 +1356,7 @@ export default function EditarCotizacion({
       const nextCounts = computePaxCounts(nextPasajeros);
       setItems((prevItems) =>
         prevItems.map((it) => {
-          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado'].includes(it.tipo)) {
+          if (['hotel', 'vuelo', 'ferry', 'excursion', 'paquete', 'traslado', 'vehiculo'].includes(it.tipo)) {
             return recalculateItemWithPax(it, nextCounts);
           }
           return it;
@@ -1775,6 +1925,7 @@ export default function EditarCotizacion({
           }}
         >
           <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src={imgCalendario} style={{ width: '24px', height: '24px' }} alt="" />
             <span>Fechas del Viaje</span>
           </h2>
 
@@ -1827,7 +1978,7 @@ export default function EditarCotizacion({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <h2 style={{ margin: 0, fontSize: '1.15rem', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <img src={imgUsuario} style={{ width: '18px', height: '18px' }} alt="" />
+                <img src={imgUsuarios} style={{ width: '24px', height: '24px' }} alt="" />
                 <span>Pasajeros Acompañantes ({pasajeros.length})</span>
                 <button
                   type="button"
@@ -2327,6 +2478,7 @@ export default function EditarCotizacion({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h2 style={{ margin: 0, fontSize: '1.15rem', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={imgProductos} style={{ width: '24px', height: '24px' }} alt="" />
               <span>Servicios de la Cotización</span>
             </h2>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.8125rem', color: '#CBD5E1' }}>
@@ -2340,59 +2492,85 @@ export default function EditarCotizacion({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             {isServicesLocked ? (
-              <>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '6px 14px',
-                    background: 'rgba(239, 68, 68, 0.12)',
-                    border: '1px solid rgba(239, 68, 68, 0.35)',
-                    borderRadius: '8px',
-                    color: '#FCA5A5',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminCode('');
+                  setUnlockError('');
+                  setShowUnlockModal(true);
+                }}
+                onMouseEnter={() => setIsLockHovered(true)}
+                onMouseLeave={() => setIsLockHovered(false)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '7px 16px',
+                  minWidth: '185px',
+                  borderRadius: '8px',
+                  border: isLockHovered
+                    ? '1px solid #10B981'
+                    : '1px solid rgba(239, 68, 68, 0.45)',
+                  background: isLockHovered
+                    ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(5, 150, 105, 0.28))'
+                    : 'rgba(239, 68, 68, 0.12)',
+                  color: isLockHovered ? '#6EE7B7' : '#FCA5A5',
+                  fontSize: '0.8125rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: isLockHovered
+                    ? '0 0 14px rgba(16, 185, 129, 0.35)'
+                    : '0 2px 8px rgba(239, 68, 68, 0.15)',
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+                title={isLockHovered ? 'Haga clic para ingresar código de administrador y desbloquear' : 'Servicios bloqueados por venta confirmada'}
+              >
+                {isLockHovered ? (
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      transform: 'rotate(-4deg)',
+                      transition: 'transform 0.25s ease',
+                    }}
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path
+                      d="M7 11V7a5 5 0 0 1 9.9-1"
+                      style={{
+                        transform: 'translateY(-2px)',
+                        transformOrigin: '7px 11px',
+                        transition: 'transform 0.25s ease',
+                      }}
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      transition: 'transform 0.25s ease',
+                    }}
+                  >
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
-                  Servicios Bloqueados
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAdminCode('');
-                    setUnlockError('');
-                    setShowUnlockModal(true);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #F59E0B',
-                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25))',
-                    color: '#FDE68A',
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.2)',
-                    transition: 'all 0.2s ease',
-                  }}
-                  title="Ingresar código de administrador para habilitar edición temporal por 24 horas"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-                  </svg>
-                  Desbloquear edición con código
-                </button>
-              </>
+                )}
+                <span>{isLockHovered ? 'Desbloquear' : 'Servicios Bloqueados'}</span>
+              </button>
             ) : (
               <>
                 {isConfirmed && desbloqueoInfo.is_desbloqueado && (
@@ -2579,7 +2757,7 @@ export default function EditarCotizacion({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <h2 style={{ margin: 0, fontSize: '1.15rem', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span></span>
+                <img src={imgAbono} style={{ width: '24px', height: '24px' }} alt="" />
                 <span>Pagos Abonados</span>
               </h2>
               <p style={{ margin: '4px 0 0 0', fontSize: '0.8125rem', color: '#94A3B8' }}>
@@ -2897,12 +3075,11 @@ export default function EditarCotizacion({
           maxWidth="460px"
         >
           <form onSubmit={handleUnlockServices} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '10px', padding: '12px 14px' }}>
-              <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>🔐</span>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#0bd1f51a', border: '1px solid rgba(11, 204, 245, 0.3)', borderRadius: '10px', padding: '12px 14px' }}>
               <div style={{ fontSize: '0.84rem', color: '#CBD5E1', lineHeight: 1.45 }}>
-                <strong style={{ color: '#FCD34D' }}>Desbloqueo temporal por 24 horas</strong>
+                <strong style={{ color: 'rgb(77 213 252)' }}>Desbloqueo por 24H</strong>
                 <p style={{ margin: '4px 0 0 0' }}>
-                  Esta venta se encuentra asegurada. Ingrese el código de autorización o contraseña de un Administrador para habilitar la adición, modificación y eliminación de productos.
+                  Ingrese el código de autorización de un Administrador para habilitar la adición, modificación y eliminación de productos.
                 </p>
               </div>
             </div>
@@ -2915,14 +3092,14 @@ export default function EditarCotizacion({
                   justifyContent: 'space-between',
                   padding: '8px 12px',
                   background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px dashed rgba(245, 158, 11, 0.4)',
+                  border: '1px dashed rgba(11, 204, 245, 0.3)',
                   borderRadius: '8px',
                   fontSize: '0.8rem',
                 }}
               >
                 <div>
-                  <span style={{ color: '#94A3B8' }}>Código diario (Admin): </span>
-                  <strong style={{ color: '#FCD34D', fontFamily: 'monospace' }}>{dailyAdminCode}</strong>
+                  <span style={{ color: '#c5d4e8' }}>Código diario (Admin): </span>
+                  <strong style={{ color: '#fff', fontFamily: 'monospace' }}>{dailyAdminCode}</strong>
                 </div>
                 <button
                   type="button"
@@ -2937,7 +3114,6 @@ export default function EditarCotizacion({
                     cursor: 'pointer',
                     fontSize: '0.75rem',
                     fontWeight: 600,
-                    textDecoration: 'underline',
                   }}
                 >
                   Usar mi código
@@ -2947,7 +3123,7 @@ export default function EditarCotizacion({
 
             <div>
               <label className="erp-label" style={{ marginBottom: '6px' }}>
-                Código o Contraseña de Administrador <span style={{ color: '#EF4444' }}>*</span>
+                Código de Administrador <span style={{ color: '#EF4444' }}>*</span>
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -2984,7 +3160,15 @@ export default function EditarCotizacion({
                   }}
                   title={showAdminCode ? 'Ocultar código' : 'Mostrar código'}
                 >
-                  {showAdminCode ? '👁️' : '👁️‍🗨️'}
+                  {showAdminCode ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                   : 
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>}
                 </button>
               </div>
               {unlockError && (
@@ -2997,7 +3181,7 @@ export default function EditarCotizacion({
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
               <button
                 type="button"
-                className="btn-secondary"
+                className="btn-form-cancel"
                 disabled={unlocking}
                 onClick={() => {
                   setShowUnlockModal(false);
@@ -3009,14 +3193,10 @@ export default function EditarCotizacion({
               </button>
               <button
                 type="submit"
-                className="btn-accent"
+                className="btn-form-nxt"
                 disabled={unlocking || !adminCode.trim()}
-                style={{
-                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                  boxShadow: '0 2px 10px rgba(245, 158, 11, 0.3)',
-                }}
               >
-                {unlocking ? 'Validando...' : '🔓 Validar y Desbloquear'}
+                {unlocking ? 'Validando...' : 'Desbloquear'}
               </button>
             </div>
           </form>

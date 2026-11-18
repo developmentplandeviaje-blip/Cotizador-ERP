@@ -9,6 +9,11 @@ import imgTraslados from '../../assets/Traslados.svg';
 import imgExcursiones from '../../assets/Excursiones.svg';
 import imgPaquetes from '../../assets/Paqueteria.svg';
 import imgVehiculos from '../../assets/Vehiculos.svg';
+import imgCalendario from '../../assets/calendario-01.svg';
+import imgFinanciamiento from '../../assets/financiamiento.svg';
+import imgFinanciero from '../../assets/resumen-financiero.svg';
+import imgProductos from '../../assets/resumen-productos.svg';
+import imgUsuarios from '../../assets/Usuarios-01.svg';
 import imgAgregar from '../../assets/Agregar.svg';
 import Badge from '../common/Badge';
 import CustomSelect from '../common/CustomSelect';
@@ -2508,7 +2513,7 @@ export default function CotizacionTabContent({
           padding: '20px',
         }}>
           <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span></span> Fechas del Viaje
+            <img src={imgCalendario} style={{ width: '24px', height: '24px' }} alt="" /> Fechas del Viaje
           </h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
@@ -2600,7 +2605,7 @@ export default function CotizacionTabContent({
           {/* Header Row: Title & Batch Scanner */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', margin: '0 0 16px 0' }}>
             <h2 style={{ fontSize: '1rem', color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img src={imgUsuario} style={{ width: '18px', height: '18px' }} alt="" /> Pasajeros Acompañantes ({pasajeros.length})
+              <img src={imgUsuarios} style={{ width: '24px', height: '24px' }} alt="" /> Pasajeros Acompañantes ({pasajeros.length})
               <button
                 type="button"
                 onClick={() => setPaxCollapsed((c) => !c)}
@@ -4094,7 +4099,7 @@ export default function CotizacionTabContent({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
-              Resumen de Productos
+              <img src={imgProductos} style={{ width: '24px', height: '24px' }} alt="" /> Resumen de Productos
               <span style={{ color: '#60A5FA', fontWeight: '600', fontSize: '1.325rem' }}>  {items.length} </span>
             </h2>
 
@@ -4220,7 +4225,7 @@ export default function CotizacionTabContent({
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: 0 }}>
-                Financiamiento
+                <img src={imgFinanciamiento} style={{ width: '24px', height: '24px' }} alt="" /> Financiamiento
               </h2>
 
               <label style={{
@@ -4372,7 +4377,7 @@ export default function CotizacionTabContent({
           }}>
             <div>
               <h2 style={{ fontSize: '1.125rem', color: '#FFF', margin: '0 0 16px 0' }}>
-                Resumen Financiero
+                <img src={imgFinanciero} style={{ width: '24px', height: '24px' }} alt="" /> Resumen Financiero
               </h2>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

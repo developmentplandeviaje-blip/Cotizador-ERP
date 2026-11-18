@@ -321,17 +321,6 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
           {openMenus.ventas && (
             <div className="submenu-container" style={submenuContainerStyle}>
               <button
-                title={isCollapsed ? 'Registro de Cotizaciones' : undefined} onClick={() => onNavigate('ventas_cotizaciones')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('ventas_cotizaciones') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <span style={{ fontSize: '18px', width: '25px', textAlign: 'center', display: 'inline-block' }}>📋</span>
-                <span className="nav-text">Cotizaciones</span>
-              </button>
-
-              <button
                 title={isCollapsed ? 'Ventas Agencia' : undefined} onClick={() => onNavigate('ventas_agencia')}
                 style={{
                   ...subnavButtonStyle,
@@ -371,6 +360,17 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   style={{ width: '25px', height: '25px', objectFit: 'contain' }}
                 />
                 <span className="nav-text">Aliados</span>
+              </button>
+
+              <button
+                title={isCollapsed ? 'Registro de Cotizaciones' : undefined} onClick={() => onNavigate('ventas_cotizaciones')}
+                style={{
+                  ...subnavButtonStyle,
+                  color: isRouteActive('ventas_cotizaciones') ? '#E87217' : '#FFFFFF',
+                }}
+              >
+                <span style={{ fontSize: '18px', width: '25px', textAlign: 'center', display: 'inline-block' }}>📋</span>
+                <span className="nav-text">Cotizaciones</span>
               </button>
             </div>
           )}
@@ -652,14 +652,14 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             margin: '12px 14px 4px 14px',
             padding: '10px 12px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.12), rgba(217, 119, 6, 0.16))',
-            border: '1px solid rgba(245, 158, 11, 0.35)',
+            background: 'rgba(11, 209, 245, 0.1)',
+            border: '1px solid rgba(11, 204, 245, 0.41)',
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '0.72rem', color: '#FCD34D', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span>🔐</span> Código del Día
+            <span style={{ fontSize: '0.72rem', color: 'rgb(77 213 252)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Código del Día
             </span>
             <span style={{ fontSize: '0.65rem', color: '#CBD5E1', opacity: 0.85 }}>
               24h
@@ -674,7 +674,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                 color: '#FFFFFF',
                 letterSpacing: '1px',
                 fontFamily: 'monospace',
-                background: 'rgba(0, 0, 0, 0.35)',
+                background: 'rgb(44, 113, 191, 0.35)',
                 padding: '4px 8px',
                 borderRadius: '6px',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -693,8 +693,8 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                 gap: '4px',
                 padding: '5px 10px',
                 borderRadius: '6px',
-                border: '1px solid #F59E0B',
-                background: copiedDailyCode ? '#10B981' : 'linear-gradient(135deg, #F59E0B, #D97706)',
+                border: '1px solid #2563eb',
+                background: copiedDailyCode ? '#10B981' : 'linear-gradient(135deg, rgb(11, 88, 245), rgb(6, 61, 217))',
                 color: '#FFFFFF',
                 fontSize: '0.72rem',
                 fontWeight: 700,
@@ -703,7 +703,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               }}
               title="Copiar código para compartirlo"
             >
-              {copiedDailyCode ? '✓ Copiado' : 'Copiar'}
+              {copiedDailyCode ? 'Copiado' : 'Copiar'}
             </button>
           </div>
           <div style={{ fontSize: '0.65rem', color: '#94A3B8', marginTop: '6px' }}>
@@ -722,8 +722,8 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               width: '42px',
               height: '42px',
               borderRadius: '10px',
-              border: '1px solid #F59E0B',
-              background: 'rgba(245, 158, 11, 0.2)',
+              border: '1px solid rgba(11, 204, 245, 0.3)',
+              background: '#0bd1f51a',
               color: '#FCD34D',
               fontSize: '1.2rem',
               display: 'flex',
@@ -734,7 +734,6 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             }}
             title={`Código del Día: ${dailyCodeData.codigo} (Haga clic para copiar)`}
           >
-            🔐
           </button>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
+import CustomNumberInput from '../../common/CustomNumberInput';
 import axios from 'axios';
 import { handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
@@ -277,14 +278,13 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
             <div>
               <label className="erp-label">Costo Neto (USD) <span className="req">*</span></label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
-                onInput={handlePriceInputKeyClamp}
-                className="erp-input"
+              <CustomNumberInput
                 placeholder="0.00"
+                step={0.01}
+                min={0}
+                max={99999.99}
+                allowDecimals
+                onInput={handlePriceInputKeyClamp}
                 value={costoAdulto}
                 onChange={(e) => handleCostoAdultoChange(e.target.value)}
                 required
@@ -292,30 +292,30 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
               />
             </div>
             <div>
-              <label className="erp-label">% Margen Ganancia</label>
-              <input
-                type="number"
-                step="0.01"
-                className="erp-input"
-                placeholder="0.00%"
-                value={porcentajeAdulto}
-                onChange={(e) => handlePorcentajeAdultoChange(e.target.value)}
+              <label className="erp-label">Precio Venta (USD) <span className="req">*</span></label>
+              <CustomNumberInput
+                placeholder="0.00"
+                step={0.01}
+                min={0}
+                max={99999.99}
+                allowDecimals
+                onInput={handlePriceInputKeyClamp}
+                value={precioAdulto}
+                onChange={(e) => handlePrecioAdultoChange(e.target.value)}
+                required
                 disabled={isSubmitting}
               />
             </div>
             <div>
-              <label className="erp-label">Precio Venta (USD) <span className="req">*</span></label>
+              <label className="erp-label">% Margen Ganancia</label>
               <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
-                onInput={handlePriceInputKeyClamp}
+                type="text"
+                readOnly
                 className="erp-input"
-                placeholder="0.00"
-                value={precioAdulto}
-                onChange={(e) => handlePrecioAdultoChange(e.target.value)}
-                required
+                style={{ opacity: 0.7 }}
+                placeholder="0.00%"
+                value={porcentajeAdulto}
+                onChange={(e) => handlePorcentajeAdultoChange(e.target.value)}
                 disabled={isSubmitting}
               />
             </div>
@@ -336,14 +336,13 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
             <div>
               <label className="erp-label">Costo Neto (USD) <span className="req">*</span></label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
-                onInput={handlePriceInputKeyClamp}
-                className="erp-input"
+              <CustomNumberInput
                 placeholder="0.00"
+                step={0.01}
+                min={0}
+                max={99999.99}
+                allowDecimals
+                onInput={handlePriceInputKeyClamp}
                 value={costoNino}
                 onChange={(e) => handleCostoNinoChange(e.target.value)}
                 required
@@ -351,30 +350,30 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
               />
             </div>
             <div>
-              <label className="erp-label">% Margen Ganancia</label>
-              <input
-                type="number"
-                step="0.01"
-                className="erp-input"
-                placeholder="0.00%"
-                value={porcentajeNino}
-                onChange={(e) => handlePorcentajeNinoChange(e.target.value)}
+              <label className="erp-label">Precio Venta (USD) <span className="req">*</span></label>
+              <CustomNumberInput
+                placeholder="0.00"
+                step={0.01}
+                min={0}
+                max={99999.99}
+                allowDecimals
+                onInput={handlePriceInputKeyClamp}
+                value={precioNino}
+                onChange={(e) => handlePrecioNinoChange(e.target.value)}
+                required
                 disabled={isSubmitting}
               />
             </div>
             <div>
-              <label className="erp-label">Precio Venta (USD) <span className="req">*</span></label>
+              <label className="erp-label">% Margen Ganancia</label>
               <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
-                onInput={handlePriceInputKeyClamp}
+                type="text"
+                readOnly
                 className="erp-input"
-                placeholder="0.00"
-                value={precioNino}
-                onChange={(e) => handlePrecioNinoChange(e.target.value)}
-                required
+                style={{ opacity: 0.7 }}
+                placeholder="0.00%"
+                value={porcentajeNino}
+                onChange={(e) => handlePorcentajeNinoChange(e.target.value)}
                 disabled={isSubmitting}
               />
             </div>
@@ -445,14 +444,13 @@ export default function ExcursionModal({ isOpen, onClose, onSaveSuccess, excursi
           {tasaPortuariaStatus && (
             <div style={{ marginTop: '16px', maxWidth: '200px' }}>
               <label className="erp-label" style={{ fontSize: '0.8125rem' }}>Valor de la Tasa:</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="99999.99"
-                onInput={handlePriceInputKeyClamp}
-                className="erp-input"
+              <CustomNumberInput
                 placeholder="0.00"
+                step={0.01}
+                min={0}
+                max={99999.99}
+                allowDecimals
+                onInput={handlePriceInputKeyClamp}
                 value={tasaPortuariaMonto}
                 onChange={(e) => setTasaPortuariaMonto(formatPrecioCosto(e.target.value))}
                 disabled={isSubmitting}

@@ -2,18 +2,27 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
 import Badge from '../../common/Badge';
+import CustomNumberInput from '../../common/CustomNumberInput';
 import { showToast } from '../../../utils/toast';
 import { formatEmail, validateEmail } from '../../../utils/validation';
+import imgHoteles from '../../../assets/Hoteles.svg';
+import imgAerolineas from '../../../assets/Aerolineas.svg';
+import imgTraslados from '../../../assets/Traslados.svg';
+import imgExcursiones from '../../../assets/Excursiones.svg';
+import imgPaquetes from '../../../assets/Paqueteria.svg';
+import imgVehiculos from '../../../assets/Vehiculos.svg';
+import imgFerrys from '../../../assets/ferrys-01.svg';
+import imgAgregar from '../../../assets/Agregar.svg';
 
 const SERVICIOS = [
-  { id: 'hotel', label: 'Hotel', icon: '🏨' },
-  { id: 'ferry', label: 'Ferry', icon: '⛴️' },
-  { id: 'vuelo', label: 'Vuelo', icon: '✈️' },
-  { id: 'excursion', label: 'Excursión', icon: '🧗' },
-  { id: 'vehiculo', label: 'Vehículo', icon: '🚗' },
-  { id: 'traslado', label: 'Traslado', icon: '🚐' },
-  { id: 'paquete', label: 'Paquete', icon: '📦' },
-  { id: 'otro', label: 'Otro', icon: '🧩' },
+  { id: 'hotel', label: 'Hotel', icon: imgHoteles },
+  { id: 'ferry', label: 'Ferry', icon: imgFerrys },
+  { id: 'vuelo', label: 'Vuelo', icon: imgAerolineas },
+  { id: 'excursion', label: 'Excursión', icon: imgExcursiones },
+  { id: 'vehiculo', label: 'Vehículo', icon: imgVehiculos },
+  { id: 'traslado', label: 'Traslado', icon: imgTraslados },
+  { id: 'paquete', label: 'Paquete', icon: imgPaquetes },
+  { id: 'otro', label: 'Otro', icon: imgAgregar },
 ];
 
 const DEFAULT_COMISIONES = {
@@ -450,26 +459,19 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
                         gap: '6px',
                       }}
                     >
-                      <span style={{ fontSize: '0.8125rem', color: '#E2E8F0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{srv.icon}</span>
+                      <span style={{ fontSize: '0.8125rem', color: '#E2E8F0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img src={srv.icon} alt={srv.label} style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
                         <span>{srv.label}</span>
                       </span>
                       <div style={{ position: 'relative' }}>
-                        <input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="100"
+                        <CustomNumberInput
+                          step={0.01}
+                          min={0}
+                          max={ 100}
+                          maxDigits={3}
+                          allowDecimals
                           value={comisiones[srv.id] !== undefined ? comisiones[srv.id] : 0}
                           onChange={(e) => handleComisionChange(srv.id, e.target.value)}
-                          className="erp-input"
-                          style={{
-                            width: '100%',
-                            paddingRight: '28px',
-                            textAlign: 'right',
-                            fontWeight: 600,
-                            color: '#E87217',
-                          }}
                         />
                         <span
                           style={{
@@ -498,10 +500,17 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
                   <button
                     type="button"
                     onClick={() => setFormStep(1)}
-                    className="btn-form-cancel"
-                    style={{ marginRight: '8px' }}
+                    style={{ marginRight: '8px', 
+                      background: 'none',
+                      border: 'none',
+                      color: '#60A5FA',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
                   >
-                    ← Volver a Datos
                   </button>
                 )}
               </div>

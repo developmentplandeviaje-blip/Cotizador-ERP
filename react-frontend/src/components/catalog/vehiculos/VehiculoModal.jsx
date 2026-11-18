@@ -3,6 +3,7 @@ import axios from 'axios';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
+import CustomNumberInput from '../../common/CustomNumberInput';
 import { showToast } from '../../../utils/toast';
 import { handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
@@ -427,41 +428,40 @@ export default function VehiculoModal({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                   <div>
                     <label className="erp-label">Costo ($)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="99999.99"
-                      onInput={handlePriceInputKeyClamp}
-                      className="erp-input"
+                    <CustomNumberInput
                       placeholder="0.00"
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      onInput={handlePriceInputKeyClamp}
                       value={costo}
                       onChange={(e) => handleCostoChange(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="erp-label">Ganancia (%)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      className="erp-input"
-                      placeholder="%"
-                      value={porcentaje}
-                      onChange={(e) => handlePorcentajeChange(e.target.value)}
+                    <label className="erp-label">Precio ($)</label>
+                    <CustomNumberInput
+                      placeholder="0.00"
+                      step={0.01}
+                      min={0}
+                      max={99999.99}
+                      allowDecimals
+                      onInput={handlePriceInputKeyClamp}
+                      value={precio}
+                      onChange={(e) => handlePrecioChange(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="erp-label">Precio ($)</label>
+                    <label className="erp-label">Ganancia (%)</label>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="99999.99"
-                      onInput={handlePriceInputKeyClamp}
+                      type="text"
+                      readOnly
                       className="erp-input"
-                      placeholder="0.00"
-                      value={precio}
-                      onChange={(e) => handlePrecioChange(e.target.value)}
+                      style={{ opacity: 0.7 }}
+                      placeholder="0.00%"
+                      value={porcentaje}
+                      onChange={(e) => handlePorcentajeChange(e.target.value)}
                     />
                   </div>
                 </div>

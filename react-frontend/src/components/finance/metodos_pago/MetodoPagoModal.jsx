@@ -2,6 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Modal from '../../common/Modal';
 import CustomSelect from '../../common/CustomSelect';
+import CustomNumberInput from '../../common/CustomNumberInput';
+import imgBancaria from '../../../assets/cuenta-bancaria.svg';
+import imgDigital from '../../../assets/cuenta-digital.svg';
+import imgEfectivo from '../../../assets/efectivo.svg';
 import { formatEmail, validateEmail, formatTelefono, formatCedula, handlePriceInputKeyClamp, formatPrecioCosto } from '../../../utils/validation';
 
 const LOGOS = [
@@ -351,9 +355,9 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                   {[
-                    { id: 'banco', label: '🏦 Cuenta Bancaria' },
-                    { id: 'digital', label: '💳 Pasarela / Digital' },
-                    { id: 'efectivo', label: '💵 Efectivo' },
+                    { id: 'banco', icon: imgBancaria, label: 'Cuenta Bancaria', width: '18px', height: '18px' },
+                    { id: 'digital', icon: imgDigital, label: 'Pasarela / Digital', width: '18px', height: '18px' },
+                    { id: 'efectivo', icon: imgEfectivo, label: 'Efectivo', width: '18px', height: '18px' },
                   ].map((opt) => (
                     <button
                       key={opt.id}
@@ -369,9 +373,24 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                         fontSize: '0.875rem',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
                       }}
                     >
-                      {opt.label}
+                      {opt.icon && (
+                        <img
+                          src={opt.icon}
+                          alt={opt.label}
+                          style={{
+                            width: opt.width || '18px',
+                            height: opt.height || '18px',
+                            objectFit: 'contain',
+                          }}
+                        />
+                      )}
+                      <span>{opt.label}</span>
                     </button>
                   ))}
                 </div>
@@ -488,7 +507,7 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                   }}
                 >
                   <h4 style={{ margin: 0, fontSize: '0.875rem', color: '#E87217', fontWeight: 600 }}>
-                    🏦 Datos Bancarios y Pago Móvil
+                    <img src={imgBancaria} alt="Bancaria" style={{ width: '18px', height: '18px', marginRight: '8px' }}/> Datos Bancarios y Pago Móvil
                   </h4>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
@@ -604,7 +623,8 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                   }}
                 >
                   <h4 style={{ margin: 0, fontSize: '0.875rem', color: '#E87217', fontWeight: 600 }}>
-                    💳 Configuración de Pasarela / Billetera Digital
+                    <img src={imgDigital} alt="Digital" style={{ width: '18px', height: '18px', marginRight: '8px' }} />
+                    Configuración de Pasarela / Billetera Digital
                   </h4>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
@@ -650,11 +670,12 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                       <label style={{ display: 'block', fontSize: '0.75rem', color: '#CBD5E1', marginBottom: '4px' }}>
                         Valor Comisión {tipoComision === 'porcentaje' ? '(%)' : '($)'}
                       </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
+
+                      <CustomNumberInput
+                        step={0.01}
+                        min={0}
                         max={tipoComision === 'porcentaje' ? 100 : 99999.99}
+                        allowDecimals
                         value={comisionValor}
                         onInput={tipoComision === 'porcentaje' ? (e => {
                           if (parseFloat(e.target.value) > 100) e.target.value = 100;
@@ -669,7 +690,6 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
                             setComisionValor(formatPrecioCosto(raw));
                           }
                         }}
-                        className="erp-input"
                         style={{ width: '100%' }}
                       />
                     </div>
@@ -711,17 +731,28 @@ export default function MetodoPagoModal({ isOpen, onClose, onSave, metodoToEdit 
 
               {/* Conditional Section: EFECTIVO */}
               {tipo === 'efectivo' && (
-                <div
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    color: '#94A3B8',
-                    fontSize: '0.8125rem',
-                  }}
-                >
-                  💵 <strong>Recepción en Efectivo:</strong> Este método no requiere número de cuenta bancaria ni correo de pasarela digital. Se emplea para pagos presenciales en taquilla u oficina comercial.
+                <div style={{ display: 'flex', flexDirection: 'row', gap: '8px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: '12px',
+                      padding: '16px',
+                      color: '#94A3B8',
+                      fontSize: '0.8125rem',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center'}}>
+                    <img src={imgEfectivo} alt="Efectivo" style={{ width: '32px', height: '32px' }} />
+                  </div>
+
+                  <div
+                    style={{
+                      
+                      color: '#94A3B8',
+                      fontSize: '0.8125rem',
+                    }}
+                  >
+                    <strong>Recepción en Efectivo:</strong> Este método no requiere número de cuenta bancaria ni correo de pasarela digital. Se emplea para pagos presenciales en taquilla u oficina comercial.
+                  </div>
+
                 </div>
               )}
             </div>

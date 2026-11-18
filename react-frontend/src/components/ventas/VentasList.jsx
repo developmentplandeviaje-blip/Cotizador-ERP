@@ -297,44 +297,6 @@ export default function VentasList({ tipo = 'agencia', user }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          {isAdminOrLeader && dailyCode && (
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '6px 14px',
-                background: 'rgba(245, 158, 11, 0.12)',
-                border: '1px solid rgba(245, 158, 11, 0.35)',
-                borderRadius: '10px',
-              }}
-            >
-              <span style={{ fontSize: '0.78rem', color: '#FCD34D', fontWeight: 600 }}>
-                🔐 Código Diario:
-              </span>
-              <strong style={{ color: '#FFFFFF', fontFamily: 'monospace', letterSpacing: '0.5px', fontSize: '0.9rem' }}>
-                {dailyCode}
-              </strong>
-              <button
-                type="button"
-                onClick={handleCopyCode}
-                style={{
-                  background: copiedCode ? '#10B981' : 'linear-gradient(135deg, #F59E0B, #D97706)',
-                  border: 'none',
-                  borderRadius: '6px',
-                  color: '#FFFFFF',
-                  padding: '3px 8px',
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                title="Copiar código diario para compartirlo"
-              >
-                {copiedCode ? '✓ Copiado' : 'Copiar'}
-              </button>
-            </div>
-          )}
 
           <button
             type="button"

@@ -476,7 +476,9 @@ class VentaService
         }
 
         foreach ($v->vehiculos as $veh) {
-            $monto = ((float)$veh->precio_diario * max(1, (int)$veh->dias) + (float)($veh->deposito_garantia ?? 0));
+            $unitPrice = (float)($veh->precio_unitario ?? $veh->precio_diario ?? 0);
+            $unitCost = (float)($veh->costo ?? $veh->costo_diario ?? 0);
+            $monto = ($unitPrice * max(1, (int)$veh->dias) + (float)($veh->deposito_garantia ?? 0));
             $totalUSD += $monto;
             $items[] = [
                 'uid' => 'vehiculo_' . $veh->id,
@@ -485,13 +487,13 @@ class VentaService
                 'titulo' => 'Vehículo: ' . ($veh->vehiculo?->marca ?? '') . ' ' . ($veh->vehiculo?->modelo ?? ''),
                 'detalle' => "{$veh->dias} días de alquiler",
                 'precio' => $monto,
-                'costo' => $hideCosts ? null : (float)($veh->costo_diario ?? 0),
+                'costo' => $hideCosts ? null : $unitCost,
                 'data' => [
                     'id' => $veh->id,
                     'id_vehiculo' => $veh->id_vehiculo,
                     'dias' => (int)$veh->dias,
-                    'precio_unitario' => (float)$veh->precio_diario,
-                    'costo' => (float)($veh->costo_diario ?? 0),
+                    'precio_unitario' => $unitPrice,
+                    'costo' => $unitCost,
                     'deposito_garantia' => (float)($veh->deposito_garantia ?? 0),
                 ]
             ];
@@ -1124,10 +1126,12 @@ class VentaService
                         VehiculoVenta::create([
                             'id_venta' => $venta->id,
                             'id_vehiculo' => $idVehiculo,
-                            'dias' => $veh['dias'] ?? 1,
-                            'precio_diario' => $veh['precio_diario'] ?? 0,
-                            'costo_diario' => $veh['costo_diario'] ?? 0,
-                            'deposito_garantia' => $veh['deposito_garantia'] ?? 0,
+                            'desde' => $veh['desde'] ?? now()->toDateTimeString(),
+                            'hasta' => $veh['hasta'] ?? now()->addDays((int)($veh['dias'] ?? 1))->toDateTimeString(),
+                            'dias' => (int)($veh['dias'] ?? 1),
+                            'precio_unitario' => (float)($veh['precio_unitario'] ?? ($veh['precio_diario'] ?? 0)),
+                            'costo' => (float)($veh['costo'] ?? ($veh['costo_diario'] ?? 0)),
+                            'observacion' => $veh['observacion'] ?? null,
                         ]);
                     }
                 }

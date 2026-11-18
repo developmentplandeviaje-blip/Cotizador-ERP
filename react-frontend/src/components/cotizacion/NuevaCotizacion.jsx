@@ -1011,7 +1011,7 @@ export default function NuevaCotizacion({ user }) {
                   user={user}
                   tipoScope="cotizaciones"
                   sectionLabel="Cotizaciones"
-                  backLabel="← Volver al registro"
+                  backLabel="← Volver"
                   onVolver={() => setActiveTabId('registro')}
                 />
               ) : (

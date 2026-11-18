@@ -4,6 +4,7 @@ import Modal from '../../common/Modal';
 import ConfirmationModal from '../../common/ConfirmationModal';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
+import CustomNumberInput from '../../common/CustomNumberInput';
 import TarifaModal from './TarifaModal';
 import axios from 'axios';
 
@@ -99,7 +100,7 @@ function AddHotelTipoModal({ isOpen, onClose, onCreated }) {
   );
 }
 
-export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit = null, isFreelancer = false, initialStep = 1, canManageHotelTypes = false }) {
+export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit = null, isFreelancer = false, initialStep = 1, initialHabitacionIndex = 0, canManageHotelTypes = false }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [tiposHotel, setTiposHotel] = useState(HOTEL_TIPOS_BASE_OPTIONS);
@@ -150,6 +151,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(initialStep);
+      setActiveHabitacionIndex(initialHabitacionIndex || 0);
       setTiposHotelError('');
       fetchUbicaciones();
       axios
@@ -672,8 +674,7 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                   <div>
                     <label className="erp-label">Desc. Al contado:</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <CustomSelect
-                        className="erp-select"
+                        <CustomSelect
                         style={{ minWidth: '110px' }}
                         value={hotelInfo.desc_contado_status ? '1' : '0'}
                         onChange={(e) => setHotelInfo({ ...hotelInfo, desc_contado_status: e.target.value === '1' })}
@@ -681,10 +682,8 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                         <option value="0">Inactivo</option>
                         <option value="1">Activo</option>
                       </CustomSelect>
-                      <input
-                        type="number"
+                      <CustomNumberInput
                         placeholder="Ej.: 10%"
-                        className="erp-input"
                         value={hotelInfo.desc_contado_monto}
                         onChange={(e) => setHotelInfo({ ...hotelInfo, desc_contado_monto: e.target.value })}
                         disabled={!hotelInfo.desc_contado_status}
@@ -696,7 +695,6 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                     <label className="erp-label">Desc. Divisas:</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <CustomSelect
-                        className="erp-select"
                         style={{ minWidth: '110px' }}
                         value={hotelInfo.desc_divisas_status ? '1' : '0'}
                         onChange={(e) => setHotelInfo({ ...hotelInfo, desc_divisas_status: e.target.value === '1' })}
@@ -704,10 +702,8 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
                         <option value="0">Inactivo</option>
                         <option value="1">Activo</option>
                       </CustomSelect>
-                      <input
-                        type="number"
+                      <CustomNumberInput
                         placeholder="Ej.: 10%"
-                        className="erp-input"
                         value={hotelInfo.desc_divisas_monto}
                         onChange={(e) => setHotelInfo({ ...hotelInfo, desc_divisas_monto: e.target.value })}
                         disabled={!hotelInfo.desc_divisas_status}
@@ -789,9 +785,11 @@ export default function HotelModal({ isOpen, onClose, onSaveSuccess, hotelToEdit
 
               <div>
                 <label className="erp-label">Posición:</label>
-                <input
-                  type="number"
-                  className="erp-input"
+                <CustomNumberInput
+                  min={0}
+                  max={999}
+                  maxDigits={3}
+                  width="100%"
                   value={currentHabitacion?.posicion || 1}
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 1;
