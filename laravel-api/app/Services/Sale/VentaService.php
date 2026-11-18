@@ -131,6 +131,12 @@ class VentaService
             ->groupBy('id_venta')
             ->pluck('total', 'id_venta');
 
+        $hotelesMoneda = DB::table('hotel_venta')
+            ->whereIn('id_venta', $ventaIds)
+            ->whereNotNull('moneda')
+            ->where('moneda', '!=', '')
+            ->pluck('moneda', 'id_venta');
+
         $vuelosSum = DB::table('vuelo_venta')
             ->whereIn('id_venta', $ventaIds)
             ->select('id_venta', DB::raw('SUM(precio_adulto * IF(adultos > 0, adultos, 1) + precio_nino * IFNULL(ninos, 0) + precio_infante * IFNULL(infantes, 0)) as total'))
@@ -301,6 +307,7 @@ class VentaService
                 'freelancer' => $freelancerData,
                 'pax_total' => max(1, (int)($v->personas_count ?? 1)),
                 'total_usd' => round($totalUSD, 2),
+                'moneda' => $hotelesMoneda[$vId] ?? 'USD',
                 'total_pagado' => round($totalPagado, 2),
                 'saldo_pendiente' => round($saldoPendiente, 2),
                 'estado_pago' => $estadoPago,
@@ -339,6 +346,7 @@ class VentaService
                 $h->hotel?->edad_adolescentes,
                 $hideCosts
             );
+            $moneda = !empty($h->moneda) && $h->moneda !== 'USD' ? $h->moneda : ($h->habitacion?->tarifas?->first()?->moneda ?? $h->moneda ?? 'USD');
             $monto = ($hotelData['precio_noche_adulto'] * max(1, (int)$hotelData['adultos'])
                 + $hotelData['precio_noche_adolescente'] * (int)($hotelData['adolescente'] ?? 0)
                 + $hotelData['precio_noche_nino'] * (int)($hotelData['ninos'] ?? 0)) * max(1, (int)$hotelData['noches']);
@@ -350,6 +358,7 @@ class VentaService
                 'titulo' => 'Hotel: ' . ($h->hotel?->nombre ?? 'Hotel'),
                 'detalle' => "{$hotelData['noches']} noches • Hab: " . ($h->tipo_habitacion ?? 'Estándar'),
                 'precio' => $monto,
+                'moneda' => $moneda,
                 'costo' => $hideCosts ? null : (
                     (float)($hotelData['costo_noche_adulto'] ?? 0) * max(1, (int)$hotelData['adultos'])
                     + (float)($hotelData['costo_noche_adolescente'] ?? 0) * (int)($hotelData['adolescente'] ?? 0)
@@ -359,6 +368,7 @@ class VentaService
                     'id' => $h->id,
                     'id_ubicacion' => $h->hotel?->id_ubicacion,
                     'tipo_habitacion' => $h->tipo_habitacion,
+                    'moneda' => $moneda,
                     'fecha_checkin' => $h->fecha_checkin ? substr($h->fecha_checkin, 0, 10) : null,
                     'fecha_checkout' => $h->fecha_checkout ? substr($h->fecha_checkout, 0, 10) : null,
                 ])
@@ -557,10 +567,19 @@ class VentaService
         $totalPagado = (float)$v->pagos->sum('monto_usd');
         $saldoPendiente = max(0, $totalUSD - $totalPagado);
 
+        $totalesPorMoneda = [];
+        foreach ($items as $it) {
+            $m = $it['moneda'] ?? 'USD';
+            $totalesPorMoneda[$m] = round(($totalesPorMoneda[$m] ?? 0) + (float)($it['precio'] ?? 0), 2);
+        }
+        $monedaPrincipal = count($totalesPorMoneda) === 1 ? array_key_first($totalesPorMoneda) : (isset($totalesPorMoneda['EUR']) && !isset($totalesPorMoneda['USD']) ? 'EUR' : 'USD');
+
         return [
             'total_usd' => round($totalUSD, 2),
             'total_pagado' => round($totalPagado, 2),
             'saldo_pendiente' => round($saldoPendiente, 2),
+            'moneda_principal' => $monedaPrincipal,
+            'totales_por_moneda' => $totalesPorMoneda,
             'items' => $items,
         ];
     }
@@ -765,6 +784,7 @@ class VentaService
             'clientePrincipal',
             'personas',
             'hoteles.hotel',
+            'hoteles.habitacion.tarifas',
             'vuelos.aerolinea',
             'excursiones.excursion',
             'paquetes.paquete',
@@ -1018,6 +1038,7 @@ class VentaService
                             'id_hotel' => $idHotel,
                             'id_habitacion' => $hotelData['id_habitacion'] ?? 0,
                             'tipo' => $hotelData['tipo'] ?? 'Habitacion',
+                            'moneda' => $hotelData['moneda'] ?? $h['moneda'] ?? 'USD',
                             'noches' => $hotelData['noches'] ?? 1,
                             'adultos' => $hotelData['adultos'] ?? 0,
                             'adolescente' => $hotelData['adolescente'] ?? 0,

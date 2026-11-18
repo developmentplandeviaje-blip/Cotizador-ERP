@@ -30,7 +30,7 @@ import {
 import HotelAsociadoSelect from './HotelAsociadoSelect';
 import DocumentScannerButton from './DocumentScannerButton';
 import { showToast } from '../../utils/toast';
-import { normalizeHotelAdolescentPassengers } from '../../utils/quotePricing';
+import { normalizeHotelAdolescentPassengers, formatMontoMoneda, getCurrencySymbol } from '../../utils/quotePricing';
 import BatchDocumentScannerButton from './BatchDocumentScannerButton';
 import ConfirmationModal from '../common/ConfirmationModal';
 
@@ -1124,6 +1124,7 @@ export default function CotizacionTabContent({
       const t = selectedHabitacion.tarifas[0];
       setHotelForm(prev => ({
         ...prev,
+        moneda: t.moneda || 'USD',
         precio_noche_adulto: Number(t.precio_noche_adulto) > 0 ? t.precio_noche_adulto : '',
         precio_noche_adolescente: Number(t.precio_noche_adolescente) > 0 ? t.precio_noche_adolescente : '',
         precio_noche_nino: Number(t.precio_noche_nino) > 0 ? t.precio_noche_nino : '',
@@ -1287,15 +1288,18 @@ export default function CotizacionTabContent({
       const subtotalNinos = pax.ninos * hotelForm.precio_noche_nino * nochesEstadia;
       const totalItem = subtotalAdultos + subtotalAdol + subtotalNinos;
 
+      const tarifaMoneda = hotelForm.moneda || selectedHabitacion?.tarifas?.[0]?.moneda || 'USD';
       return {
         uid,
         tipo: 'hotel',
         titulo: `${hotelObj.nombre || 'Hotel'} (${habObj.habitacion || 'Habitación'})`,
         detalle: `${diasEstadia}D / ${nochesEstadia}N • ${hotelPricing.adultos} adultos(ADL)${hotelPricing.adolescente ? `, ${hotelPricing.adolescente} adolescentes(YNG)` : ''}, ${pax.ninos} niños(CHD), ${pax.infantes} infantes(INF)`,
         precio: totalItem,
+        moneda: tarifaMoneda,
         data: {
           id_hotel: Number(hotelForm.id_hotel),
           id_habitacion: Number(hotelForm.id_habitacion || 0),
+          moneda: tarifaMoneda,
           noches: nochesEstadia,
           adultos: hotelPricing.adultos,
           adolescente: hotelPricing.adolescente,
@@ -1878,6 +1882,22 @@ export default function CotizacionTabContent({
   const subtotalUSD = useMemo(() => {
     return items.reduce((acc, curr) => acc + Number(curr.precio || 0), 0);
   }, [items]);
+
+  const totalsByCurrency = useMemo(() => {
+    const map = {};
+    items.forEach(it => {
+      const curr = (it.moneda || it.data?.moneda || 'USD').toUpperCase().trim();
+      map[curr] = (map[curr] || 0) + Number(it.precio || 0);
+    });
+    return map;
+  }, [items]);
+
+  const currencyKeys = useMemo(() => Object.keys(totalsByCurrency), [totalsByCurrency]);
+  const primaryCurrency = useMemo(() => {
+    if (currencyKeys.length === 1) return currencyKeys[0];
+    if (currencyKeys.includes('EUR') && !currencyKeys.includes('USD')) return 'EUR';
+    return 'USD';
+  }, [currencyKeys]);
 
   const descuentoReferidoMonto = 0.00; // Pasivo US-01
 
@@ -4158,7 +4178,7 @@ export default function CotizacionTabContent({
                         </td>
                       )}
                       <td style={{ padding: '12px', textAlign: 'right', fontWeight: '700', color: '#F8FAFC' }}>
-                        ${Number(item.precio || 0).toFixed(2)}
+                        {formatMontoMoneda(item.precio, item.moneda || item.data?.moneda || 'USD')}
                       </td>
                       <td style={{ padding: '12px', textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
@@ -4383,7 +4403,11 @@ export default function CotizacionTabContent({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b9c8ddff', fontSize: '0.9375rem' }}>
                   <span>Subtotal Servicios:</span>
-                  <span style={{ color: '#FFF', fontWeight: '600' }}>${subtotalUSD.toFixed(2)}</span>
+                  <span style={{ color: '#FFF', fontWeight: '600' }}>
+                    {currencyKeys.length > 1
+                      ? currencyKeys.map(c => formatMontoMoneda(totalsByCurrency[c], c)).join(' + ')
+                      : formatMontoMoneda(subtotalUSD, primaryCurrency)}
+                  </span>
                 </div>
 
                 {referidoData && (
@@ -4436,7 +4460,9 @@ export default function CotizacionTabContent({
                   <span style={{ fontSize: '1.125rem', color: '#FFF', fontWeight: '700' }}>Total a Pagar:</span>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#E87217' }}>
-                      ${totalUSD.toFixed(2)}
+                      {currencyKeys.length > 1
+                        ? currencyKeys.map(c => formatMontoMoneda(totalsByCurrency[c], c)).join(' + ')
+                        : formatMontoMoneda(totalUSD, primaryCurrency)}
                     </div>
                     {/*<div style={{ fontSize: '0.8125rem', color: '#b9c8ddff' }}>
                       Bs. {totalVES} (Ref. BCV)

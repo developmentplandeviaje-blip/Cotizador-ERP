@@ -17,6 +17,7 @@ class HotelVenta extends Model
         'id_hotel',
         'id_habitacion',
         'tipo',
+        'moneda',
         'noches',
         'adultos',
         'adolescente',

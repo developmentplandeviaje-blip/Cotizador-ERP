@@ -16,3 +16,18 @@ export const normalizeHotelAdolescentPassengers = (data, hotel, hideCosts = fals
     adolescente: 0,
   };
 };
+
+export const formatMontoMoneda = (monto, moneda = 'USD') => {
+  const num = Number(monto || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const curr = String(moneda || 'USD').toUpperCase().trim();
+  if (curr === 'EUR') return `€${num} EUR`;
+  if (curr === 'VES' || curr === 'BS') return `Bs. ${num}`;
+  return `$${num} USD`;
+};
+
+export const getCurrencySymbol = (moneda = 'USD') => {
+  const curr = String(moneda || 'USD').toUpperCase().trim();
+  if (curr === 'EUR') return '€';
+  if (curr === 'VES' || curr === 'BS') return 'Bs.';
+  return '$';
+};

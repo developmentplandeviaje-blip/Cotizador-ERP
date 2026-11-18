@@ -55,6 +55,7 @@ function EditarProductoModalContent({
 
       setFormData({
         ...item.data,
+        moneda: item.moneda || item.data?.moneda || 'USD',
         precio: item.precio || 0,
         hotel_item_uid: item.hotel_item_uid || item.data?.hotel_item_uid || '',
         hotel_item_uids: Array.isArray(item.hotel_item_uids)
@@ -121,6 +122,7 @@ function EditarProductoModalContent({
       setFormData(prev => ({
         ...prev,
         id_habitacion: habId,
+        moneda: t.moneda || prev.moneda || 'USD',
         precio_noche_adulto: Number(t.precio_noche_adulto || 0),
         precio_noche_adolescente: Number(t.precio_noche_adolescente || 0),
         precio_noche_nino: Number(t.precio_noche_nino || 0),
@@ -299,8 +301,12 @@ function EditarProductoModalContent({
       finalData.precio = totalCalculado;
     }
 
+    const finalMoneda = formData.moneda || item.moneda || item.data?.moneda || 'USD';
+    finalData.moneda = finalMoneda;
+
     const updatedItem = {
       ...item,
+      moneda: finalMoneda,
       titulo: updatedTitulo,
       detalle: updatedDetalle,
       precio: totalCalculado,
@@ -308,6 +314,7 @@ function EditarProductoModalContent({
       hotel_item_uids: tipo === 'hotel' ? item.hotel_item_uids : (formData.hotel_item_uids || (formData.hotel_item_uid ? [formData.hotel_item_uid] : [])),
       data: {
         ...finalData,
+        moneda: finalMoneda,
         hotel_item_uid: tipo === 'hotel' ? item.data?.hotel_item_uid : (formData.hotel_item_uid || null),
         hotel_item_uids: tipo === 'hotel' ? item.data?.hotel_item_uids : (formData.hotel_item_uids || (formData.hotel_item_uid ? [formData.hotel_item_uid] : [])),
       },
@@ -439,7 +446,7 @@ function EditarProductoModalContent({
             <div style={{ gridColumnStart: 1, gridRowStart: 2, minWidth: 0 }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
                 <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
-                  <label className="erp-label" style={{ fontSize: '0.725rem', whiteSpace: 'nowrap' }}>Precio Noche ADT ($)</label>
+                  <label className="erp-label" style={{ fontSize: '0.725rem', whiteSpace: 'nowrap' }}>Precio Noche ADT ({formData.moneda || item.moneda || 'USD'})</label>
                   <CustomNumberInput
                     min={0}
                     max={99999.99}
@@ -454,7 +461,7 @@ function EditarProductoModalContent({
 
                 {(formData.adolescente ?? 0) > 0 && (
                   <div style={{ flex: '1 1 0', minWidth: '65px', display: 'flex', flexDirection: 'column' }}>
-                    <label className="erp-label" style={{ fontSize: '0.725rem', whiteSpace: 'nowrap' }}>Precio Noche Adol ($)</label>
+                    <label className="erp-label" style={{ fontSize: '0.725rem', whiteSpace: 'nowrap' }}>Precio Noche Adol ({formData.moneda || item.moneda || 'USD'})</label>
                     <CustomNumberInput
                       min={0}
                       max={99999.99}
@@ -473,7 +480,7 @@ function EditarProductoModalContent({
             <div style={{ gridColumnStart: 1, gridRowStart: 3, minWidth: 0 }}>
               {(formData.ninos ?? 0) > 0 && (
                 <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <label className="erp-label" style={{ fontSize: '0.725rem', whiteSpace: 'nowrap' }}>Precio Noche Niño ($)</label>
+                  <label className="erp-label" style={{ fontSize: '0.725rem', whiteSpace: 'nowrap' }}>Precio Noche Niño ({formData.moneda || item.moneda || 'USD'})</label>
                   <CustomNumberInput
                     min={0}
                     max={99999.99}

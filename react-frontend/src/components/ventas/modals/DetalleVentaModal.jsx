@@ -1,6 +1,7 @@
 import React from 'react';
 import Modal from '../../common/Modal';
 import Badge from '../../common/Badge';
+import { formatMontoMoneda } from '../../../utils/quotePricing';
 
 export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarPago }) {
   if (!isOpen || !venta) return null;
@@ -121,7 +122,7 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
           <div style={{ background: 'rgba(232, 114, 23, 0.1)', border: '1px solid rgba(232, 114, 23, 0.3)', borderRadius: '10px', padding: '12px 16px' }}>
             <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Total Venta</span>
             <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#E87217', marginTop: '2px' }}>
-              ${Number(venta.total_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatMontoMoneda(venta.total_usd, venta.moneda || 'USD')}
             </div>
           </div>
 
@@ -135,7 +136,7 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
           <div style={{ background: (venta.saldo_pendiente || 0) > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(148, 163, 184, 0.1)', border: `1px solid ${(venta.saldo_pendiente || 0) > 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(148, 163, 184, 0.3)'}`, borderRadius: '10px', padding: '12px 16px' }}>
             <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Saldo Pendiente</span>
             <div style={{ fontSize: '1.25rem', fontWeight: '800', color: (venta.saldo_pendiente || 0) > 0 ? '#F87171' : '#94A3B8', marginTop: '2px' }}>
-              ${Number(venta.saldo_pendiente || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatMontoMoneda(venta.saldo_pendiente, venta.moneda || 'USD')}
             </div>
           </div>
         </div>
@@ -176,7 +177,7 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
                     </div>
                   </div>
                   <div style={{ fontWeight: '700', color: '#E87217', fontSize: '0.9rem' }}>
-                    ${Number(it.precio || 0).toFixed(2)}
+                    {formatMontoMoneda(it.precio, it.moneda || it.data?.moneda || 'USD')}
                   </div>
                 </div>
               ))}

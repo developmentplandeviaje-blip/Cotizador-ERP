@@ -11,7 +11,7 @@ import { RegistrarPagoModal } from './modals';
 import { showToast } from '../../utils/toast';
 import { formatEmail, validateEmail, formatTelefono, formatCedula } from '../../utils/validation';
 import { PRODUCT_COLOR_MAP, PRODUCT_TABS } from '../cotizacion/cotizacionConstants';
-import { normalizeHotelAdolescentPassengers } from '../../utils/quotePricing';
+import { normalizeHotelAdolescentPassengers, formatMontoMoneda, getCurrencySymbol } from '../../utils/quotePricing';
 import imgSearch from '../../assets/lupa.svg';
 import imgUsuario from '../../assets/Usuario.svg';
 import imgCalendario from '../../assets/calendario-01.svg';
@@ -1460,6 +1460,22 @@ export default function EditarCotizacion({
     return items.reduce((acc, it) => acc + Number(it.precio || 0), 0);
   }, [items]);
 
+  const totalsByCurrency = useMemo(() => {
+    const map = {};
+    items.forEach(it => {
+      const curr = (it.moneda || it.data?.moneda || 'USD').toUpperCase().trim();
+      map[curr] = (map[curr] || 0) + Number(it.precio || 0);
+    });
+    return map;
+  }, [items]);
+
+  const currencyKeys = useMemo(() => Object.keys(totalsByCurrency), [totalsByCurrency]);
+  const primaryCurrency = useMemo(() => {
+    if (currencyKeys.length === 1) return currencyKeys[0];
+    if (currencyKeys.includes('EUR') && !currencyKeys.includes('USD')) return 'EUR';
+    return totales?.moneda_principal || 'USD';
+  }, [currencyKeys, totales]);
+
   const displayedTotal = useMemo(() => {
     if (isServicesLocked && totales) return totales.total_usd;
     return itemsTotalUSD;
@@ -1710,7 +1726,9 @@ export default function EditarCotizacion({
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
           <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Monto Total</span>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#E87217', marginTop: '4px' }}>
-            ${Number(displayedTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {currencyKeys.length > 1
+              ? currencyKeys.map(c => formatMontoMoneda(totalsByCurrency[c], c)).join(' + ')
+              : formatMontoMoneda(displayedTotal, primaryCurrency)}
           </div>
         </div>
 
@@ -1724,7 +1742,11 @@ export default function EditarCotizacion({
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
           <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Monto Pendiente</span>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: displayedSaldo > 0.01 ? '#F87171' : '#94A3B8', marginTop: '4px' }}>
-            ${Number(displayedSaldo).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {currencyKeys.length > 1
+              ? (totalPagado === 0
+                  ? currencyKeys.map(c => formatMontoMoneda(totalsByCurrency[c], c)).join(' + ')
+                  : formatMontoMoneda(displayedSaldo, 'USD'))
+              : formatMontoMoneda(displayedSaldo, primaryCurrency)}
           </div>
         </div>
       </div>
@@ -2659,7 +2681,7 @@ export default function EditarCotizacion({
                       {it.detalle || 'N/A'}
                     </td>
                     <td style={{ padding: '12px 16px', color: '#FFFFFF', fontWeight: 700, textAlign: 'right' }}>
-                      ${Number(it.precio || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatMontoMoneda(it.precio, it.moneda || it.data?.moneda || 'USD')}
                     </td>
                     {isServicesLocked ? (
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
@@ -2998,7 +3020,7 @@ export default function EditarCotizacion({
                 <li>Podrá seguir actualizando los datos de los pasajeros o añadir nuevos viajeros.</li>
               </ul>
               <p style={{ margin: 0 }}>
-                Total a confirmar: <strong>${Number(displayedTotal).toFixed(2)}</strong>
+                Total a confirmar: <strong>{currencyKeys.length > 1 ? currencyKeys.map(c => formatMontoMoneda(totalsByCurrency[c], c)).join(' + ') : formatMontoMoneda(displayedTotal, primaryCurrency)}</strong>
               </p>
             </div>
           }

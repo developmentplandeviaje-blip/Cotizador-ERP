@@ -248,7 +248,7 @@ class CotizacionService
                         'id_hotel' => $hotelData['id_hotel'],
                         'id_habitacion' => $hotelData['id_habitacion'] ?? 0,
                         'tipo' => $hotelData['tipo'] ?? 'Habitacion',
-
+                        'moneda' => $hotelData['moneda'] ?? $h['moneda'] ?? 'USD',
                         'noches' => $hotelData['noches'] ?? 1,
                         'adultos' => $hotelData['adultos'] ?? 0,
                         'adolescente' => $hotelData['adolescente'] ?? 0,
@@ -436,6 +436,7 @@ class CotizacionService
                 'clientePrincipal',
                 'personas',
                 'hoteles.hotel',
+                'hoteles.habitacion.tarifas',
                 'vuelos.aerolinea',
                 'excursiones.excursion',
                 'paquetes.paquete',
@@ -482,6 +483,7 @@ class CotizacionService
             'clientePrincipal',
             'personas',
             'hoteles.hotel',
+            'hoteles.habitacion.tarifas',
             'vuelos.aerolinea',
             'excursiones.excursion',
             'paquetes.paquete',
@@ -543,6 +545,7 @@ class CotizacionService
                     $h->hotel?->edad_adolescentes,
                     $user->level === 'Freelancer' || !empty($user->id_freelancer)
                 );
+                $moneda = !empty($h->moneda) && $h->moneda !== 'USD' ? $h->moneda : ($h->habitacion?->tarifas?->first()?->moneda ?? $h->moneda ?? 'USD');
                 $monto = ($hotelData['precio_noche_adulto'] * max(1, (int)$hotelData['adultos'])
                     + $hotelData['precio_noche_adolescente'] * (int)($hotelData['adolescente'] ?? 0)
                     + $hotelData['precio_noche_nino'] * (int)($hotelData['ninos'] ?? 0)) * max(1, (int)$hotelData['noches']);
@@ -552,7 +555,8 @@ class CotizacionService
                     'titulo' => 'Hotel: ' . ($h->hotel?->nombre ?? 'Hotel'),
                     'detalle' => "{$hotelData['noches']} noches • Habitación: " . ($h->tipo_habitacion ?? 'Estándar'),
                     'precio' => $monto,
-                    'data' => $hotelData,
+                    'moneda' => $moneda,
+                    'data' => array_merge($hotelData, ['moneda' => $moneda]),
                 ];
             }
 
@@ -650,6 +654,13 @@ class CotizacionService
             $totalUSD = max(0, $totalUSD - (float)($v->descuento_monto ?? 0));
             $totalPax = $v->personas->count();
 
+            $totalesPorMoneda = [];
+            foreach ($items as $it) {
+                $m = $it['moneda'] ?? 'USD';
+                $totalesPorMoneda[$m] = round(($totalesPorMoneda[$m] ?? 0) + (float)($it['precio'] ?? 0), 2);
+            }
+            $monedaPrincipal = count($totalesPorMoneda) === 1 ? array_key_first($totalesPorMoneda) : (isset($totalesPorMoneda['EUR']) && !isset($totalesPorMoneda['USD']) ? 'EUR' : 'USD');
+
             $lista[] = [
                 'id' => $v->id,
                 'uid' => 'venta_' . $v->id,
@@ -658,6 +669,8 @@ class CotizacionService
                 'numero_ficha' => $v->numero_ficha,
                 'fecha' => $v->fecha_creacion,
                 'asesor' => $this->nombreAsesor($v->user),
+                'moneda' => $monedaPrincipal,
+                'totales_por_moneda' => $totalesPorMoneda,
                 'cliente' => [
                     'nombres' => $clienteP?->nombres ?? '',
                     'apellidos' => $clienteP?->apellidos ?? '',

@@ -7,6 +7,7 @@ import Pagination from '../common/Pagination';
 import { DetalleVentaModal, RegistrarPagoModal } from './modals';
 import EditarCotizacion from './EditarCotizacion';
 import { showToast } from '../../utils/toast';
+import { formatMontoMoneda } from '../../utils/quotePricing';
 import imgSearch from '../../assets/lupa.svg';
 import imgpago from '../../assets/cash-stack.svg';
 import imgconfirmar from '../../assets/check-all.svg';
@@ -794,13 +795,13 @@ export default function VentasList({ tipo = 'agencia', user }) {
 
                       {/* Total Venta */}
                       <td style={{ padding: '14px 18px', textAlign: 'right', fontWeight: '700', color: '#E87217', fontSize: '0.925rem' }}>
-                        ${Number(v.total_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatMontoMoneda(v.total_usd, v.moneda || 'USD')}
                       </td>
 
                       {/* Abono / Pendiente */}
                       <td style={{ padding: '14px 18px', textAlign: 'right' }}>
                         <div style={{ fontSize: '0.8rem', color: '#4ADE80', fontWeight: '600' }}>
-                          Abono: ${Number(v.total_pagado || 0).toFixed(2)}
+                          Abono: {formatMontoMoneda(v.total_pagado, v.moneda || 'USD')}
                         </div>
                         <div
                           style={{
@@ -810,7 +811,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                             marginTop: '2px',
                           }}
                         >
-                          Pendiente: ${Number(saldo).toFixed(2)}
+                          Pendiente: {formatMontoMoneda(saldo, v.moneda || 'USD')}
                         </div>
                       </td>
 
