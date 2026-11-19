@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\v1\Finance\MetodoPagoController;
 
 // Public routes
 Route::post('/v1/auth/login', [AuthController::class, 'login']);
+Route::get('/v1/public/metodos-pago/{user}/{tipo?}', [MetodoPagoController::class, 'publicMetodosByAsesor'])
+    ->where('tipo', '.*');
 
 Route::get('/test', function () {
     return response()->json(['message' => '¡Conexión exitosa desde Laravel!']);
@@ -58,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/v1/catalog/tarifas-vehiculo/{tarifa}', [VehiculoTarifaController::class, 'destroy']);
 
     // Catalog: Traslados
+    Route::patch('/v1/catalog/traslados/{traslado}/toggle-destacado', [TrasladoController::class, 'toggleDestacado']);
     Route::apiResource('/v1/catalog/traslados', TrasladoController::class)->parameters([
         'traslados' => 'traslado'
     ]);
@@ -146,6 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/ventas/{id}', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'show']);
     Route::put('/v1/ventas/{id}', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'update']);
     Route::patch('/v1/ventas/{id}/confirmar', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'confirmar']);
+    Route::patch('/v1/ventas/{id}/nota-credito', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'convertirNotaCredito']);
     Route::post('/v1/ventas/{id}/desbloquear', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'desbloquearEdicion']);
     Route::post('/v1/ventas/{id}/pagos', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'registrarPago']);
     Route::put('/v1/ventas/{id}/pagos/{pagoId}', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'actualizarPago']);

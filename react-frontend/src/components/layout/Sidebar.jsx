@@ -274,6 +274,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
         {/* 1. Dashboard */}
         <button
+          className="liquid-glass-btn"
           onClick={() => onNavigate('dashboard')}
           style={{
             ...navButtonStyle,
@@ -289,6 +290,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
         {/* 2. Nueva Cotización */}
         <button
+          className="liquid-glass-btn"
           title={isCollapsed ? 'Nueva Cotización' : undefined} onClick={() => onNavigate('nueva_cotizacion')}
           style={{
             ...navButtonStyle,
@@ -305,6 +307,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         {/* 3. Ventas (Desplegable) */}
         <div>
           <button
+            className="liquid-glass-btn"
             title={isCollapsed ? 'Ventas' : undefined} onClick={() => toggleMenu('ventas')}
             style={{
               ...navButtonStyle,
@@ -321,6 +324,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
           {openMenus.ventas && (
             <div className="submenu-container" style={submenuContainerStyle}>
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Ventas Agencia' : undefined} onClick={() => onNavigate('ventas_agencia')}
                 style={{
                   ...subnavButtonStyle,
@@ -335,6 +339,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               </button>
 
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Ventas Freelancer' : undefined} onClick={() => onNavigate('ventas_freelancer')}
                 style={{
                   ...subnavButtonStyle,
@@ -349,6 +354,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               </button>
 
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Ventas Aliados' : undefined} onClick={() => onNavigate('ventas_aliados')}
                 style={{
                   ...subnavButtonStyle,
@@ -363,6 +369,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               </button>
 
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Registro de Cotizaciones' : undefined} onClick={() => onNavigate('ventas_cotizaciones')}
                 style={{
                   ...subnavButtonStyle,
@@ -379,6 +386,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         {/* 4. Reportes (Desplegable) */}
         <div>
           <button
+            className="liquid-glass-btn"
             title={isCollapsed ? 'Reportes' : undefined} onClick={() => toggleMenu('reportes')}
             style={{
               ...navButtonStyle,
@@ -407,6 +415,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               ].map(sub => (
                 <button
                   key={sub.id}
+                  className="liquid-glass-sub-btn"
                   title={isCollapsed ? sub.label : undefined} onClick={() => onNavigate(sub.id)}
                   style={{
                     ...subnavButtonStyle,
@@ -427,6 +436,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         {/* 5. Servicios (Desplegable) */}
         <div>
           <button
+            className="liquid-glass-btn"
             title={isCollapsed ? 'Servicios' : undefined} onClick={() => toggleMenu('servicios')}
             style={{
               ...navButtonStyle,
@@ -444,6 +454,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             <div className="submenu-container" style={submenuContainerStyle}>
               {/* Hoteles */}
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Hoteles' : undefined} onClick={() => onNavigate('servicios_hoteles')}
                 style={{
                   ...subnavButtonStyle,
@@ -459,6 +470,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
               {/* Excursiones */}
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Excursiones' : undefined} onClick={() => onNavigate('servicios_excursiones')}
                 style={{
                   ...subnavButtonStyle,
@@ -474,6 +486,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
               {/* Paquetes */}
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Paquetes' : undefined} onClick={() => onNavigate('servicios_paquetes')}
                 style={{
                   ...subnavButtonStyle,
@@ -489,6 +502,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
               {/* Traslados */}
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Traslados' : undefined} onClick={() => onNavigate('servicios_traslados')}
                 style={{
                   ...subnavButtonStyle,
@@ -504,6 +518,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
               {/* Vehículos */}
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Vehículos' : undefined} onClick={() => onNavigate('servicios_vehiculos')}
                 style={{
                   ...subnavButtonStyle,
@@ -519,6 +534,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
               {/* Aerolíneas */}
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Aerolíneas' : undefined} onClick={() => onNavigate('servicios_aerolineas')}
                 style={{
                   ...subnavButtonStyle,
@@ -534,6 +550,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
               {/* Ubicaciones */}
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Ubicaciones' : undefined} onClick={() => onNavigate('servicios_ubicaciones')}
                 style={{
                   ...subnavButtonStyle,
@@ -552,6 +569,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
         {/* 6. Gastos */}
         <button
+          className="liquid-glass-btn"
           title={isCollapsed ? 'Gastos' : undefined} onClick={() => onNavigate('gastos')}
           style={{
             ...navButtonStyle,
@@ -567,6 +585,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
         {/* 7. Métodos de pago */}
         <button
+          className="liquid-glass-btn"
           title={isCollapsed ? 'Métodos de pago' : undefined} onClick={() => onNavigate('metodos_pago')}
           style={{
             ...navButtonStyle,
@@ -583,6 +602,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         {/* 8. Usuarios (Desplegable) */}
         <div>
           <button
+            className="liquid-glass-btn"
             title={isCollapsed ? 'Usuarios' : undefined} onClick={() => toggleMenu('usuarios')}
             style={{
               ...navButtonStyle,
@@ -599,6 +619,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
           {openMenus.usuarios && (
             <div className="submenu-container" style={submenuContainerStyle}>
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Usuarios Agencia' : undefined} onClick={() => onNavigate('usuarios_agencia')}
                 style={{
                   ...subnavButtonStyle,
@@ -613,6 +634,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               </button>
 
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Usuarios Freelancer' : undefined} onClick={() => onNavigate('usuarios_freelancer')}
                 style={{
                   ...subnavButtonStyle,
@@ -627,6 +649,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               </button>
 
               <button
+                className="liquid-glass-sub-btn"
                 title={isCollapsed ? 'Usuarios Aliados' : undefined} onClick={() => onNavigate('usuarios_aliados')}
                 style={{
                   ...subnavButtonStyle,
@@ -741,6 +764,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
       {/* Bottom Logout */}
       <div style={{ padding: '0 16px', marginTop: 'auto', paddingTop: '20px' }}>
         <button
+          className="liquid-glass-btn"
           title={isCollapsed ? 'Cerrar Sesión' : undefined} onClick={onLogout}
           style={{
             ...navButtonStyle,
@@ -757,17 +781,92 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
       </div>
 
       <style>{`
+        /* Liquid Glass Navigation & Submenu Buttons */
+        .liquid-glass-btn,
+        .liquid-glass-sub-btn {
+          position: relative !important;
+          overflow: hidden !important;
+          border-radius: 9999px !important;
+          border: 1px solid transparent !important;
+          background: transparent !important;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          transform: translateZ(0);
+          box-sizing: border-box !important;
+        }
+
+        /* Glass optical top sheen pseudo-element */
+        .liquid-glass-btn::before,
+        .liquid-glass-sub-btn::before {
+          content: '';
+          position: absolute;
+          top: 1px;
+          left: 8px;
+          right: 8px;
+          height: 46%;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.02) 100%);
+          border-radius: 9999px 9999px 30px 30px;
+          pointer-events: none;
+          opacity: 0;
+          transform: translateY(-2px);
+          transition: opacity 0.25s ease, transform 0.25s ease;
+          z-index: 2;
+        }
+
+        /* Keep icon and text layers above glass sheen */
+        .liquid-glass-btn > *,
+        .liquid-glass-sub-btn > * {
+          position: relative;
+          z-index: 3;
+        }
+
+        /* LIQUID GLASS HOVER EFFECT (Explore pill style) */
+        .liquid-glass-btn:hover,
+        .liquid-glass-sub-btn:hover {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0.16) 100%) !important;
+          backdrop-filter: blur(14px) saturate(190%) !important;
+          -webkit-backdrop-filter: blur(14px) saturate(190%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.48) !important;
+          box-shadow: 
+            inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.85),
+            inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.25),
+            inset 0 0 12px 0 rgba(255, 255, 255, 0.1),
+            0 8px 20px 0 rgba(0, 0, 0, 0.35),
+            0 0 14px 0 rgba(255, 255, 255, 0.18) !important;
+          transform: translateX(3px) scale(1.01) !important;
+        }
+
+        .liquid-glass-btn:hover::before,
+        .liquid-glass-sub-btn:hover::before {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        /* Tactile Click / Press feedback */
+        .liquid-glass-btn:active,
+        .liquid-glass-sub-btn:active {
+          transform: translateX(1px) scale(0.98) !important;
+          box-shadow: 
+            inset 0 1px 1px 0 rgba(255, 255, 255, 0.6),
+            inset 0 -1px 1px 0 rgba(255, 255, 255, 0.15),
+            0 3px 8px 0 rgba(0, 0, 0, 0.25) !important;
+        }
+
+        /* Collapsed Sidebar adjustments */
         .sidebar-container.collapsed .nav-text {
           display: none;
         }
         .sidebar-container.collapsed > nav > button,
-        .sidebar-container.collapsed > nav > div > button {
+        .sidebar-container.collapsed > nav > div > button,
+        .sidebar-container.collapsed div button.liquid-glass-btn {
           justify-content: center !important;
           padding: 10px 0 !important;
         }
+        .sidebar-container.collapsed .liquid-glass-btn:hover,
+        .sidebar-container.collapsed .liquid-glass-sub-btn:hover {
+          transform: scale(1.06) !important;
+        }
         /* For submenus in collapsed mode */
         .sidebar-container.collapsed .submenu-container {
-          /* Keep the line, but adjust padding to center the icon */
           margin-left: 20px !important;
           padding-left: 10px !important;
         }
@@ -788,13 +887,9 @@ const navButtonStyle = {
   alignItems: 'center',
   gap: '14px',
   padding: '10px 14px',
-  borderRadius: '8px',
-  border: 'none',
-  background: 'transparent',
   cursor: 'pointer',
   fontSize: '0.875rem',
   textAlign: 'left',
-  transition: 'all 0.15s ease',
 };
 
 const submenuContainerStyle = {
@@ -813,13 +908,9 @@ const subnavButtonStyle = {
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
-  padding: '6px 8px',
-  borderRadius: '6px',
-  border: 'none',
-  background: 'transparent',
+  padding: '6px 12px',
   cursor: 'pointer',
   fontSize: '0.8125rem',
   textAlign: 'left',
-  transition: 'all 0.15s ease',
   fontWeight: '500',
 };

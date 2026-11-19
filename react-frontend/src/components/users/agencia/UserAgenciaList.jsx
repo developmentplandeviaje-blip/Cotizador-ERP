@@ -3,6 +3,7 @@ import axios from 'axios';
 import DeleteConfirmationModal from '../../common/DeleteConfirmationModal';
 import UserAgenciaModal from './UserAgenciaModal';
 import Modal from '../../common/Modal';
+import MetodosPagoExportModal from '../modals/MetodosPagoExportModal';
 import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
 import imgAgregar from '../../../assets/Agregar.svg';
@@ -33,6 +34,8 @@ export default function UserAgenciaList({ user: currentUser }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [linksModalUser, setLinksModalUser] = useState(null);
+  const [exportModalUser, setExportModalUser] = useState(null);
+  const [exportModalCategory, setExportModalCategory] = useState('todos');
 
   // Toggling status state
   const [togglingId, setTogglingId] = useState(null);
@@ -638,60 +641,181 @@ export default function UserAgenciaList({ user: currentUser }) {
         <Modal
           isOpen={true}
           onClose={() => setLinksModalUser(null)}
-          title="Links para los Métodos de Pago"
-          width="600px"
+          title="Links y Exportación de Métodos de Pago"
+          width="700px"
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px 0' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '10px 0' }}>
 
+            {/* Banner superior para Exportar Todos */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 18px',
+                background: 'linear-gradient(90deg, rgba(232, 114, 23, 0.15), rgba(37, 99, 235, 0.15))',
+                borderRadius: '10px',
+                border: '1px solid rgba(232, 114, 23, 0.35)',
+              }}
+            >
+              <div>
+                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#F8FAFC', display: 'block' }}>
+                  🌟 Documento Completo de Cuentas ({linksModalUser.full_name || linksModalUser.first_name})
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                  Incluye todos los métodos asignados (Divisas y Bolívares) en una sola vista membretada
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExportModalCategory('todos');
+                    setExportModalUser(linksModalUser);
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '8px 14px',
+                    background: '#E87217',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#FFFFFF',
+                    fontSize: '0.8125rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  👁️ Ver / Exportar
+                </button>
+              </div>
+            </div>
+
+            {/* Fila Divisas */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(15, 23, 42, 0.4)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '0.8125rem', color: '#94A3B8', fontWeight: 600 }}>Divisas:</span>
-                <span style={{ fontSize: '0.875rem', color: '#60A5FA', wordBreak: 'break-all' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxWidth: '380px' }}>
+                <span style={{ fontSize: '0.8125rem', color: '#94A3B8', fontWeight: 600 }}>💵 Divisas:</span>
+                <span style={{ fontSize: '0.8125rem', color: '#60A5FA', wordBreak: 'break-all' }}>
                   https://cotizador.plandeviaje.com.ve/metodo-de-pago/{linksModalUser.id}/divisas
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => copySpecificLink(`https://cotizador.plandeviaje.com.ve/metodo-de-pago/${linksModalUser.id}/divisas`)}
-                style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '6px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '16px', color: '#F8FAFC' }}
-                title="Copiar"
-              >
-                📋
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => copySpecificLink(`https://cotizador.plandeviaje.com.ve/metodo-de-pago/${linksModalUser.id}/divisas`)}
+                  style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '6px', padding: '6px 9px', cursor: 'pointer', color: '#F8FAFC', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  title="Copiar Enlace"
+                >
+                  📋 Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExportModalCategory('divisas');
+                    setExportModalUser(linksModalUser);
+                  }}
+                  style={{ background: 'rgba(232, 114, 23, 0.2)', border: '1px solid #E87217', borderRadius: '6px', padding: '6px 9px', cursor: 'pointer', color: '#FB923C', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  title="Generar PDF"
+                >
+                  📄 PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExportModalCategory('divisas');
+                    setExportModalUser(linksModalUser);
+                  }}
+                  style={{ background: '#2563EB', border: 'none', borderRadius: '6px', padding: '6px 9px', cursor: 'pointer', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  title="Descargar Imagen"
+                >
+                  🖼️ Imagen
+                </button>
+              </div>
             </div>
 
+            {/* Fila Bolivares */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(15, 23, 42, 0.4)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '0.8125rem', color: '#94A3B8', fontWeight: 600 }}>Bolivares:</span>
-                <span style={{ fontSize: '0.875rem', color: '#60A5FA', wordBreak: 'break-all' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxWidth: '380px' }}>
+                <span style={{ fontSize: '0.8125rem', color: '#94A3B8', fontWeight: 600 }}>🏦 Bolivares:</span>
+                <span style={{ fontSize: '0.8125rem', color: '#60A5FA', wordBreak: 'break-all' }}>
                   https://cotizador.plandeviaje.com.ve/metodo-de-pago/{linksModalUser.id}/bolivares
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => copySpecificLink(`https://cotizador.plandeviaje.com.ve/metodo-de-pago/${linksModalUser.id}/bolivares`)}
-                style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '6px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '16px', color: '#F8FAFC' }}
-                title="Copiar"
-              >
-                📋
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => copySpecificLink(`https://cotizador.plandeviaje.com.ve/metodo-de-pago/${linksModalUser.id}/bolivares`)}
+                  style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '6px', padding: '6px 9px', cursor: 'pointer', color: '#F8FAFC', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  title="Copiar Enlace"
+                >
+                  📋 Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExportModalCategory('bolivares');
+                    setExportModalUser(linksModalUser);
+                  }}
+                  style={{ background: 'rgba(232, 114, 23, 0.2)', border: '1px solid #E87217', borderRadius: '6px', padding: '6px 9px', cursor: 'pointer', color: '#FB923C', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  title="Generar PDF"
+                >
+                  📄 PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExportModalCategory('bolivares');
+                    setExportModalUser(linksModalUser);
+                  }}
+                  style={{ background: '#2563EB', border: 'none', borderRadius: '6px', padding: '6px 9px', cursor: 'pointer', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  title="Descargar Imagen"
+                >
+                  🖼️ Imagen
+                </button>
+              </div>
             </div>
 
+            {/* Fila Bolivares Provisional */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(15, 23, 42, 0.4)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '0.8125rem', color: '#94A3B8', fontWeight: 600 }}>Bolivares Provisional:</span>
-                <span style={{ fontSize: '0.875rem', color: '#60A5FA', wordBreak: 'break-all' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxWidth: '380px' }}>
+                <span style={{ fontSize: '0.8125rem', color: '#94A3B8', fontWeight: 600 }}>⚡ Bolivares Provisional:</span>
+                <span style={{ fontSize: '0.8125rem', color: '#60A5FA', wordBreak: 'break-all' }}>
                   https://cotizador.plandeviaje.com.ve/metodo-de-pago/{linksModalUser.id}/bolivares/provisional
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => copySpecificLink(`https://cotizador.plandeviaje.com.ve/metodo-de-pago/${linksModalUser.id}/bolivares/provisional`)}
-                style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '6px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '16px', color: '#F8FAFC' }}
-                title="Copiar"
-              >
-                📋
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => copySpecificLink(`https://cotizador.plandeviaje.com.ve/metodo-de-pago/${linksModalUser.id}/bolivares/provisional`)}
+                  style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '6px', padding: '6px 9px', cursor: 'pointer', color: '#F8FAFC', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  title="Copiar Enlace"
+                >
+                  📋 Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExportModalCategory('provisional');
+                    setExportModalUser(linksModalUser);
+                  }}
+                  style={{ background: 'rgba(232, 114, 23, 0.2)', border: '1px solid #E87217', borderRadius: '6px', padding: '6px 9px', cursor: 'pointer', color: '#FB923C', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  title="Generar PDF"
+                >
+                  📄 PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExportModalCategory('provisional');
+                    setExportModalUser(linksModalUser);
+                  }}
+                  style={{ background: '#2563EB', border: 'none', borderRadius: '6px', padding: '6px 9px', cursor: 'pointer', color: '#FFFFFF', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  title="Descargar Imagen"
+                >
+                  🖼️ Imagen
+                </button>
+              </div>
             </div>
 
           </div>
@@ -702,6 +826,14 @@ export default function UserAgenciaList({ user: currentUser }) {
           </div>
         </Modal>
       )}
+
+      {/* Modal de exportación de métodos de pago (PDF, Imagen, WhatsApp) */}
+      <MetodosPagoExportModal
+        isOpen={!!exportModalUser}
+        onClose={() => setExportModalUser(null)}
+        user={exportModalUser}
+        initialCategory={exportModalCategory}
+      />
     </div>
   );
 }

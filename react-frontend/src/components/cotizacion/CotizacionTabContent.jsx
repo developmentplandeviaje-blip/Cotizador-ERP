@@ -3599,9 +3599,13 @@ export default function CotizacionTabContent({
                     }}
                   >
                     <option value="">Seleccione traslado...</option>
-                    {(catalogos.traslados || []).map(t => (
-                      <option key={t.id} value={t.id}>{t.ruta_origen} (${t.precio_publico})</option>
-                    ))}
+                    {[...(catalogos.traslados || [])]
+                      .sort((a, b) => (b.destacado ? 1 : 0) - (a.destacado ? 1 : 0))
+                      .map(t => (
+                        <option key={t.id} value={t.id}>
+                          {t.destacado ? `⭐ ${t.ruta_origen}` : t.ruta_origen} (${Number(t.precio_publico || 0).toFixed(2)})
+                        </option>
+                      ))}
                   </CustomSelect>
                 </div>
 
@@ -4403,11 +4407,21 @@ export default function CotizacionTabContent({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b9c8ddff', fontSize: '0.9375rem' }}>
                   <span>Subtotal Servicios:</span>
-                  <span style={{ color: '#FFF', fontWeight: '600' }}>
-                    {currencyKeys.length > 1
-                      ? currencyKeys.map(c => formatMontoMoneda(totalsByCurrency[c], c)).join(' + ')
-                      : formatMontoMoneda(subtotalUSD, primaryCurrency)}
-                  </span>
+                  <div style={{ textAlign: 'right' }}>
+                    {currencyKeys.length > 1 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-end' }}>
+                        {currencyKeys.map(c => (
+                          <span key={c} style={{ color: '#FFF', fontWeight: '600' }}>
+                            {formatMontoMoneda(totalsByCurrency[c], c)}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span style={{ color: '#FFF', fontWeight: '600' }}>
+                        {formatMontoMoneda(subtotalUSD, primaryCurrency)}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {referidoData && (
@@ -4455,18 +4469,23 @@ export default function CotizacionTabContent({
                   borderTop: '1px solid rgba(255,255,255,0.12)',
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: 'baseline',
+                  alignItems: 'center',
                 }}>
                   <span style={{ fontSize: '1.125rem', color: '#FFF', fontWeight: '700' }}>Total a Pagar:</span>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#E87217' }}>
-                      {currencyKeys.length > 1
-                        ? currencyKeys.map(c => formatMontoMoneda(totalsByCurrency[c], c)).join(' + ')
-                        : formatMontoMoneda(totalUSD, primaryCurrency)}
-                    </div>
-                    {/*<div style={{ fontSize: '0.8125rem', color: '#b9c8ddff' }}>
-                      Bs. {totalVES} (Ref. BCV)
-                    </div>*/}
+                    {currencyKeys.length > 1 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                        {currencyKeys.map(c => (
+                          <div key={c} style={{ fontSize: '1.75rem', fontWeight: '800', color: '#E87217', lineHeight: 1.15 }}>
+                            {formatMontoMoneda(totalsByCurrency[c], c)}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#E87217' }}>
+                        {formatMontoMoneda(totalUSD, primaryCurrency)}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

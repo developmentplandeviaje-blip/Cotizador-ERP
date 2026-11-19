@@ -607,6 +607,31 @@ class VentaService
     }
 
     /**
+     * Convierte una venta confirmada en Nota de Crédito.
+     */
+    public function convertirNotaCredito(int $id, User $user): Venta
+    {
+        return DB::transaction(function () use ($id, $user) {
+            $venta = Venta::findOrFail($id);
+
+            $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
+            if (!$isAdminOrLeader && $venta->id_user !== $user->id) {
+                abort(403, 'No tiene autorización para modificar esta venta.');
+            }
+
+            $isConfirmed = in_array(strtolower($venta->estado ?? ''), ['confirmada', 'venta', 'confirmado']);
+            if (!$isConfirmed) {
+                abort(422, 'Solo se pueden convertir a Nota de Crédito las ventas en estado Venta.');
+            }
+
+            $venta->estado = 'Nota de Crédito';
+            $venta->save();
+
+            return $venta;
+        });
+    }
+
+    /**
      * Registra un pago/abono multi-moneda con transacción atómica (US-05).
      */
     public function registrarPago(int $id, array $data, User $user): PagoVenta

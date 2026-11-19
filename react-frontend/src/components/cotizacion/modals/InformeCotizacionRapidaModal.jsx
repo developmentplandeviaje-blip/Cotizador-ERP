@@ -6,6 +6,7 @@ export default function InformeCotizacionRapidaModal({
   isOpen,
   onClose,
   cotizacion,
+  tipoInforme,
   tasaReferencialVES = 62.50,
   onVerRegistro,
 }) {
@@ -13,8 +14,12 @@ export default function InformeCotizacionRapidaModal({
 
   if (!isOpen || !cotizacion) return null;
 
+  // Determinar si es informe de venta o cotización
+  const esVenta = tipoInforme === 'venta' || cotizacion.tipoInforme === 'venta' || cotizacion.estado === 'Venta' || cotizacion.estado === 'Nota de Crédito';
+  const esNotaCredito = cotizacion.estado === 'Nota de Crédito' || (cotizacion.estado || '').toLowerCase() === 'nota de credito';
+
   // Normalización de datos recibidos (compatible con Venta, CotizacionRapida y normalized items)
-  const isVenta = cotizacion.tipo_registro === 'formal' || !!cotizacion.hoteles;
+  const isVenta = cotizacion.tipo_registro === 'formal' || !!cotizacion.hoteles || esVenta;
   const numeroFicha =
     cotizacion.numero_ficha ||
     cotizacion.id ||
@@ -146,6 +151,14 @@ export default function InformeCotizacionRapidaModal({
     typeof cotizacion.total_usd === 'number'
       ? cotizacion.total_usd
       : Math.max(0, (subtotalUSD > 0 ? subtotalUSD - descuentoUSD : Number(cotizacion.total_estimado || 0)));
+  const pagos = Array.isArray(cotizacion.pagos) ? cotizacion.pagos : [];
+  const totalAbonado = Number(
+    cotizacion.total_abonado ??
+    pagos.reduce((acc, p) => acc + Number(p.monto_usd || p.monto || 0), 0)
+  );
+  const saldoPendiente = typeof cotizacion.saldo_pendiente === 'number'
+    ? cotizacion.saldo_pendiente
+    : Math.max(0, totalUSD - totalAbonado);
   const totalVES = (totalUSD * tasaReferencialVES).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const observacion = cotizacion.observacion || '';
 
@@ -191,7 +204,9 @@ export default function InformeCotizacionRapidaModal({
       serviciosFormatted = items.map(it => `• *${it.titulo}*: ${it.detalle} - $${Number(it.precio || 0).toFixed(2)}`).join('\n');
     }
 
-    const text = `*COTIZACIÓN RÁPIDA - PLAN DE VIAJE* 
+    const docTitleWhatsApp = esNotaCredito ? 'NOTA DE CRÉDITO - PLAN DE VIAJE' : esVenta ? 'INFORME DE VENTA - PLAN DE VIAJE' : 'COTIZACIÓN RÁPIDA - PLAN DE VIAJE';
+
+    const text = `*${docTitleWhatsApp}* 
 *Número de ficha:* ${numeroFicha}
 *Fecha:* ${new Date(fechaEmision).toLocaleDateString()}
 *Asesor:* ${asesorNombre}
@@ -200,14 +215,14 @@ export default function InformeCotizacionRapidaModal({
 • *Cliente:* ${clienteNombre}
 ${clienteDoc ? `• *Documento:* ${clienteDoc}\n` : ''}${clienteTelefono ? `• *Teléfono:* ${clienteTelefono}\n` : ''}${checkin ? `• *Fechas de Viaje:* ${checkin} al ${checkout} (${noches} noches)\n` : ''}• *Pasajeros:* ${paxTotal} Pax (${paxAdultos} adultos${paxNinos > 0 ? `, ${paxNinos} niños` : ''})
 
-*SERVICIOS COTIZADOS:*
+*SERVICIOS REGISTRADOS:*
 ${serviciosFormatted.trim()}
 
 *RESUMEN FINANCIERO:*
 ${descuentoUSD > 0 ? `• Descuento: -$${descuentoUSD.toFixed(2)} \n` : ''}• *TOTAL:* $${totalUSD.toFixed(2)} 
-• *Ref. Oficial BCV:* Bs. ${totalVES}
+${esVenta ? `• *Total Abonado:* $${totalAbonado.toFixed(2)} \n• *Saldo Pendiente:* $${saldoPendiente.toFixed(2)} \n` : ''}• *Ref. Oficial BCV:* Bs. ${totalVES}
 
-${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas sujetas a cambio y disponibilidad de cupos hasta confirmar pago formal._`;
+${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* ${esVenta ? 'Venta confirmada y registrada en el sistema Plan de Viaje ERP.' : 'Tarifas sujetas a cambio y disponibilidad de cupos hasta confirmar pago formal.'}_`;
 
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
@@ -298,7 +313,7 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '18px' }}></span>
             <span style={{ fontWeight: '700', fontSize: '1rem', color: '#FFFFFF' }}>
-              Informe de Cotización Rápida
+              {esNotaCredito ? 'Nota de Crédito' : esVenta ? 'Informe de Venta' : 'Informe de Cotización Rápida'}
             </span>
             <span
               style={{
@@ -306,9 +321,9 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                 fontWeight: '600',
                 padding: '3px 8px',
                 borderRadius: '6px',
-                background: 'rgba(232, 114, 23, 0.2)',
-                color: '#E87217',
-                border: '1px solid rgba(232, 114, 23, 0.4)',
+                background: esNotaCredito ? 'rgba(239, 68, 68, 0.2)' : esVenta ? 'rgba(16, 185, 129, 0.2)' : 'rgba(232, 114, 23, 0.2)',
+                color: esNotaCredito ? '#FCA5A5' : esVenta ? '#34D399' : '#E87217',
+                border: `1px solid ${esNotaCredito ? 'rgba(239, 68, 68, 0.4)' : esVenta ? 'rgba(16, 185, 129, 0.4)' : 'rgba(232, 114, 23, 0.4)'}`,
               }}
             >
               Ficha {numeroFicha}
@@ -465,17 +480,17 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                 <div
                   style={{
                     display: 'inline-block',
-                    background: '#FEF3C7',
-                    color: '#B45309',
+                    background: esNotaCredito ? '#FEE2E2' : esVenta ? '#D1FAE5' : '#FEF3C7',
+                    color: esNotaCredito ? '#991B1B' : esVenta ? '#065F46' : '#B45309',
                     fontWeight: '800',
                     fontSize: '0.85rem',
                     padding: '4px 12px',
                     borderRadius: '6px',
-                    border: '1px solid #FCD34D',
+                    border: `1px solid ${esNotaCredito ? '#FCA5A5' : esVenta ? '#6EE7B7' : '#FCD34D'}`,
                     marginBottom: '6px',
                   }}
                 >
-                  INFORME DE COTIZACIÓN RÁPIDA
+                  {esNotaCredito ? 'NOTA DE CRÉDITO' : esVenta ? 'INFORME DE VENTA' : 'INFORME DE COTIZACIÓN RÁPIDA'}
                 </div>
                 <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#0F172A' }}>
                   Número de ficha: <span style={{ color: '#E87217' }}>{numeroFicha}</span>
@@ -557,8 +572,12 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                     ({paxAdultos} Adultos{paxAdol > 0 ? `, ${paxAdol} Adol` : ''}{paxNinos > 0 ? `, ${paxNinos} Niños` : ''}{paxInfantes > 0 ? `, ${paxInfantes} Inf` : ''})
                   </span>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#059669', fontWeight: '600', marginTop: '6px' }}>
-                  ✓ Vigencia de cotización: 48 horas
+                <div style={{ fontSize: '0.75rem', color: esNotaCredito ? '#DC2626' : '#059669', fontWeight: '600', marginTop: '6px' }}>
+                  {esNotaCredito
+                    ? '• Estado: Nota de Crédito'
+                    : esVenta
+                    ? '✓ Estado: Venta Confirmada'
+                    : '✓ Vigencia de cotización: 48 horas'}
                 </div>
               </div>
             </div>
@@ -764,6 +783,43 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
               )}
             </div>
 
+            {/* Tabla de Pagos y Abonos Registrados (Sólo en estado de Venta) */}
+            {esVenta && pagos.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0F172A', textTransform: 'uppercase', marginBottom: '8px' }}>
+                  Historial de Pagos y Abonos Registrados
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', border: '1px solid #CBD5E1', borderRadius: '6px', overflow: 'hidden' }}>
+                  <thead>
+                    <tr style={{ background: '#F1F5F9', color: '#334155', textAlign: 'left', borderBottom: '1px solid #CBD5E1' }}>
+                      <th style={{ padding: '7px 12px' }}>Transacción</th>
+                      <th style={{ padding: '7px 12px' }}>Método de Pago</th>
+                      <th style={{ padding: '7px 12px' }}>Fecha</th>
+                      <th style={{ padding: '7px 12px', textAlign: 'right' }}>Monto (USD)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pagos.map((p, pIdx) => (
+                      <tr key={p.id || pIdx} style={{ borderBottom: '1px solid #E2E8F0', background: pIdx % 2 === 0 ? '#FFFFFF' : '#F8FAFC' }}>
+                        <td style={{ padding: '7px 12px', fontWeight: '600', color: '#0F172A' }}>
+                          {p.numero_transaccion || p.referencia || `Abono #${p.id || (pIdx + 1)}`}
+                        </td>
+                        <td style={{ padding: '7px 12px', color: '#475569' }}>
+                          {p.metodo_pago?.nombre || p.tipo_pago || 'Transferencia'}
+                        </td>
+                        <td style={{ padding: '7px 12px', color: '#475569' }}>
+                          {(p.fecha_pago || p.fecha_creacion || p.fecha) ? String(p.fecha_pago || p.fecha_creacion || p.fecha).split(/[T ]/)[0] : 'N/A'}
+                        </td>
+                        <td style={{ padding: '7px 12px', textAlign: 'right', fontWeight: '700', color: '#059669', whiteSpace: 'nowrap' }}>
+                          ${Number(p.monto_usd || p.monto || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             {/* Resumen Financiero */}
             <div
               style={{
@@ -804,7 +860,9 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                     marginTop: '4px',
                   }}
                 >
-                  <span style={{ fontSize: '1rem', fontWeight: '800', color: '#0F172A' }}>TOTAL:</span>
+                  <span style={{ fontSize: '1rem', fontWeight: '800', color: '#0F172A' }}>
+                    {esVenta ? 'TOTAL VENTA:' : 'TOTAL:'}
+                  </span>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '1.25rem', fontWeight: '900', color: '#E87217' }}>
                       ${totalUSD.toFixed(2)} 
@@ -814,33 +872,56 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* Tarifas suje
                     </div>
                   </div>
                 </div>
+
+                {esVenta && (
+                  <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #CBD5E1', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669', fontWeight: '700' }}>
+                      <span>Total Abonado:</span>
+                      <span>${totalAbonado.toFixed(2)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: saldoPendiente > 0.01 ? '#DC2626' : '#059669', fontWeight: '800' }}>
+                      <span>Monto Pendiente:</span>
+                      <span>${saldoPendiente.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Observaciones y Términos */}
             <div
               style={{
-                background: '#FFFBEB',
-                border: '1px solid #FDE68A',
+                background: esVenta ? '#F0FDF4' : '#FFFBEB',
+                border: `1px solid ${esVenta ? '#BBF7D0' : '#FDE68A'}`,
                 borderRadius: '8px',
                 padding: '12px 16px',
                 fontSize: '0.78rem',
-                color: '#92400E',
+                color: esVenta ? '#166534' : '#92400E',
                 marginBottom: '16px',
               }}
             >
               <div style={{ fontWeight: '700', marginBottom: '4px' }}>
-                📌 Observaciones y Condiciones Importantes:
+                📌 {esVenta ? 'Términos y Condiciones de la Reserva / Venta:' : 'Observaciones y Condiciones Importantes:'}
               </div>
               {observacion && (
-                <div style={{ marginBottom: '6px', fontStyle: 'italic', color: '#78350F' }}>
+                <div style={{ marginBottom: '6px', fontStyle: 'italic', color: esVenta ? '#14532D' : '#78350F' }}>
                   "{observacion}"
                 </div>
               )}
               <ul style={{ margin: 0, paddingLeft: '18px' }}>
-                <li>Tarifas sujetas a cambio y disponibilidad hasta el momento de confirmación de reserva y pago.</li>
-                <li>Este informe no constituye bloqueo de boletos o habitaciones hasta la formalización de la orden.</li>
-                <li>Pagos en Bolívares se calculan a la tasa oficial del Banco Central de Venezuela (BCV) del día de pago.</li>
+                {esVenta ? (
+                  <>
+                    <li>Venta confirmada y registrada formalmente en el sistema ERP Plan de Viaje.</li>
+                    <li>Los servicios confirmados se encuentran sujetos a las políticas y penalidades de reserva de cada proveedor.</li>
+                    <li>Pagos en Bolívares se calculan a la tasa oficial del Banco Central de Venezuela (BCV) del día de pago.</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Tarifas sujetas a cambio y disponibilidad hasta el momento de confirmación de reserva y pago.</li>
+                    <li>Este informe no constituye bloqueo de boletos o habitaciones hasta la formalización de la orden.</li>
+                    <li>Pagos en Bolívares se calculan a la tasa oficial del Banco Central de Venezuela (BCV) del día de pago.</li>
+                  </>
+                )}
               </ul>
             </div>
 

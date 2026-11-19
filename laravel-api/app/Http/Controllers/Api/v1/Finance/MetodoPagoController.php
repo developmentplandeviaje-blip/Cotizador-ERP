@@ -122,6 +122,75 @@ class MetodoPagoController extends Controller
         }
     }
 
+    public function publicMetodosByAsesor(Request $request, $userId, $tipo = null): JsonResponse
+    {
+        $user = \App\Models\User::with(['freelancer'])->find($userId);
+        if (!$user) {
+            return response()->json(['message' => 'Usuario o asesor no encontrado.'], 404);
+        }
+
+        $assignedMetodoIds = \App\Models\Finance\MetodoPagoAsesor::where('id_asesor', $userId)
+            ->pluck('id_metodo')
+            ->toArray();
+
+        $metodos = MetodoPago::with(['banco', 'digital'])
+            ->whereIn('id', $assignedMetodoIds)
+            ->where('status', 1)
+            ->get();
+
+        $tipoFilter = strtolower(trim((string)$tipo));
+
+        $filtered = $metodos->filter(function ($m) use ($tipoFilter) {
+            $nombreLower = strtolower($m->nombre . ' ' . $m->nombre_publico);
+            $isDigital = $m->tipo === 'digital';
+            $isDivisas = $isDigital 
+                || str_contains($nombreLower, 'divisa') 
+                || str_contains($nombreLower, 'panama') 
+                || str_contains($nombreLower, 'panamá') 
+                || str_contains($nombreLower, '$') 
+                || str_contains($nombreLower, 'usd')
+                || str_contains($nombreLower, 'dolares');
+
+            $isProvisional = str_contains($nombreLower, 'p/natural') 
+                || str_contains($nombreLower, 'p natural') 
+                || str_contains($nombreLower, 'provisional');
+
+            if ($tipoFilter === 'divisas') {
+                return $isDivisas;
+            } elseif ($tipoFilter === 'bolivares') {
+                return !$isDivisas;
+            } elseif ($tipoFilter === 'provisional' || $tipoFilter === 'bolivares/provisional') {
+                return !$isDivisas && $isProvisional;
+            }
+            return true;
+        })->values();
+
+        return response()->json([
+            'asesor' => [
+                'id' => $user->id,
+                'name' => trim($user->first_name . ' ' . $user->last_name),
+                'email' => $user->email,
+                'level' => $user->level,
+                'freelancer' => $user->freelancer ? [
+                    'nombre' => $user->freelancer->nombre,
+                    'rif' => $user->freelancer->rif,
+                    'telefono' => $user->freelancer->telefono_1,
+                    'logo_url' => $user->freelancer->logo_url,
+                ] : null,
+            ],
+            'tipo' => $tipoFilter ?: 'todos',
+            'empresa' => [
+                'nombre' => 'PLAN DE VIAJE C.A.',
+                'rif' => 'J-40817029-7',
+                'telefono' => '+58 412-530-8316',
+                'email' => 'reservas@plandeviaje.com.ve',
+                'web' => 'www.plandeviaje.com.ve',
+                'direccion' => 'Caracas, Venezuela',
+            ],
+            'metodos' => MetodoPagoResource::collection($filtered),
+        ]);
+    }
+
     private function formatLogo(MetodoPagoLogo $logo): array
     {
         return [

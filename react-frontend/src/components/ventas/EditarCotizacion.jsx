@@ -6,7 +6,7 @@ import ConfirmationModal from '../common/ConfirmationModal';
 import CustomSelect from '../common/CustomSelect';
 import CustomDatePicker from '../common/CustomDatePicker';
 import CustomNumberInput from '../common/CustomNumberInput';
-import { EditarProductoModal, EliminarProductoModal } from '../cotizacion/modals';
+import { EditarProductoModal, EliminarProductoModal, InformeCotizacionRapidaModal } from '../cotizacion/modals';
 import { RegistrarPagoModal } from './modals';
 import { showToast } from '../../utils/toast';
 import { formatEmail, validateEmail, formatTelefono, formatCedula } from '../../utils/validation';
@@ -391,6 +391,8 @@ export default function EditarCotizacion({
   const [observacion, setObservacion] = useState('');
   const [checkin, setCheckin] = useState('');
   const [checkout, setCheckout] = useState('');
+  const [descuentoAdicional, setDescuentoAdicional] = useState('0');
+  const [tipoDescuento, setTipoDescuento] = useState('Porcentaje');
 
   // Cliente Principal
   const [cliente, setCliente] = useState({
@@ -430,6 +432,9 @@ export default function EditarCotizacion({
   const [itemToDelete, setItemToDelete] = useState(null);
   const [pagoToDelete, setPagoToDelete] = useState(null);
   const [isDeletingPago, setIsDeletingPago] = useState(false);
+  const [showInformeModal, setShowInformeModal] = useState(false);
+  const [showNotaCreditoModal, setShowNotaCreditoModal] = useState(false);
+  const [isConvertingNotaCredito, setIsConvertingNotaCredito] = useState(false);
 
   // Desbloqueo temporal de edición de productos por administrador (24 horas)
   const [showUnlockModal, setShowUnlockModal] = useState(false);
@@ -480,6 +485,17 @@ export default function EditarCotizacion({
       setObservacion(v.observacion || '');
       setCheckin(v.checkin ? v.checkin.split('T')[0] : '');
       setCheckout(v.checkout ? v.checkout.split('T')[0] : '');
+
+      if (v.descuento_porcentaje && Number(v.descuento_porcentaje) > 0) {
+        setTipoDescuento('Porcentaje');
+        setDescuentoAdicional(String(v.descuento_porcentaje));
+      } else if (v.descuento_monto && Number(v.descuento_monto) > 0) {
+        setTipoDescuento('Monto');
+        setDescuentoAdicional(String(v.descuento_monto));
+      } else {
+        setTipoDescuento('Porcentaje');
+        setDescuentoAdicional('0');
+      }
 
       // Cliente principal
       const cp =
@@ -576,11 +592,17 @@ export default function EditarCotizacion({
     return `${hours}h ${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
   };
 
+  const isNotaCredito = useMemo(() => {
+    if (!venta) return false;
+    const est = (venta.estado || '').toLowerCase();
+    return est.includes('nota de cr');
+  }, [venta]);
+
   const isConfirmed = useMemo(() => {
     if (!venta) return false;
     const est = (venta.estado || '').toLowerCase();
-    return est === 'confirmada' || est === 'venta' || est === 'confirmado';
-  }, [venta]);
+    return est === 'confirmada' || est === 'venta' || est === 'confirmado' || isNotaCredito;
+  }, [venta, isNotaCredito]);
 
   const isServicesLocked = useMemo(() => {
     return isConfirmed && !desbloqueoInfo.is_desbloqueado;
@@ -1460,14 +1482,31 @@ export default function EditarCotizacion({
     return items.reduce((acc, it) => acc + Number(it.precio || 0), 0);
   }, [items]);
 
+  const descuentoCalculadoMonto = useMemo(() => {
+    const val = parseFloat(descuentoAdicional) || 0;
+    if (tipoDescuento === 'Porcentaje') {
+      const pct = Math.max(0, val);
+      return (itemsTotalUSD * pct) / 100;
+    }
+    return Math.max(0, val);
+  }, [itemsTotalUSD, descuentoAdicional, tipoDescuento]);
+
   const totalsByCurrency = useMemo(() => {
     const map = {};
     items.forEach(it => {
       const curr = (it.moneda || it.data?.moneda || 'USD').toUpperCase().trim();
       map[curr] = (map[curr] || 0) + Number(it.precio || 0);
     });
+    const keys = Object.keys(map);
+    if (descuentoCalculadoMonto > 0) {
+      if (map['USD'] !== undefined) {
+        map['USD'] = Math.max(0, map['USD'] - descuentoCalculadoMonto);
+      } else if (keys.length === 1) {
+        map[keys[0]] = Math.max(0, map[keys[0]] - descuentoCalculadoMonto);
+      }
+    }
     return map;
-  }, [items]);
+  }, [items, descuentoCalculadoMonto]);
 
   const currencyKeys = useMemo(() => Object.keys(totalsByCurrency), [totalsByCurrency]);
   const primaryCurrency = useMemo(() => {
@@ -1478,8 +1517,8 @@ export default function EditarCotizacion({
 
   const displayedTotal = useMemo(() => {
     if (isServicesLocked && totales) return totales.total_usd;
-    return itemsTotalUSD;
-  }, [isServicesLocked, totales, itemsTotalUSD]);
+    return Math.max(0, itemsTotalUSD - descuentoCalculadoMonto);
+  }, [isServicesLocked, totales, itemsTotalUSD, descuentoCalculadoMonto]);
 
   const totalPagado = useMemo(() => {
     return Number(totales?.total_pagado || venta?.total_pagado || 0);
@@ -1488,6 +1527,123 @@ export default function EditarCotizacion({
   const displayedSaldo = useMemo(() => {
     return Math.max(0, displayedTotal - totalPagado);
   }, [displayedTotal, totalPagado]);
+
+  const hasDiscount = useMemo(() => {
+    return (parseFloat(descuentoAdicional) || 0) > 0;
+  }, [descuentoAdicional]);
+
+  // Manejo de cambios en el Descuento Adicional
+  const handleDescuentoChange = (e) => {
+    let rawVal = e.target.value.replace(',', '.');
+    if (rawVal === '') {
+      setDescuentoAdicional('');
+      return;
+    }
+    if (!/^\d*\.?\d*$/.test(rawVal)) {
+      return;
+    }
+    const parts = rawVal.split('.');
+    let intPart = parts[0];
+    let decPart = parts.length > 1 ? parts[1] : null;
+
+    if (tipoDescuento === 'Porcentaje') {
+      if (intPart.length > 3) intPart = intPart.slice(0, 3);
+    } else {
+      if (intPart.length > 6) intPart = intPart.slice(0, 6);
+    }
+    if (decPart !== null && decPart.length > 2) {
+      decPart = decPart.slice(0, 2);
+    }
+    const finalVal = decPart !== null ? `${intPart}.${decPart}` : intPart;
+    setDescuentoAdicional(finalVal);
+  };
+
+  const handleTipoDescuentoChange = (valOrE) => {
+    const nuevoTipo = typeof valOrE === 'string' ? valOrE : valOrE?.target?.value || 'Porcentaje';
+    setTipoDescuento(nuevoTipo);
+    if (!descuentoAdicional) return;
+    const parts = String(descuentoAdicional).split('.');
+    let intPart = parts[0];
+    let decPart = parts.length > 1 ? parts[1] : null;
+    if (nuevoTipo === 'Porcentaje') {
+      intPart = intPart.slice(0, 3);
+    } else {
+      intPart = intPart.slice(0, 6);
+    }
+    setDescuentoAdicional(decPart !== null ? `${intPart}.${decPart}` : intPart);
+  };
+
+  // Convertir a Nota de Crédito
+  const handleConvertirNotaCredito = async () => {
+    setIsConvertingNotaCredito(true);
+    try {
+      const res = await axios.patch(`/v1/ventas/${ventaId}/nota-credito`);
+      showToast('Venta convertida en Nota de Crédito exitosamente.', 'success');
+      setShowNotaCreditoModal(false);
+      if (res.data?.data) {
+        setVenta(res.data.data.venta);
+        setTotales(res.data.data.totales);
+      } else {
+        await fetchVentaDetalle();
+      }
+    } catch (err) {
+      console.error('Error al convertir en nota de crédito:', err);
+      const msg = err.response?.data?.message || err.message || 'No se pudo convertir en nota de crédito.';
+      showToast(msg, 'error');
+    } finally {
+      setIsConvertingNotaCredito(false);
+    }
+  };
+
+  // Objeto formateado para el visor de Informe oficial
+  const cotizacionParaInforme = useMemo(() => {
+    if (!venta) return null;
+    return {
+      ...venta,
+      numero_ficha: venta.numero_ficha,
+      fecha: venta.fecha_creacion || venta.created_at || new Date().toISOString(),
+      asesor: venta.vendedor?.name || venta.asesor || user?.name || user?.username || 'Asesor Comercial',
+      cliente: {
+        nombres: cliente.nombres,
+        apellidos: cliente.apellidos,
+        tipo_documento: cliente.tipo_documento,
+        documento: cliente.documento,
+        telefono: cliente.telefono,
+        correo: cliente.correo,
+      },
+      fechas: {
+        checkin,
+        checkout,
+      },
+      pax: computePaxCounts(pasajeros),
+      items: items,
+      pagos: Array.isArray(venta.pagos) ? venta.pagos : [],
+      descuento_porcentaje: tipoDescuento === 'Porcentaje' ? descuentoAdicional : '0',
+      descuento_monto: descuentoCalculadoMonto,
+      total_usd: displayedTotal,
+      total_abonado: totalPagado,
+      saldo_pendiente: displayedSaldo,
+      observacion,
+      estado: venta.estado,
+      tipoInforme: isConfirmed ? 'venta' : 'cotizacion',
+    };
+  }, [
+    venta,
+    cliente,
+    checkin,
+    checkout,
+    pasajeros,
+    items,
+    tipoDescuento,
+    descuentoAdicional,
+    descuentoCalculadoMonto,
+    displayedTotal,
+    totalPagado,
+    displayedSaldo,
+    observacion,
+    isConfirmed,
+    user,
+  ]);
 
   // Guardar Cambios (Validando reglas condicionales)
   const handleSaveChanges = async (cambiarAConfirmada = false) => {
@@ -1522,11 +1678,19 @@ export default function EditarCotizacion({
 
     setSaving(true);
     try {
+      const valDesc = parseFloat(descuentoAdicional) || 0;
+      const descPorcentaje = tipoDescuento === 'Porcentaje' ? String(valDesc) : '0';
+      const descMonto = tipoDescuento === 'Porcentaje'
+        ? ((itemsTotalUSD * Math.max(0, valDesc)) / 100)
+        : valDesc;
+
       const payload = {
         observacion,
         checkin,
         checkout,
         cliente,
+        descuento_porcentaje: descPorcentaje,
+        descuento_monto: descMonto,
         pasajeros: pasajeros.map((p) => ({
           ...p,
           edad: Number(p.edad || 0),
@@ -1658,14 +1822,95 @@ export default function EditarCotizacion({
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
               <h1 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 800, color: '#FFFFFF' }}>
-                {isConfirmed ? `Ficha de Venta: ${venta.numero_ficha}` : `Editar Cotización: ${venta.numero_ficha}`}
+                {isNotaCredito ? `Nota de Crédito: ${venta.numero_ficha}` : isConfirmed ? `Ficha de Venta: ${venta.numero_ficha}` : `Editar Cotización: ${venta.numero_ficha}`}
               </h1>
+              {isNotaCredito && (
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: '700',
+                    padding: '3px 10px',
+                    borderRadius: '6px',
+                    background: 'rgba(239, 68, 68, 0.2)',
+                    color: '#FCA5A5',
+                    border: '1px solid rgba(239, 68, 68, 0.45)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Nota de Crédito
+                </span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Acciones principales del encabezado */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {/* Botón Descargar/Ver Informe de Cotización o Informe de Venta (No disponible en Nota de Crédito) */}
+          {!isNotaCredito && (
+            <button
+              type="button"
+              onClick={() => setShowInformeModal(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 16px',
+                borderRadius: '8px',
+                background: isConfirmed ? 'rgba(16, 185, 129, 0.15)' : 'rgba(232, 114, 23, 0.15)',
+                border: `1px solid ${isConfirmed ? 'rgba(16, 185, 129, 0.45)' : 'rgba(232, 114, 23, 0.45)'}`,
+                color: isConfirmed ? '#6EE7B7' : '#FDBA74',
+                fontWeight: 700,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              title={isConfirmed ? 'Ver o descargar informe oficial de venta' : 'Ver o descargar informe oficial de cotización'}
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
+              <span>{isConfirmed ? 'Informe de Venta' : 'Informe de Cotización'}</span>
+            </button>
+          )}
+
+          {/* Botón Convertir en Nota de Crédito (Sólo cuando es Venta confirmada y aún no es Nota de Crédito) */}
+          {isConfirmed && !isNotaCredito && (
+            <button
+              type="button"
+              onClick={() => setShowNotaCreditoModal(true)}
+              disabled={saving || isConvertingNotaCredito}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 16px',
+                borderRadius: '8px',
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.45)',
+                color: '#FCA5A5',
+                fontWeight: 700,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              title="Convertir esta venta en una Nota de Crédito"
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 15h2" />
+                <path d="M9 9h6" />
+                <path d="M3 7v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7" />
+                <path d="M3 7l9-4 9 4" />
+              </svg>
+              <span>Nota de Crédito</span>
+            </button>
+          )}
+
           {!isConfirmed && (
             <button
               type="button"
@@ -1716,19 +1961,65 @@ export default function EditarCotizacion({
           gap: '14px',
         }}
       >
-        <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
-          <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Número de ficha</span>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#FFFFFF', marginTop: '4px' }}>
-            {venta.numero_ficha || 'N/A'}
+        <div
+          style={{
+            background: 'rgb(6, 18, 81)',
+            border: hasDiscount ? '1px solid rgba(16, 185, 129, 0.45)' : '1px solid rgba(255, 255, 255, 0.18)',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '0.78rem',
+              color: hasDiscount ? '#34D399' : '#F8FAFC',
+              textTransform: 'uppercase',
+              fontWeight: hasDiscount ? 700 : 500,
+            }}
+          >
+            {hasDiscount ? 'Descuento Adicional' : 'Número de ficha'}
+          </span>
+          <div style={{ marginTop: '4px' }}>
+            {hasDiscount ? (
+              tipoDescuento === 'Porcentaje' ? (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#34D399' }}>
+                    {descuentoAdicional}%
+                  </div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#10B981' }}>
+                    (-${descuentoCalculadoMonto.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#34D399' }}>
+                  -${(parseFloat(descuentoAdicional) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                </div>
+              )
+            ) : (
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#FFFFFF' }}>
+                {venta.numero_ficha || 'N/A'}
+              </div>
+            )}
           </div>
         </div>
 
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
           <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Monto Total</span>
-          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#E87217', marginTop: '4px' }}>
-            {currencyKeys.length > 1
-              ? currencyKeys.map(c => formatMontoMoneda(totalsByCurrency[c], c)).join(' + ')
-              : formatMontoMoneda(displayedTotal, primaryCurrency)}
+          <div style={{ marginTop: '4px' }}>
+            {currencyKeys.length > 1 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {currencyKeys.map(c => (
+                  <div key={c} style={{ fontSize: '1.35rem', fontWeight: 800, color: '#E87217', lineHeight: 1.2 }}>
+                    {formatMontoMoneda(totalsByCurrency[c], c)}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#E87217' }}>
+                {formatMontoMoneda(displayedTotal, primaryCurrency)}
+              </div>
+            )}
           </div>
         </div>
 
@@ -1741,12 +2032,26 @@ export default function EditarCotizacion({
 
         <div style={{ background: 'rgb(6, 18, 81)', border: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: '12px', padding: '16px 20px' }}>
           <span style={{ fontSize: '0.78rem', color: '#F8FAFC', textTransform: 'uppercase' }}>Monto Pendiente</span>
-          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: displayedSaldo > 0.01 ? '#F87171' : '#94A3B8', marginTop: '4px' }}>
-            {currencyKeys.length > 1
-              ? (totalPagado === 0
-                  ? currencyKeys.map(c => formatMontoMoneda(totalsByCurrency[c], c)).join(' + ')
-                  : formatMontoMoneda(displayedSaldo, 'USD'))
-              : formatMontoMoneda(displayedSaldo, primaryCurrency)}
+          <div style={{ marginTop: '4px' }}>
+            {currencyKeys.length > 1 ? (
+              totalPagado === 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  {currencyKeys.map(c => (
+                    <div key={c} style={{ fontSize: '1.35rem', fontWeight: 800, color: '#F87171', lineHeight: 1.2 }}>
+                      {formatMontoMoneda(totalsByCurrency[c], c)}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: displayedSaldo > 0.01 ? '#F87171' : '#94A3B8' }}>
+                  {formatMontoMoneda(displayedSaldo, 'USD')}
+                </div>
+              )
+            ) : (
+              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: displayedSaldo > 0.01 ? '#F87171' : '#94A3B8' }}>
+                {formatMontoMoneda(displayedSaldo, primaryCurrency)}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1980,6 +2285,79 @@ export default function EditarCotizacion({
               onChange={(e) => setObservacion(e.target.value)}
               style={{ width: '100%', resize: 'vertical', flex: 1 }}
             />
+          </div>
+
+          {/* Descuento Adicional */}
+          <div
+            style={{
+              marginTop: '4px',
+              paddingTop: '10px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{
+              width: '100%',
+              padding: '8px 12px',
+              gap: '12px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: '#1e387599',
+              border: '1px solid rgba(62, 114, 229, 0.48)',
+              borderRadius: '6px',
+              color: '#F8FAFC',
+              fontSize: '0.875rem',
+              outline: 'none',
+              textoverflow: 'ellipsis',
+            }}>
+              <div>
+                <span style={{ color: '#F8FAFC', fontSize: '0.875rem', fontWeight: 600 }}>
+                  Descuento Adicional:
+                </span>
+                {tipoDescuento === 'Porcentaje' && (parseFloat(descuentoAdicional) || 0) > 0 && (
+                  <span style={{ display: 'block', fontSize: '0.75rem', color: '#10B981', fontWeight: 600 }}>
+                    (-${descuentoCalculadoMonto.toFixed(2)})
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={descuentoAdicional}
+                  onChange={handleDescuentoChange}
+                  disabled={isServicesLocked}
+                  className="erp-input"
+                  style={{
+                    width: '100px',
+                    textAlign: 'right',
+                    opacity: isServicesLocked ? 0.6 : 1,
+                    cursor: isServicesLocked ? 'not-allowed' : 'text',
+                  }}
+                  placeholder="0"
+                  title={isServicesLocked ? 'Desbloquee la edición con código para modificar el descuento' : (tipoDescuento === 'Porcentaje' ? 'Porcentaje de descuento' : 'Monto de descuento')}
+                />
+                <div style={{ width: '115px' }}>
+                  <CustomSelect
+                    value={tipoDescuento}
+                    onChange={handleTipoDescuentoChange}
+                    disabled={isServicesLocked}
+                    options={[
+                      { value: 'Porcentaje', label: '%' },
+                      { value: 'Monto', label: 'Monto ($)' },
+                    ]}
+                    style={{
+                      opacity: isServicesLocked ? 0.6 : 1,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -3019,9 +3397,18 @@ export default function EditarCotizacion({
                 <li>Se activará el módulo de pagos para el registro de abonos.</li>
                 <li>Podrá seguir actualizando los datos de los pasajeros o añadir nuevos viajeros.</li>
               </ul>
-              <p style={{ margin: 0 }}>
-                Total a confirmar: <strong>{currencyKeys.length > 1 ? currencyKeys.map(c => formatMontoMoneda(totalsByCurrency[c], c)).join(' + ') : formatMontoMoneda(displayedTotal, primaryCurrency)}</strong>
-              </p>
+              <div style={{ margin: 0, display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                <span>Total a confirmar:</span>
+                {currencyKeys.length > 1 ? (
+                  <span style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px' }}>
+                    {currencyKeys.map(c => (
+                      <strong key={c}>{formatMontoMoneda(totalsByCurrency[c], c)}</strong>
+                    ))}
+                  </span>
+                ) : (
+                  <strong>{formatMontoMoneda(displayedTotal, primaryCurrency)}</strong>
+                )}
+              </div>
             </div>
           }
           confirmText="Sí, Confirmar Venta"
@@ -3340,6 +3727,32 @@ export default function EditarCotizacion({
             executeRemovePasajero(uid);
           }}
           onClose={() => setPaxToRemove(null)}
+        />
+      )}
+
+      {/* MODAL: Informe Oficial de Cotización o Venta */}
+      {showInformeModal && (
+        <InformeCotizacionRapidaModal
+          isOpen={showInformeModal}
+          onClose={() => setShowInformeModal(false)}
+          cotizacion={cotizacionParaInforme}
+          tipoInforme={isConfirmed ? 'venta' : 'cotizacion'}
+          tasaReferencialVES={62.50}
+        />
+      )}
+
+      {/* MODAL: Confirmación para Convertir en Nota de Crédito */}
+      {showNotaCreditoModal && (
+        <ConfirmationModal
+          isOpen={showNotaCreditoModal}
+          onClose={() => setShowNotaCreditoModal(false)}
+          onConfirm={handleConvertirNotaCredito}
+          title="Convertir Venta en Nota de Crédito"
+          message={`¿Está seguro de convertir la venta ${venta.numero_ficha} en una Nota de Crédito? Esta acción registrará formalmente el cambio de estado de la venta en el sistema.`}
+          theme="warning"
+          confirmText="Sí, Convertir en Nota de Crédito"
+          processingText="Convirtiendo..."
+          isProcessing={isConvertingNotaCredito}
         />
       )}
     </div>

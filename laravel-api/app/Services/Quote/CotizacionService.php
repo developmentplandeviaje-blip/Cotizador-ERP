@@ -50,7 +50,7 @@ class CotizacionService
         $excursiones = Excursion::orderBy('tipo_excursion')->get();
         $paquetes = Paquete::orderBy('paquete')->get();
 
-        $traslados = Traslado::orderBy('ruta_origen')->get();
+        $traslados = Traslado::orderByDesc('destacado')->orderBy('ruta_origen')->get();
         $vehiculos = Vehiculo::with('tarifas')->orderBy('marca')->get();
 
 

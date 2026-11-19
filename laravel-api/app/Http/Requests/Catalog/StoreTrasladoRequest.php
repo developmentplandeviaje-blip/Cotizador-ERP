@@ -19,6 +19,7 @@ class StoreTrasladoRequest extends FormRequest
             'costo' => ['required', 'numeric', 'min:0'],
             'precio_publico' => ['required', 'numeric', 'min:0'],
             'tipo_servicio' => ['required', 'string', 'string', 'max:50'],
+            'destacado' => ['nullable', 'boolean'],
         ];
     }
 

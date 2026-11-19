@@ -20,12 +20,14 @@ class Traslado extends Model
         'costo',
         'precio_publico',
         'tipo_servicio',
+        'destacado',
     ];
 
     protected $casts = [
         'id_ubicacion' => 'integer',
         'costo' => 'decimal:2',
         'precio_publico' => 'decimal:2',
+        'destacado' => 'boolean',
     ];
 
     public function ubicacion(): BelongsTo

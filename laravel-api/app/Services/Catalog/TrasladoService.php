@@ -39,12 +39,14 @@ class TrasladoService
             $query->where('tipo_servicio', trim($filters['tipo_servicio']));
         }
 
-        // Sorting
+        // Sorting: Destacados always come first
+        $query->orderByDesc('destacado');
+
         $sortBy = $filters['sort_by'] ?? 'ruta_origen';
         $sortDir = strtolower($filters['sort_dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
-        $allowedSorts = ['id', 'ruta_origen', 'id_ubicacion', 'tipo_servicio', 'costo', 'precio_publico'];
-        if (in_array($sortBy, $allowedSorts, true)) {
+        $allowedSorts = ['id', 'ruta_origen', 'id_ubicacion', 'tipo_servicio', 'costo', 'precio_publico', 'destacado'];
+        if (in_array($sortBy, $allowedSorts, true) && $sortBy !== 'destacado') {
             $query->orderBy($sortBy, $sortDir);
         } else {
             $query->orderBy('ruta_origen', 'asc');
@@ -71,6 +73,7 @@ class TrasladoService
                 'costo' => (float) $data['costo'],
                 'precio_publico' => (float) $data['precio_publico'],
                 'tipo_servicio' => trim($data['tipo_servicio'] ?? 'Solo Ida'),
+                'destacado' => !empty($data['destacado']),
             ]);
 
             return $traslado->load('ubicacion');
@@ -86,10 +89,10 @@ class TrasladoService
             $traslado->update([
                 'id_ubicacion' => isset($data['id_ubicacion']) ? (int) $data['id_ubicacion'] : $traslado->id_ubicacion,
                 'ruta_origen' => isset($data['ruta_origen']) ? trim($data['ruta_origen']) : $traslado->ruta_origen,
-
                 'costo' => isset($data['costo']) ? (float) $data['costo'] : $traslado->costo,
                 'precio_publico' => isset($data['precio_publico']) ? (float) $data['precio_publico'] : $traslado->precio_publico,
                 'tipo_servicio' => isset($data['tipo_servicio']) ? trim($data['tipo_servicio']) : $traslado->tipo_servicio,
+                'destacado' => isset($data['destacado']) ? (bool) $data['destacado'] : $traslado->destacado,
             ]);
 
             return $traslado->fresh(['ubicacion']);

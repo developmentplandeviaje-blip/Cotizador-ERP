@@ -65,7 +65,9 @@ export default function VentasList({ tipo = 'agencia', user }) {
   const [isConfirmingSale, setIsConfirmingSale] = useState(false);
 
   // Código Diario de Administrador para desbloqueo
-  const isAdminOrLeader = ['administrador', 'admin', 'lider'].includes((user?.level || '').toLowerCase());
+  const isAdminOrLeader = ['administrador', 'admin', 'lider', 'líder'].includes((user?.level || '').toLowerCase().trim());
+  const showAsesorColumn = isAdminOrLeader;
+  const totalColumns = 7 + (showAsesorColumn ? 1 : 0) + (tipo === 'aliados' ? 1 : 0);
   const [dailyCode, setDailyCode] = useState(null);
   const [copiedCode, setCopiedCode] = useState(false);
 
@@ -697,7 +699,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                 <th style={{ padding: '14px 18px 14px 30px' }}>N° Ficha</th>
                 <th style={{ padding: '14px 18px' }}>Fecha</th>
                 <th style={{ padding: '14px 18px' }}>Cliente Principal</th>
-                <th style={{ padding: '14px 18px' }}>Asesor</th>
+                {showAsesorColumn && <th style={{ padding: '14px 18px' }}>Asesor</th>}
                 {tipo === 'aliados' && <th style={{ padding: '14px 18px' }}>Empresa Aliada</th>}
                 {/*<th style={{ padding: '14px 18px', textAlign: 'center' }}>Pax</th>*/}
                 <th style={{ padding: '14px 18px', textAlign: 'right' }}>Monto Total</th>
@@ -709,7 +711,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={tipo === 'aliados' ? 10 : 9} style={{ padding: '60px', textAlign: 'center', color: '#FFFFFF' }}>
+                  <td colSpan={totalColumns} style={{ padding: '60px', textAlign: 'center', color: '#FFFFFF' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                       <span className="spinner" />
                       <span>Cargando listado de ventas...</span>
@@ -718,7 +720,7 @@ export default function VentasList({ tipo = 'agencia', user }) {
                 </tr>
               ) : filteredVentas.length === 0 ? (
                 <tr>
-                  <td colSpan={tipo === 'aliados' ? 10 : 9} style={{ padding: '60px', textAlign: 'center', color: '#FFFFFF' }}>
+                  <td colSpan={totalColumns} style={{ padding: '60px', textAlign: 'center', color: '#FFFFFF' }}>
                     No se encontraron ventas para los criterios seleccionados.
                   </td>
                 </tr>
@@ -761,16 +763,18 @@ export default function VentasList({ tipo = 'agencia', user }) {
                       </td>
 
                       {/* Asesor */}
-                      <td style={{ padding: '14px 18px' }}>
-                        <div style={{ color: '#F8FAFC', fontWeight: '500' }}>
-                          {v.asesor?.name || 'Asesor'}
-                        </div>
-                        {v.freelancer && (
-                          <div style={{ fontSize: '0.7rem', color: '#CBD5E1' }}>
-                            {v.freelancer.nombre}
+                      {showAsesorColumn && (
+                        <td style={{ padding: '14px 18px' }}>
+                          <div style={{ color: '#F8FAFC', fontWeight: '500' }}>
+                            {v.asesor?.name || 'Asesor'}
                           </div>
-                        )}
-                      </td>
+                          {v.freelancer && (
+                            <div style={{ fontSize: '0.7rem', color: '#CBD5E1' }}>
+                              {v.freelancer.nombre}
+                            </div>
+                          )}
+                        </td>
+                      )}
 
                       {/* Empresa Aliada (si tipo === 'aliados') */}
                       {tipo === 'aliados' && (

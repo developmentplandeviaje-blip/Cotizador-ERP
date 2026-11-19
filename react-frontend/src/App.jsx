@@ -17,6 +17,7 @@ import MetodoPagoList from './components/finance/metodos_pago/MetodoPagoList';
 import NuevaCotizacion from './components/cotizacion/NuevaCotizacion';
 import RegistroCotizaciones from './components/cotizacion/RegistroCotizaciones';
 import VentasList from './components/ventas/VentasList';
+import MetodoPagoPublico from './components/public/MetodoPagoPublico';
 
 // Configure default base URL for Axios
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -70,7 +71,34 @@ function getBaseRoute(rawHash) {
   return clean.split('?')[0] || 'dashboard';
 }
 
+function getPublicMetodoPagoParams() {
+  const path = window.location.pathname || '';
+  const hash = (window.location.hash || '').replace(/^#/, '');
+
+  let target = '';
+  if (path.includes('metodo-de-pago')) {
+    target = path.slice(path.indexOf('metodo-de-pago'));
+  } else if (hash.includes('metodo-de-pago')) {
+    target = hash.slice(hash.indexOf('metodo-de-pago'));
+  }
+
+  if (target) {
+    const parts = target.split('/').filter(Boolean);
+    if (parts.length >= 2) {
+      const userId = parts[1];
+      const tipo = parts.slice(2).join('/') || 'todos';
+      return { userId, tipo };
+    }
+  }
+  return null;
+}
+
 function App() {
+  const publicMetodoPago = getPublicMetodoPagoParams();
+  if (publicMetodoPago) {
+    return <MetodoPagoPublico userId={publicMetodoPago.userId} tipo={publicMetodoPago.tipo} />;
+  }
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeRoute, setActiveRouteState] = useState(() => {

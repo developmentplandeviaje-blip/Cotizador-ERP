@@ -25,6 +25,7 @@ class TrasladoResource extends JsonResource
             'nombre_ubicacion' => $this->ubicacion?->ubicacion,
             'ruta_origen' => $this->ruta_origen,
             'tipo_servicio' => $this->tipo_servicio,
+            'destacado' => (bool) $this->destacado,
             'costo' => (float) $this->costo,
             'precio_publico' => (float) $this->precio_publico,
             'porcentaje' => (float) $this->porcentaje,

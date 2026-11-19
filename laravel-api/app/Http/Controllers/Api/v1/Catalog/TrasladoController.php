@@ -56,6 +56,14 @@ class TrasladoController extends Controller
         return new TrasladoResource($updated);
     }
 
+    public function toggleDestacado(Request $request, Traslado $traslado): TrasladoResource
+    {
+        $traslado->destacado = !$traslado->destacado;
+        $traslado->save();
+
+        return new TrasladoResource($traslado->load('ubicacion'));
+    }
+
     public function destroy(Traslado $traslado): JsonResponse
     {
         try {

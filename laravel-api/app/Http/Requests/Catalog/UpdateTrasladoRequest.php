@@ -19,6 +19,7 @@ class UpdateTrasladoRequest extends FormRequest
             'costo' => ['sometimes', 'required', 'numeric', 'min:0'],
             'precio_publico' => ['sometimes', 'required', 'numeric', 'min:0'],
             'tipo_servicio' => ['sometimes', 'required', 'string', 'string', 'max:50'],
+            'destacado' => ['nullable', 'boolean'],
         ];
     }
 

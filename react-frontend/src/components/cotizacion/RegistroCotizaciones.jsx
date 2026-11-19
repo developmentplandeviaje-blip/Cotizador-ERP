@@ -17,6 +17,9 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
   const [page, setPage] = useState(1);
   const [selectedCotizacion, setSelectedCotizacion] = useState(null);
 
+  const isAdminOrLeader = ['administrador', 'admin', 'lider', 'líder'].includes((user?.level || '').toLowerCase().trim());
+  const showAsesorColumn = isAdminOrLeader;
+
   // Cargar registro de cotizaciones desde el backend
   const fetchCotizaciones = async () => {
     setLoading(true);
@@ -406,7 +409,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                   <th style={{ padding: '14px 18px' }}>Número de ficha</th>
                   <th style={{ padding: '14px 18px' }}>Fecha y Hora</th>
                   <th style={{ padding: '14px 18px' }}>Cliente Principal</th>
-                  <th style={{ padding: '14px 18px' }}>Asesor</th>
+                  {showAsesorColumn && <th style={{ padding: '14px 18px' }}>Asesor</th>}
                   <th style={{ padding: '14px 18px', textAlign: 'center' }}>Pax</th>
                   <th style={{ padding: '14px 18px' }}>Total Cotizado</th>
                   <th style={{ padding: '14px 18px', textAlign: 'center' }}>Tipo</th>
@@ -468,9 +471,11 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                       </td>
 
                       {/* Asesor */}
-                      <td style={{ padding: '14px 18px', color: '#CBD5E1' }}>
-                        {cotiz.asesor || 'Asesor'}
-                      </td>
+                      {showAsesorColumn && (
+                        <td style={{ padding: '14px 18px', color: '#CBD5E1' }}>
+                          {cotiz.asesor || 'Asesor'}
+                        </td>
+                      )}
 
                       {/* Pax */}
                       <td style={{ padding: '14px 18px', textAlign: 'center' }}>

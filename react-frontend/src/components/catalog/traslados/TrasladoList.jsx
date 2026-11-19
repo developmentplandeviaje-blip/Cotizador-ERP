@@ -35,6 +35,27 @@ export default function TrasladoList({ user }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [togglingDestacadoId, setTogglingDestacadoId] = useState(null);
+
+  const handleToggleDestacado = async (item) => {
+    setTogglingDestacadoId(item.id);
+    try {
+      const res = await axios.patch(`/v1/catalog/traslados/${item.id}/toggle-destacado`);
+      const isDestacado = res.data.data?.destacado;
+      showToast(
+        isDestacado
+          ? `Traslado "${item.ruta_origen}" marcado como destacado (aparecerá al inicio al cotizar).`
+          : `Traslado "${item.ruta_origen}" desmarcado de destacados.`,
+        'success'
+      );
+      fetchTraslados();
+    } catch (err) {
+      console.error('Error al cambiar estado destacado:', err);
+      showToast('Error al actualizar estado destacado.', 'error');
+    } finally {
+      setTogglingDestacadoId(null);
+    }
+  };
 
   // Fetch ubicaciones for the filter dropdown
   useEffect(() => {
@@ -411,7 +432,55 @@ export default function TrasladoList({ user }) {
                     {(page - 1) * 10 + index + 1}
                   </td>
                   <td style={{ padding: '14px 16px', color: '#F8FAFC', fontWeight: '600' }}>
-                    <span>{item.ruta_origen}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {!isFreelancer && (
+                        <button
+                          type="button"
+                          onClick={() => handleToggleDestacado(item)}
+                          disabled={togglingDestacadoId === item.id}
+                          title={
+                            item.destacado
+                              ? 'Traslado destacado (aparecerá de primero en cotizaciones). Clic para desmarcar'
+                              : 'Clic para destacar este traslado (aparecerá de primero en cotizaciones)'
+                          }
+                          style={{
+                            background: item.destacado ? 'rgba(234, 179, 8, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                            border: item.destacado ? '1px solid #EAB308' : '1px solid rgba(255, 255, 255, 0.15)',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            padding: '3px 7px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.8125rem',
+                            color: item.destacado ? '#FACC15' : '#94A3B8',
+                            transition: 'all 0.15s ease',
+                            opacity: togglingDestacadoId === item.id ? 0.4 : 1,
+                          }}
+                        >
+                          {item.destacado ? '⭐' : '☆'}
+                        </button>
+                      )}
+                      <span>{item.ruta_origen}</span>
+                      {item.destacado && (
+                        <span
+                          style={{
+                            background: 'rgba(234, 179, 8, 0.15)',
+                            color: '#FACC15',
+                            border: '1px solid rgba(234, 179, 8, 0.35)',
+                            fontSize: '0.625rem',
+                            fontWeight: 700,
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Destacado
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <Badge variant="primary" style={{ fontSize: '0.75rem' }}>

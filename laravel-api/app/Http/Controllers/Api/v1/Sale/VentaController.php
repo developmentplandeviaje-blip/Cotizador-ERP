@@ -70,6 +70,15 @@ class VentaController extends Controller
         ]);
     }
 
+    public function convertirNotaCredito(Request $request, int $id): JsonResponse
+    {
+        $venta = $this->service->convertirNotaCredito($id, $request->user());
+        return response()->json([
+            'message' => 'Venta convertida a Nota de Crédito exitosamente.',
+            'venta' => $venta,
+        ]);
+    }
+
     public function desbloquearEdicion(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([

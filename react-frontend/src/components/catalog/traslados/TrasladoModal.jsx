@@ -14,6 +14,7 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
   const [rutaOrigen, setRutaOrigen] = useState('');
 
   const [tipoServicio, setTipoServicio] = useState('Solo Ida');
+  const [destacado, setDestacado] = useState(false);
 
   // Pricing & margins
   const [costo, setCosto] = useState('');
@@ -52,6 +53,7 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
         setCosto(trasladoToEdit.costo !== undefined && trasladoToEdit.costo !== null ? trasladoToEdit.costo : '');
         setPorcentaje(trasladoToEdit.porcentaje !== undefined && trasladoToEdit.porcentaje !== null ? trasladoToEdit.porcentaje : '');
         setPrecioPublico(trasladoToEdit.precio_publico !== undefined && trasladoToEdit.precio_publico !== null ? trasladoToEdit.precio_publico : '');
+        setDestacado(Boolean(trasladoToEdit.destacado));
       } else {
         setIdUbicacion('');
         setRutaOrigen('');
@@ -59,6 +61,7 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
         setCosto('');
         setPorcentaje('');
         setPrecioPublico('');
+        setDestacado(false);
       }
     }
   }, [isOpen, trasladoToEdit]);
@@ -117,6 +120,7 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
       tipo_servicio: tipoServicio,
       costo: parseFloat(costo) || 0,
       precio_publico: parseFloat(precioPublico) || 0,
+      destacado: Boolean(destacado),
     };
 
     try {
@@ -314,6 +318,41 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
               />
             </div>
           </div>
+        </div>
+
+        {/* Destacar Traslado */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: destacado ? 'rgba(234, 179, 8, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+          border: destacado ? '1px solid rgba(234, 179, 8, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '10px',
+          padding: '12px 16px',
+          marginBottom: '20px',
+          transition: 'all 0.2s ease',
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.2rem' }}>⭐</span>
+              <span style={{ fontWeight: 700, fontSize: '0.875rem', color: destacado ? '#FACC15' : '#F8FAFC' }}>
+                Destacar Traslado
+              </span>
+            </div>
+            <span style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginTop: '2px' }}>
+              Los traslados destacados aparecerán de primeros en la lista al momento de crear una cotización.
+            </span>
+          </div>
+
+          <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={destacado}
+              onChange={(e) => setDestacado(e.target.checked)}
+              disabled={isSubmitting}
+              style={{ width: '18px', height: '18px', accentColor: '#E87217', cursor: 'pointer' }}
+            />
+          </label>
         </div>
 
         {/* Action Buttons */}
