@@ -34,7 +34,7 @@ class VentaService
         @ini_set('memory_limit', '512M');
         @set_time_limit(120);
 
-        $isAdminOrLeader = in_array(strtolower($currentUser->level ?? ''), ['admin', 'administrador', 'lider']);
+        $canViewAll = in_array(strtolower($currentUser->level ?? ''), ['admin', 'administrador', 'lider', 'operativo', 'administracion', 'contabilidad']);
 
         $query = Venta::with([
             'user.aliado',
@@ -52,8 +52,8 @@ class VentaService
                   ->whereNull('id_aliado');
             });
 
-            // Restricción de asesor individual
-            if (!$isAdminOrLeader) {
+            // Restricción de asesor individual (Operativo, Administrador, Líder, etc. pueden ver todas las ventas)
+            if (!$canViewAll) {
                 $query->where('id_user', $currentUser->id);
             }
         } elseif ($scope === 'freelancer') {
@@ -64,7 +64,7 @@ class VentaService
                 });
             });
 
-            if (!$isAdminOrLeader) {
+            if (!$canViewAll) {
                 $query->where('id_user', $currentUser->id);
             }
         } elseif ($scope === 'aliados') {
@@ -72,7 +72,7 @@ class VentaService
                 $q->whereNotNull('id_aliado');
             });
 
-            if (!$isAdminOrLeader) {
+            if (!$canViewAll) {
                 if ($currentUser->id_aliado) {
                     // Ver ventas de su misma empresa aliada
                     $query->whereHas('user', function ($q) use ($currentUser) {
@@ -592,9 +592,9 @@ class VentaService
         return DB::transaction(function () use ($id, $user) {
             $venta = Venta::findOrFail($id);
 
-            // Verificar pertenencia si no es admin
-            $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
-            if (!$isAdminOrLeader && $venta->id_user !== $user->id) {
+            // Verificar pertenencia si no es admin u operativo
+            $canManage = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider', 'operativo', 'administracion']);
+            if (!$canManage && $venta->id_user !== $user->id) {
                 abort(403, 'No tiene autorización para confirmar esta venta.');
             }
 
@@ -614,8 +614,8 @@ class VentaService
         return DB::transaction(function () use ($id, $user) {
             $venta = Venta::findOrFail($id);
 
-            $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
-            if (!$isAdminOrLeader && $venta->id_user !== $user->id) {
+            $canManage = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider', 'operativo', 'administracion']);
+            if (!$canManage && $venta->id_user !== $user->id) {
                 abort(403, 'No tiene autorización para modificar esta venta.');
             }
 
@@ -639,9 +639,9 @@ class VentaService
         return DB::transaction(function () use ($id, $data, $user) {
             $venta = Venta::with(['pagos', 'hoteles', 'vuelos', 'traslados', 'excursiones', 'paquetes', 'vehiculos'])->findOrFail($id);
 
-            // Validar pertenencia si no es admin
-            $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
-            if (!$isAdminOrLeader && $venta->id_user !== $user->id) {
+            // Validar pertenencia si no es admin, operativo o administración
+            $canManage = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider', 'operativo', 'administracion', 'contabilidad']);
+            if (!$canManage && $venta->id_user !== $user->id) {
                 abort(403, 'No tiene autorización para registrar pagos en esta venta.');
             }
 
@@ -722,8 +722,8 @@ class VentaService
         return DB::transaction(function () use ($idVenta, $idPago, $data, $user) {
             $venta = Venta::findOrFail($idVenta);
 
-            $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
-            if (!$isAdminOrLeader && $venta->id_user !== $user->id) {
+            $canManage = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider', 'operativo', 'administracion', 'contabilidad']);
+            if (!$canManage && $venta->id_user !== $user->id) {
                 abort(403, 'No tiene autorización para modificar pagos de esta venta.');
             }
 
@@ -781,8 +781,8 @@ class VentaService
         return DB::transaction(function () use ($idVenta, $idPago, $user) {
             $venta = Venta::findOrFail($idVenta);
 
-            $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
-            if (!$isAdminOrLeader && $venta->id_user !== $user->id) {
+            $canManage = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider', 'operativo', 'administracion']);
+            if (!$canManage && $venta->id_user !== $user->id) {
                 abort(403, 'No tiene autorización para eliminar pagos de esta venta.');
             }
 
@@ -822,8 +822,8 @@ class VentaService
             'pagos.detalles',
         ])->findOrFail($id);
 
-        $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
-        if (!$isAdminOrLeader && $venta->id_user !== $user->id) {
+        $canView = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider', 'operativo', 'administracion', 'contabilidad']);
+        if (!$canView && $venta->id_user !== $user->id) {
             abort(403, 'No tiene autorización para visualizar esta venta.');
         }
 
@@ -969,8 +969,8 @@ class VentaService
         return DB::transaction(function () use ($id, $data, $user) {
             $venta = Venta::findOrFail($id);
 
-            $isAdminOrLeader = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
-            if (!$isAdminOrLeader && $venta->id_user !== $user->id) {
+            $canManage = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider', 'operativo', 'administracion']);
+            if (!$canManage && $venta->id_user !== $user->id) {
                 abort(403, 'No tiene autorización para modificar este registro.');
             }
 

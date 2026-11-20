@@ -12,7 +12,10 @@ import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
 
 export default function VehiculoList({ user }) {
-  const isFreelancer = user?.level === 'Freelancer';
+  const userStored = user || JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = (userStored?.level || '').trim().toLowerCase();
+  const canEditOrManage = ['admin', 'administrador', 'tarifas'].includes(userRole);
+  const isFreelancer = userRole === 'freelancer';
 
   const [vehiculos, setVehiculos] = useState([]);
   const [ubicaciones, setUbicaciones] = useState([]);
@@ -309,7 +312,7 @@ export default function VehiculoList({ user }) {
             <span className='title-input'>Imprimir</span>
           </div>
 
-          {!isFreelancer && (
+          {canEditOrManage && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
                 <button
@@ -473,7 +476,7 @@ export default function VehiculoList({ user }) {
                         Tarifas
                       </button>
 
-                      {!isFreelancer && (
+                      {canEditOrManage && (
                         <>
                           <button
                             onClick={() => handleOpenEdit(item)}

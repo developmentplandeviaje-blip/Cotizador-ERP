@@ -151,6 +151,92 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Control de Acceso por Rol (RBAC Guard)
+  useEffect(() => {
+    if (!user) return;
+    const userLevel = (user?.level || '').trim().toLowerCase();
+    const isAdmin = ['administrador', 'admin'].includes(userLevel);
+    if (isAdmin) return;
+
+    const isAdministracion = ['administracion', 'administración', 'sub gerente', 'gerente'].includes(userLevel);
+    const isContabilidad = userLevel === 'contabilidad';
+    const isOperativo = userLevel === 'operativo';
+    const isTarifas = userLevel === 'tarifas';
+    const isLider = userLevel === 'lider' || userLevel === 'líder';
+    const isAsesor = userLevel === 'asesor';
+    const isFreelancer = userLevel === 'freelancer';
+    const isAliado = Boolean(user?.id_aliado) || userLevel === 'aliado';
+
+    let isForbidden = false;
+
+    // 1. Gastos: exclusivamente Administradores
+    if (activeRoute === 'gastos') {
+      isForbidden = true;
+    }
+
+    // 2. Métodos de Pago: Administrador y Administración
+    if (activeRoute === 'metodos_pago') {
+      if (!isAdministracion) isForbidden = true;
+    }
+
+    // 3. Reportes
+    if (activeRoute.startsWith('reportes_')) {
+      if (isContabilidad || isTarifas) {
+        isForbidden = true;
+      } else if (isAdministracion || isOperativo) {
+        if (!['reportes_cuentas_cobrar', 'reportes_cuentas_pagar'].includes(activeRoute)) {
+          isForbidden = true;
+        }
+      } else if (isLider || isAsesor || isFreelancer || isAliado) {
+        if (!['reportes_cuentas_cobrar', 'reportes_checkin'].includes(activeRoute)) {
+          isForbidden = true;
+        }
+      }
+    }
+
+    // 4. Ventas
+    if (activeRoute === 'ventas_agencia') {
+      if (!isAdministracion && !isContabilidad && !isOperativo && !isLider && !isAsesor) {
+        isForbidden = true;
+      }
+    }
+    if (activeRoute === 'ventas_freelancer') {
+      if (!isFreelancer) isForbidden = true;
+    }
+    if (activeRoute === 'ventas_aliados') {
+      if (!isAliado) isForbidden = true;
+    }
+    if (activeRoute === 'ventas_cotizaciones') {
+      if (isTarifas) isForbidden = true;
+    }
+
+    // 5. Servicios
+    if (activeRoute.startsWith('servicios_')) {
+      if (isOperativo && !['servicios_hoteles', 'servicios_traslados'].includes(activeRoute)) {
+        isForbidden = true;
+      }
+    }
+
+    // 6. Usuarios
+    if (activeRoute === 'usuarios_agencia') {
+      if (!isAdministracion && !isContabilidad && !isOperativo && !isLider && !isAsesor) {
+        isForbidden = true;
+      }
+    }
+    if (activeRoute === 'usuarios_freelancer') {
+      if (!isTarifas && !isFreelancer) {
+        isForbidden = true;
+      }
+    }
+    if (activeRoute === 'usuarios_aliados') {
+      if (!isAliado) isForbidden = true;
+    }
+
+    if (isForbidden) {
+      setActiveRoute('dashboard');
+    }
+  }, [activeRoute, user]);
+
   // Validaciones y límites globales de caracteres y formatos según contexto
   useEffect(() => {
     const handleGlobalInputRules = (e) => {

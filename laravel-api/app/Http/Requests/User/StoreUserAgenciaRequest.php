@@ -10,7 +10,7 @@ class StoreUserAgenciaRequest extends FormRequest
     public function authorize(): bool
     {
         $user = $this->user();
-        return $user && in_array($user->level, ['Admin', 'Administrador', 'Sub Gerente'], true);
+        return $user && in_array($user->level, ['Admin', 'Administrador', 'Administracion', 'Sub Gerente', 'Lider'], true);
     }
 
     public function rules(): array
@@ -20,7 +20,7 @@ class StoreUserAgenciaRequest extends FormRequest
             'last_name' => ['required', 'string', 'max:30'],
             'email' => ['required', 'email', 'max:70', 'unique:user,email'],
             'password' => ['required', 'string', 'min:6'],
-            'level' => ['required', 'string', Rule::in(['Admin', 'Administrador', 'Sub Gerente', 'Lider', 'Asesor'])],
+            'level' => ['required', 'string', Rule::in(['Admin', 'Administrador', 'Administracion', 'Administración', 'Sub Gerente', 'Contabilidad', 'Operativo', 'Tarifas', 'Lider', 'Asesor'])],
             'status' => ['nullable', 'boolean'],
             'comisiones' => ['nullable', 'array'],
             'comisiones.hotel' => ['nullable', 'numeric', 'min:0', 'max:100'],

@@ -10,7 +10,10 @@ import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
 
 export default function ExcursionList({ user }) {
-  const isFreelancer = user?.level === 'Freelancer';
+  const userStored = user || JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = (userStored?.level || '').trim().toLowerCase();
+  const canEditOrManage = ['admin', 'administrador', 'tarifas'].includes(userRole);
+  const isFreelancer = userRole === 'freelancer';
 
   const [excursiones, setExcursiones] = useState([]);
   const [ubicaciones, setUbicaciones] = useState([]);
@@ -256,7 +259,7 @@ export default function ExcursionList({ user }) {
             <span className='title-input'>Imprimir</span>
           </div>
 
-          {!isFreelancer && (
+          {canEditOrManage && (
             <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
               <button
                 className="btn-secondary"
@@ -325,7 +328,7 @@ export default function ExcursionList({ user }) {
                 Desc. Referidos
               </th>
 
-              {!isFreelancer && (
+              {canEditOrManage && (
                 <th style={{ padding: '14px 16px', color: '#FFFFFF', fontWeight: '600', textAlign: 'right', width: '150px' }}>
                   Acciones
                 </th>
@@ -335,13 +338,13 @@ export default function ExcursionList({ user }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={isFreelancer ? 5 : 7} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                <td colSpan={canEditOrManage ? (isFreelancer ? 5 : 7) : (isFreelancer ? 4 : 6)} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   Cargando catálogo de excursiones...
                 </td>
               </tr>
             ) : excursiones.length === 0 ? (
               <tr>
-                <td colSpan={isFreelancer ? 5 : 7} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                <td colSpan={canEditOrManage ? (isFreelancer ? 5 : 7) : (isFreelancer ? 4 : 6)} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   {search || selectedUbicacion
                     ? 'No se encontraron excursiones que coincidan con los filtros aplicados.'
                     : 'No hay excursiones registradas en el catálogo.'}
@@ -417,7 +420,7 @@ export default function ExcursionList({ user }) {
                     </Badge>
                   </td>
 
-                  {!isFreelancer && (
+                  {canEditOrManage && (
                     <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '8px' }}>
                         <button

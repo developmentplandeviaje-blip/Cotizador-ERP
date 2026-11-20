@@ -117,7 +117,7 @@ class MetodoPagoController extends Controller
     private function ensureAdmin(Request $request): void
     {
         $user = $request->user();
-        if (!$user || !in_array($user->level, ['Admin', 'Administrador', 'Sub Gerente'], true)) {
+        if (!$user || !in_array($user->level, ['Admin', 'Administrador', 'Administracion', 'Sub Gerente'], true)) {
             abort(403, 'Acceso restringido a administradores.');
         }
     }

@@ -28,9 +28,21 @@ class UserAgenciaService
     /**
      * Retrieve paginated agency users with filters.
      */
-    public function getUsers(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    public function getUsers(array $filters = [], int $perPage = 15, ?User $currentUser = null): LengthAwarePaginator
     {
         $query = User::agencia()->with('comisiones');
+
+        if ($currentUser) {
+            $currentLevel = strtolower($currentUser->level ?? '');
+            if (in_array($currentLevel, ['asesor', 'contabilidad', 'operativo', 'administracion', 'administración'], true)) {
+                $query->where('id', $currentUser->id);
+            } elseif ($currentLevel === 'lider' || $currentLevel === 'líder') {
+                $query->where(function ($q) use ($currentUser) {
+                    $q->where('id', $currentUser->id)
+                      ->orWhere('level', 'Asesor');
+                });
+            }
+        }
 
         if (!empty($filters['search'])) {
             $search = trim($filters['search']);

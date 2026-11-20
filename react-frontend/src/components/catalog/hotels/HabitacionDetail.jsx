@@ -9,6 +9,10 @@ import HotelModal from './HotelModal';
 
 
 export default function HabitacionDetail({ hotel, onBack, isFreelancer = false, canManageHotelTypes = false }) {
+  const userStored = JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = (userStored?.level || '').trim().toLowerCase();
+  const canEditOrManage = canManageHotelTypes || ['admin', 'administrador', 'tarifas'].includes(userRole);
+
   const [habitaciones, setHabitaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedRoomId, setExpandedRoomId] = useState(null);
@@ -140,19 +144,21 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false, 
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
-            <button
-              className="btn-secondary"
-              onClick={() => handleEditHotelRooms(0)}
-              title="Agregar habitación"
-            >
-              <img
-                src={imgAgregar}
-                style={{ width: '20px', height: '20px', objectFit: 'contain' }}
-              />
-            </button>
-            <span className='title-input'>Agregar</span>
-          </div>
+          {canEditOrManage && (
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => handleEditHotelRooms(0)}
+                title="Agregar habitación"
+              >
+                <img
+                  src={imgAgregar}
+                  style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+                />
+              </button>
+              <span className='title-input'>Agregar</span>
+            </div>
+          )}
 
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button className="btn-secondary" onClick={onBack}>
@@ -243,56 +249,58 @@ export default function HabitacionDetail({ hotel, onBack, isFreelancer = false, 
                               <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: '#E87217' }}>
                                 Tarifario de la Habitación
                               </span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const roomIdx = habitaciones.findIndex(h => h.id === hab.id);
-                                    handleEditHotelRooms(roomIdx >= 0 ? roomIdx : 0);
-                                  }}
-                                  title="Editar habitación y tarifas"
-                                  style={{
-                                    background: 'rgba(59, 130, 246, 0.2)',
-                                    border: '1px solid rgba(96, 165, 250, 0.4)',
-                                    color: '#60A5FA',
-                                    width: '28px',
-                                    height: '28px',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'all 0.2s',
-                                  }}
-                                >
-                                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                  </svg>
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn-accent"
-                                  style={{
-                                    width: '28px',
-                                    height: '28px',
-                                    borderRadius: '6px',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: 0,
-                                    cursor: 'pointer',
-                                    border: 'none',
-                                  }}
-                                  onClick={() => handleAddTarifa(hab.id)}
-                                  title="Agregar Tarifa"
-                                >
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                  </svg>
-                                </button>
-                              </div>
+                              {canEditOrManage && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const roomIdx = habitaciones.findIndex(h => h.id === hab.id);
+                                      handleEditHotelRooms(roomIdx >= 0 ? roomIdx : 0);
+                                    }}
+                                    title="Editar habitación y tarifas"
+                                    style={{
+                                      background: 'rgba(59, 130, 246, 0.2)',
+                                      border: '1px solid rgba(96, 165, 250, 0.4)',
+                                      color: '#60A5FA',
+                                      width: '28px',
+                                      height: '28px',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      transition: 'all 0.2s',
+                                    }}
+                                  >
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-accent"
+                                    style={{
+                                      width: '28px',
+                                      height: '28px',
+                                      borderRadius: '6px',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      padding: 0,
+                                      cursor: 'pointer',
+                                      border: 'none',
+                                    }}
+                                    onClick={() => handleAddTarifa(hab.id)}
+                                    title="Agregar Tarifa"
+                                  >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem', textAlign: 'left' }}>

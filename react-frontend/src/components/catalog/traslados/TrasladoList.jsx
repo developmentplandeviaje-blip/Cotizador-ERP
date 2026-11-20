@@ -10,7 +10,10 @@ import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
 
 export default function TrasladoList({ user }) {
-  const isFreelancer = user?.level === 'Freelancer';
+  const userStored = user || JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = (userStored?.level || '').trim().toLowerCase();
+  const canEditOrManage = ['admin', 'administrador', 'tarifas'].includes(userRole);
+  const isFreelancer = userRole === 'freelancer';
 
   const [traslados, setTraslados] = useState([]);
   const [ubicaciones, setUbicaciones] = useState([]);
@@ -321,7 +324,7 @@ export default function TrasladoList({ user }) {
             <span className='title-input'>Imprimir</span>
           </div>
 
-          {!isFreelancer && (
+          {canEditOrManage && (
             <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
               <button
                 className="btn-secondary"
@@ -395,7 +398,7 @@ export default function TrasladoList({ user }) {
                 {isFreelancer ? 'Tarifa Venta (USD)' : 'Precio Público'}{getSortIndicator('precio_publico')}
               </th>
 
-              {!isFreelancer && (
+              {canEditOrManage && (
                 <th style={{ padding: '14px 16px', color: '#FFFFFF', fontWeight: '600', textAlign: 'right', width: '150px' }}>
                   Acciones
                 </th>
@@ -405,13 +408,13 @@ export default function TrasladoList({ user }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={isFreelancer ? 5 : 7} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                <td colSpan={canEditOrManage ? (isFreelancer ? 5 : 7) : (isFreelancer ? 4 : 6)} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   Cargando catálogo de traslados...
                 </td>
               </tr>
             ) : traslados.length === 0 ? (
               <tr>
-                <td colSpan={isFreelancer ? 5 : 7} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                <td colSpan={canEditOrManage ? (isFreelancer ? 5 : 7) : (isFreelancer ? 4 : 6)} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   {search || selectedUbicacion || selectedTipoServicio
                     ? 'No se encontraron traslados que coincidan con los filtros aplicados.'
                     : 'No hay traslados registrados en el catálogo.'}
@@ -433,7 +436,7 @@ export default function TrasladoList({ user }) {
                   </td>
                   <td style={{ padding: '14px 16px', color: '#F8FAFC', fontWeight: '600' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {!isFreelancer && (
+                      {canEditOrManage && (
                         <button
                           type="button"
                           onClick={() => handleToggleDestacado(item)}
@@ -458,28 +461,26 @@ export default function TrasladoList({ user }) {
                             opacity: togglingDestacadoId === item.id ? 0.4 : 1,
                           }}
                         >
-                          {item.destacado ? '⭐' : '☆'}
+                          {item.destacado ? (
+                            '⭐'
+                          ) : (
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="#94A3B8"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              style={{ opacity: 0.55 }}
+                            >
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                          )}
                         </button>
                       )}
                       <span>{item.ruta_origen}</span>
-                      {item.destacado && (
-                        <span
-                          style={{
-                            background: 'rgba(234, 179, 8, 0.15)',
-                            color: '#FACC15',
-                            border: '1px solid rgba(234, 179, 8, 0.35)',
-                            fontSize: '0.625rem',
-                            fontWeight: 700,
-                            padding: '1px 5px',
-                            borderRadius: '4px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.04em',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          Destacado
-                        </span>
-                      )}
                     </div>
                   </td>
                   <td style={{ padding: '14px 16px' }}>
@@ -518,7 +519,7 @@ export default function TrasladoList({ user }) {
                     </span>
                   </td>
 
-                  {!isFreelancer && (
+                  {canEditOrManage && (
                     <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '8px' }}>
                         <button

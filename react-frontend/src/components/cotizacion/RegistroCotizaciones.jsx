@@ -17,8 +17,8 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
   const [page, setPage] = useState(1);
   const [selectedCotizacion, setSelectedCotizacion] = useState(null);
 
-  const isAdminOrLeader = ['administrador', 'admin', 'lider', 'líder'].includes((user?.level || '').toLowerCase().trim());
-  const showAsesorColumn = isAdminOrLeader;
+  const canViewAll = ['administrador', 'admin', 'lider', 'líder', 'operativo', 'administracion', 'contabilidad'].includes((user?.level || '').toLowerCase().trim());
+  const showAsesorColumn = canViewAll;
 
   // Cargar registro de cotizaciones desde el backend
   const fetchCotizaciones = async () => {

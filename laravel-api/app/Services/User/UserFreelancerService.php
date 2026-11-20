@@ -29,9 +29,13 @@ class UserFreelancerService
     /**
      * Retrieve paginated freelancer users with filters.
      */
-    public function getUsers(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    public function getUsers(array $filters = [], int $perPage = 15, ?User $currentUser = null): LengthAwarePaginator
     {
         $query = User::freelancers()->with(['comisiones', 'freelancer']);
+
+        if ($currentUser && $currentUser->level === 'Freelancer') {
+            $query->where('id', $currentUser->id);
+        }
 
         if (!empty($filters['search'])) {
             $search = trim($filters['search']);

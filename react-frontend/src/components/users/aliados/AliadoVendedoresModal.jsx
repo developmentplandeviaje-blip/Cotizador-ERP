@@ -36,7 +36,18 @@ const DEFAULT_COMISIONES = {
   otro: 0,
 };
 
-export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
+export default function AliadoVendedoresModal({ isOpen, onClose, aliado, currentUser }) {
+  const userObj = currentUser || (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  })();
+  const userLevel = (userObj?.level || '').trim().toLowerCase();
+  const role = (userObj?.role || '').trim().toLowerCase();
+  const isAdminOrGerente = ['admin', 'administrador', 'gerente', 'sub gerente'].includes(role) || ['admin', 'administrador', 'gerente', 'sub gerente'].includes(userLevel);
+
   const [vendedores, setVendedores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hoveredComisiones, setHoveredComisiones] = useState(null);
@@ -63,13 +74,17 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
     setLoading(true);
     try {
       const res = await axios.get(`/v1/users/aliados/${aliado.id}/vendedores`);
-      setVendedores(res.data.data || []);
+      let list = res.data.data || [];
+      if (!isAdminOrGerente && userObj?.id) {
+        list = list.filter((v) => Number(v.id) === Number(userObj.id));
+      }
+      setVendedores(list);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [aliado]);
+  }, [aliado, isAdminOrGerente, userObj?.id]);
 
   useEffect(() => {
     if (isOpen) {
@@ -197,11 +212,13 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
 
         {!isFormOpen ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={handleOpenCreate} className="btn-accent" style={{ padding: '6px 14px', fontSize: '0.8125rem' }}>
-                + Agregar Vendedor
-              </button>
-            </div>
+            {isAdminOrGerente && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={handleOpenCreate} className="btn-accent" style={{ padding: '6px 14px', fontSize: '0.8125rem' }}>
+                  + Agregar Vendedor
+                </button>
+              </div>
+            )}
 
             <div style={{ background: 'rgba(15, 23, 42, 0.4)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', overflow: 'visible' }}>
               <table style={{ width: '100%', textAlign: 'left', fontSize: '0.8125rem', borderCollapse: 'collapse' }}>
@@ -282,40 +299,48 @@ export default function AliadoVendedoresModal({ isOpen, onClose, aliado }) {
 
                         {/* Status Toggle */}
                         <td style={{ padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleStatus(v)}
-                            disabled={togglingId === v.id}
-                            title="Haz clic para alternar estado"
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              padding: 0,
-                              opacity: togglingId === v.id ? 0.5 : 1,
-                              transition: 'opacity 0.2s',
-                            }}
-                          >
-                            {v.status ? <Badge variant="success">Activo</Badge> : <Badge variant="error">Inactivo</Badge>}
-                          </button>
+                          {isAdminOrGerente ? (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleStatus(v)}
+                              disabled={togglingId === v.id}
+                              title="Haz clic para alternar estado"
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: 0,
+                                opacity: togglingId === v.id ? 0.5 : 1,
+                                transition: 'opacity 0.2s',
+                              }}
+                            >
+                              {v.status ? <Badge variant="success">Activo</Badge> : <Badge variant="error">Inactivo</Badge>}
+                            </button>
+                          ) : (
+                            <Badge variant={v.status ? "success" : "error"}>{v.status ? "Activo" : "Inactivo"}</Badge>
+                          )}
                         </td>
 
                         {/* Actions */}
                         <td style={{ padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                              onClick={() => handleOpenEdit(v)}
-                              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '4px', padding: '4px 8px', color: '#FFF', cursor: 'pointer', fontSize: '0.75rem' }}
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => handleDelete(v)}
-                              style={{ background: 'rgba(239,68,68,0.2)', border: 'none', borderRadius: '4px', padding: '4px 8px', color: '#FCA5A5', cursor: 'pointer', fontSize: '0.75rem' }}
-                            >
-                              Eliminar
-                            </button>
-                          </div>
+                          {isAdminOrGerente ? (
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                onClick={() => handleOpenEdit(v)}
+                                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '4px', padding: '4px 8px', color: '#FFF', cursor: 'pointer', fontSize: '0.75rem' }}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleDelete(v)}
+                                style={{ background: 'rgba(239,68,68,0.2)', border: 'none', borderRadius: '4px', padding: '4px 8px', color: '#FCA5A5', cursor: 'pointer', fontSize: '0.75rem' }}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Solo lectura</span>
+                          )}
                         </td>
                       </tr>
                     ))

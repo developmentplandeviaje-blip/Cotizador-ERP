@@ -185,8 +185,8 @@ class HotelController extends Controller
     private function ensureAdmin(Request $request): void
     {
         $user = $request->user();
-        if (!$user || !in_array($user->level, ['Admin', 'Administrador', 'Sub Gerente'], true)) {
-            abort(403, 'Acceso restringido a administradores.');
+        if (!$user || !in_array($user->level, ['Admin', 'Administrador', 'Tarifas'], true)) {
+            abort(403, 'Acceso restringido a administradores y tarifas.');
         }
     }
 }

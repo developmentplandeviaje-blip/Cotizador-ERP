@@ -36,7 +36,9 @@ export default function HotelList({ user }) {
   const [deleteError, setDeleteError] = useState('');
 
   const isFreelancer = user?.level === 'Freelancer';
-  const canManageHotelTypes = ['Admin', 'Administrador', 'Sub Gerente'].includes(user?.level);
+  const userRole = (user?.level || '').trim().toLowerCase();
+  const canEditOrManage = ['admin', 'administrador', 'tarifas'].includes(userRole);
+  const canManageHotelTypes = canEditOrManage;
 
   useEffect(() => {
     fetchHotels();
@@ -201,86 +203,90 @@ export default function HotelList({ user }) {
             <span className='title-input'>Tarifas</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
-            {/* Dropdown Descuento (Page 16) */}
-            <div style={{ position: 'relative' }}>
+          {canEditOrManage && (
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+              {/* Dropdown Descuento (Page 16) */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setShowDescuentoMenu(!showDescuentoMenu)}
+                  style={{ padding: '8px 14px', borderRadius: '9999px' }}
+                >
+                  <img
+                    src={imgDescuento}
+                    style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+                  />
+                </button>
+
+                {showDescuentoMenu && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '110%',
+                    right: 0,
+                    backgroundColor: '#F9F3E0',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '8px',
+                    boxShadow: 'var(--shadow-dropdown)',
+                    zIndex: 50,
+                    width: '140px',
+                    overflow: 'hidden',
+                  }}>
+                    <button
+                      onClick={() => { setShowDescuentoMenu(false); setTipoDescuentoMasivo('contado'); setIsDescuentoMasivoOpen(true); }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '14px 14px 5px',
+                        background: 'none',
+                        border: 'none',
+                        color: '#595959',
+                        fontSize: '0.8125rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Al Contado
+                    </button>
+                    <button
+                      onClick={() => { setShowDescuentoMenu(false); setTipoDescuentoMasivo('divisas'); setIsDescuentoMasivoOpen(true); }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 14px',
+                        background: 'none',
+                        border: 'none',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: '#595959',
+                        fontSize: '0.8125rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Divisas
+                    </button>
+                  </div>
+                )}
+              </div>
+              <span className='title-input'>Descuento</span>
+            </div>
+          )}
+
+          {canEditOrManage && (
+            <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', position: 'relative' }}>
               <button
                 className="btn-secondary"
-                onClick={() => setShowDescuentoMenu(!showDescuentoMenu)}
-                style={{ padding: '8px 14px', borderRadius: '9999px' }}
+                onClick={() => {
+                  setHotelToEdit(null);
+                  setIsModalOpen(true);
+                }}
+                style={{ padding: '8px 18px', borderRadius: '9999px' }}
               >
                 <img
-                  src={imgDescuento}
+                  src={imgAgregar}
                   style={{ width: '20px', height: '20px', objectFit: 'contain' }}
                 />
               </button>
-
-              {showDescuentoMenu && (
-                <div style={{
-                  position: 'absolute',
-                  top: '110%',
-                  right: 0,
-                  backgroundColor: '#F9F3E0',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  borderRadius: '8px',
-                  boxShadow: 'var(--shadow-dropdown)',
-                  zIndex: 50,
-                  width: '140px',
-                  overflow: 'hidden',
-                }}>
-                  <button
-                    onClick={() => { setShowDescuentoMenu(false); setTipoDescuentoMasivo('contado'); setIsDescuentoMasivoOpen(true); }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '14px 14px 5px',
-                      background: 'none',
-                      border: 'none',
-                      color: '#595959',
-                      fontSize: '0.8125rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Al Contado
-                  </button>
-                  <button
-                    onClick={() => { setShowDescuentoMenu(false); setTipoDescuentoMasivo('divisas'); setIsDescuentoMasivoOpen(true); }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '10px 14px',
-                      background: 'none',
-                      border: 'none',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: '#595959',
-                      fontSize: '0.8125rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Divisas
-                  </button>
-                </div>
-              )}
+              <span className='title-input'>Agregar</span>
             </div>
-            <span className='title-input'>Descuento</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', position: 'relative' }}>
-            <button
-              className="btn-secondary"
-              onClick={() => {
-                setHotelToEdit(null);
-                setIsModalOpen(true);
-              }}
-              style={{ padding: '8px 18px', borderRadius: '9999px' }}
-            >
-              <img
-                src={imgAgregar}
-                style={{ width: '20px', height: '20px', objectFit: 'contain' }}
-              />
-            </button>
-            <span className='title-input'>Agregar</span>
-          </div>
+          )}
         </div>
       </div>
 
@@ -407,24 +413,28 @@ export default function HotelList({ user }) {
                                 >
                                   Imprimir
                                 </button>
-                                <button
-                                  onClick={() => { setActiveMenuHotelId(null); setHotelToEdit(hotel); setIsModalOpen(true); }}
-                                  style={{ width: '100%', textAlign: 'left', padding: '8px 10px 8px 24px', background: 'none', border: 'none', color: '#595959', fontSize: '0.875rem', cursor: 'pointer', fontWeight: '600' }}
-                                >
-                                  Editar
-                                </button>
+                                {canEditOrManage && (
+                                  <button
+                                    onClick={() => { setActiveMenuHotelId(null); setHotelToEdit(hotel); setIsModalOpen(true); }}
+                                    style={{ width: '100%', textAlign: 'left', padding: '8px 10px 8px 24px', background: 'none', border: 'none', color: '#595959', fontSize: '0.875rem', cursor: 'pointer', fontWeight: '600' }}
+                                  >
+                                    Editar
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => { setActiveMenuHotelId(null); setSelectedHotelForRooms(hotel); }}
                                   style={{ width: '100%', textAlign: 'left', padding: '8px 10px 8px 24px', background: 'none', border: 'none', color: '#2563EB', fontSize: '0.875rem', cursor: 'pointer', fontWeight: '600' }}
                                 >
                                   Habitación
                                 </button>
-                                <button
-                                  onClick={() => { setActiveMenuHotelId(null); handleDelete(hotel); }}
-                                  style={{ width: '100%', textAlign: 'left', padding: '8px 10px 8px 24px', background: 'none', border: 'none', color: '#EF4444', fontSize: '0.875rem', cursor: 'pointer', fontWeight: '600' }}
-                                >
-                                  Eliminar
-                                </button>
+                                {canEditOrManage && (
+                                  <button
+                                    onClick={() => { setActiveMenuHotelId(null); handleDelete(hotel); }}
+                                    style={{ width: '100%', textAlign: 'left', padding: '8px 10px 8px 24px', background: 'none', border: 'none', color: '#EF4444', fontSize: '0.875rem', cursor: 'pointer', fontWeight: '600' }}
+                                  >
+                                    Eliminar
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>

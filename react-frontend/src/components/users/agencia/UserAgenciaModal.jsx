@@ -24,9 +24,20 @@ const SERVICIOS = [
   { id: 'otro', label: 'Otro', icon: imgAgregar },
 ];
 
-const NIVELES = ['Administrador', 'Sub Gerente', 'Lider', 'Asesor'];
+const NIVELES = [
+  { value: 'Administrador', label: 'Administrador' },
+  { value: 'Administracion', label: 'Administración' },
+  { value: 'Contabilidad', label: 'Contabilidad' },
+  { value: 'Operativo', label: 'Operativo' },
+  { value: 'Tarifas', label: 'Tarifas' },
+  { value: 'Lider', label: 'Líder' },
+  { value: 'Asesor', label: 'Asesor' },
+];
 
-export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit = null }) {
+export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit = null, currentUser = null }) {
+  const activeUser = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
+  const isLider = ['lider', 'líder'].includes((activeUser?.level || '').trim().toLowerCase());
+
   const [currentStep, setCurrentStep] = useState(1); // 'general' | 'comisiones'
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -282,17 +293,32 @@ export default function UserAgenciaModal({ isOpen, onClose, onSave, userToEdit =
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', margin: '6px 0px 4px 0px' }}>
                     Nivel / Rol <span style={{ color: '#EF4444' }}>*</span>
                   </label>
-                  <CustomSelect
-                    value={level}
-                    onChange={(e) => setLevel(e.target.value)}
-                    style={{ width: '100%' }}
-                  >
-                    {NIVELES.map((lvl) => (
-                      <option key={lvl} value={lvl}>
-                        {lvl}
-                      </option>
-                    ))}
-                  </CustomSelect>
+                  {isLider ? (
+                    <div>
+                      <CustomSelect
+                        value="Asesor"
+                        disabled={true}
+                        style={{ width: '100%', opacity: 0.85, cursor: 'not-allowed' }}
+                      >
+                        <option value="Asesor">Asesor</option>
+                      </CustomSelect>
+                      <span style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '4px', display: 'block' }}>
+                        Como Líder, solo tiene permisos para gestionar Asesores.
+                      </span>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      value={level}
+                      onChange={(e) => setLevel(e.target.value)}
+                      style={{ width: '100%' }}
+                    >
+                      {NIVELES.map((lvl) => (
+                        <option key={lvl.value} value={lvl.value}>
+                          {lvl.label}
+                        </option>
+                      ))}
+                    </CustomSelect>
+                  )}
                   {errors.level && (
                     <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', display: 'block' }}>
                       {errors.level[0]}

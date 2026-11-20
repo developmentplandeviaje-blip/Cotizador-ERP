@@ -9,7 +9,7 @@ class StoreUserFreelancerRequest extends FormRequest
     public function authorize(): bool
     {
         $user = $this->user();
-        return $user && in_array($user->level, ['Admin', 'Administrador', 'Sub Gerente'], true);
+        return $user && in_array($user->level, ['Admin', 'Administrador', 'Administracion', 'Sub Gerente', 'Tarifas'], true);
     }
 
     public function rules(): array

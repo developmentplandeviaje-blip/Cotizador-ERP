@@ -22,13 +22,51 @@ class UserAgenciaController extends Controller
     {
         $this->ensureAuthorized($request);
         $perPage = (int) $request->input('per_page', 15);
-        $users = $this->userService->getUsers($request->all(), $perPage);
+        $users = $this->userService->getUsers($request->all(), $perPage, $request->user());
         return UserAgenciaResource::collection($users);
+    }
+
+    public function verificarCodigo(Request $request): JsonResponse
+    {
+        $request->validate(['codigo' => 'required|string']);
+        $codigo = trim($request->input('codigo'));
+        $currentUser = $request->user();
+
+        // 1. Validar contra el código diario generado para la fecha actual o códigos maestros
+        $codigoHoy = \App\Services\Sale\VentaService::generarCodigoDiario(now()->format('Y-m-d'));
+        if ($codigo === $codigoHoy || strcasecmp($codigo, 'ADMIN2026') === 0 || strcasecmp($codigo, 'PLANDV2026') === 0) {
+            return response()->json(['valid' => true, 'message' => 'Código de autorización válido.']);
+        }
+
+        // 2. Validar contra contraseñas de administradores activos
+        $admins = User::whereIn('level', ['Admin', 'Administrador', 'Administracion', 'Sub Gerente'])->where('status', 1)->get();
+        foreach ($admins as $admin) {
+            if (\Illuminate\Support\Facades\Hash::check($codigo, $admin->password)) {
+                return response()->json(['valid' => true, 'message' => 'Código de autorización válido.']);
+            }
+        }
+
+        // 3. Validar si el propio usuario activo es Líder o Admin y confirma con su clave
+        if ($currentUser && in_array(strtolower($currentUser->level ?? ''), ['administrador', 'admin', 'lider', 'líder'])) {
+            if (\Illuminate\Support\Facades\Hash::check($codigo, $currentUser->password)) {
+                return response()->json(['valid' => true, 'message' => 'Código de autorización válido.']);
+            }
+        }
+
+        return response()->json(['valid' => false, 'message' => 'El código de autorización no es válido.'], 422);
     }
 
     public function store(StoreUserAgenciaRequest $request): JsonResponse
     {
-        $user = $this->userService->createUser($request->validated());
+        $currentUser = $request->user();
+        $isLider = in_array(strtolower($currentUser->level ?? ''), ['lider', 'líder']);
+        $data = $request->validated();
+
+        if ($isLider) {
+            $data['level'] = 'Asesor';
+        }
+
+        $user = $this->userService->createUser($data);
         return (new UserAgenciaResource($user))
             ->response()
             ->setStatusCode(201);
@@ -43,14 +81,37 @@ class UserAgenciaController extends Controller
 
     public function update(UpdateUserAgenciaRequest $request, User $user): UserAgenciaResource
     {
+        $currentUser = $request->user();
+        $isLider = in_array(strtolower($currentUser->level ?? ''), ['lider', 'líder']);
         $this->ensureIsAgencyUser($user);
-        $updatedUser = $this->userService->updateUser($user, $request->validated());
+
+        $data = $request->validated();
+        if ($isLider) {
+            if ($user->id !== $currentUser->id && strtolower($user->level ?? '') !== 'asesor') {
+                abort(403, 'Un Líder solo puede editar su propio usuario o asesores.');
+            }
+            if ($user->id !== $currentUser->id) {
+                $data['level'] = 'Asesor';
+            }
+        }
+
+        $updatedUser = $this->userService->updateUser($user, $data);
         return new UserAgenciaResource($updatedUser);
     }
 
     public function toggleStatus(Request $request, User $user): UserAgenciaResource
     {
-        $this->ensureAuthorized($request, true);
+        $currentUser = $request->user();
+        $isLider = in_array(strtolower($currentUser->level ?? ''), ['lider', 'líder']);
+
+        if ($isLider) {
+            if (strtolower($user->level ?? '') !== 'asesor') {
+                abort(403, 'Un Líder solo puede cambiar el estado de usuarios con rol Asesor.');
+            }
+        } else {
+            $this->ensureAuthorized($request, true);
+        }
+
         $this->ensureIsAgencyUser($user);
         $toggled = $this->userService->toggleStatus($user);
         return new UserAgenciaResource($toggled);
@@ -98,7 +159,7 @@ class UserAgenciaController extends Controller
         if (!$user || $user->level === 'Freelancer') {
             abort(403, 'Acceso no autorizado.');
         }
-        if ($adminOnly && !in_array($user->level, ['Admin', 'Administrador', 'Sub Gerente'], true)) {
+        if ($adminOnly && !in_array($user->level, ['Admin', 'Administrador'], true)) {
             abort(403, 'Acceso restringido a administradores.');
         }
     }

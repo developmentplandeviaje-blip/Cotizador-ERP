@@ -45,7 +45,28 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
     : 'Usuario';
   const displayLevel = user?.level || 'Asesor';
   const userInitial = displayName.charAt(0).toUpperCase() || 'U';
-  const isAdminOrLeader = ['administrador', 'admin', 'lider'].includes((user?.level || '').toLowerCase());
+
+  const userLevel = (user?.level || '').trim().toLowerCase();
+  const isAdmin = ['administrador', 'admin'].includes(userLevel);
+  const isAdministracion = ['administracion', 'administración', 'sub gerente', 'gerente'].includes(userLevel);
+  const isContabilidad = userLevel === 'contabilidad';
+  const isOperativo = userLevel === 'operativo';
+  const isTarifas = userLevel === 'tarifas';
+  const isLider = userLevel === 'lider' || userLevel === 'líder';
+  const isAsesor = userLevel === 'asesor';
+  const isFreelancer = userLevel === 'freelancer';
+  const isAliado = Boolean(user?.id_aliado) || userLevel === 'aliado';
+
+  const canViewVentas = !isTarifas;
+  const canViewAgenciaVentas = isAdmin || isAdministracion || isContabilidad || isOperativo || isLider || isAsesor;
+  const canViewReportes = isAdmin || isAdministracion || isOperativo || isLider || isAsesor || isFreelancer || isAliado;
+  const canViewMetodosPago = isAdmin || isAdministracion;
+  const canViewGastos = isAdmin;
+  const canViewAgenciaUsers = isAdmin || isAdministracion || isContabilidad || isOperativo || isLider || isAsesor;
+  const canViewFreelancerUsers = isAdmin || isTarifas || isFreelancer;
+  const canViewAliadosUsers = isAdmin || isAliado;
+
+  const isAdminOrLeader = isAdmin || isAdministracion || isLider;
 
   const [dailyCodeData, setDailyCodeData] = useState(null);
   const [copiedDailyCode, setCopiedDailyCode] = useState(false);
@@ -305,133 +326,145 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         </button>
 
         {/* 3. Ventas (Desplegable) */}
-        <div>
-          <button
-            className="liquid-glass-btn"
-            title={isCollapsed ? 'Ventas' : undefined} onClick={() => toggleMenu('ventas')}
-            style={{
-              ...navButtonStyle,
-              color: isParentActive('ventas') ? '#E87217' : '#FFFFFF',
-            }}
-          >
-            <img
-              src={ventas}
-              style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-            />
-            <span className="nav-text" style={{ fontWeight: isParentActive('ventas') ? '700' : '500' }}>Ventas</span>
-          </button>
+        {canViewVentas && (
+          <div>
+            <button
+              className="liquid-glass-btn"
+              title={isCollapsed ? 'Ventas' : undefined} onClick={() => toggleMenu('ventas')}
+              style={{
+                ...navButtonStyle,
+                color: isParentActive('ventas') ? '#E87217' : '#FFFFFF',
+              }}
+            >
+              <img
+                src={ventas}
+                style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+              />
+              <span className="nav-text" style={{ fontWeight: isParentActive('ventas') ? '700' : '500' }}>Ventas</span>
+            </button>
 
-          {openMenus.ventas && (
-            <div className="submenu-container" style={submenuContainerStyle}>
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Ventas Agencia' : undefined} onClick={() => onNavigate('ventas_agencia')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('ventas_agencia') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={ventasagencia}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Agencia</span>
-              </button>
+            {openMenus.ventas && (
+              <div className="submenu-container" style={submenuContainerStyle}>
+                {canViewAgenciaVentas && (
+                  <button
+                    className="liquid-glass-sub-btn"
+                    title={isCollapsed ? 'Ventas Agencia' : undefined} onClick={() => onNavigate('ventas_agencia')}
+                    style={{
+                      ...subnavButtonStyle,
+                      color: isRouteActive('ventas_agencia') ? '#E87217' : '#FFFFFF',
+                    }}
+                  >
+                    <img
+                      src={ventasagencia}
+                      style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                    />
+                    <span className="nav-text">Agencia</span>
+                  </button>
+                )}
 
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Ventas Freelancer' : undefined} onClick={() => onNavigate('ventas_freelancer')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('ventas_freelancer') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={ventasfreelancer}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Freelancer</span>
-              </button>
+                {(isAdmin || isOperativo || isFreelancer) && (
+                  <button
+                    className="liquid-glass-sub-btn"
+                    title={isCollapsed ? 'Ventas Freelancer' : undefined} onClick={() => onNavigate('ventas_freelancer')}
+                    style={{
+                      ...subnavButtonStyle,
+                      color: isRouteActive('ventas_freelancer') ? '#E87217' : '#FFFFFF',
+                    }}
+                  >
+                    <img
+                      src={ventasfreelancer}
+                      style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                    />
+                    <span className="nav-text">Freelancer</span>
+                  </button>
+                )}
 
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Ventas Aliados' : undefined} onClick={() => onNavigate('ventas_aliados')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('ventas_aliados') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={usuarios}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Aliados</span>
-              </button>
+                {(isAdmin || isOperativo || isAliado) && (
+                  <button
+                    className="liquid-glass-sub-btn"
+                    title={isCollapsed ? 'Ventas Aliados' : undefined} onClick={() => onNavigate('ventas_aliados')}
+                    style={{
+                      ...subnavButtonStyle,
+                      color: isRouteActive('ventas_aliados') ? '#E87217' : '#FFFFFF',
+                    }}
+                  >
+                    <img
+                      src={usuarios}
+                      style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                    />
+                    <span className="nav-text">Aliados</span>
+                  </button>
+                )}
 
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Registro de Cotizaciones' : undefined} onClick={() => onNavigate('ventas_cotizaciones')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('ventas_cotizaciones') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <span style={{ fontSize: '18px', width: '25px', textAlign: 'center', display: 'inline-block' }}>📋</span>
-                <span className="nav-text">Cotizaciones</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* 4. Reportes (Desplegable) */}
-        <div>
-          <button
-            className="liquid-glass-btn"
-            title={isCollapsed ? 'Reportes' : undefined} onClick={() => toggleMenu('reportes')}
-            style={{
-              ...navButtonStyle,
-              color: isParentActive('reportes') ? '#E87217' : '#FFFFFF',
-            }}
-          >
-            <img
-              src={reportes}
-              style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-            />
-            <span className="nav-text" style={{ fontWeight: isParentActive('reportes') ? '700' : '500' }}>Reportes</span>
-          </button>
-
-          {openMenus.reportes && (
-            <div className="submenu-container" style={submenuContainerStyle}>
-              {[
-                { id: 'reportes_operativo', label: 'Operativo' },
-                { id: 'reportes_comisiones', label: 'Comisiones' },
-                { id: 'reportes_ventas', label: 'Reporte Ventas' },
-                { id: 'reportes_gastos', label: 'Gastos' },
-                { id: 'reportes_cuentas_cobrar', label: 'Cuentas por Cobrar' },
-                { id: 'reportes_cuentas_pagar', label: 'Cuentas por Pagar' },
-                { id: 'reportes_pagos_entrantes', label: 'Pagos Entrantes' },
-                { id: 'reportes_checkin', label: 'Check-in' },
-                { id: 'reportes_estado_venta', label: 'Estado de Venta' },
-              ].map(sub => (
                 <button
-                  key={sub.id}
                   className="liquid-glass-sub-btn"
-                  title={isCollapsed ? sub.label : undefined} onClick={() => onNavigate(sub.id)}
+                  title={isCollapsed ? 'Registro de Cotizaciones' : undefined} onClick={() => onNavigate('ventas_cotizaciones')}
                   style={{
                     ...subnavButtonStyle,
-                    color: isRouteActive(sub.id) ? '#E87217' : '#FFFFFF',
+                    color: isRouteActive('ventas_cotizaciones') ? '#E87217' : '#FFFFFF',
                   }}
                 >
-                  <img
-                    src={reportes}
-                    style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                  />
-                  <span className="nav-text">{sub.label}</span>
+                  <span style={{ fontSize: '18px', width: '25px', textAlign: 'center', display: 'inline-block' }}>📋</span>
+                  <span className="nav-text">Cotizaciones</span>
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 4. Reportes (Desplegable) */}
+        {canViewReportes && (
+          <div>
+            <button
+              className="liquid-glass-btn"
+              title={isCollapsed ? 'Reportes' : undefined} onClick={() => toggleMenu('reportes')}
+              style={{
+                ...navButtonStyle,
+                color: isParentActive('reportes') ? '#E87217' : '#FFFFFF',
+              }}
+            >
+              <img
+                src={reportes}
+                style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+              />
+              <span className="nav-text" style={{ fontWeight: isParentActive('reportes') ? '700' : '500' }}>Reportes</span>
+            </button>
+
+            {openMenus.reportes && (
+              <div className="submenu-container" style={submenuContainerStyle}>
+                {[
+                  { id: 'reportes_operativo', label: 'Operativo', allowed: isAdmin || isOperativo },
+                  { id: 'reportes_comisiones', label: 'Comisiones', allowed: isAdmin },
+                  { id: 'reportes_ventas', label: 'Reporte Ventas', allowed: isAdmin || isOperativo },
+                  { id: 'reportes_gastos', label: 'Gastos', allowed: isAdmin },
+                  { id: 'reportes_cuentas_cobrar', label: 'Cuentas por Cobrar', allowed: true },
+                  { id: 'reportes_cuentas_pagar', label: 'Cuentas por Pagar', allowed: isAdmin || isAdministracion || isOperativo },
+                  { id: 'reportes_pagos_entrantes', label: 'Pagos Entrantes', allowed: isAdmin },
+                  { id: 'reportes_checkin', label: 'Check-in', allowed: isAdmin || isLider || isAsesor || isFreelancer || isAliado },
+                  { id: 'reportes_estado_venta', label: 'Estado de Venta', allowed: isAdmin },
+                ]
+                  .filter(sub => sub.allowed)
+                  .map(sub => (
+                  <button
+                    key={sub.id}
+                    className="liquid-glass-sub-btn"
+                    title={isCollapsed ? sub.label : undefined} onClick={() => onNavigate(sub.id)}
+                    style={{
+                      ...subnavButtonStyle,
+                      color: isRouteActive(sub.id) ? '#E87217' : '#FFFFFF',
+                    }}
+                  >
+                    <img
+                      src={reportes}
+                      style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                    />
+                    <span className="nav-text">{sub.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 5. Servicios (Desplegable) */}
         <div>
@@ -469,36 +502,40 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               </button>
 
               {/* Excursiones */}
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Excursiones' : undefined} onClick={() => onNavigate('servicios_excursiones')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('servicios_excursiones') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={excursiones}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Excursiones</span>
-              </button>
+              {!isOperativo && (
+                <button
+                  className="liquid-glass-sub-btn"
+                  title={isCollapsed ? 'Excursiones' : undefined} onClick={() => onNavigate('servicios_excursiones')}
+                  style={{
+                    ...subnavButtonStyle,
+                    color: isRouteActive('servicios_excursiones') ? '#E87217' : '#FFFFFF',
+                  }}
+                >
+                  <img
+                    src={excursiones}
+                    style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                  />
+                  <span className="nav-text">Excursiones</span>
+                </button>
+              )}
 
               {/* Paquetes */}
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Paquetes' : undefined} onClick={() => onNavigate('servicios_paquetes')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('servicios_paquetes') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={paquetes}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Paquetes</span>
-              </button>
+              {!isOperativo && (
+                <button
+                  className="liquid-glass-sub-btn"
+                  title={isCollapsed ? 'Paquetes' : undefined} onClick={() => onNavigate('servicios_paquetes')}
+                  style={{
+                    ...subnavButtonStyle,
+                    color: isRouteActive('servicios_paquetes') ? '#E87217' : '#FFFFFF',
+                  }}
+                >
+                  <img
+                    src={paquetes}
+                    style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                  />
+                  <span className="nav-text">Paquetes</span>
+                </button>
+              )}
 
               {/* Traslados */}
               <button
@@ -517,87 +554,97 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               </button>
 
               {/* Vehículos */}
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Vehículos' : undefined} onClick={() => onNavigate('servicios_vehiculos')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('servicios_vehiculos') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={vehiculos}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Vehículos</span>
-              </button>
+              {!isOperativo && (
+                <button
+                  className="liquid-glass-sub-btn"
+                  title={isCollapsed ? 'Vehículos' : undefined} onClick={() => onNavigate('servicios_vehiculos')}
+                  style={{
+                    ...subnavButtonStyle,
+                    color: isRouteActive('servicios_vehiculos') ? '#E87217' : '#FFFFFF',
+                  }}
+                >
+                  <img
+                    src={vehiculos}
+                    style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                  />
+                  <span className="nav-text">Vehículos</span>
+                </button>
+              )}
 
               {/* Aerolíneas */}
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Aerolíneas' : undefined} onClick={() => onNavigate('servicios_aerolineas')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('servicios_aerolineas') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={aerolinea}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Aerolíneas</span>
-              </button>
+              {!isOperativo && (
+                <button
+                  className="liquid-glass-sub-btn"
+                  title={isCollapsed ? 'Aerolíneas' : undefined} onClick={() => onNavigate('servicios_aerolineas')}
+                  style={{
+                    ...subnavButtonStyle,
+                    color: isRouteActive('servicios_aerolineas') ? '#E87217' : '#FFFFFF',
+                  }}
+                >
+                  <img
+                    src={aerolinea}
+                    style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                  />
+                  <span className="nav-text">Aerolíneas</span>
+                </button>
+              )}
 
               {/* Ubicaciones */}
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Ubicaciones' : undefined} onClick={() => onNavigate('servicios_ubicaciones')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('servicios_ubicaciones') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={ubicacion}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Ubicaciones</span>
-              </button>
+              {!isOperativo && (
+                <button
+                  className="liquid-glass-sub-btn"
+                  title={isCollapsed ? 'Ubicaciones' : undefined} onClick={() => onNavigate('servicios_ubicaciones')}
+                  style={{
+                    ...subnavButtonStyle,
+                    color: isRouteActive('servicios_ubicaciones') ? '#E87217' : '#FFFFFF',
+                  }}
+                >
+                  <img
+                    src={ubicacion}
+                    style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                  />
+                  <span className="nav-text">Ubicaciones</span>
+                </button>
+              )}
             </div>
           )}
         </div>
 
-        {/* 6. Gastos */}
-        <button
-          className="liquid-glass-btn"
-          title={isCollapsed ? 'Gastos' : undefined} onClick={() => onNavigate('gastos')}
-          style={{
-            ...navButtonStyle,
-            color: isRouteActive('gastos') ? '#E87217' : '#FFFFFF',
-          }}
-        >
-          <img
-            src={gastos}
-            style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-          />
-          <span className="nav-text" style={{ fontWeight: isRouteActive('gastos') ? '700' : '500' }}>Gastos</span>
-        </button>
+        {/* 6. Gastos (Solo Administrador) */}
+        {canViewGastos && (
+          <button
+            className="liquid-glass-btn"
+            title={isCollapsed ? 'Gastos' : undefined} onClick={() => onNavigate('gastos')}
+            style={{
+              ...navButtonStyle,
+              color: isRouteActive('gastos') ? '#E87217' : '#FFFFFF',
+            }}
+          >
+            <img
+              src={gastos}
+              style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+            />
+            <span className="nav-text" style={{ fontWeight: isRouteActive('gastos') ? '700' : '500' }}>Gastos</span>
+          </button>
+        )}
 
-        {/* 7. Métodos de pago */}
-        <button
-          className="liquid-glass-btn"
-          title={isCollapsed ? 'Métodos de pago' : undefined} onClick={() => onNavigate('metodos_pago')}
-          style={{
-            ...navButtonStyle,
-            color: isRouteActive('metodos_pago') ? '#E87217' : '#FFFFFF',
-          }}
-        >
-          <img
-            src={Metodosdepago}
-            style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-          />
-          <span className="nav-text" style={{ fontWeight: isRouteActive('metodos_pago') ? '700' : '500' }}>Métodos de pago</span>
-        </button>
+        {/* 7. Métodos de pago (Solo Administrador y Administración) */}
+        {canViewMetodosPago && (
+          <button
+            className="liquid-glass-btn"
+            title={isCollapsed ? 'Métodos de pago' : undefined} onClick={() => onNavigate('metodos_pago')}
+            style={{
+              ...navButtonStyle,
+              color: isRouteActive('metodos_pago') ? '#E87217' : '#FFFFFF',
+            }}
+          >
+            <img
+              src={Metodosdepago}
+              style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+            />
+            <span className="nav-text" style={{ fontWeight: isRouteActive('metodos_pago') ? '700' : '500' }}>Métodos de pago</span>
+          </button>
+        )}
 
         {/* 8. Usuarios (Desplegable) */}
         <div>
@@ -618,50 +665,56 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
           {openMenus.usuarios && (
             <div className="submenu-container" style={submenuContainerStyle}>
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Usuarios Agencia' : undefined} onClick={() => onNavigate('usuarios_agencia')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('usuarios_agencia') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={usuarios}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Agencia</span>
-              </button>
+              {canViewAgenciaUsers && (
+                <button
+                  className="liquid-glass-sub-btn"
+                  title={isCollapsed ? 'Usuarios Agencia' : undefined} onClick={() => onNavigate('usuarios_agencia')}
+                  style={{
+                    ...subnavButtonStyle,
+                    color: isRouteActive('usuarios_agencia') ? '#E87217' : '#FFFFFF',
+                  }}
+                >
+                  <img
+                    src={usuarios}
+                    style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                  />
+                  <span className="nav-text">Agencia</span>
+                </button>
+              )}
 
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Usuarios Freelancer' : undefined} onClick={() => onNavigate('usuarios_freelancer')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('usuarios_freelancer') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={usuarios}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Freelancer</span>
-              </button>
+              {canViewFreelancerUsers && (
+                <button
+                  className="liquid-glass-sub-btn"
+                  title={isCollapsed ? 'Usuarios Freelancer' : undefined} onClick={() => onNavigate('usuarios_freelancer')}
+                  style={{
+                    ...subnavButtonStyle,
+                    color: isRouteActive('usuarios_freelancer') ? '#E87217' : '#FFFFFF',
+                  }}
+                >
+                  <img
+                    src={usuarios}
+                    style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                  />
+                  <span className="nav-text">Freelancer</span>
+                </button>
+              )}
 
-              <button
-                className="liquid-glass-sub-btn"
-                title={isCollapsed ? 'Usuarios Aliados' : undefined} onClick={() => onNavigate('usuarios_aliados')}
-                style={{
-                  ...subnavButtonStyle,
-                  color: isRouteActive('usuarios_aliados') ? '#E87217' : '#FFFFFF',
-                }}
-              >
-                <img
-                  src={usuarios}
-                  style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                />
-                <span className="nav-text">Aliados</span>
-              </button>
+              {canViewAliadosUsers && (
+                <button
+                  className="liquid-glass-sub-btn"
+                  title={isCollapsed ? 'Usuarios Aliados' : undefined} onClick={() => onNavigate('usuarios_aliados')}
+                  style={{
+                    ...subnavButtonStyle,
+                    color: isRouteActive('usuarios_aliados') ? '#E87217' : '#FFFFFF',
+                  }}
+                >
+                  <img
+                    src={usuarios}
+                    style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                  />
+                  <span className="nav-text">Aliados</span>
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -10,9 +10,20 @@ import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
 
-const NIVELES = ['Admin', 'Sub Gerente', 'Lider', 'Asesor'];
+const NIVELES = ['Admin', 'Administracion', 'Contabilidad', 'Operativo', 'Tarifas', 'Lider', 'Asesor'];
 
 export default function UserAgenciaList({ user: currentUser }) {
+  const userObj = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
+  const role = (userObj?.level || '').trim().toLowerCase();
+  const isAdmin = ['admin', 'administrador'].includes(role);
+  const isAdministracion = ['administracion', 'administración', 'sub gerente', 'gerente'].includes(role);
+  const isContabilidad = role === 'contabilidad';
+  const isOperativo = role === 'operativo';
+  const isTarifas = role === 'tarifas';
+  const isLider = role === 'lider' || role === 'líder';
+  const isAsesor = role === 'asesor';
+  const isAdminOrGerente = isAdmin;
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -28,6 +39,16 @@ export default function UserAgenciaList({ user: currentUser }) {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
+
+  // Authorization modal for Leader
+  const [authModal, setAuthModal] = useState({
+    isOpen: false,
+    action: null, // 'create' | 'edit' | 'toggle'
+    targetUser: null,
+    code: '',
+    loading: false,
+    error: '',
+  });
 
   // Delete modal state
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -57,7 +78,13 @@ export default function UserAgenciaList({ user: currentUser }) {
           sort_order: sortConfig.direction,
         },
       });
-      setUsers(res.data.data || []);
+      let fetchedUsers = res.data.data || [];
+      if (isAsesor || isContabilidad || isOperativo || isAdministracion) {
+        fetchedUsers = fetchedUsers.filter((u) => u.id === userObj?.id);
+      } else if (isLider) {
+        fetchedUsers = fetchedUsers.filter((u) => u.id === userObj?.id || (u.level || '').toLowerCase() === 'asesor');
+      }
+      setUsers(fetchedUsers);
       setPage(res.data.meta?.current_page || 1);
       setLastPage(res.data.meta?.last_page || 1);
       setTotal(res.data.meta?.total || 0);
@@ -66,7 +93,7 @@ export default function UserAgenciaList({ user: currentUser }) {
     } finally {
       setLoading(false);
     }
-  }, [page, search, selectedLevel, selectedStatus, sortConfig]);
+  }, [page, search, selectedLevel, selectedStatus, sortConfig, isAsesor, isContabilidad, isOperativo, isAdministracion, isLider, userObj?.id]);
 
   useEffect(() => {
     fetchUsers();
@@ -110,6 +137,61 @@ export default function UserAgenciaList({ user: currentUser }) {
   const handleOpenEdit = (userItem) => {
     setUserToEdit(userItem);
     setIsModalOpen(true);
+  };
+
+  const handleRequestAction = (action, item = null) => {
+    if (isAdminOrGerente) {
+      if (action === 'create') handleOpenCreate();
+      else if (action === 'edit') handleOpenEdit(item);
+      else if (action === 'toggle') handleToggleStatus(item);
+      return;
+    }
+
+    if (isLider) {
+      setAuthModal({
+        isOpen: true,
+        action,
+        targetUser: item,
+        code: '',
+        loading: false,
+        error: '',
+      });
+    }
+  };
+
+  const handleConfirmAuthCode = async (e) => {
+    if (e) e.preventDefault();
+    if (!authModal.code.trim()) {
+      setAuthModal((prev) => ({ ...prev, error: 'Por favor ingrese el código de autorización.' }));
+      return;
+    }
+
+    setAuthModal((prev) => ({ ...prev, loading: true, error: '' }));
+    try {
+      const res = await axios.post('/v1/users/agencia/verificar-codigo', {
+        codigo: authModal.code.trim(),
+      });
+      if (res.data?.valid) {
+        const { action, targetUser } = authModal;
+        setAuthModal({ isOpen: false, action: null, targetUser: null, code: '', loading: false, error: '' });
+        if (action === 'create') {
+          handleOpenCreate();
+        } else if (action === 'edit') {
+          handleOpenEdit(targetUser);
+        } else if (action === 'toggle') {
+          handleToggleStatus(targetUser);
+        }
+      } else {
+        setAuthModal((prev) => ({ ...prev, loading: false, error: res.data?.message || 'Código inválido.' }));
+      }
+    } catch (err) {
+      console.error('Error al verificar código:', err);
+      setAuthModal((prev) => ({
+        ...prev,
+        loading: false,
+        error: err.response?.data?.message || 'Código de autorización inválido o no reconocido.',
+      }));
+    }
   };
 
   const handleSaveSuccess = () => {
@@ -164,10 +246,14 @@ export default function UserAgenciaList({ user: currentUser }) {
       case 'Administrador':
       case 'Admin':
         return <Badge variant="neutral" style={{ minWidth: '60px' }}>{lvl}</Badge>;
+      case 'Administracion':
+      case 'Administración':
       case 'Sub Gerente':
-        return <Badge variant="neutral" style={{ minWidth: '60px' }}>{lvl}</Badge>;
+        return <Badge variant="neutral" style={{ minWidth: '60px' }}>Administración</Badge>;
+      case 'Contabilidad':
+      case 'Operativo':
+      case 'Tarifas':
       case 'Lider':
-        return <Badge variant="neutral" style={{ minWidth: '60px' }}>{lvl}</Badge>;
       case 'Asesor':
       default:
         return <Badge variant="neutral" style={{ minWidth: '60px' }}>{lvl}</Badge>;
@@ -240,45 +326,47 @@ export default function UserAgenciaList({ user: currentUser }) {
           </div>
 
           {/* Level Filter */}
-          <div style={{ width: '210px' }}>
-            <select
-              className="erp-input"
-              style={{
-                borderRadius: '9999px',
-                background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
-                height: '38px',
-                paddingLeft: '14px',
-                paddingRight: '36px',
-                boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
-                border: '1px solid rgb(255 255 255 / 56%)',
-                color: selectedLevel ? '#FFFFFF' : '#b9c8ddff',
-                cursor: 'pointer',
-                appearance: 'none',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c8dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'calc(100% - 12px) center',
-                backgroundSize: '16px',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-              value={selectedLevel}
-              onChange={(e) => {
-                setSelectedLevel(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="" style={{ backgroundColor: '#101c44', color: '#FFF' }}>
-                Todos los niveles
-              </option>
-              {NIVELES.map((lvl) => (
-                <option key={lvl} value={lvl} style={{ backgroundColor: '#101c44', color: '#FFF' }}>
-                  {lvl}
+          {(isAdmin || isLider) && (
+            <div style={{ width: '210px' }}>
+              <select
+                className="erp-input"
+                style={{
+                  borderRadius: '9999px',
+                  background: 'linear-gradient(150deg, rgb(255 255 255 / 8%) 1%, rgb(0 17 89 / 65%) 73%, rgb(255 255 255 / 39%) 108%)',
+                  height: '38px',
+                  paddingLeft: '14px',
+                  paddingRight: '36px',
+                  boxShadow: 'rgba(0, 0, 0, 0.4) 3px 3px 6px, rgba(255, 255, 255, 0.05) -3px -3px 6px',
+                  border: '1px solid rgb(255 255 255 / 56%)',
+                  color: selectedLevel ? '#FFFFFF' : '#b9c8ddff',
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9c8dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'calc(100% - 12px) center',
+                  backgroundSize: '16px',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+                value={selectedLevel}
+                onChange={(e) => {
+                  setSelectedLevel(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="" style={{ backgroundColor: '#101c44', color: '#FFF' }}>
+                  {isLider ? 'Todos (Mi usuario y Asesores)' : 'Todos los niveles'}
                 </option>
-              ))}
-            </select>
-          </div>
+                {(isLider ? ['Asesor'] : NIVELES).map((lvl) => (
+                  <option key={lvl} value={lvl} style={{ backgroundColor: '#101c44', color: '#FFF' }}>
+                    {lvl}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Status Filter */}
           <div style={{ width: '180px' }}>
@@ -323,18 +411,20 @@ export default function UserAgenciaList({ user: currentUser }) {
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
-            <button
-              className="btn-secondary"
-              onClick={handleOpenCreate}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              title="Agregar nuevo usuario">
-              <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
-            </button>
-            <span className='title-input'>Agregar</span>
+        {(isAdminOrGerente || isLider) && (
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => handleRequestAction('create')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                title={isLider ? "Agregar Asesor (Requiere Código)" : "Agregar nuevo usuario"}>
+                <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
+              </button>
+              <span className='title-input'>Agregar</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Main Table */}
@@ -499,25 +589,33 @@ export default function UserAgenciaList({ user: currentUser }) {
 
                   {/* Status with Toggle */}
                   <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleStatus(item)}
-                      disabled={togglingId === item.id}
-                      title="Haga click para cambiar el estado"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                        opacity: togglingId === item.id ? 0.5 : 1,
-                      }}
-                    >
-                      {item.status ? (
+                    {(isAsesor || isContabilidad || isOperativo || isAdministracion) ? (
+                      item.status ? (
                         <Badge variant="success">Habilitado</Badge>
                       ) : (
                         <Badge variant="error">Deshabilitado</Badge>
-                      )}
-                    </button>
+                      )
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleRequestAction('toggle', item)}
+                        disabled={togglingId === item.id || (isLider && item.id === userObj?.id)}
+                        title={isLider ? "Cambiar estado (Requiere Código)" : "Haga click para cambiar el estado"}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: isLider && item.id === userObj?.id ? 'default' : 'pointer',
+                          padding: 0,
+                          opacity: togglingId === item.id ? 0.5 : 1,
+                        }}
+                      >
+                        {item.status ? (
+                          <Badge variant="success">Habilitado</Badge>
+                        ) : (
+                          <Badge variant="error">Deshabilitado</Badge>
+                        )}
+                      </button>
+                    )}
                   </td>
 
                   {/* Date Creation */}
@@ -528,8 +626,6 @@ export default function UserAgenciaList({ user: currentUser }) {
                   {/* Actions */}
                   <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', textAlign: 'center' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                      {/* Edit Button */}
-
                       {/* Copy Link Button */}
                       <button
                         type="button"
@@ -549,42 +645,47 @@ export default function UserAgenciaList({ user: currentUser }) {
                         Enlace
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(item)}
-                        title="Editar usuario"
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
-                          borderRadius: '8px',
-                          padding: '6px 10px',
-                          color: '#F8FAFC',
-                          fontSize: '0.8125rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        Editar
-                      </button>
+                      {/* Edit Button */}
+                      {(isAdminOrGerente || isLider) && (
+                        <button
+                          type="button"
+                          onClick={() => handleRequestAction('edit', item)}
+                          title={isLider ? "Editar usuario (Requiere Código)" : "Editar usuario"}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            color: '#F8FAFC',
+                            fontSize: '0.8125rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          Editar
+                        </button>
+                      )}
 
                       {/* Delete Button */}
-                      <button
-                        type="button"
-                        onClick={() => handlePromptDelete(item)}
-                        title="Eliminar usuario"
-                        style={{
-                          background: 'rgba(239, 68, 68, 0.1)',
-                          border: '1px solid rgba(239, 68, 68, 0.3)',
-                          borderRadius: '8px',
-                          padding: '6px 10px',
-                          color: '#F87171',
-                          fontSize: '0.8125rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        Eliminar
-                      </button>
+                      {isAdminOrGerente && (
+                        <button
+                          type="button"
+                          onClick={() => handlePromptDelete(item)}
+                          title="Eliminar usuario"
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            color: '#F87171',
+                            fontSize: '0.8125rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          Eliminar
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -617,7 +718,71 @@ export default function UserAgenciaList({ user: currentUser }) {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveSuccess}
         userToEdit={userToEdit}
+        currentUser={userObj}
       />
+
+      {/* Modal de Código de Autorización para Líder */}
+      {authModal.isOpen && (
+        <Modal
+          isOpen={true}
+          onClose={() => setAuthModal({ isOpen: false, action: null, targetUser: null, code: '', loading: false, error: '' })}
+          title="Autorización Requerida"
+          width="480px"
+        >
+          <form onSubmit={handleConfirmAuthCode} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px 0' }}>
+            <div style={{ background: 'rgba(232, 114, 23, 0.1)', border: '1px solid rgba(232, 114, 23, 0.3)', borderRadius: '8px', padding: '12px 16px', color: '#E2E8F0', fontSize: '0.875rem' }}>
+              <p style={{ margin: 0, fontWeight: 500, color: '#FDBA74' }}>
+                {authModal.action === 'create' && 'Está intentando registrar un nuevo Asesor.'}
+                {authModal.action === 'edit' && `Está intentando editar al usuario ${authModal.targetUser?.full_name}.`}
+                {authModal.action === 'toggle' && `Está intentando ${authModal.targetUser?.status ? 'inhabilitar' : 'habilitar'} al asesor ${authModal.targetUser?.full_name}.`}
+              </p>
+              <p style={{ margin: '6px 0 0', fontSize: '0.8125rem', color: '#94A3B8' }}>
+                Para confirmar esta acción con su rol de Líder, ingrese el código de autorización diario o su contraseña.
+              </p>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#E2E8F0', marginBottom: '6px' }}>
+                Código o Contraseña <span style={{ color: '#EF4444' }}>*</span>
+              </label>
+              <input
+                type="password"
+                className="erp-input"
+                autoFocus
+                required
+                value={authModal.code}
+                onChange={(e) => setAuthModal((prev) => ({ ...prev, code: e.target.value, error: '' }))}
+                placeholder="Ingrese código de autorización"
+                style={{ width: '100%', height: '40px' }}
+              />
+              {authModal.error && (
+                <span style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '6px', display: 'block' }}>
+                  {authModal.error}
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
+              <button
+                type="button"
+                className="btn-form-cancel"
+                onClick={() => setAuthModal({ isOpen: false, action: null, targetUser: null, code: '', loading: false, error: '' })}
+                disabled={authModal.loading}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn-form-submit"
+                disabled={authModal.loading}
+                style={{ minWidth: '130px' }}
+              >
+                {authModal.loading ? 'Verificando...' : 'Verificar y Continuar'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
       {/* Delete Confirmation Modal */}
       {/* Delete Confirmation Modal */}

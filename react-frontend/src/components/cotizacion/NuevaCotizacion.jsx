@@ -24,6 +24,7 @@ export default function NuevaCotizacion({ user }) {
     paquetes: [],
     traslados: [],
     vehiculos: [],
+    vehiculo_agencias: [],
     is_freelancer: false,
   });
   const [loadingCatalogs, setLoadingCatalogs] = useState(true);

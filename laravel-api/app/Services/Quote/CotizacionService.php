@@ -9,6 +9,7 @@ use App\Models\Catalog\Paquete;
 use App\Models\Catalog\Traslado;
 use App\Models\Catalog\Ubicacion;
 use App\Models\Catalog\Vehiculo;
+use App\Models\Catalog\VehiculoAgencia;
 use App\Models\Quote\CotizacionRapida;
 use App\Models\Quote\ExcursionVenta;
 use App\Models\Quote\FerryVenta;
@@ -51,7 +52,8 @@ class CotizacionService
         $paquetes = Paquete::orderBy('paquete')->get();
 
         $traslados = Traslado::orderByDesc('destacado')->orderBy('ruta_origen')->get();
-        $vehiculos = Vehiculo::with('tarifas')->orderBy('marca')->get();
+        $vehiculos = Vehiculo::with(['tarifas', 'agencia.ubicacion'])->orderBy('marca')->get();
+        $vehiculoAgencias = VehiculoAgencia::with('ubicacion')->orderBy('agencia')->get();
 
 
         if ($isFreelancer) {
@@ -87,6 +89,7 @@ class CotizacionService
             'paquetes' => $paquetes,
             'traslados' => $traslados,
             'vehiculos' => $vehiculos,
+            'vehiculo_agencias' => $vehiculoAgencias,
             'is_freelancer' => $isFreelancer,
             'configuracion_cierre' => $this->getConfiguracionCierre(),
         ];
@@ -475,7 +478,7 @@ class CotizacionService
         @ini_set('memory_limit', '512M');
         @set_time_limit(120);
 
-        $isAdmin = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider']);
+        $isAdmin = in_array(strtolower($user->level ?? ''), ['admin', 'administrador', 'lider', 'operativo', 'administracion', 'contabilidad']);
         $search = trim((string)($filters['search'] ?? ''));
 
         $ventasQuery = Venta::with([

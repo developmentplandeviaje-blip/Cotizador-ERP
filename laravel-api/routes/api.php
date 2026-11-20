@@ -100,6 +100,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/users/agencia/{user}/metodos-pago', [UserAgenciaController::class, 'assignMetodosPago']);
 
     // Users: Freelancer
+    Route::post('/v1/users/freelancer/verificar-codigo', [UserAgenciaController::class, 'verificarCodigo']);
     Route::apiResource('/v1/users/freelancer', UserFreelancerController::class)->parameters([
         'freelancer' => 'freelancer'
     ]);

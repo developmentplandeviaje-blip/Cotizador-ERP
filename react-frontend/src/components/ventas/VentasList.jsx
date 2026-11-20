@@ -66,7 +66,8 @@ export default function VentasList({ tipo = 'agencia', user }) {
 
   // Código Diario de Administrador para desbloqueo
   const isAdminOrLeader = ['administrador', 'admin', 'lider', 'líder'].includes((user?.level || '').toLowerCase().trim());
-  const showAsesorColumn = isAdminOrLeader;
+  const canViewAllSales = ['administrador', 'admin', 'lider', 'líder', 'operativo', 'administracion', 'contabilidad'].includes((user?.level || '').toLowerCase().trim());
+  const showAsesorColumn = canViewAllSales;
   const totalColumns = 7 + (showAsesorColumn ? 1 : 0) + (tipo === 'aliados' ? 1 : 0);
   const [dailyCode, setDailyCode] = useState(null);
   const [copiedCode, setCopiedCode] = useState(false);

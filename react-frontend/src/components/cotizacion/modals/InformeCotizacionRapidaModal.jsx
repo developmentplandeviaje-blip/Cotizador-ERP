@@ -1,71 +1,75 @@
-import React, { useState } from 'react';
-import logonaranja from '../../../assets/logonaranjapdv.png';
-import imgHoteles from '../../../assets/Hoteles.svg';
+import React, { useState, useMemo } from 'react';
+import cotizacionFondoP1 from '../../../assets/cotizacion_fondo.jpg';
+import cotizacionFondoP2 from '../../../assets/cotizacion_fondo_pagina2.jpg';
+import iconHoras from '../../../assets/icon_horas.png';
+import iconDisponibilidad from '../../../assets/icon_disponibilidad.png';
 
 export default function InformeCotizacionRapidaModal({
   isOpen,
   onClose,
   cotizacion,
-  tipoInforme,
+  tipoInforme = 'cotizacion',
   tasaReferencialVES = 62.50,
   onVerRegistro,
 }) {
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState('todas'); // 'todas' | '1' | '2'
+  const [forceGroupedView, setForceGroupedView] = useState('auto'); // 'auto' | 'grouped' | 'ungrouped'
+  const [forcePageLocation, setForcePageLocation] = useState('auto'); // 'auto' | 'p1' | 'p2'
 
   if (!isOpen || !cotizacion) return null;
 
-  // Determinar si es informe de venta o cotización
-  const esVenta = tipoInforme === 'venta' || cotizacion.tipoInforme === 'venta' || cotizacion.estado === 'Venta' || cotizacion.estado === 'Nota de Crédito';
-  const esNotaCredito = cotizacion.estado === 'Nota de Crédito' || (cotizacion.estado || '').toLowerCase() === 'nota de credito';
-
-  // Normalización de datos recibidos (compatible con Venta, CotizacionRapida y normalized items)
-  const isVenta = cotizacion.tipo_registro === 'formal' || !!cotizacion.hoteles || esVenta;
-  const numeroFicha =
-    cotizacion.numero_ficha ||
-    cotizacion.id ||
-    '1001';
-  const fechaEmision = cotizacion.fecha || cotizacion.fecha_creacion || new Date().toISOString();
-  const asesorNombre =
-    cotizacion.asesor ||
-    cotizacion.user?.name ||
-    cotizacion.user?.username ||
-    'Asesor Comercial';
-
-  // Datos del Cliente
+  // Normalización de datos del cliente
   const clienteData = cotizacion.cliente || {};
   const clienteNombre =
     typeof clienteData === 'string'
       ? clienteData
       : clienteData.nombre_completo ||
         `${clienteData.nombres || ''} ${clienteData.apellidos || ''}`.trim() ||
-        'Cliente No Especificado';
-  const clienteDoc =
-    typeof clienteData === 'object'
-      ? (clienteData.documento ? `${clienteData.tipo_documento || 'V'}-${clienteData.documento}` : '')
-      : '';
-  const clienteTelefono = typeof clienteData === 'object' ? (clienteData.telefono || '') : '';
-  const clienteCorreo = typeof clienteData === 'object' ? (clienteData.correo || '') : '';
+        'prueba Development';
 
-  // Fechas y Pasajeros
-  const checkin = cotizacion.fechas?.checkin || cotizacion.checkin || '';
-  const checkout = cotizacion.fechas?.checkout || cotizacion.checkout || '';
-  let noches = 1;
-  if (checkin && checkout) {
-    const d1 = new Date(checkin);
-    const d2 = new Date(checkout);
-    noches = Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)));
-  }
+  // Ficha y Fecha
+  const numeroFicha =
+    cotizacion.numero_ficha ||
+    (cotizacion.id ? String(cotizacion.id) : 'N/A');
 
+  const rawFecha = cotizacion.fecha || cotizacion.fecha_creacion || new Date().toISOString();
+  const formatFechaDDMMYYYY = (dateStr) => {
+    if (!dateStr || dateStr === 'N/A') return 'N/A';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) {
+        const parts = String(dateStr).split(/[-/]/);
+        if (parts.length === 3) {
+          if (parts[0].length === 4) return `${parts[2].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[0]}`;
+          return `${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[2]}`;
+        }
+        return String(dateStr);
+      }
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}-${month}-${year}`;
+    } catch {
+      return String(dateStr);
+    }
+  };
+
+  const fechaEmision = formatFechaDDMMYYYY(rawFecha);
+
+  // Parámetros de Pasajeros
   const paxData = cotizacion.pax || {};
   const paxAdultos = paxData.adultos ?? 1;
-  const paxAdol = paxData.adolescentes ?? 0;
   const paxNinos = paxData.ninos ?? 0;
   const paxInfantes = paxData.infantes ?? 0;
-  const paxTotal =
-    paxData.total ??
-    (paxAdultos + paxAdol + paxNinos + paxInfantes);
 
-  // Lista de Ítems / Productos
+  // Fechas de Viaje
+  const checkinRaw = cotizacion.fechas?.checkin || cotizacion.checkin || '';
+  const checkoutRaw = cotizacion.fechas?.checkout || cotizacion.checkout || '';
+  const checkinStr = checkinRaw ? formatFechaDDMMYYYY(checkinRaw) : fechaEmision;
+  const checkoutStr = checkoutRaw ? formatFechaDDMMYYYY(checkoutRaw) : fechaEmision;
+
+  // Extracción y normalización de Ítems
   let items = [];
   if (Array.isArray(cotizacion.items) && cotizacion.items.length > 0) {
     items = cotizacion.items;
@@ -73,21 +77,58 @@ export default function InformeCotizacionRapidaModal({
     try {
       const parsed = JSON.parse(cotizacion.data);
       if (Array.isArray(parsed.items)) items = parsed.items;
-    } catch (e) {
+    } catch {
       // ignore
     }
+  } else if (Array.isArray(cotizacion.data?.items)) {
+    items = cotizacion.data.items;
   }
 
-  // Si es un modelo Venta con relaciones directas
-  if (items.length === 0 && isVenta) {
+  // Si no hay items normalizados pero hay entidades directas (p.ej. Venta formal)
+  if (items.length === 0) {
     if (cotizacion.hoteles) {
       cotizacion.hoteles.forEach(h => {
-        const monto = (h.precio_noche_adulto * (h.adultos || 1) + (h.precio_noche_adolescente || 0) * (h.adolescente || 0) + (h.precio_noche_nino || 0) * (h.ninos || 0)) * (h.noches || 1);
+        const monto = (h.precio_noche_adulto * (h.adultos || 1) + (h.precio_noche_nino || 0) * (h.ninos || 0)) * (h.noches || 1);
         items.push({
+          uid: h.uid || `hotel_${h.id || Math.random()}`,
           tipo: 'hotel',
-          titulo: `Hotel: ${h.hotel?.nombre || 'Hotel Seleccionado'}`,
-          detalle: `${h.noches || noches} noches • ${h.tipo_habitacion || 'Habitación Estándar'}`,
+          titulo: h.hotel?.nombre || h.titulo || 'Hotel Seleccionado',
+          detalle: `Habitacion: ${h.tipo_habitacion || h.habitacion || 'Estándar'} , Noches: ${h.noches || 1}, ${h.tipo || 'Solo Alojamiento'}`,
           precio: monto,
+        });
+      });
+    }
+    if (cotizacion.excursiones) {
+      cotizacion.excursiones.forEach(e => {
+        const monto = (e.precio_adulto * (e.adultos || 1) + (e.precio_nino || 0) * (e.ninos || 0));
+        items.push({
+          tipo: 'excursion',
+          titulo: 'Excursión',
+          detalle: e.excursion?.tipo_excursion || e.tipo_excursion || 'Excursión Turística',
+          precio: monto,
+          hotel_item_uids: e.hotel_item_uids || (e.hotel_item_uid ? [e.hotel_item_uid] : []),
+        });
+      });
+    }
+    if (cotizacion.traslados) {
+      cotizacion.traslados.forEach(t => {
+        items.push({
+          tipo: 'traslado',
+          titulo: 'Traslado',
+          detalle: t.traslado ? `${t.traslado.ruta_origen || ''} - ${t.traslado.ruta_destino || ''}` : (t.detalle || 'Traslado Terrestre'),
+          precio: Number(t.precio_historico || t.precio || 0),
+          hotel_item_uids: t.hotel_item_uids || (t.hotel_item_uid ? [t.hotel_item_uid] : []),
+        });
+      });
+    }
+    if (cotizacion.paquetes) {
+      cotizacion.paquetes.forEach(p => {
+        items.push({
+          tipo: 'paquete',
+          titulo: 'Paquete',
+          detalle: p.paquete?.paquete || p.paquete || 'Paquete Turístico',
+          precio: Number(p.precio_adulto || p.precio || 0),
+          hotel_item_uids: p.hotel_item_uids || (p.hotel_item_uid ? [p.hotel_item_uid] : []),
         });
       });
     }
@@ -96,39 +137,21 @@ export default function InformeCotizacionRapidaModal({
         const monto = (v.precio_adulto * (v.adultos || 1) + (v.precio_nino || 0) * (v.ninos || 0) + (v.precio_infante || 0) * (v.infantes || 0));
         items.push({
           tipo: 'vuelo',
-          titulo: `Vuelo: ${v.aerolinea?.nombre || 'Aerolínea'}`,
-          detalle: v.itinerario || 'Ruta Aérea',
+          titulo: `Boletos Aéreos: ${v.aerolinea?.nombre || 'Aerolínea'} (${v.itinerario || 'Ruta'})`,
+          detalle: `Pasajeros: ${v.adultos || paxAdultos} Adultos, ${v.ninos || paxNinos} Niños, ${v.infantes || paxInfantes} Infantes`,
           precio: monto,
+          hotel_item_uids: v.hotel_item_uids || (v.hotel_item_uid ? [v.hotel_item_uid] : []),
         });
       });
     }
-    if (cotizacion.traslados) {
-      cotizacion.traslados.forEach(t => {
+    if (cotizacion.ferries) {
+      cotizacion.ferries.forEach(f => {
         items.push({
-          tipo: 'traslado',
-          titulo: `Traslado: ${t.traslado?.ruta_origen || ''} - ${t.traslado?.ruta_destino || ''}`,
-          detalle: `Fecha: ${t.fecha_traslado || 'Programada'}`,
-          precio: Number(t.precio_historico || t.precio || 0),
-        });
-      });
-    }
-    if (cotizacion.excursiones) {
-      cotizacion.excursiones.forEach(e => {
-        items.push({
-          tipo: 'excursion',
-          titulo: `Excursión: ${e.excursion?.tipo_excursion || 'Tour'}`,
-          detalle: `Fecha: ${e.fecha || 'Programada'}`,
-          precio: (e.precio_adulto * (e.adultos || 1) + (e.precio_nino || 0) * (e.ninos || 0)),
-        });
-      });
-    }
-    if (cotizacion.paquetes) {
-      cotizacion.paquetes.forEach(p => {
-        items.push({
-          tipo: 'paquete',
-          titulo: `Paquete: ${p.paquete?.paquete || 'Paquete Turístico'}`,
-          detalle: `Fecha: ${p.fecha || 'Programada'}`,
-          precio: Number(p.precio_adulto || 0),
+          tipo: 'ferry',
+          titulo: `Boletos Marítimos: ${f.ruta || 'Ruta'} (${f.itinerario || 'Ferry'})`,
+          detalle: `Vehículos: ${f.vehiculos || 0}`,
+          precio: Number(f.precio || 0),
+          hotel_item_uids: f.hotel_item_uids || (f.hotel_item_uid ? [f.hotel_item_uid] : []),
         });
       });
     }
@@ -136,93 +159,110 @@ export default function InformeCotizacionRapidaModal({
       cotizacion.vehiculos.forEach(veh => {
         items.push({
           tipo: 'vehiculo',
-          titulo: `Vehículo: ${veh.vehiculo?.marca || ''} ${veh.vehiculo?.modelo || ''}`,
-          detalle: `${veh.dias || 1} días de alquiler`,
-          precio: Number(veh.precio_unitario || 0) * (veh.dias || 1),
+          titulo: `Vehículo: ${veh.vehiculo?.marca || ''} ${veh.vehiculo?.modelo || veh.modelo || ''}`,
+          detalle: `${veh.dias || 1} Días.`,
+          precio: Number(veh.precio_unitario || veh.precio || 0) * (veh.dias || 1),
+          hotel_item_uids: veh.hotel_item_uids || (veh.hotel_item_uid ? [veh.hotel_item_uid] : []),
+        });
+      });
+    }
+    if (cotizacion.otros) {
+      cotizacion.otros.forEach(o => {
+        items.push({
+          tipo: 'otro',
+          titulo: o.descripcion || 'Servicio',
+          detalle: o.detalle || '',
+          precio: Number(o.precio || 0),
+          hotel_item_uids: o.hotel_item_uids || (o.hotel_item_uid ? [o.hotel_item_uid] : []),
         });
       });
     }
   }
 
-  // Totales
-  const subtotalUSD = items.reduce((sum, it) => sum + (Number(it.precio) || 0), 0);
-  const descuentoUSD = Number(cotizacion.descuento_monto || 0);
+  // Detección de si la cotización tiene estructura agrupada
+  const hotelItems = items.filter(it => it.tipo === 'hotel');
+  const hasMultipleHotels = hotelItems.length > 1;
+  const hasExplicitGroupedItems = items.some(it => {
+    if (it.tipo === 'hotel') return false;
+    const uids = Array.isArray(it.hotel_item_uids) ? it.hotel_item_uids : (it.hotel_item_uid ? [it.hotel_item_uid] : []);
+    return uids.length > 0;
+  });
+
+  const isGroupedMode =
+    forceGroupedView === 'grouped'
+      ? true
+      : forceGroupedView === 'ungrouped'
+      ? false
+      : (hasMultipleHotels || (hotelItems.length === 1 && hasExplicitGroupedItems));
+
+  // =========================================================================
+  // CÁLCULO INTELIGENTE DE ESPACIO PARA LA CAJA "IMPORTANTE"
+  // Si la tabla de productos es corta, la caja azul con las cláusulas se
+  // ubica al pie de la Página 1 (creando un documento de 1 sola página limpia).
+  // Si la tabla es larga y no cabe en la Página 1, se traslada a la Página 2.
+  // =========================================================================
+  const cabeEnPagina1 = useMemo(() => {
+    if (forcePageLocation === 'p1') return true;
+    if (forcePageLocation === 'p2') return false;
+
+    if (!isGroupedMode) {
+      // Modo sin agrupar: hasta 5-6 productos caben con holgura en la página 1
+      return items.length <= 5;
+    } else {
+      // Modo agrupado: contar hoteles y servicios anidados
+      const totalSubitems = items.filter(it => it.tipo !== 'hotel').length;
+      return (hotelItems.length <= 1 && totalSubitems <= 5) || (hotelItems.length <= 2 && totalSubitems <= 2);
+    }
+  }, [forcePageLocation, isGroupedMode, items, hotelItems]);
+
+  // Cálculo del total
   const totalUSD =
     typeof cotizacion.total_usd === 'number'
       ? cotizacion.total_usd
-      : Math.max(0, (subtotalUSD > 0 ? subtotalUSD - descuentoUSD : Number(cotizacion.total_estimado || 0)));
-  const pagos = Array.isArray(cotizacion.pagos) ? cotizacion.pagos : [];
-  const totalAbonado = Number(
-    cotizacion.total_abonado ??
-    pagos.reduce((acc, p) => acc + Number(p.monto_usd || p.monto || 0), 0)
-  );
-  const saldoPendiente = typeof cotizacion.saldo_pendiente === 'number'
-    ? cotizacion.saldo_pendiente
-    : Math.max(0, totalUSD - totalAbonado);
-  const totalVES = (totalUSD * tasaReferencialVES).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const observacion = cotizacion.observacion || '';
+      : items.reduce((acc, it) => acc + (Number(it.precio) || 0), 0);
 
-  // Handler para imprimir sólo el reporte limpio
+  const formatCurrency = (val) => {
+    return Number(val || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   const handlePrint = () => {
     window.print();
   };
 
-  // Handler para copiar a WhatsApp
   const handleCopyWhatsApp = () => {
-    const hotelItems = items.filter(it => it.tipo === 'hotel');
-    const hasHotels = hotelItems.length > 0;
-
-    let serviciosFormatted = '';
-    if (hasHotels) {
+    let serviciosTexto = '';
+    if (isGroupedMode && hotelItems.length > 0) {
       hotelItems.forEach(h => {
         const grouped = items.filter(it => it.tipo !== 'hotel' && (Array.isArray(it.hotel_item_uids) ? it.hotel_item_uids.includes(h.uid) : it.hotel_item_uid === h.uid));
-        serviciosFormatted += ` *HOTEL: ${h.titulo}*\n`;
-        serviciosFormatted += `   • Tarifa base: $${Number(h.precio || 0).toFixed(2)}  (${h.detalle})\n`;
-        if (grouped.length > 0) {
-          grouped.forEach(g => {
-            serviciosFormatted += `   ↳ [${(g.tipo || 'Servicio').toUpperCase()}] *${g.titulo}*: ${g.detalle} - $${Number(g.precio || 0).toFixed(2)} \n`;
-          });
-          const subtotalHotel = Number(h.precio || 0) + grouped.reduce((sum, g) => sum + Number(g.precio || 0), 0);
-          serviciosFormatted += `   *Subtotal Paquete Hotel:* $${subtotalHotel.toFixed(2)} \n\n`;
-        } else {
-          serviciosFormatted += '\n';
-        }
-      });
-
-      const unassigned = items.filter(it => {
-        if (it.tipo === 'hotel') return false;
-        const uids = Array.isArray(it.hotel_item_uids) ? it.hotel_item_uids : (it.hotel_item_uid ? [it.hotel_item_uid] : []);
-        return uids.length === 0 || !hotelItems.some(h => uids.includes(h.uid));
-      });
-      if (unassigned.length > 0) {
-        serviciosFormatted += ` *SERVICIOS GENERALES:*\n`;
-        unassigned.forEach(it => {
-          serviciosFormatted += `• [${(it.tipo || 'Servicio').toUpperCase()}] *${it.titulo}*: ${it.detalle} - $${Number(it.precio || 0).toFixed(2)}\n`;
+        const subtotal = Number(h.precio || 0) + grouped.reduce((sum, g) => sum + Number(g.precio || 0), 0);
+        serviciosTexto += `\n🏨 *${h.titulo}* - *$${formatCurrency(subtotal)}*\n`;
+        serviciosTexto += `   ${h.detalle}\n`;
+        grouped.forEach(g => {
+          serviciosTexto += `   ↳ *${g.titulo}*: ${g.detalle}\n`;
         });
-      }
+      });
     } else {
-      serviciosFormatted = items.map(it => `• *${it.titulo}*: ${it.detalle} - $${Number(it.precio || 0).toFixed(2)}`).join('\n');
+      serviciosTexto = items.map(it => `• *${it.titulo}*: ${it.detalle} - *$${formatCurrency(it.precio)}*`).join('\n');
     }
 
-    const docTitleWhatsApp = esNotaCredito ? 'NOTA DE CRÉDITO - PLAN DE VIAJE' : esVenta ? 'INFORME DE VENTA - PLAN DE VIAJE' : 'COTIZACIÓN RÁPIDA - PLAN DE VIAJE';
+    const text = `*PLAN DE VIAJE - COTIZACIÓN*
+*N° Ficha:* ${numeroFicha}
+*Fecha:* ${fechaEmision}
+*Cliente:* ${clienteNombre}
+*Fechas:* ${checkinStr} al ${checkoutStr}
+*Pasajeros:* ${paxAdultos} Adultos, ${paxNinos} Niños, ${paxInfantes} Infantes
 
-    const text = `*${docTitleWhatsApp}* 
-*Número de ficha:* ${numeroFicha}
-*Fecha:* ${new Date(fechaEmision).toLocaleDateString()}
-*Asesor:* ${asesorNombre}
+*DETALLE DEL SERVICIO:*
+${serviciosTexto}
 
-*DATOS DEL CLIENTE:*
-• *Cliente:* ${clienteNombre}
-${clienteDoc ? `• *Documento:* ${clienteDoc}\n` : ''}${clienteTelefono ? `• *Teléfono:* ${clienteTelefono}\n` : ''}${checkin ? `• *Fechas de Viaje:* ${checkin} al ${checkout} (${noches} noches)\n` : ''}• *Pasajeros:* ${paxTotal} Pax (${paxAdultos} adultos${paxNinos > 0 ? `, ${paxNinos} niños` : ''})
-
-*SERVICIOS REGISTRADOS:*
-${serviciosFormatted.trim()}
-
-*RESUMEN FINANCIERO:*
-${descuentoUSD > 0 ? `• Descuento: -$${descuentoUSD.toFixed(2)} \n` : ''}• *TOTAL:* $${totalUSD.toFixed(2)} 
-${esVenta ? `• *Total Abonado:* $${totalAbonado.toFixed(2)} \n• *Saldo Pendiente:* $${saldoPendiente.toFixed(2)} \n` : ''}• *Ref. Oficial BCV:* Bs. ${totalVES}
-
-${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* ${esVenta ? 'Venta confirmada y registrada en el sistema Plan de Viaje ERP.' : 'Tarifas sujetas a cambio y disponibilidad de cupos hasta confirmar pago formal.'}_`;
+${!isGroupedMode ? `*TOTAL A PAGAR: $${formatCurrency(totalUSD)} USD*\n` : ''}
+*IMPORTANTE:*
+• Cotización válida por 48 hrs.
+• Sujeto a disponibilidad al momento de la reserva.
+• La Agencia actúa únicamente como intermediaria entre el cliente y las aerolíneas.`;
 
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
@@ -230,54 +270,151 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* ${esVenta ? 
     });
   };
 
+  // Componente reutilizable para la Caja Azul de Cláusulas Legales
+  const renderCajaImportante = () => (
+    <div
+      style={{
+        background: '#0A206D',
+        borderRadius: '18px',
+        padding: '20px 28px',
+        color: '#FFFFFF',
+        boxSizing: 'border-box',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.15)',
+      }}
+    >
+      <div
+        style={{
+          fontSize: '12.5px',
+          fontWeight: '700',
+          letterSpacing: '1px',
+          marginBottom: '12px',
+        }}
+      >
+        IMPORTANTE
+      </div>
+
+      {/* Fila Icono Horas */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          fontSize: '11px',
+          marginBottom: '8px',
+        }}
+      >
+        <img
+          src={iconHoras}
+          alt="Horas"
+          style={{
+            width: '15px',
+            height: '15px',
+            objectFit: 'contain',
+            filter: 'brightness(0) invert(1)',
+          }}
+        />
+        <span>Cotización válida por 48 hrs</span>
+      </div>
+
+      {/* Fila Icono Disponibilidad */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          fontSize: '11px',
+          marginBottom: '12px',
+        }}
+      >
+        <img
+          src={iconDisponibilidad}
+          alt="Disponibilidad"
+          style={{
+            width: '15px',
+            height: '15px',
+            objectFit: 'contain',
+            filter: 'brightness(0) invert(1)',
+          }}
+        />
+        <span>Sujeto a disponibilidad al momento de la reserva.</span>
+      </div>
+
+      {/* Cláusulas Legales con Viñetas */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', fontSize: '10.5px', lineHeight: '1.4' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <span style={{ fontSize: '14px', lineHeight: '1' }}>•</span>
+          <span>La Agencia actúa únicamente como intermediaria entre el cliente y las aerolíneas.</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <span style={{ fontSize: '14px', lineHeight: '1' }}>•</span>
+          <span>
+            La Agencia no se hace responsable por modificaciones, cambios o anulaciones realizados por las aerolíneas.
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <span style={{ fontSize: '14px', lineHeight: '1' }}>•</span>
+          <span>
+            Ante inconvenientes ajenos en el itinerario, la Agencia solo actuará como intermediaria de apoyo entre el cliente y la aerolínea.
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'rgba(5, 10, 25, 0.82)',
+        background: 'rgba(5, 10, 25, 0.88)',
         backdropFilter: 'blur(8px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px',
+        padding: '16px',
         overflowY: 'auto',
       }}
       onClick={onClose}
     >
       <style>{`
         @media print {
+          @page {
+            size: letter portrait;
+            margin: 0;
+          }
           body * {
             visibility: hidden !important;
           }
-          #printable-informe-cotizacion, #printable-informe-cotizacion * {
+          #printable-cotizacion-root, #printable-cotizacion-root * {
             visibility: visible !important;
           }
-          #printable-informe-cotizacion {
+          #printable-cotizacion-root {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 100% !important;
+            width: 8.5in !important;
             margin: 0 !important;
-            padding: 15mm 20mm !important;
-            background: #ffffff !important;
-            color: #111827 !important;
+            padding: 0 !important;
+            background: transparent !important;
+          }
+          .cotizacion-sheet {
+            width: 8.5in !important;
+            height: 11in !important;
+            min-height: 11in !important;
+            max-height: 11in !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            overflow: hidden !important;
+            position: relative !important;
+            box-sizing: border-box !important;
             box-shadow: none !important;
-            border: none !important;
-            border-radius: 0 !important;
+            margin: 0 !important;
           }
           .no-print {
             display: none !important;
-          }
-          .print-clean-text {
-            color: #111827 !important;
-          }
-          .print-clean-border {
-            border-color: #E5E7EB !important;
-          }
-          .print-clean-bg {
-            background-color: #F9FAFB !important;
           }
         }
       `}</style>
@@ -286,51 +423,171 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* ${esVenta ? 
       <div
         style={{
           width: '100%',
-          maxWidth: '850px',
-          maxHeight: '92vh',
+          maxWidth: '920px',
+          maxHeight: '96vh',
           display: 'flex',
           flexDirection: 'column',
-          background: 'rgb(13, 22, 45)',
-          borderRadius: '18px',
+          background: '#0B132B',
+          borderRadius: '16px',
           border: '1px solid rgba(255, 255, 255, 0.15)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85)',
           overflow: 'hidden',
         }}
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Control Bar (No Print) */}
+        {/* Top Control Bar (Screen only) */}
         <div
           className="no-print"
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '14px 20px',
-            background: 'rgba(8, 14, 30, 0.95)',
+            padding: '12px 20px',
+            background: '#070D1F',
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            flexWrap: 'wrap',
+            gap: '10px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '18px' }}></span>
+            <span style={{ fontSize: '1.25rem' }}>📄</span>
             <span style={{ fontWeight: '700', fontSize: '1rem', color: '#FFFFFF' }}>
-              {esNotaCredito ? 'Nota de Crédito' : esVenta ? 'Informe de Venta' : 'Informe de Cotización Rápida'}
+              Cotización Rápida
             </span>
             <span
               style={{
-                fontSize: '0.75rem',
-                fontWeight: '600',
-                padding: '3px 8px',
+                fontSize: '0.78rem',
+                fontWeight: '700',
+                padding: '2px 8px',
                 borderRadius: '6px',
-                background: esNotaCredito ? 'rgba(239, 68, 68, 0.2)' : esVenta ? 'rgba(16, 185, 129, 0.2)' : 'rgba(232, 114, 23, 0.2)',
-                color: esNotaCredito ? '#FCA5A5' : esVenta ? '#34D399' : '#E87217',
-                border: `1px solid ${esNotaCredito ? 'rgba(239, 68, 68, 0.4)' : esVenta ? 'rgba(16, 185, 129, 0.4)' : 'rgba(232, 114, 23, 0.4)'}`,
+                background: 'rgba(242, 101, 34, 0.2)',
+                color: '#F26522',
+                border: '1px solid rgba(242, 101, 34, 0.4)',
               }}
             >
-              Ficha {numeroFicha}
+              N° {numeroFicha}
+            </span>
+            <span
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: '600',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                background: isGroupedMode ? 'rgba(59, 130, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                color: isGroupedMode ? '#60A5FA' : '#34D399',
+                border: `1px solid ${isGroupedMode ? 'rgba(59, 130, 246, 0.4)' : 'rgba(16, 185, 129, 0.4)'}`,
+              }}
+            >
+              {isGroupedMode ? 'Productos Agrupados' : 'Productos No Agrupados'}
+            </span>
+            <span
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: '600',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                background: cabeEnPagina1 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(234, 179, 8, 0.2)',
+                color: cabeEnPagina1 ? '#34D399' : '#FBBF24',
+                border: `1px solid ${cabeEnPagina1 ? 'rgba(16, 185, 129, 0.4)' : 'rgba(234, 179, 8, 0.4)'}`,
+              }}
+            >
+              {cabeEnPagina1 ? '1 Página (Cláusulas al pie)' : '2 Páginas (Cláusulas en Pág 2)'}
             </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Toggle de Modo Agrupado vs No Agrupado */}
+            <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '8px', padding: '2px' }}>
+              <button
+                type="button"
+                onClick={() => setForceGroupedView('ungrouped')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: forceGroupedView === 'ungrouped' || (!isGroupedMode && forceGroupedView === 'auto') ? '#F26522' : 'transparent',
+                  color: '#FFFFFF',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+                title="Mostrar lista secuencial sin agrupar productos"
+              >
+                Sin Agrupar
+              </button>
+              <button
+                type="button"
+                onClick={() => setForceGroupedView('grouped')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: forceGroupedView === 'grouped' || (isGroupedMode && forceGroupedView === 'auto') ? '#F26522' : 'transparent',
+                  color: '#FFFFFF',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+                title="Mostrar productos agrupados por hotel / opción"
+              >
+                Agrupados
+              </button>
+            </div>
+
+            {/* Selector de Páginas (Sólo activo cuando hay 2 páginas) */}
+            {!cabeEnPagina1 && (
+              <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '8px', padding: '2px' }}>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('todas')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: activeTab === 'todas' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                    color: '#FFFFFF',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Todas (1-2)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('1')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: activeTab === '1' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                    color: '#FFFFFF',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Pág 1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('2')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: activeTab === '2' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                    color: '#FFFFFF',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Pág 2
+                </button>
+              </div>
+            )}
+
             <button
               type="button"
               onClick={handlePrint}
@@ -339,19 +596,19 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* ${esVenta ? 
                 alignItems: 'center',
                 gap: '6px',
                 padding: '6px 14px',
-                background: '#E87217',
+                background: '#F26522',
                 border: 'none',
                 borderRadius: '8px',
                 color: '#FFFFFF',
-                fontSize: '0.85rem',
-                fontWeight: '600',
+                fontSize: '0.82rem',
+                fontWeight: '700',
                 cursor: 'pointer',
-                transition: 'all 0.2s',
+                boxShadow: '0 2px 8px rgba(242, 101, 34, 0.4)',
               }}
-              title="Imprimir documento oficial o guardar en PDF"
+              title="Imprimir documento o Guardar en PDF"
             >
-              <span></span>
-              <span>Imprimir</span>
+              <span>🖨️</span>
+              <span>Imprimir / PDF</span>
             </button>
 
             <button
@@ -366,15 +623,14 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* ${esVenta ? 
                 border: '1px solid rgba(37, 99, 235, 0.4)',
                 borderRadius: '8px',
                 color: '#FFFFFF',
-                fontSize: '0.85rem',
+                fontSize: '0.82rem',
                 fontWeight: '600',
                 cursor: 'pointer',
-                transition: 'all 0.2s',
               }}
-              title="Copiar resumen para WhatsApp o correo"
+              title="Copiar resumen para WhatsApp"
             >
-              <span>{copied ? '✓' : 'copy'}</span>
-              <span>{copied ? '¡Copiado!' : 'Copiar Resumen'}</span>
+              <span>{copied ? '✓' : '📋'}</span>
+              <span>{copied ? '¡Copiado!' : 'WhatsApp'}</span>
             </button>
 
             {onVerRegistro && (
@@ -385,21 +641,17 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* ${esVenta ? 
                   onVerRegistro();
                 }}
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
                   padding: '6px 12px',
                   background: 'rgba(255, 255, 255, 0.08)',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                   borderRadius: '8px',
                   color: '#CBD5E1',
-                  fontSize: '0.85rem',
+                  fontSize: '0.82rem',
                   fontWeight: '600',
                   cursor: 'pointer',
                 }}
-                title="Ver lista de cotizaciones guardadas"
               >
-                <span>Ver en Registro</span>
+                Ver Registro
               </button>
             )}
 
@@ -410,10 +662,11 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* ${esVenta ? 
                 background: 'transparent',
                 border: 'none',
                 color: '#94A3B8',
-                fontSize: '18px',
+                fontSize: '20px',
                 cursor: 'pointer',
                 padding: '4px 8px',
                 borderRadius: '6px',
+                lineHeight: 1,
               }}
               title="Cerrar ventana"
             >
@@ -422,524 +675,451 @@ ${observacion ? `*Observaciones:* ${observacion}\n\n` : ''}_*Nota:* ${esVenta ? 
           </div>
         </div>
 
-        {/* Scrollable Printable Document Body */}
+        {/* Scrollable Document Area */}
         <div
-          className="custom-scrollbar"
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '24px',
-            background: 'rgba(10, 16, 32, 0.65)',
+            padding: '24px 16px',
+            background: '#1F2937',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '24px',
           }}
         >
-          {/* Printable Sheet */}
-          <div
-            id="printable-informe-cotizacion"
-            style={{
-              background: '#FFFFFF',
-              color: '#1E293B',
-              borderRadius: '12px',
-              padding: '32px 36px',
-              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',
-              fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-              fontSize: '13px',
-              lineHeight: 1.5,
-            }}
-          >
-            {/* Header Documento */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                borderBottom: '2px solid #E87217',
-                paddingBottom: '16px',
-                marginBottom: '20px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <img
-                  src={logonaranja}
-                  alt="Plan de Viaje"
-                  style={{ height: '56px', width: 'auto', objectFit: 'contain' }}
-                />
-                <div>
-                  <h2 style={{ margin: '0 0 2px 0', fontSize: '1.25rem', fontWeight: '800', color: '#0F172A' }}>
-                    PLAN DE VIAJE C.A.
-                  </h2>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748B' }}>
-                    Agencia de Viajes y Turismo • RIF J-40817029-7
-                  </p>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748B' }}>
-                    Caracas, Venezuela • www.plandeviaje.com.ve
-                  </p>
-                </div>
-              </div>
-
-              <div style={{ textAlign: 'right' }}>
+          {/* Printable Root Container */}
+          <div id="printable-cotizacion-root" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* ============================================================== */}
+            {/* HOJA 1: RESUMEN Y TABLA DE PRODUCTOS                           */}
+            {/* ============================================================== */}
+            {(cabeEnPagina1 || activeTab === 'todas' || activeTab === '1') && (
+              <div
+                className="cotizacion-sheet"
+                style={{
+                  width: '816px',
+                  height: '1056px',
+                  minHeight: '1056px',
+                  maxHeight: '1056px',
+                  position: 'relative',
+                  backgroundImage: `url(${cotizacionFondoP1})`,
+                  backgroundSize: '100% 100%',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundColor: '#FFFFFF',
+                  fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+                  boxSizing: 'border-box',
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Título "COTIZACIÓN" centrado exactamente entre las dos líneas naranjas de la cabecera */}
                 <div
                   style={{
-                    display: 'inline-block',
-                    background: esNotaCredito ? '#FEE2E2' : esVenta ? '#D1FAE5' : '#FEF3C7',
-                    color: esNotaCredito ? '#991B1B' : esVenta ? '#065F46' : '#B45309',
+                    position: 'absolute',
+                    top: '127px',
+                    left: 0,
+                    right: 0,
+                    textAlign: 'center',
+                    color: '#FFFFFF',
+                    fontSize: '23px',
                     fontWeight: '800',
-                    fontSize: '0.85rem',
-                    padding: '4px 12px',
-                    borderRadius: '6px',
-                    border: `1px solid ${esNotaCredito ? '#FCA5A5' : esVenta ? '#6EE7B7' : '#FCD34D'}`,
-                    marginBottom: '6px',
+                    letterSpacing: '2.5px',
+                    textTransform: 'uppercase',
+                    userSelect: 'none',
                   }}
                 >
-                  {esNotaCredito ? 'NOTA DE CRÉDITO' : esVenta ? 'INFORME DE VENTA' : 'INFORME DE COTIZACIÓN RÁPIDA'}
+                  COTIZACIÓN
                 </div>
-                <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#0F172A' }}>
-                  Número de ficha: <span style={{ color: '#E87217' }}>{numeroFicha}</span>
-                </div>
-                <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
-                  Emisión: {new Date(fechaEmision).toLocaleString('es-VE')}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
-                  Asesor: <strong>{asesorNombre}</strong>
-                </div>
-              </div>
-            </div>
 
-            {/* Grid: Cliente y Datos del Viaje */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '16px',
-                marginBottom: '20px',
-              }}
-            >
-              {/* Card Cliente */}
-              <div
-                style={{
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '8px',
-                  padding: '12px 16px',
-                }}
-              >
-                <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '8px', borderBottom: '1px solid #E2E8F0', paddingBottom: '4px' }}>
-                  Datos del Pasajero Titular
-                </div>
-                <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#0F172A' }}>
-                  {clienteNombre}
-                </div>
-                {clienteDoc && (
-                  <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '2px' }}>
-                    Documento: <strong>{clienteDoc}</strong>
-                  </div>
-                )}
-                {clienteTelefono && (
-                  <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '2px' }}>
-                    Teléfono: <strong>{clienteTelefono}</strong>
-                  </div>
-                )}
-                {clienteCorreo && (
-                  <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '2px' }}>
-                    Correo: <strong>{clienteCorreo}</strong>
-                  </div>
-                )}
-              </div>
-
-              {/* Card Viaje */}
-              <div
-                style={{
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '8px',
-                  padding: '12px 16px',
-                }}
-              >
-                <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '8px', borderBottom: '1px solid #E2E8F0', paddingBottom: '4px' }}>
-                  Parámetros del Viaje
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#0F172A' }}>
-                  {checkin ? (
+                {/* Contenido Dinámico de la Hoja 1 */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '252px', // Inicia justo debajo del membrete/encabezado de la hoja
+                    left: '42px',
+                    right: '42px',
+                    bottom: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  {/* Fila Cliente, Fecha y N° */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: '10px',
+                      color: '#48494B',
+                      fontSize: '13px',
+                      lineHeight: '1.4',
+                    }}
+                  >
                     <div>
-                      Fechas: <strong>{checkin}</strong> al <strong>{checkout}</strong> ({noches} {noches === 1 ? 'noche' : 'noches'})
+                      <div>
+                        Cliente: <strong>{clienteNombre}</strong>
+                      </div>
+                      <div>Fecha: {fechaEmision}</div>
                     </div>
-                  ) : (
-                    <div>Fechas: <em>Por definir</em></div>
-                  )}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#0F172A', marginTop: '4px' }}>
-                  Total Pasajeros: <strong>{paxTotal} Pax</strong>
-                  <span style={{ fontSize: '0.75rem', color: '#64748B', marginLeft: '6px' }}>
-                    ({paxAdultos} Adultos{paxAdol > 0 ? `, ${paxAdol} Adol` : ''}{paxNinos > 0 ? `, ${paxNinos} Niños` : ''}{paxInfantes > 0 ? `, ${paxInfantes} Inf` : ''})
-                  </span>
-                </div>
-                <div style={{ fontSize: '0.75rem', color: esNotaCredito ? '#DC2626' : '#059669', fontWeight: '600', marginTop: '6px' }}>
-                  {esNotaCredito
-                    ? '• Estado: Nota de Crédito'
-                    : esVenta
-                    ? '✓ Estado: Venta Confirmada'
-                    : '✓ Vigencia de cotización: 48 horas'}
-                </div>
-              </div>
-            </div>
+                    <div style={{ textAlign: 'right' }}>
+                      N°: <strong>{numeroFicha}</strong>
+                    </div>
+                  </div>
 
-            {/* Tabla de Servicios Cotizados */}
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0F172A', textTransform: 'uppercase', marginBottom: '8px' }}>
-                Detalle del Itinerario y Servicios
-              </div>
-
-              {items.length === 0 ? (
-                <div style={{ padding: '16px', textAlign: 'center', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', color: '#64748B' }}>
-                  No se registraron productos desglosados en esta cotización.
-                </div>
-              ) : items.some(it => it.tipo === 'hotel') ? (
-                /* VISTA CON HOTELES Y PRODUCTOS AGRUPADOS */
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {items.filter(it => it.tipo === 'hotel').map((hotelItem, hIdx) => {
-                    const groupedServices = items.filter(it => it.tipo !== 'hotel' && (Array.isArray(it.hotel_item_uids) ? it.hotel_item_uids.includes(hotelItem.uid) : it.hotel_item_uid === hotelItem.uid));
-                    const subtotalHotel = Number(hotelItem.precio || 0) + groupedServices.reduce((sum, g) => sum + Number(g.precio || 0), 0);
-
-                    return (
+                  {/* Badges Cápsula: Pasajeros (Izquierda) y Fechas (Derecha) */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '14px',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    {/* Badge Pasajeros */}
+                    <div
+                      style={{
+                        flex: 1,
+                        border: '1.5px solid #F26522',
+                        borderRadius: '9999px',
+                        padding: '2px',
+                        boxSizing: 'border-box',
+                      }}
+                    >
                       <div
-                        key={hotelItem.uid || hIdx}
                         style={{
-                          border: '1px solid #CBD5E1',
-                          borderRadius: '8px',
-                          overflow: 'hidden',
+                          background: '#0A206D',
+                          borderRadius: '9999px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-around',
+                          padding: '4.5px 12px',
+                          color: '#FFFFFF',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          lineHeight: '1',
                         }}
                       >
-                        {/* Hotel Header Bar */}
-                        <div
-                          style={{
-                            background: '#F1F5F9',
-                            borderBottom: '1px solid #CBD5E1',
-                            padding: '8px 12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <img src={imgHoteles} alt="Hotel" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
-                            <div>
-                              <strong style={{ color: '#0F172A', fontSize: '0.9rem' }}>{hotelItem.titulo}</strong>
-                              <span style={{ color: '#64748B', fontSize: '0.78rem', marginLeft: '8px' }}>
-                                ({hotelItem.detalle})
-                              </span>
+                        <span>Adultos: {paxAdultos}</span>
+                        <div style={{ width: '1px', height: '14px', background: '#F26522' }} />
+                        <span>Niños: {paxNinos}</span>
+                        <div style={{ width: '1px', height: '14px', background: '#F26522' }} />
+                        <span>Infantes: {paxInfantes}</span>
+                      </div>
+                    </div>
+
+                    {/* Badge Fechas */}
+                    <div
+                      style={{
+                        flex: 1,
+                        border: '1.5px solid #F26522',
+                        borderRadius: '9999px',
+                        padding: '2px',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <div
+                        style={{
+                          background: '#0A206D',
+                          borderRadius: '9999px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-around',
+                          padding: '4.5px 12px',
+                          color: '#FFFFFF',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          lineHeight: '1',
+                        }}
+                      >
+                        <span>Check In: {checkinStr}</span>
+                        <div style={{ width: '1px', height: '14px', background: '#F26522' }} />
+                        <span>Check Out: {checkoutStr}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tarjeta Contenedora Gris de Productos */}
+                  <div
+                    style={{
+                      background: 'rgba(215, 220, 226, 0.58)',
+                      borderRadius: '22px',
+                      padding: '8px 22px 20px 22px',
+                      position: 'relative',
+                    }}
+                  >
+                    {/* Barra Naranja de Encabezado de Tabla */}
+                    <div
+                      style={{
+                        background: '#F26522',
+                        borderRadius: '14px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '7px 22px',
+                        color: '#FFFFFF',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      <span>Descripción</span>
+                      <span>Total USD</span>
+                    </div>
+
+                    {/* Filas de la Tabla */}
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {!isGroupedMode ? (
+                        /* ================================================= */
+                        /* FORMATO 1: SIN AGRUPAR PRODUCTOS (IMAGEN 1)       */
+                        /* ================================================= */
+                        items.map((item, idx) => (
+                          <div
+                            key={item.uid || idx}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'flex-start',
+                              borderBottom: idx === items.length - 1 ? 'none' : '1px solid rgba(17, 17, 17, 0.16)',
+                              padding: '6.5px 4px',
+                            }}
+                          >
+                            <div style={{ flex: 1, paddingRight: '16px' }}>
+                              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                                <span style={{ color: '#F26522', fontSize: '11px', lineHeight: 1 }}>▪</span>
+                                <span
+                                  style={{
+                                    color: '#00206D',
+                                    fontWeight: '700',
+                                    fontSize: '12.5px',
+                                  }}
+                                >
+                                  {item.titulo}
+                                </span>
+                              </div>
+                              {item.detalle && (
+                                <div
+                                  style={{
+                                    color: '#555555',
+                                    fontSize: '10.5px',
+                                    marginTop: '1px',
+                                    paddingLeft: '14px',
+                                    lineHeight: '1.3',
+                                  }}
+                                >
+                                  {item.detalle}
+                                </div>
+                              )}
+                            </div>
+                            <div
+                              style={{
+                                color: '#00206D',
+                                fontWeight: '700',
+                                fontSize: '12.5px',
+                                whiteSpace: 'nowrap',
+                                textAlign: 'right',
+                              }}
+                            >
+                              ${formatCurrency(item.precio)}
                             </div>
                           </div>
-                          <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.9rem' }}>
-                            Subtotal Paquete: <span style={{ color: '#059669' }}>${subtotalHotel.toFixed(2)}</span>
-                          </div>
-                        </div>
+                        ))
+                      ) : (
+                        /* ================================================= */
+                        /* FORMATO 2: CON PRODUCTOS AGRUPADOS (IMAGEN 3)     */
+                        /* ================================================= */
+                        hotelItems.map((hotelItem, hIdx) => {
+                          const groupedServices = items.filter(
+                            (it) =>
+                              it.tipo !== 'hotel' &&
+                              (Array.isArray(it.hotel_item_uids)
+                                ? it.hotel_item_uids.includes(hotelItem.uid)
+                                : it.hotel_item_uid === hotelItem.uid)
+                          );
+                          const subtotalHotel =
+                            Number(hotelItem.precio || 0) +
+                            groupedServices.reduce((sum, g) => sum + Number(g.precio || 0), 0);
 
-                        {/* Items Table for this hotel */}
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                          <thead>
-                            <tr style={{ background: '#F8FAFC', color: '#475569', textAlign: 'left', borderBottom: '1px solid #E2E8F0' }}>
-                              <th style={{ padding: '6px 12px' }}>Servicio</th>
-                              <th style={{ padding: '6px 12px' }}>Descripción / Especificación</th>
-                              <th style={{ padding: '6px 12px', textAlign: 'right' }}>Total</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {/* Base Hotel Row */}
-                            <tr style={{ borderBottom: '1px solid #E2E8F0', background: '#FFFFFF' }}>
-                              <td style={{ padding: '8px 12px', fontWeight: '600', color: '#0F172A' }}>
-                                <span style={{ color: '#E87217', marginRight: '6px' }}>[Hotel Base]</span>
-                                {hotelItem.titulo}
-                              </td>
-                              <td style={{ padding: '8px 12px', color: '#475569' }}>
-                                {hotelItem.detalle || 'Alojamiento'}
-                              </td>
-                              <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: '700', color: '#0F172A', whiteSpace: 'nowrap' }}>
-                                ${Number(hotelItem.precio || 0).toFixed(2)}
-                              </td>
-                            </tr>
-                            {/* Grouped Services Rows */}
-                            {groupedServices.map((gItem, gIdx) => (
-                              <tr key={gItem.uid || gIdx} style={{ borderBottom: '1px solid #E2E8F0', background: '#FAFAFA' }}>
-                                <td style={{ padding: '8px 12px', paddingLeft: '24px', fontWeight: '600', color: '#0F172A' }}>
-                                  <span style={{ color: '#3B82F6', marginRight: '6px' }}>↳ [{gItem.tipo || 'Servicio'}]</span>
-                                  {gItem.titulo}
-                                </td>
-                                <td style={{ padding: '8px 12px', color: '#475569' }}>
-                                  {gItem.detalle || '-'}
-                                </td>
-                                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: '700', color: '#0F172A', whiteSpace: 'nowrap' }}>
-                                  ${Number(gItem.precio || 0).toFixed(2)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    );
-                  })}
+                          return (
+                            <div
+                              key={hotelItem.uid || hIdx}
+                              style={{
+                                borderBottom: hIdx === hotelItems.length - 1 ? 'none' : '2px solid #222222',
+                                paddingBottom: '10px',
+                                marginBottom: '10px',
+                              }}
+                            >
+                              {/* Hotel Header Row */}
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'flex-start',
+                                  padding: '4px',
+                                }}
+                              >
+                                <div style={{ flex: 1, paddingRight: '16px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                                    <span style={{ color: '#F26522', fontSize: '11px', lineHeight: 1 }}>▪</span>
+                                    <span
+                                      style={{
+                                        color: '#00206D',
+                                        fontWeight: '700',
+                                        fontSize: '12.5px',
+                                      }}
+                                    >
+                                      {hotelItem.titulo}
+                                    </span>
+                                  </div>
+                                  {hotelItem.detalle && (
+                                    <div
+                                      style={{
+                                        color: '#555555',
+                                        fontSize: '10.5px',
+                                        marginTop: '1px',
+                                        paddingLeft: '14px',
+                                        lineHeight: '1.3',
+                                      }}
+                                    >
+                                      {hotelItem.detalle}
+                                    </div>
+                                  )}
+                                </div>
+                                <div
+                                  style={{
+                                    color: '#00206D',
+                                    fontWeight: '700',
+                                    fontSize: '13px',
+                                    whiteSpace: 'nowrap',
+                                    textAlign: 'right',
+                                  }}
+                                >
+                                  ${formatCurrency(subtotalHotel)}
+                                </div>
+                              </div>
 
-                  {/* General / Unassigned Services */}
-                  {(() => {
-                    const registeredHotelUids = items.filter(it => it.tipo === 'hotel').map(h => h.uid);
-                    const unassignedServices = items.filter(it => {
-                      if (it.tipo === 'hotel') return false;
-                      const uids = Array.isArray(it.hotel_item_uids) ? it.hotel_item_uids : (it.hotel_item_uid ? [it.hotel_item_uid] : []);
-                      return uids.length === 0 || !registeredHotelUids.some(hUid => uids.includes(hUid));
-                    });
-                    if (unassignedServices.length === 0) return null;
-                    const subtotalGen = unassignedServices.reduce((sum, u) => sum + Number(u.precio || 0), 0);
+                              {/* Nested Sub-services under this hotel */}
+                              {groupedServices.map((gItem, gIdx) => (
+                                <div
+                                  key={gItem.uid || gIdx}
+                                  style={{
+                                    borderTop: '1px solid rgba(17, 17, 17, 0.16)',
+                                    padding: '5px 4px 5px 18px',
+                                    marginTop: '4px',
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      color: '#00206D',
+                                      fontWeight: '700',
+                                      fontSize: '12px',
+                                    }}
+                                  >
+                                    {gItem.titulo}
+                                  </div>
+                                  {gItem.detalle && (
+                                    <div
+                                      style={{
+                                        color: '#555555',
+                                        fontSize: '10.5px',
+                                        marginTop: '1px',
+                                        lineHeight: '1.3',
+                                      }}
+                                    >
+                                      {gItem.detalle}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
 
-                    return (
+                  {/* Cápsula Naranja "Total a pagar" (Sólo en modo no agrupado, exactamente como la Imagen 1) */}
+                  {!isGroupedMode && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        marginTop: '12px',
+                      }}
+                    >
                       <div
                         style={{
-                          border: '1px solid #CBD5E1',
-                          borderRadius: '8px',
-                          overflow: 'hidden',
+                          background: '#F26522',
+                          borderRadius: '9999px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '24px',
+                          padding: '6px 24px',
+                          color: '#FFFFFF',
+                          fontWeight: '700',
+                          fontSize: '12.5px',
                         }}
                       >
-                        <div
-                          style={{
-                            background: '#F1F5F9',
-                            borderBottom: '1px solid #CBD5E1',
-                            padding: '8px 12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '1.1rem' }}></span>
-                            <strong style={{ color: '#0F172A', fontSize: '0.9rem' }}>Servicios Generales / Adicionales</strong>
-                          </div>
-                          <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.9rem' }}>
-                            Subtotal: <span style={{ color: '#2563EB' }}>${subtotalGen.toFixed(2)}</span>
-                          </div>
-                        </div>
-
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                          <thead>
-                            <tr style={{ background: '#F8FAFC', color: '#475569', textAlign: 'left', borderBottom: '1px solid #E2E8F0' }}>
-                              <th style={{ padding: '6px 12px' }}>Servicio</th>
-                              <th style={{ padding: '6px 12px' }}>Descripción / Especificación</th>
-                              <th style={{ padding: '6px 12px', textAlign: 'right' }}>Total (USD)</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {unassignedServices.map((uItem, uIdx) => (
-                              <tr key={uItem.uid || uIdx} style={{ borderBottom: '1px solid #E2E8F0', background: '#FFFFFF' }}>
-                                <td style={{ padding: '8px 12px', fontWeight: '600', color: '#0F172A' }}>
-                                  <span style={{ textTransform: 'capitalize', color: '#E87217', marginRight: '6px' }}>
-                                    [{uItem.tipo || 'Servicio'}]
-                                  </span>
-                                  {uItem.titulo}
-                                </td>
-                                <td style={{ padding: '8px 12px', color: '#475569' }}>
-                                  {uItem.detalle || '-'}
-                                </td>
-                                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: '700', color: '#0F172A', whiteSpace: 'nowrap' }}>
-                                  ${Number(uItem.precio || 0).toFixed(2)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                        <span>Total a pagar:</span>
+                        <span style={{ fontSize: '13px' }}>${formatCurrency(totalUSD)}</span>
                       </div>
-                    );
-                  })()}
-                </div>
-              ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                  <thead>
-                    <tr style={{ background: '#0F172A', color: '#FFFFFF', textAlign: 'left' }}>
-                      <th style={{ padding: '8px 12px', borderRadius: '6px 0 0 0' }}>Servicio</th>
-                      <th style={{ padding: '8px 12px' }}>Descripción / Especificación</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right', borderRadius: '0 6px 0 0' }}>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((it, idx) => (
-                      <tr
-                        key={idx}
-                        style={{
-                          borderBottom: '1px solid #E2E8F0',
-                          background: idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC',
-                        }}
-                      >
-                        <td style={{ padding: '10px 12px', fontWeight: '600', color: '#0F172A', verticalAlign: 'top' }}>
-                          <span style={{ textTransform: 'capitalize', color: '#E87217', marginRight: '6px' }}>
-                            [{it.tipo || 'Servicio'}]
-                          </span>
-                          {it.titulo}
-                        </td>
-                        <td style={{ padding: '10px 12px', color: '#475569', verticalAlign: 'top' }}>
-                          {it.detalle || '-'}
-                        </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', color: '#0F172A', verticalAlign: 'top', whiteSpace: 'nowrap' }}>
-                          ${Number(it.precio || 0).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                    </div>
+                  )}
 
-            {/* Tabla de Pagos y Abonos Registrados (Sólo en estado de Venta) */}
-            {esVenta && pagos.length > 0 && (
-              <div style={{ marginBottom: '20px' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0F172A', textTransform: 'uppercase', marginBottom: '8px' }}>
-                  Historial de Pagos y Abonos Registrados
+                  {/* ============================================================== */}
+                  {/* SI CABE EN LA PÁGINA 1: COLOCAR LA CAJA AZUL DIRECTAMENTE AL PIE */}
+                  {/* ============================================================== */}
+                  {cabeEnPagina1 && (
+                    <div
+                      style={{
+                        marginTop: 'auto', // Empuja la caja al pie respetando el margen inferior
+                        paddingTop: '20px',
+                        paddingBottom: '12px',
+                        width: '100%',
+                      }}
+                    >
+                      {renderCajaImportante()}
+                    </div>
+                  )}
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', border: '1px solid #CBD5E1', borderRadius: '6px', overflow: 'hidden' }}>
-                  <thead>
-                    <tr style={{ background: '#F1F5F9', color: '#334155', textAlign: 'left', borderBottom: '1px solid #CBD5E1' }}>
-                      <th style={{ padding: '7px 12px' }}>Transacción</th>
-                      <th style={{ padding: '7px 12px' }}>Método de Pago</th>
-                      <th style={{ padding: '7px 12px' }}>Fecha</th>
-                      <th style={{ padding: '7px 12px', textAlign: 'right' }}>Monto (USD)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pagos.map((p, pIdx) => (
-                      <tr key={p.id || pIdx} style={{ borderBottom: '1px solid #E2E8F0', background: pIdx % 2 === 0 ? '#FFFFFF' : '#F8FAFC' }}>
-                        <td style={{ padding: '7px 12px', fontWeight: '600', color: '#0F172A' }}>
-                          {p.numero_transaccion || p.referencia || `Abono #${p.id || (pIdx + 1)}`}
-                        </td>
-                        <td style={{ padding: '7px 12px', color: '#475569' }}>
-                          {p.metodo_pago?.nombre || p.tipo_pago || 'Transferencia'}
-                        </td>
-                        <td style={{ padding: '7px 12px', color: '#475569' }}>
-                          {(p.fecha_pago || p.fecha_creacion || p.fecha) ? String(p.fecha_pago || p.fecha_creacion || p.fecha).split(/[T ]/)[0] : 'N/A'}
-                        </td>
-                        <td style={{ padding: '7px 12px', textAlign: 'right', fontWeight: '700', color: '#059669', whiteSpace: 'nowrap' }}>
-                          ${Number(p.monto_usd || p.monto || 0).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             )}
 
-            {/* Resumen Financiero */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                marginBottom: '20px',
-              }}
-            >
+            {/* ============================================================== */}
+            {/* HOJA 2: SE MUESTRA SÓLO SI LA TABLA NO DEJÓ ESPACIO EN LA PÁG 1 */}
+            {/* ============================================================== */}
+            {!cabeEnPagina1 && (activeTab === 'todas' || activeTab === '2') && (
               <div
+                className="cotizacion-sheet"
                 style={{
-                  width: '320px',
-                  background: '#F8FAFC',
-                  border: '1px solid #CBD5E1',
-                  borderRadius: '8px',
-                  padding: '14px 18px',
+                  width: '816px',
+                  height: '1056px',
+                  minHeight: '1056px',
+                  maxHeight: '1056px',
+                  position: 'relative',
+                  backgroundImage: `url(${cotizacionFondoP2})`,
+                  backgroundSize: '100% 100%',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundColor: '#FFFFFF',
+                  fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+                  boxSizing: 'border-box',
+                  overflow: 'hidden',
                 }}
               >
-                {descuentoUSD > 0 && (
-                  <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B', marginBottom: '6px' }}>
-                      <span>Subtotal:</span>
-                      <span>${subtotalUSD.toFixed(2)} </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669', fontWeight: '600', marginBottom: '6px' }}>
-                      <span>Descuento aplicado:</span>
-                      <span>-${descuentoUSD.toFixed(2)} </span>
-                    </div>
-                  </>
-                )}
-
+                {/* Caja Azul Marino "IMPORTANTE" anclada al pie de la Página 2 */}
                 <div
                   style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'baseline',
-                    borderTop: '2px solid #0F172A',
-                    paddingTop: '8px',
-                    marginTop: '4px',
+                    position: 'absolute',
+                    bottom: '36px',
+                    left: '60px',
+                    right: '60px',
                   }}
                 >
-                  <span style={{ fontSize: '1rem', fontWeight: '800', color: '#0F172A' }}>
-                    {esVenta ? 'TOTAL VENTA:' : 'TOTAL:'}
-                  </span>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1.25rem', fontWeight: '900', color: '#E87217' }}>
-                      ${totalUSD.toFixed(2)} 
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>
-                      Bs. {totalVES} (Ref. BCV)
-                    </div>
-                  </div>
+                  {renderCajaImportante()}
                 </div>
-
-                {esVenta && (
-                  <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #CBD5E1', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.85rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669', fontWeight: '700' }}>
-                      <span>Total Abonado:</span>
-                      <span>${totalAbonado.toFixed(2)}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: saldoPendiente > 0.01 ? '#DC2626' : '#059669', fontWeight: '800' }}>
-                      <span>Monto Pendiente:</span>
-                      <span>${saldoPendiente.toFixed(2)}</span>
-                    </div>
-                  </div>
-                )}
               </div>
-            </div>
-
-            {/* Observaciones y Términos */}
-            <div
-              style={{
-                background: esVenta ? '#F0FDF4' : '#FFFBEB',
-                border: `1px solid ${esVenta ? '#BBF7D0' : '#FDE68A'}`,
-                borderRadius: '8px',
-                padding: '12px 16px',
-                fontSize: '0.78rem',
-                color: esVenta ? '#166534' : '#92400E',
-                marginBottom: '16px',
-              }}
-            >
-              <div style={{ fontWeight: '700', marginBottom: '4px' }}>
-                📌 {esVenta ? 'Términos y Condiciones de la Reserva / Venta:' : 'Observaciones y Condiciones Importantes:'}
-              </div>
-              {observacion && (
-                <div style={{ marginBottom: '6px', fontStyle: 'italic', color: esVenta ? '#14532D' : '#78350F' }}>
-                  "{observacion}"
-                </div>
-              )}
-              <ul style={{ margin: 0, paddingLeft: '18px' }}>
-                {esVenta ? (
-                  <>
-                    <li>Venta confirmada y registrada formalmente en el sistema ERP Plan de Viaje.</li>
-                    <li>Los servicios confirmados se encuentran sujetos a las políticas y penalidades de reserva de cada proveedor.</li>
-                    <li>Pagos en Bolívares se calculan a la tasa oficial del Banco Central de Venezuela (BCV) del día de pago.</li>
-                  </>
-                ) : (
-                  <>
-                    <li>Tarifas sujetas a cambio y disponibilidad hasta el momento de confirmación de reserva y pago.</li>
-                    <li>Este informe no constituye bloqueo de boletos o habitaciones hasta la formalización de la orden.</li>
-                    <li>Pagos en Bolívares se calculan a la tasa oficial del Banco Central de Venezuela (BCV) del día de pago.</li>
-                  </>
-                )}
-              </ul>
-            </div>
-
-            {/* Footer Firma */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderTop: '1px solid #E2E8F0',
-                paddingTop: '12px',
-                fontSize: '0.75rem',
-                color: '#94A3B8',
-              }}
-            >
-              <span>Generado con éxito por el Sistema de Cotizaciones Plan de Viaje ERP</span>
-              <span>Página 1 de 1</span>
-            </div>
+            )}
           </div>
         </div>
       </div>

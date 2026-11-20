@@ -10,7 +10,10 @@ import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
 
 export default function AerolineaList({ user }) {
-  const isFreelancer = user?.level === 'Freelancer';
+  const userStored = user || JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = (userStored?.level || '').trim().toLowerCase();
+  const canEditOrManage = ['admin', 'administrador', 'tarifas'].includes(userRole);
+  const isFreelancer = userRole === 'freelancer';
 
   const [aerolineas, setAerolineas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -195,7 +198,7 @@ export default function AerolineaList({ user }) {
             <span className='title-input'>Imprimir</span>
           </div>
 
-          {!isFreelancer && (
+          {canEditOrManage && (
             <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
               <button
                 className="btn-secondary"
@@ -249,7 +252,7 @@ export default function AerolineaList({ user }) {
               >
                 Fecha de Creación{getSortIndicator('date_creation')}
               </th>
-              {!isFreelancer && (
+              {canEditOrManage && (
                 <th style={{ padding: '14px 18px', color: '#FFFFFF', fontWeight: '600', textAlign: 'right', width: '150px' }}>
                   Acciones
                 </th>
@@ -259,13 +262,13 @@ export default function AerolineaList({ user }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                <td colSpan={canEditOrManage ? 6 : 5} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   Cargando catálogo de aerolíneas...
                 </td>
               </tr>
             ) : aerolineas.length === 0 ? (
               <tr>
-                <td colSpan={isFreelancer ? 5 : 6} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                <td colSpan={canEditOrManage ? 6 : 5} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   {search ? 'No se encontraron aerolíneas que coincidan con la búsqueda.' : 'No hay aerolíneas registradas en el catálogo.'}
                 </td>
               </tr>
@@ -298,7 +301,7 @@ export default function AerolineaList({ user }) {
                     {item.date_creation || '—'}
                   </td>
 
-                  {!isFreelancer && (
+                  {canEditOrManage && (
                     <td style={{ padding: '14px 18px', textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '8px' }}>
                         <button

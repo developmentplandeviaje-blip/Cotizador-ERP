@@ -10,7 +10,7 @@ class UpdateUserAgenciaRequest extends FormRequest
     public function authorize(): bool
     {
         $user = $this->user();
-        return $user && in_array($user->level, ['Admin', 'Administrador', 'Sub Gerente'], true);
+        return $user && in_array($user->level, ['Admin', 'Administrador', 'Administracion', 'Sub Gerente', 'Lider'], true);
     }
 
     public function rules(): array
@@ -24,7 +24,7 @@ class UpdateUserAgenciaRequest extends FormRequest
             'last_name' => ['sometimes', 'required', 'string', 'max:30'],
             'email' => ['sometimes', 'required', 'email', 'max:70', Rule::unique('user', 'email')->ignore($userId)],
             'password' => ['nullable', 'string', 'min:6'],
-            'level' => ['sometimes', 'required', 'string', Rule::in(['Admin', 'Administrador', 'Sub Gerente', 'Lider', 'Asesor'])],
+            'level' => ['sometimes', 'required', 'string', Rule::in(['Admin', 'Administrador', 'Administracion', 'Administración', 'Sub Gerente', 'Contabilidad', 'Operativo', 'Tarifas', 'Lider', 'Asesor'])],
             'status' => ['nullable', 'boolean'],
             'comisiones' => ['nullable', 'array'],
             'comisiones.hotel' => ['nullable', 'numeric', 'min:0', 'max:100'],

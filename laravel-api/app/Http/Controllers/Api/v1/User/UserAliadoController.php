@@ -36,7 +36,12 @@ class UserAliadoController extends Controller
     public function index(Request $request): JsonResponse
     {
         $this->ensureAuthorized($request);
+        $user = $request->user();
         $query = Aliado::withCount('usuarios');
+
+        if ($user && !empty($user->id_aliado)) {
+            $query->where('id', $user->id_aliado);
+        }
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -125,7 +130,12 @@ class UserAliadoController extends Controller
     public function indexVendedores(Request $request, Aliado $aliado): JsonResponse
     {
         $this->ensureAuthorized($request);
+        $user = $request->user();
         $query = $aliado->usuarios()->with('comisiones');
+
+        if ($user && !empty($user->id_aliado) && !in_array($user->level, ['Admin', 'Administrador', 'Sub Gerente', 'Gerente'], true)) {
+            $query->where('id', $user->id);
+        }
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -158,7 +168,7 @@ class UserAliadoController extends Controller
      */
     public function storeVendedor(StoreAliadoVendedorRequest $request, Aliado $aliado): JsonResponse
     {
-        $this->ensureAuthorized($request);
+        $this->ensureAuthorized($request, true);
         $vendedor = $this->service->createVendedor($aliado, $request->validated());
         return response()->json([
             'data' => [
@@ -180,7 +190,7 @@ class UserAliadoController extends Controller
      */
     public function updateVendedor(UpdateAliadoVendedorRequest $request, Aliado $aliado, User $user): JsonResponse
     {
-        $this->ensureAuthorized($request);
+        $this->ensureAuthorized($request, true);
         if ($user->id_aliado !== $aliado->id) {
             return response()->json(['message' => 'El vendedor no pertenece a este aliado.'], 403);
         }
@@ -226,7 +236,7 @@ class UserAliadoController extends Controller
      */
     public function toggleStatusVendedor(Request $request, Aliado $aliado, User $user): JsonResponse
     {
-        $this->ensureAuthorized($request);
+        $this->ensureAuthorized($request, true);
         if ($user->id_aliado !== $aliado->id) {
             return response()->json(['message' => 'El vendedor no pertenece a este aliado.'], 403);
         }

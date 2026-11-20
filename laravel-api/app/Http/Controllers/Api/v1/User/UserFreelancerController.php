@@ -22,7 +22,7 @@ class UserFreelancerController extends Controller
     {
         $this->ensureAuthorized($request);
         $perPage = (int) $request->input('per_page', 15);
-        $users = $this->userService->getUsers($request->all(), $perPage);
+        $users = $this->userService->getUsers($request->all(), $perPage, $request->user());
         return UserFreelancerResource::collection($users);
     }
 
@@ -54,7 +54,7 @@ class UserFreelancerController extends Controller
     public function toggleStatus(Request $request, User $freelancer): UserFreelancerResource
     {
         $user = $freelancer;
-        $this->ensureAuthorized($request, true);
+        $this->ensureAuthorized($request, false);
         $this->ensureIsFreelancerUser($user);
         $toggled = $this->userService->toggleStatus($user);
         return new UserFreelancerResource($toggled);
@@ -103,8 +103,12 @@ class UserFreelancerController extends Controller
         if (!$user || $user->level === 'Freelancer') {
             abort(403, 'Acceso no autorizado.');
         }
-        if ($adminOnly && !in_array($user->level, ['Admin', 'Administrador', 'Sub Gerente'], true)) {
+        $isAdmin = in_array($user->level, ['Admin', 'Administrador', 'Administracion', 'Sub Gerente'], true);
+        if ($adminOnly && !$isAdmin) {
             abort(403, 'Acceso restringido a administradores.');
+        }
+        if (!$adminOnly && !$isAdmin && $user->level !== 'Tarifas') {
+            abort(403, 'Acceso no autorizado.');
         }
     }
 

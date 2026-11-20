@@ -281,6 +281,7 @@ export default function CotizacionTabContent({
   });
 
   const [vehiculoForm, setVehiculoForm] = useState(() => initialDraft?.vehiculoForm || {
+    id_agencia: initialDraft?.vehiculoForm?.id_agencia || '',
     id_vehiculo: '',
     desde: '',
     hasta: '',
@@ -1064,6 +1065,39 @@ export default function CotizacionTabContent({
     return selectedHotel.habitaciones.find(hab => String(hab.id) === String(hotelForm.id_habitacion));
   }, [selectedHotel, hotelForm.id_habitacion]);
 
+  // Agencias y Vehículos en cascada
+  const agenciasVehiculo = useMemo(() => {
+    if (catalogos.vehiculo_agencias && catalogos.vehiculo_agencias.length > 0) {
+      return catalogos.vehiculo_agencias;
+    }
+    const map = new Map();
+    (catalogos.vehiculos || []).forEach(v => {
+      const agId = v.id_vehiculo_agencia || v.agencia?.id;
+      const agNombre = v.agencia?.agencia || v.nombre_agencia;
+      const ubiNombre = v.agencia?.ubicacion?.ubicacion || v.nombre_ubicacion;
+      if (agId && agNombre && !map.has(agId)) {
+        map.set(agId, {
+          id: agId,
+          agencia: agNombre,
+          nombre_ubicacion: ubiNombre,
+        });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => (a.agencia || '').localeCompare(b.agencia || ''));
+  }, [catalogos.vehiculo_agencias, catalogos.vehiculos]);
+
+  const selectedVehiculoAgenciaId = vehiculoForm.id_agencia || (
+    vehiculoForm.id_vehiculo
+      ? String((catalogos.vehiculos || []).find(v => String(v.id) === String(vehiculoForm.id_vehiculo))?.id_vehiculo_agencia || '')
+      : ''
+  );
+
+  const availableVehiculos = useMemo(() => {
+    const list = catalogos.vehiculos || [];
+    if (!selectedVehiculoAgenciaId) return [];
+    return list.filter(v => String(v.id_vehiculo_agencia || v.agencia?.id) === String(selectedVehiculoAgenciaId));
+  }, [catalogos.vehiculos, selectedVehiculoAgenciaId]);
+
   // Determinar si el hotel seleccionado o cotizado incluye tarifa para adolescente (YNG)
   const isAdolescentePermitido = useMemo(() => {
     // 1. Si hay un hotel seleccionado en el formulario
@@ -1221,6 +1255,7 @@ export default function CotizacionTabContent({
         break;
       case 'vehiculo':
         setVehiculoForm({
+          id_agencia: '',
           id_vehiculo: '',
           desde: '',
           hasta: '',
@@ -1495,16 +1530,18 @@ export default function CotizacionTabContent({
         return null;
       }
       const vehObj = (catalogos.vehiculos || []).find(v => String(v.id) === String(vehiculoForm.id_vehiculo)) || {};
+      const agNombre = vehObj.agencia?.agencia || vehObj.nombre_agencia || '';
       const totalItem = Number(vehiculoForm.dias || 1) * Number(vehiculoForm.precio_unitario || 0);
       return {
         uid,
         tipo: 'vehiculo',
-        titulo: `${vehObj.marca || 'Vehículo'} ${vehObj.modelo || ''}`,
-        detalle: `${vehiculoForm.dias} días • Desde: ${vehiculoForm.desde || 'Por definir'} • hasta: ${vehiculoForm.hasta || 'Por definir'}`,
+        titulo: `${vehObj.marca || 'Vehículo'} ${vehObj.vehiculo || vehObj.modelo || ''}`.trim(),
+        detalle: `${agNombre ? `Agencia: ${agNombre} • ` : ''}${vehiculoForm.dias} días • Desde: ${vehiculoForm.desde || 'Por definir'} • hasta: ${vehiculoForm.hasta || 'Por definir'}`,
         precio: totalItem,
         hotel_item_uid: vehiculoForm.hotel_item_uid || null,
         data: {
           id_vehiculo: Number(vehiculoForm.id_vehiculo),
+          id_agencia: Number(selectedVehiculoAgenciaId) || null,
           desde: vehiculoForm.desde,
           hasta: vehiculoForm.hasta,
           dias: Number(vehiculoForm.dias),
@@ -3914,15 +3951,56 @@ export default function CotizacionTabContent({
           {/* TAB VEHÍCULO */}
           {activeTab === 'vehiculo' && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'end', width: '100%' }}>
-              <div style={{ flex: '1 1 260px', minWidth: '220px', maxWidth: '350px' }}>
+              <div style={{ flex: '1 1 200px', minWidth: '180px', maxWidth: '280px' }}>
+                <label className='erp-label'>Agencia</label>
+                <CustomSelect
+                  value={selectedVehiculoAgenciaId}
+                  onChange={e => {
+                    const newAgId = e.target.value;
+                    setVehiculoForm({
+                      ...vehiculoForm,
+                      id_agencia: newAgId,
+                      id_vehiculo: '',
+                      precio_unitario: '',
+                      costo: '',
+                    });
+                  }}
+                >
+                  <option value="">Seleccione una agencia...</option>
+                  {agenciasVehiculo.map(ag => (
+                    <option key={ag.id} value={ag.id}>
+                      {ag.agencia} {ag.nombre_ubicacion || ag.ubicacion?.ubicacion ? `(${ag.nombre_ubicacion || ag.ubicacion?.ubicacion})` : ''}
+                    </option>
+                  ))}
+                </CustomSelect>
+              </div>
+
+              <div style={{ flex: '1 1 240px', minWidth: '200px', maxWidth: '320px' }}>
                 <label className='erp-label'>Vehículo</label>
                 <CustomSelect
                   value={vehiculoForm.id_vehiculo}
-                  onChange={e => setVehiculoForm({ ...vehiculoForm, id_vehiculo: e.target.value })}
+                  disabled={!selectedVehiculoAgenciaId}
+                  onChange={e => {
+                    const vId = e.target.value;
+                    const veh = (catalogos.vehiculos || []).find(v => String(v.id) === String(vId));
+                    const t = veh?.tarifa_activa || (veh?.tarifas && veh.tarifas.length > 0 ? veh.tarifas[veh.tarifas.length - 1] : null);
+                    const pUnit = t?.precio !== undefined ? Number(t.precio) : (veh?.precio || 0);
+                    const cUnit = t?.costo !== undefined ? Number(t.costo) : (veh?.costo || 0);
+                    setVehiculoForm({
+                      ...vehiculoForm,
+                      id_vehiculo: vId,
+                      precio_unitario: pUnit,
+                      costo: cUnit,
+                    });
+                  }}
                 >
-                  <option value="">Seleccione vehículo...</option>
-                  {(catalogos.vehiculos || []).map(v => (
-                    <option key={v.id} value={v.id}>{v.marca} {v.vehiculo || v.modelo || ''}{v.categoria ? ` (${v.categoria})` : ''}</option>
+                  <option value="">
+                    {!selectedVehiculoAgenciaId ? 'Primero seleccione una agencia...' : 'Seleccione vehículo...'}
+                  </option>
+                  {availableVehiculos.map(v => (
+                    <option key={v.id} value={v.id}>
+                      {v.marca} {v.vehiculo || v.modelo || ''}{v.categoria ? ` (${v.categoria})` : ''}
+                    </option>
                   ))}
                 </CustomSelect>
               </div>

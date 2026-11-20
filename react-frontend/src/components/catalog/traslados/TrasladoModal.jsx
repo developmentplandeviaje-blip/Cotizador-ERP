@@ -321,38 +321,78 @@ export default function TrasladoModal({ isOpen, onClose, onSaveSuccess, traslado
         </div>
 
         {/* Destacar Traslado */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: destacado ? 'rgba(234, 179, 8, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-          border: destacado ? '1px solid rgba(234, 179, 8, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '10px',
-          padding: '12px 16px',
-          marginBottom: '20px',
-          transition: 'all 0.2s ease',
-        }}>
-          <div>
+        <div style={{ marginBottom: '20px' }}>
+          <button
+            type="button"
+            onClick={() => setDestacado(!destacado)}
+            disabled={isSubmitting}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '14px',
+              background: destacado ? 'rgba(234, 179, 8, 0.14)' : 'rgba(255, 255, 255, 0.04)',
+              border: destacado ? '1px solid rgba(234, 179, 8, 0.55)' : '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '10px',
+              padding: '9px 16px',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+              userSelect: 'none',
+              boxShadow: destacado ? '0 2px 10px rgba(234, 179, 8, 0.2)' : 'none',
+            }}
+            onMouseEnter={(e) => {
+              if (isSubmitting) return;
+              e.currentTarget.style.background = destacado ? 'rgba(234, 179, 8, 0.22)' : 'rgba(255, 255, 255, 0.08)';
+              e.currentTarget.style.borderColor = destacado ? 'rgba(234, 179, 8, 0.75)' : 'rgba(255, 255, 255, 0.25)';
+            }}
+            onMouseLeave={(e) => {
+              if (isSubmitting) return;
+              e.currentTarget.style.background = destacado ? 'rgba(234, 179, 8, 0.14)' : 'rgba(255, 255, 255, 0.04)';
+              e.currentTarget.style.borderColor = destacado ? 'rgba(234, 179, 8, 0.55)' : 'rgba(255, 255, 255, 0.12)';
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.2rem' }}>⭐</span>
-              <span style={{ fontWeight: 700, fontSize: '0.875rem', color: destacado ? '#FACC15' : '#F8FAFC' }}>
+              {destacado ? (
+                <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>⭐</span>
+              ) : (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="rgba(148, 163, 184, 0.1)"
+                  stroke="#94A3B8"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ opacity: 0.55 }}
+                >
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              )}
+              <span style={{
+                fontWeight: 700,
+                fontSize: '0.875rem',
+                color: destacado ? '#FACC15' : '#CBD5E1',
+                transition: 'color 0.2s ease',
+              }}>
                 Destacar Traslado
               </span>
             </div>
-            <span style={{ fontSize: '0.75rem', color: '#94A3B8', display: 'block', marginTop: '2px' }}>
-              Los traslados destacados aparecerán de primeros en la lista al momento de crear una cotización.
-            </span>
-          </div>
 
-          <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
             <input
               type="checkbox"
               checked={destacado}
-              onChange={(e) => setDestacado(e.target.checked)}
-              disabled={isSubmitting}
-              style={{ width: '18px', height: '18px', accentColor: '#E87217', cursor: 'pointer' }}
+              onChange={() => {}}
+              tabIndex={-1}
+              style={{
+                width: '18px',
+                height: '18px',
+                accentColor: '#E87217',
+                cursor: 'pointer',
+                pointerEvents: 'none',
+                marginLeft: '4px',
+              }}
             />
-          </label>
+          </button>
         </div>
 
         {/* Action Buttons */}

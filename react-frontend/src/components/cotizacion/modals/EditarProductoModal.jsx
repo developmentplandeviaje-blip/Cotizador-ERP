@@ -135,6 +135,35 @@ function EditarProductoModalContent({
     }
   };
 
+  // Agencias y Vehículos para edición
+  const agenciasVehiculoModal = useMemo(() => {
+    if (catalogos.vehiculo_agencias && catalogos.vehiculo_agencias.length > 0) {
+      return catalogos.vehiculo_agencias;
+    }
+    const map = new Map();
+    (catalogos.vehiculos || []).forEach(v => {
+      const agId = v.id_vehiculo_agencia || v.agencia?.id;
+      const agNombre = v.agencia?.agencia || v.nombre_agencia;
+      const ubiNombre = v.agencia?.ubicacion?.ubicacion || v.nombre_ubicacion;
+      if (agId && agNombre && !map.has(agId)) {
+        map.set(agId, { id: agId, agencia: agNombre, nombre_ubicacion: ubiNombre });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => (a.agencia || '').localeCompare(b.agencia || ''));
+  }, [catalogos.vehiculo_agencias, catalogos.vehiculos]);
+
+  const selectedVehiculoAgenciaModalId = formData.id_agencia || (
+    formData.id_vehiculo
+      ? String((catalogos.vehiculos || []).find(v => String(v.id) === String(formData.id_vehiculo))?.id_vehiculo_agencia || '')
+      : ''
+  );
+
+  const availableVehiculosModal = useMemo(() => {
+    const list = catalogos.vehiculos || [];
+    if (!selectedVehiculoAgenciaModalId) return [];
+    return list.filter(v => String(v.id_vehiculo_agencia || v.agencia?.id) === String(selectedVehiculoAgenciaModalId));
+  }, [catalogos.vehiculos, selectedVehiculoAgenciaModalId]);
+
   // Live total calculation based on service type
   const totalCalculado = useMemo(() => {
     const d = formData;
@@ -976,31 +1005,61 @@ function EditarProductoModalContent({
 
         {/* ==================== FORMULARIO VEHÍCULO ==================== */}
         {tipo === 'vehiculo' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gridTemplateRows: 'repeat(3, 1fr)', gap: '8px' }}>
-            <div style={{ gridColumnStart: 2, gridRowStart: 1, minWidth: 0 }}>
-              <label className="erp-label">Vehículo</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+            <div style={{ minWidth: 0 }}>
+              <label className="erp-label">Agencia</label>
               <CustomSelect
-                value={formData.id_vehiculo || ''}
+                value={selectedVehiculoAgenciaModalId}
                 onChange={e => {
-                  const vId = e.target.value;
-                  const selV = (catalogos.vehiculos || []).find(v => String(v.id) === String(vId));
+                  const agId = e.target.value;
                   setFormData({
                     ...formData,
-                    id_vehiculo: vId,
-                    precio_unitario: selV ? (selV.precio_dia || selV.precio || 0) : formData.precio_unitario,
+                    id_agencia: agId,
+                    id_vehiculo: '',
+                    precio_unitario: 0,
                   });
                 }}
                 searchable={true}
                 style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
               >
-                <option value="">Seleccione vehículo...</option>
-                {(catalogos.vehiculos || []).map(v => (
+                <option value="">Seleccione agencia...</option>
+                {agenciasVehiculoModal.map(ag => (
+                  <option key={ag.id} value={ag.id}>
+                    {ag.agencia} {ag.nombre_ubicacion || ag.ubicacion?.ubicacion ? `(${ag.nombre_ubicacion || ag.ubicacion?.ubicacion})` : ''}
+                  </option>
+                ))}
+              </CustomSelect>
+            </div>
+
+            <div style={{ minWidth: 0 }}>
+              <label className="erp-label">Vehículo</label>
+              <CustomSelect
+                value={formData.id_vehiculo || ''}
+                disabled={!selectedVehiculoAgenciaModalId}
+                onChange={e => {
+                  const vId = e.target.value;
+                  const selV = (catalogos.vehiculos || []).find(v => String(v.id) === String(vId));
+                  const t = selV?.tarifa_activa || (selV?.tarifas && selV.tarifas.length > 0 ? selV.tarifas[selV.tarifas.length - 1] : null);
+                  setFormData({
+                    ...formData,
+                    id_vehiculo: vId,
+                    precio_unitario: t?.precio !== undefined ? Number(t.precio) : (selV?.precio || formData.precio_unitario),
+                    costo: t?.costo !== undefined ? Number(t.costo) : (selV?.costo || formData.costo),
+                  });
+                }}
+                searchable={true}
+                style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
+              >
+                <option value="">
+                  {!selectedVehiculoAgenciaModalId ? 'Primero seleccione agencia...' : 'Seleccione vehículo...'}
+                </option>
+                {availableVehiculosModal.map(v => (
                   <option key={v.id} value={v.id}>{v.marca} {v.vehiculo || v.modelo || ''}</option>
                 ))}
               </CustomSelect>
             </div>
 
-            <div style={{ gridColumnStart: 1, gridRowStart: 1, minWidth: 0 }}>
+            <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', width: '100%' }}>
                 <div style={{ flex: '1 1 0', minWidth: '80px', display: 'flex', flexDirection: 'column' }}>
                   <label className="erp-label">Días de Alquiler</label>
@@ -1029,7 +1088,7 @@ function EditarProductoModalContent({
               </div>
             </div>
 
-            <div style={{ gridColumnStart: 2, gridRowStart: 2, minWidth: 0 }}>
+            <div style={{ minWidth: 0 }}>
               <label className="erp-label">Fecha Desde</label>
               <CustomDatePicker
                 value={formData.desde || ''}
@@ -1037,7 +1096,7 @@ function EditarProductoModalContent({
               />
             </div>
 
-            <div style={{ gridColumnStart: 2, gridRowStart: 3, minWidth: 0 }}>
+            <div style={{ minWidth: 0 }}>
               <label className="erp-label">Fecha Hasta</label>
               <CustomDatePicker
                 value={formData.hasta || ''}
@@ -1046,9 +1105,6 @@ function EditarProductoModalContent({
             </div>
 
             <div style={{
-              gridRow: 'span 2 / span 2',
-              gridColumnStart: '1',
-              gridRowStart: '2',
               minWidth: 0,
               display: 'flex',
               flexDirection: 'column',

@@ -10,6 +10,18 @@ import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
 
 export default function UserAliadoList({ user: currentUser }) {
+  const userObj = currentUser || (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  })();
+  const userLevel = (userObj?.level || '').trim().toLowerCase();
+  const role = (userObj?.role || '').trim().toLowerCase();
+  const isAdminOrGerente = ['admin', 'administrador', 'gerente', 'sub gerente'].includes(role) || ['admin', 'administrador', 'gerente', 'sub gerente'].includes(userLevel);
+  const isAliado = Boolean(userObj?.id_aliado) || role === 'aliado' || userLevel === 'aliado';
+
   const [aliados, setAliados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -46,16 +58,20 @@ export default function UserAliadoList({ user: currentUser }) {
           sort_order: sortConfig.direction,
         },
       });
-      setAliados(res.data.data || []);
+      let list = res.data.data || [];
+      if (isAliado && userObj?.id_aliado) {
+        list = list.filter((item) => Number(item.id) === Number(userObj.id_aliado));
+      }
+      setAliados(list);
       setPage(res.data.meta?.current_page || 1);
       setLastPage(res.data.meta?.last_page || 1);
-      setTotal(res.data.meta?.total || 0);
+      setTotal(isAliado && userObj?.id_aliado ? list.length : (res.data.meta?.total || 0));
     } catch (err) {
       console.error('Error cargando aliados:', err);
     } finally {
       setLoading(false);
     }
-  }, [page, search, selectedStatus, sortConfig]);
+  }, [page, search, selectedStatus, sortConfig, isAliado, userObj?.id_aliado]);
 
   useEffect(() => {
     fetchAliados();
@@ -180,18 +196,20 @@ export default function UserAliadoList({ user: currentUser }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
-            <button
-              className="btn-secondary"
-              onClick={handleOpenCreate}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              title="Agregar empresa aliada">
-              <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
-            </button>
-            <span className='title-input'>Agregar</span>
+        {isAdminOrGerente && (
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+              <button
+                className="btn-secondary"
+                onClick={handleOpenCreate}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                title="Agregar empresa aliada">
+                <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
+              </button>
+              <span className='title-input'>Agregar</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div style={{ background: 'rgba(188, 192, 215, 0.09)', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
@@ -244,16 +262,24 @@ export default function UserAliadoList({ user: currentUser }) {
                   </td>
 
                   <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
-                    <button onClick={() => handleToggleStatus(item)} disabled={togglingId === item.id} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: togglingId === item.id ? 0.5 : 1 }}>
-                      {item.status ? <Badge variant="success">Habilitado</Badge> : <Badge variant="error">Deshabilitado</Badge>}
-                    </button>
+                    {isAdminOrGerente ? (
+                      <button onClick={() => handleToggleStatus(item)} disabled={togglingId === item.id} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: togglingId === item.id ? 0.5 : 1 }}>
+                        {item.status ? <Badge variant="success">Habilitado</Badge> : <Badge variant="error">Deshabilitado</Badge>}
+                      </button>
+                    ) : (
+                      <Badge variant={item.status ? "success" : "error"}>{item.status ? "Habilitado" : "Deshabilitado"}</Badge>
+                    )}
                   </td>
 
                   <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px', textAlign: 'center' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                      <button onClick={() => handleOpenEdit(item)} title="Editar Aliado" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', padding: '6px 10px', color: '#F8FAFC', fontSize: '0.8125rem', cursor: 'pointer' }}>Editar</button>
-                      <button onClick={() => handlePromptDelete(item)} title="Eliminar Aliado" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '6px 10px', color: '#F87171', fontSize: '0.8125rem', cursor: 'pointer' }}>Eliminar</button>
-                    </div>
+                    {isAdminOrGerente ? (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                        <button onClick={() => handleOpenEdit(item)} title="Editar Aliado" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', padding: '6px 10px', color: '#F8FAFC', fontSize: '0.8125rem', cursor: 'pointer' }}>Editar</button>
+                        <button onClick={() => handlePromptDelete(item)} title="Eliminar Aliado" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '6px 10px', color: '#F87171', fontSize: '0.8125rem', cursor: 'pointer' }}>Eliminar</button>
+                      </div>
+                    ) : (
+                      <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Solo lectura</span>
+                    )}
                   </td>
                 </tr>
               ))
@@ -282,6 +308,7 @@ export default function UserAliadoList({ user: currentUser }) {
             fetchAliados(); // refresh counts
           }}
           aliado={selectedAliadoForVendedores}
+          currentUser={userObj}
         />
       )}
 

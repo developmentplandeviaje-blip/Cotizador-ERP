@@ -7,10 +7,14 @@ import Pagination from '../../common/Pagination';
 import imgImprimir from '../../../assets/Imprimir.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
+import imgPaquetes from '../../../assets/Paqueteria.svg';
 import { showToast } from '../../../utils/toast';
 
 export default function PaqueteList({ user }) {
-  const isFreelancer = user?.level === 'Freelancer';
+  const userStored = user || JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = (userStored?.level || '').trim().toLowerCase();
+  const canEditOrManage = ['admin', 'administrador', 'tarifas'].includes(userRole);
+  const isFreelancer = userRole === 'freelancer';
 
   const [paquetes, setPaquetes] = useState([]);
   const [ubicaciones, setUbicaciones] = useState([]);
@@ -29,6 +33,7 @@ export default function PaqueteList({ user }) {
   // Modals & Operations
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [paqueteToEdit, setPaqueteToEdit] = useState(null);
+  const [modalInitialMode, setModalInitialMode] = useState('manual');
 
   // Delete modal state
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -94,13 +99,15 @@ export default function PaqueteList({ user }) {
     );
   };
 
-  const handleOpenCreate = () => {
+  const handleOpenCreate = (mode = 'manual') => {
     setPaqueteToEdit(null);
+    setModalInitialMode(mode);
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (item) => {
     setPaqueteToEdit(item);
+    setModalInitialMode('manual');
     setIsModalOpen(true);
   };
 
@@ -243,7 +250,7 @@ export default function PaqueteList({ user }) {
         </div>
 
         {/* Buttons Action Group */}
-        <div style={{ display: 'flex', gap: '20px' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
             <button
               className="btn-secondary"
@@ -256,18 +263,41 @@ export default function PaqueteList({ user }) {
             <span className='title-input'>Imprimir</span>
           </div>
 
-          {!isFreelancer && (
-            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
-              <button
-                className="btn-secondary"
-                onClick={handleOpenCreate}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-                title="Agregar nuevo paquete"
-              >
-                <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
-              </button>
-              <span className='title-input'>Agregar</span>
-            </div>
+          {canEditOrManage && (
+            <>
+              {/* Opción 1: Crear Paquete (Formulario Manual) */}
+              <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => handleOpenCreate('manual')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                  title="Crear paquete con formulario manual"
+                >
+                  <img src={imgAgregar} alt="Crear Paquete" style={{ width: '20px', height: '20px' }} />
+                </button>
+                <span className='title-input'>Crear Paquete</span>
+              </div>
+
+              {/* Opción 2: Armar Paquetes (Selección de Productos) */}
+              <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => handleOpenCreate('builder')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'linear-gradient(135deg, rgba(232, 114, 23, 0.28) 0%, rgba(255, 146, 72, 0.15) 100%)',
+                    border: '1px solid rgba(232, 114, 23, 0.65)',
+                    color: '#FFFFFF',
+                  }}
+                  title="Armar paquete seleccionando productos (hoteles, excursiones, traslados, etc.)"
+                >
+                  <img src={imgPaquetes} alt="Armar Paquetes" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                </button>
+                <span className='title-input' style={{ color: '#E87217', fontWeight: '600' }}>Armar Paquetes</span>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -325,7 +355,7 @@ export default function PaqueteList({ user }) {
                 Desc. Referidos
               </th>
               */}
-              {!isFreelancer && (
+              {canEditOrManage && (
                 <th style={{ padding: '14px 16px', color: '#FFFFFF', fontWeight: '600', textAlign: 'right', width: '150px' }}>
                   Acciones
                 </th>
@@ -335,13 +365,13 @@ export default function PaqueteList({ user }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={isFreelancer ? 5 : 7} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                <td colSpan={canEditOrManage ? (isFreelancer ? 5 : 7) : (isFreelancer ? 4 : 6)} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   Cargando catálogo de paquetes...
                 </td>
               </tr>
             ) : paquetes.length === 0 ? (
               <tr>
-                <td colSpan={isFreelancer ? 5 : 7} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
+                <td colSpan={canEditOrManage ? (isFreelancer ? 5 : 7) : (isFreelancer ? 4 : 6)} style={{ padding: '40px', textAlign: 'center', color: '#b9c8ddff' }}>
                   {search || selectedUbicacion
                     ? 'No se encontraron paquetes que coincidan con los filtros aplicados.'
                     : 'No hay paquetes registrados en el catálogo.'}
@@ -402,7 +432,7 @@ export default function PaqueteList({ user }) {
                   </td>
                   */}
 
-                  {!isFreelancer && (
+                  {canEditOrManage && (
                     <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '8px' }}>
                         <button
@@ -472,6 +502,7 @@ export default function PaqueteList({ user }) {
         }}
         onSaveSuccess={handleSaveSuccess}
         paqueteToEdit={paqueteToEdit}
+        initialMode={modalInitialMode}
       />
 
       {/* Confirmation Modal for Delete */}

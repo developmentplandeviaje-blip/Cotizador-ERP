@@ -11,6 +11,12 @@ import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
 
 export default function UserFreelancerList({ user: currentUser }) {
+  const userObj = currentUser || JSON.parse(localStorage.getItem('user') || '{}');
+  const role = (userObj?.level || '').trim().toLowerCase();
+  const isAdminOrGerente = ['admin', 'administrador'].includes(role);
+  const isTarifas = role === 'tarifas';
+  const isFreelancer = role === 'freelancer';
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -25,6 +31,16 @@ export default function UserFreelancerList({ user: currentUser }) {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
+
+  // Authorization modal for Tarifas
+  const [authModal, setAuthModal] = useState({
+    isOpen: false,
+    action: null, // 'create' | 'edit' | 'toggle'
+    targetUser: null,
+    code: '',
+    loading: false,
+    error: '',
+  });
 
   // Delete modal state
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -54,7 +70,11 @@ export default function UserFreelancerList({ user: currentUser }) {
           sort_order: sortConfig.direction,
         },
       });
-      setUsers(res.data.data || []);
+      let fetchedUsers = res.data.data || [];
+      if (isFreelancer) {
+        fetchedUsers = fetchedUsers.filter((u) => u.id === userObj?.id);
+      }
+      setUsers(fetchedUsers);
       setPage(res.data.meta?.current_page || 1);
       setLastPage(res.data.meta?.last_page || 1);
       setTotal(res.data.meta?.total || 0);
@@ -63,7 +83,7 @@ export default function UserFreelancerList({ user: currentUser }) {
     } finally {
       setLoading(false);
     }
-  }, [page, search, selectedStatus, sortConfig]);
+  }, [page, search, selectedStatus, sortConfig, isFreelancer, userObj?.id]);
 
   useEffect(() => {
     fetchUsers();
@@ -106,6 +126,61 @@ export default function UserFreelancerList({ user: currentUser }) {
   const handleOpenEdit = (userItem) => {
     setUserToEdit(userItem);
     setIsModalOpen(true);
+  };
+
+  const handleRequestAction = (action, item = null) => {
+    if (isAdminOrGerente) {
+      if (action === 'create') handleOpenCreate();
+      else if (action === 'edit') handleOpenEdit(item);
+      else if (action === 'toggle') handleToggleStatus(item);
+      return;
+    }
+
+    if (isTarifas) {
+      setAuthModal({
+        isOpen: true,
+        action,
+        targetUser: item,
+        code: '',
+        loading: false,
+        error: '',
+      });
+    }
+  };
+
+  const handleConfirmAuthCode = async (e) => {
+    if (e) e.preventDefault();
+    if (!authModal.code.trim()) {
+      setAuthModal((prev) => ({ ...prev, error: 'Por favor ingrese el código de autorización.' }));
+      return;
+    }
+
+    setAuthModal((prev) => ({ ...prev, loading: true, error: '' }));
+    try {
+      const res = await axios.post('/v1/users/freelancer/verificar-codigo', {
+        codigo: authModal.code.trim(),
+      });
+      if (res.data?.valid) {
+        const { action, targetUser } = authModal;
+        setAuthModal({ isOpen: false, action: null, targetUser: null, code: '', loading: false, error: '' });
+        if (action === 'create') {
+          handleOpenCreate();
+        } else if (action === 'edit') {
+          handleOpenEdit(targetUser);
+        } else if (action === 'toggle') {
+          handleToggleStatus(targetUser);
+        }
+      } else {
+        setAuthModal((prev) => ({ ...prev, loading: false, error: res.data?.message || 'Código inválido.' }));
+      }
+    } catch (err) {
+      console.error('Error al verificar código:', err);
+      setAuthModal((prev) => ({
+        ...prev,
+        loading: false,
+        error: err.response?.data?.message || 'Código de autorización inválido o no reconocido.',
+      }));
+    }
   };
 
   const handleSaveSuccess = () => {
@@ -263,18 +338,20 @@ export default function UserFreelancerList({ user: currentUser }) {
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
-            <button
-              className="btn-secondary"
-              onClick={handleOpenCreate}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              title="Agregar nuevo usuario freelancer">
-              <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
-            </button>
-            <span className='title-input'>Agregar</span>
+        {(isAdminOrGerente || isTarifas) && (
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => handleRequestAction('create')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                title={isTarifas ? "Agregar Freelancer (Requiere Código)" : "Agregar nuevo usuario freelancer"}>
+                <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
+              </button>
+              <span className='title-input'>Agregar</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Main Table */}
@@ -498,25 +575,33 @@ export default function UserFreelancerList({ user: currentUser }) {
 
                   {/* Status with Toggle */}
                   <td style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.51)', padding: '12px 16px' }}>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleStatus(item)}
-                      disabled={togglingId === item.id}
-                      title="Haga click para cambiar el estado"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                        opacity: togglingId === item.id ? 0.5 : 1,
-                      }}
-                    >
-                      {item.status ? (
+                    {isFreelancer ? (
+                      item.status ? (
                         <Badge variant="success">Habilitado</Badge>
                       ) : (
                         <Badge variant="error">Deshabilitado</Badge>
-                      )}
-                    </button>
+                      )
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleRequestAction('toggle', item)}
+                        disabled={togglingId === item.id}
+                        title={isTarifas ? "Cambiar estado (Requiere Código)" : "Haga click para cambiar el estado"}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: 0,
+                          opacity: togglingId === item.id ? 0.5 : 1,
+                        }}
+                      >
+                        {item.status ? (
+                          <Badge variant="success">Habilitado</Badge>
+                        ) : (
+                          <Badge variant="error">Deshabilitado</Badge>
+                        )}
+                      </button>
+                    )}
                   </td>
 
                   {/* Date Creation */}
@@ -546,42 +631,46 @@ export default function UserFreelancerList({ user: currentUser }) {
                         Enlace
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(item)}
-                        title="Editar freelancer"
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
-                          borderRadius: '8px',
-                          padding: '6px 10px',
-                          color: '#F8FAFC',
-                          fontSize: '0.8125rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        Editar
-                      </button>
+                      {(isAdminOrGerente || isTarifas) && (
+                        <button
+                          type="button"
+                          onClick={() => handleRequestAction('edit', item)}
+                          title={isTarifas ? "Editar freelancer (Requiere Código)" : "Editar freelancer"}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            color: '#F8FAFC',
+                            fontSize: '0.8125rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          Editar
+                        </button>
+                      )}
 
                       {/* Delete Button */}
-                      <button
-                        type="button"
-                        onClick={() => handlePromptDelete(item)}
-                        title="Eliminar freelancer"
-                        style={{
-                          background: 'rgba(239, 68, 68, 0.1)',
-                          border: '1px solid rgba(239, 68, 68, 0.3)',
-                          borderRadius: '8px',
-                          padding: '6px 10px',
-                          color: '#F87171',
-                          fontSize: '0.8125rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        Eliminar
-                      </button>
+                      {isAdminOrGerente && (
+                        <button
+                          type="button"
+                          onClick={() => handlePromptDelete(item)}
+                          title="Eliminar freelancer"
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            color: '#F87171',
+                            fontSize: '0.8125rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          Eliminar
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -832,6 +921,65 @@ export default function UserFreelancerList({ user: currentUser }) {
         user={exportModalUser}
         initialCategory={exportModalCategory}
       />
+
+      {/* Modal de Código de Autorización para Tarifas */}
+      <Modal
+        isOpen={authModal.isOpen}
+        onClose={() => setAuthModal((prev) => ({ ...prev, isOpen: false, code: '', error: '' }))}
+        title="Autorización Requerida"
+        width="440px"
+      >
+        <form onSubmit={handleConfirmAuthCode} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '8px' }}>
+          <p style={{ color: '#E2E8F0', fontSize: '0.875rem', margin: 0 }}>
+            Para{' '}
+            <strong style={{ color: '#E87217' }}>
+              {authModal.action === 'create' && 'agregar un nuevo freelancer'}
+              {authModal.action === 'edit' && `editar a ${authModal.targetUser?.first_name || 'este freelancer'}`}
+              {authModal.action === 'toggle' && `${authModal.targetUser?.status ? 'inhabilitar' : 'habilitar'} a ${authModal.targetUser?.first_name || 'este freelancer'}`}
+            </strong>
+            , ingrese el código de autorización diario o clave administrativa:
+          </p>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#94A3B8', marginBottom: '6px' }}>
+              Código de Autorización
+            </label>
+            <input
+              type="password"
+              className="erp-input"
+              style={{ width: '100%', height: '40px', fontSize: '1rem', letterSpacing: '2px', textAlign: 'center' }}
+              value={authModal.code}
+              onChange={(e) => setAuthModal((prev) => ({ ...prev, code: e.target.value, error: '' }))}
+              placeholder="••••••••"
+              autoFocus
+            />
+            {authModal.error && (
+              <span style={{ fontSize: '0.78rem', color: '#EF4444', marginTop: '6px', display: 'block' }}>
+                {authModal.error}
+              </span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setAuthModal((prev) => ({ ...prev, isOpen: false, code: '', error: '' }))}
+              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={authModal.loading}
+              style={{ padding: '8px 20px', fontSize: '0.85rem' }}
+            >
+              {authModal.loading ? 'Verificando...' : 'Confirmar'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

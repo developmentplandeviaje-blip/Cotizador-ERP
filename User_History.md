@@ -395,3 +395,114 @@ Escenario: Gestión inteligente de ventas, vista de edición por estado y correc
     - Se bloquea por completo la edición, adición o eliminación de productos, manteniéndose fijos los servicios contratados
     - Se permite gestionar, editar los datos de los pasajeros existentes y añadir nuevos pasajeros con sus respectivas categorías
     - Se presenta visiblemente el módulo de pagos con el historial de abonos y el botón interactivo "Registrar Abono" para asentar pagos en tiempo real.
+
+US-12: Matriz de Control de Acceso y Funcionalidades por Rol (Líder, Asesor, Freelancer y Aliados)
+Como: Usuario autenticado en el sistema según su nivel/rol (Líder, Asesor, Freelancer o Aliado).  
+Quiero: Disponer únicamente de las opciones de menú, acciones de catálogo, reportes y gestión de usuarios permitidas para mi rol.  
+Para: Operar de manera segura y eficiente respetando la confidencialidad de la información y la jerarquía operativa de la agencia.
+
+Escenario: Navegación y módulos accesibles para el rol Líder
+  Dado que un usuario con rol "Lider" inicia sesión en la plataforma
+  Cuando se renderiza la barra lateral (Sidebar) y las rutas del sistema
+  Entonces tiene acceso visible exclusivamente a:
+    - Dashboard
+    - Nueva Cotización
+    - Ventas: opción "Agencia" (ocultando Freelancer y Aliados)
+    - Reportes: opciones "Cuentas por cobrar" y "Check-in" (ocultando Operativo, Comisiones, Reporte Ventas, Gastos, Cuentas por Pagar, Pagos Entrantes y Estado de Venta)
+    - Servicios: submenús de Hoteles, Excursiones, Paquetes, Traslados, Vehículos, Aerolíneas y Ubicaciones en modo restringido
+    - Usuarios: opción "Agencia" (ocultando Freelancer y Aliados)
+    - Cerrar Sesión
+  Y los módulos directos "Gastos" y "Métodos de pago" permanecen completamente ocultos e inaccesibles.
+
+Escenario: Restricción de Servicios a modo consulta para Líder, Asesor, Freelancer y Aliados
+  Dado que un usuario con rol "Lider", "Asesor", "Freelancer" o "Aliado" navega a cualquier vista del módulo Servicios (Hoteles, Excursiones, Paquetes, Traslados, Vehículos, Aerolíneas o Ubicaciones)
+  Cuando interactúa con la interfaz del catálogo
+  Entonces se le permite únicamente:
+    - Utilizar el buscador en tiempo real
+    - Aplicar filtros (ubicación, estado, ordenamiento)
+    - Consultar el detalle de Habitaciones (en hoteles)
+    - Ejecutar la opción Imprimir
+  Y los botones o acciones de "+ Agregar", "Editar" y "Eliminar" se encuentran ocultos y bloqueados tanto a nivel visual como en peticiones API.
+
+Escenario: Gestión de Usuarios Agencia por el Líder con Código de Autorización
+  Dado que un usuario con rol "Lider" ingresa al módulo "Usuarios > Agencia"
+  Cuando se carga el listado
+  Entonces se muestran únicamente su propio registro de usuario y los registros correspondientes a usuarios con nivel "Asesor" (excluyendo Administradores, Sub Gerentes y otros Líderes)
+  Y cuando el Líder intenta realizar cualquiera de las siguientes operaciones:
+    a) "Agregar" un nuevo Asesor
+    b) "Editar" un Asesor existente
+    c) "Inhabilitar / Habilitar" (toggle-status) a un Asesor
+  Entonces el sistema solicita obligatoriamente el ingreso de un código de autorización antes de procesar la solicitud
+  Y solo al ingresar el código correcto se ejecuta la acción en la base de datos
+  Y se dispone para cada Asesor y para el propio Líder de la opción "Enlace" para consultar y compartir los métodos de pago asignados.
+
+Escenario: Navegación y alcance de datos para Asesor, Freelancer y Aliados
+  Dado que un usuario con rol "Asesor", "Freelancer" o "Aliado" inicia sesión
+  Cuando interactúa con el sistema
+  Entonces sus accesos están acotados a:
+    - Dashboard y Nueva Cotización
+    - Ventas: visualización exclusiva de sus ventas PROPIAS según su tipo:
+      * Asesor: Ventas Agencia (propias)
+      * Freelancer: Ventas Freelancer (propias)
+      * Aliado: Ventas Aliados (propias de su empresa/usuario)
+    - Reportes: visualización exclusiva de sus registros PROPIOS en "Cuentas por cobrar" y "Check-in"
+    - Servicios: modo solo lectura (Búsqueda, Filtrar, Habitaciones e Imprimir, sin agregar, editar ni eliminar)
+    - Usuarios: visualización exclusiva de su PROPIO usuario según su tipo (Agencia, Freelancer o Aliados)
+    - Cerrar Sesión
+  Y para los Asesores, se mantiene disponible en su perfil la opción de "Enlace" para compartir sus métodos de pago asignados.
+
+---
+
+### US-13: Matriz de Control de Acceso y Funcionalidades para Nuevos Niveles (Contabilidad, Operativo, Tarifas y Administración)
+
+**Como:** Usuario autenticado en el sistema según su nivel operativo en la agencia (`Contabilidad`, `Operativo`, `Tarifas`, `Administracion` [antiguo "Sub Gerente"]).  
+**Quiero:** Contar con una interfaz personalizada que exponga estrictamente las funciones, catálogos, reportes y herramientas administrativas autorizadas para mi rol.  
+**Para:** Garantizar la segregación de funciones, la integridad financiera de la agencia y la confidencialidad de la información operativa y comercial.
+
+#### Criterios de Aceptación:
+
+1. **Renombrado y Migración de "Sub Gerente" a "Administracion"**:
+   - El nivel de usuario previamente identificado como "Sub Gerente" se actualiza a "Administracion" (o "Administración").
+   - Las validaciones del backend y la interfaz gráfica reconocen "Administracion" como rol corporativo con permisos especializados.
+
+2. **Rol Contabilidad**:
+   - **Dashboard**: Acceso habilitado.
+   - **Nueva Cotización**: Acceso habilitado.
+   - **Ventas**: Acceso exclusivo a "Agencia" (y cotizaciones). Ocultando "Freelancer" y "Aliados".
+   - **Reportes**: Módulo completamente oculto e inaccesible.
+   - **Servicios**: Acceso en modo consulta a todos los servicios (Hoteles, Excursiones, Paquetes, Traslados, Vehículos, Aerolíneas, Ubicaciones). Únicamente Búsqueda, Filtrar, Habitaciones e Imprimir (sin agregar, editar ni eliminar).
+   - **Gastos y Métodos de Pago**: Inaccesibles y ocultos.
+   - **Usuarios**: Acceso a "Agencia" visualizando únicamente su propio usuario (sin agregar, editar ni eliminar).
+   - **Cerrar Sesión**: Habilitado.
+
+3. **Rol Operativo**:
+   - **Dashboard**: Acceso habilitado.
+   - **Nueva Cotización**: Acceso habilitado.
+   - **Ventas**: Acceso exclusivo a "Agencia" (y cotizaciones). Ocultando "Freelancer" y "Aliados".
+   - **Reportes**: Acceso habilitado exclusivamente a "Cuentas por cobrar" y "Cuentas por pagar". Demás reportes ocultos.
+   - **Servicios**: Acceso exclusivo a **Hoteles** y **Traslados** en modo consulta (Búsqueda, Filtrar, Habitaciones e Imprimir; sin agregar, editar ni eliminar). Los módulos de Excursiones, Paquetes, Vehículos, Aerolíneas y Ubicaciones permanecen ocultos.
+   - **Gastos y Métodos de Pago**: Inaccesibles y ocultos.
+   - **Usuarios**: Acceso a "Agencia" visualizando únicamente su propio usuario (sin agregar, editar ni eliminar).
+   - **Cerrar Sesión**: Habilitado.
+
+4. **Rol Tarifas**:
+   - **Dashboard**: Acceso habilitado.
+   - **Nueva Cotización**: Acceso habilitado.
+   - **Ventas y Reportes**: Módulos completamente ocultos e inaccesibles.
+   - **Servicios (Libertad)**: Control total en todos los catálogos turísticos (Hoteles, Habitaciones, Tarifas, Excursiones, Paquetes, Traslados, Vehículos, Aerolíneas, Ubicaciones). Puede crear, editar, eliminar, activar, imprimir y gestionar precios sin restricciones.
+   - **Gastos y Métodos de Pago**: Inaccesibles y ocultos.
+   - **Usuarios (Freelancer)**: Acceso exclusivo a "Usuarios > Freelancer" (ocultando Agencia y Aliados). Puede visualizar el directorio completo de freelancers. Para efectuar las acciones de **Agregar**, **Editar** e **Inhabilitar/Habilitar**, el sistema solicita obligatoriamente un **código de autorización** por cada acción. La eliminación de freelancers queda restringida exclusivamente al Administrador.
+   - **Cerrar Sesión**: Habilitado.
+
+5. **Rol Administracion (antiguo Sub Gerente)**:
+   - **Dashboard**: Acceso habilitado.
+   - **Nueva Cotización**: Acceso habilitado.
+   - **Ventas**: Acceso exclusivo a "Agencia" (y cotizaciones). Ocultando "Freelancer" y "Aliados".
+   - **Reportes**: Acceso habilitado exclusivamente a "Cuentas por cobrar" y "Cuentas por pagar".
+   - **Servicios**: Modo consulta en todos los catálogos (Búsqueda, Filtrar, Habitaciones e Imprimir; sin agregar, editar ni eliminar).
+   - **Métodos de Pago (Libertad)**: Control total sobre configuración de métodos de pago, cuentas bancarias, cuentas digitales, logos y estados.
+   - **Gastos**: Inaccesible y oculto.
+   - **Usuarios**: Acceso a "Agencia" visualizando únicamente su propio usuario (sin agregar, editar ni eliminar).
+   - **Cerrar Sesión**: Habilitado.
+
+

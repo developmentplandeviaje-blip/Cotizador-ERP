@@ -10,6 +10,9 @@ import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
 
 export default function UbicacionList({ user }) {
+  const userStored = user || JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = (userStored?.level || '').trim().toLowerCase();
+  const canEditOrManage = ['admin', 'administrador', 'tarifas'].includes(userRole);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -192,15 +195,17 @@ export default function UbicacionList({ user }) {
             <span className='title-input'>Imprimir</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
-            <button
-              className="btn-secondary"
-              onClick={handleOpenCreate}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
-            </button>
-            <span className='title-input'>Agregar</span>
-          </div>
+          {canEditOrManage && (
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flexDirection: 'column' }}>
+              <button
+                className="btn-secondary"
+                onClick={handleOpenCreate}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <img src={imgAgregar} alt="Agregar" style={{ width: '20px', height: '20px' }} />
+              </button>
+              <span className='title-input'>Agregar</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -239,21 +244,23 @@ export default function UbicacionList({ user }) {
               >
                 Fecha de Creación{getSortIndicator('date_creation')}
               </th>
-              <th style={{ padding: '14px 18px', color: '#FFFFFF', fontWeight: '600', textAlign: 'right', width: '140px' }}>
-                Acciones
-              </th>
+              {canEditOrManage && (
+                <th style={{ padding: '14px 18px', color: '#FFFFFF', fontWeight: '600', textAlign: 'right', width: '140px' }}>
+                  Acciones
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                <td colSpan={canEditOrManage ? 5 : 4} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
                   Cargando ubicaciones...
                 </td>
               </tr>
             ) : ubicaciones.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                <td colSpan={canEditOrManage ? 5 : 4} style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
                   {search ? 'No se encontraron ubicaciones que coincidan con la búsqueda.' : 'No hay ubicaciones registradas en el catálogo.'}
                 </td>
               </tr>
@@ -282,45 +289,47 @@ export default function UbicacionList({ user }) {
                   <td style={{ padding: '14px 16px', color: '#b9c8ddff' }}>
                     {item.date_creation || '—'}
                   </td>
-                  <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: '8px' }}>
-                      <button
-                        onClick={() => handleOpenEdit(item)}
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.08)',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
-                          color: '#F8FAFC',
-                          borderRadius: '6px',
-                          padding: '6px 12px',
-                          fontSize: '0.75rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#E87217')}
-                        onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)')}
-                      >
-                        Editar
-                      </button>
+                  {canEditOrManage && (
+                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: '8px' }}>
+                        <button
+                          onClick={() => handleOpenEdit(item)}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            color: '#F8FAFC',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#E87217')}
+                          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)')}
+                        >
+                          Editar
+                        </button>
 
-                      <button
-                        onClick={() => handlePromptDelete(item)}
-                        style={{
-                          background: 'rgba(239, 68, 68, 0.12)',
-                          border: '1px solid rgba(239, 68, 68, 0.3)',
-                          color: '#f87171',
-                          borderRadius: '6px',
-                          padding: '6px 12px',
-                          fontSize: '0.75rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.25)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.12)')}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </td>
+                        <button
+                          onClick={() => handlePromptDelete(item)}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.12)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            color: '#f87171',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.25)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.12)')}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
