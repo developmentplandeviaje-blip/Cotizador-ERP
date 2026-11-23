@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState } from 'react';
 import cotizacionFondoP1 from '../../../assets/cotizacion_fondo.jpg';
 import cotizacionFondoP2 from '../../../assets/cotizacion_fondo_pagina2.jpg';
 import iconHoras from '../../../assets/icon_horas.png';
@@ -201,7 +201,7 @@ export default function InformeCotizacionRapidaModal({
   // ubica al pie de la Página 1 (creando un documento de 1 sola página limpia).
   // Si la tabla es larga y no cabe en la Página 1, se traslada a la Página 2.
   // =========================================================================
-  const cabeEnPagina1 = useMemo(() => {
+  const cabeEnPagina1 = (() => {
     if (forcePageLocation === 'p1') return true;
     if (forcePageLocation === 'p2') return false;
 
@@ -213,7 +213,7 @@ export default function InformeCotizacionRapidaModal({
       const totalSubitems = items.filter(it => it.tipo !== 'hotel').length;
       return (hotelItems.length <= 1 && totalSubitems <= 5) || (hotelItems.length <= 2 && totalSubitems <= 2);
     }
-  }, [forcePageLocation, isGroupedMode, items, hotelItems]);
+  })();
 
   // Cálculo del total
   const totalUSD =
