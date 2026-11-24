@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Modal from '../../common/Modal';
 import Badge from '../../common/Badge';
 import { formatMontoMoneda } from '../../../utils/quotePricing';
+import InformeCotizacionRapidaModal from '../../cotizacion/modals/InformeCotizacionRapidaModal';
+import imprimirIcon from '../../../assets/Imprimir.svg';
 
 export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarPago }) {
+  const [showInformeModal, setShowInformeModal] = useState(false);
   if (!isOpen || !venta) return null;
 
   const cliente = venta.cliente || {};
@@ -17,12 +20,13 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
   const isPaid = (venta.saldo_pendiente || 0) <= 0.01 && (venta.total_pagado || 0) > 0;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Ficha de Venta: ${venta.numero_ficha || venta.id}`}
-      maxWidth="840px"
-    >
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={`Ficha de Venta: ${venta.numero_ficha || venta.id}`}
+        maxWidth="840px"
+      >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Cabecera / Info General */}
         <div
@@ -244,8 +248,30 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
           )}
         </div>
 
-        {/* Botón de Cierre */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        {/* Acciones de Cierre e Impresión de Informe */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+          <button
+            type="button"
+            onClick={() => setShowInformeModal(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              background: '#00206D',
+              border: '1px solid rgba(242, 101, 34, 0.5)',
+              color: '#FFFFFF',
+              fontWeight: '700',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0, 32, 109, 0.4)',
+            }}
+          >
+            <img src={imprimirIcon} alt="" style={{ width: '15px', height: '15px', filter: 'brightness(0) invert(1)' }} />
+            <span>Ver / Imprimir Informe de Venta</span>
+          </button>
+
           <button
             type="button"
             className="btn-secondary"
@@ -257,5 +283,17 @@ export default function DetalleVentaModal({ isOpen, onClose, venta, onRegistrarP
         </div>
       </div>
     </Modal>
-  );
+
+    {/* Modal de Informe Oficial de Venta */}
+    {showInformeModal && (
+      <InformeCotizacionRapidaModal
+        isOpen={showInformeModal}
+        onClose={() => setShowInformeModal(false)}
+        cotizacion={venta}
+        tipoInforme="venta"
+        tasaReferencialVES={62.50}
+      />
+    )}
+  </>
+);
 }

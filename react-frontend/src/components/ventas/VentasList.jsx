@@ -6,12 +6,14 @@ import CustomSelect from '../common/CustomSelect';
 import Pagination from '../common/Pagination';
 import { DetalleVentaModal, RegistrarPagoModal } from './modals';
 import EditarCotizacion from './EditarCotizacion';
+import InformeCotizacionRapidaModal from '../cotizacion/modals/InformeCotizacionRapidaModal';
 import { showToast } from '../../utils/toast';
 import { formatMontoMoneda } from '../../utils/quotePricing';
 import imgSearch from '../../assets/lupa.svg';
 import imgpago from '../../assets/cash-stack.svg';
 import imgconfirmar from '../../assets/check-all.svg';
 import imgedit from '../../assets/pencil-square.svg';
+import imprimirIcon from '../../assets/Imprimir.svg';
 
 const PAGE_SIZE = 10;
 
@@ -63,6 +65,29 @@ export default function VentasList({ tipo = 'agencia', user }) {
   const [selectedVentaPago, setSelectedVentaPago] = useState(null);
   const [confirmingVenta, setConfirmingVenta] = useState(null);
   const [isConfirmingSale, setIsConfirmingSale] = useState(false);
+  const [selectedVentaInforme, setSelectedVentaInforme] = useState(null);
+  const [loadingInforme, setLoadingInforme] = useState(false);
+
+  // Carga completa de la venta para visor de informe oficial
+  const handleOpenInforme = async (v) => {
+    if (!v) return;
+    setLoadingInforme(true);
+    try {
+      const res = await axios.get(`/v1/ventas/${v.id}`);
+      const data = res.data || {};
+      const fullVenta = data.venta || v;
+      setSelectedVentaInforme({
+        ...fullVenta,
+        items: data.totales?.items || fullVenta.items || [],
+        totales: data.totales,
+      });
+    } catch (err) {
+      console.warn('Error al cargar detalle completo para informe:', err);
+      setSelectedVentaInforme(v);
+    } finally {
+      setLoadingInforme(false);
+    }
+  };
 
   // Código Diario de Administrador para desbloqueo
   const isAdminOrLeader = ['administrador', 'admin', 'lider', 'líder'].includes((user?.level || '').toLowerCase().trim());
@@ -878,6 +903,29 @@ export default function VentasList({ tipo = 'agencia', user }) {
                             <img src={imgedit} alt="Editar" />
                           </button>
 
+                          {/* Ver / Imprimir Informe de Venta o Cotización */}
+                          <button
+                            type="button"
+                            onClick={() => handleOpenInforme(v)}
+                            disabled={loadingInforme}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              background: 'rgba(0, 32, 109, 0.45)',
+                              border: '1px solid rgba(242, 101, 34, 0.45)',
+                              borderRadius: '8px',
+                              padding: '6px 10px',
+                              color: '#60A5FA',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem',
+                              transition: 'all 0.2s',
+                            }}
+                            title="Ver / Imprimir informe oficial"
+                          >
+                            <img src={imprimirIcon} alt="Informe" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
+                          </button>
+
                           {/* Registrar Pago (Solo si la ficha está en estado Venta/Confirmada) */}
                           {isConfirmed && (
                             <button
@@ -990,6 +1038,21 @@ export default function VentasList({ tipo = 'agencia', user }) {
           isConfirming={isConfirmingSale}
           onConfirm={handleConfirmSale}
           onClose={() => setConfirmingVenta(null)}
+        />
+      )}
+
+      {/* Modal de Informe Oficial de Venta o Cotización */}
+      {selectedVentaInforme && (
+        <InformeCotizacionRapidaModal
+          isOpen={Boolean(selectedVentaInforme)}
+          onClose={() => setSelectedVentaInforme(null)}
+          cotizacion={selectedVentaInforme}
+          tipoInforme={
+            ['confirmada', 'venta', 'confirmado'].includes((selectedVentaInforme.estado || '').toLowerCase())
+              ? 'venta'
+              : 'cotizacion'
+          }
+          tasaReferencialVES={62.50}
         />
       )}
     </div>

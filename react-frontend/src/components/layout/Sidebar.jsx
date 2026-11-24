@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { showToast } from '../../utils/toast';
 import logoinicio from '../../assets/logo-pdv-sin-letras.png';
@@ -295,7 +295,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
         {/* 1. Dashboard */}
         <button
-          className="liquid-glass-btn"
+          className={`liquid-glass-btn ${isRouteActive('dashboard') ? 'active-route' : ''}`}
           onClick={() => onNavigate('dashboard')}
           style={{
             ...navButtonStyle,
@@ -311,7 +311,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
 
         {/* 2. Nueva Cotización */}
         <button
-          className="liquid-glass-btn"
+          className={`liquid-glass-btn ${isRouteActive('nueva_cotizacion') ? 'active-route' : ''}`}
           title={isCollapsed ? 'Nueva Cotización' : undefined} onClick={() => onNavigate('nueva_cotizacion')}
           style={{
             ...navButtonStyle,
@@ -329,7 +329,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         {canViewVentas && (
           <div>
             <button
-              className="liquid-glass-btn"
+              className={`liquid-glass-btn ${isParentActive('ventas') ? 'active-parent' : ''}`}
               title={isCollapsed ? 'Ventas' : undefined} onClick={() => toggleMenu('ventas')}
               style={{
                 ...navButtonStyle,
@@ -347,7 +347,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
               <div className="submenu-container" style={submenuContainerStyle}>
                 {canViewAgenciaVentas && (
                   <button
-                    className="liquid-glass-sub-btn"
+                    className={`liquid-glass-sub-btn ${isRouteActive('ventas_agencia') ? 'active-route' : ''}`}
                     title={isCollapsed ? 'Ventas Agencia' : undefined} onClick={() => onNavigate('ventas_agencia')}
                     style={{
                       ...subnavButtonStyle,
@@ -362,9 +362,9 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   </button>
                 )}
 
-                {(isAdmin || isOperativo || isFreelancer) && (
+                {(isAdmin || isFreelancer) && (
                   <button
-                    className="liquid-glass-sub-btn"
+                    className={`liquid-glass-sub-btn ${isRouteActive('ventas_freelancer') ? 'active-route' : ''}`}
                     title={isCollapsed ? 'Ventas Freelancer' : undefined} onClick={() => onNavigate('ventas_freelancer')}
                     style={{
                       ...subnavButtonStyle,
@@ -379,9 +379,9 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                   </button>
                 )}
 
-                {(isAdmin || isOperativo || isAliado) && (
+                {(isAdmin || isAliado) && (
                   <button
-                    className="liquid-glass-sub-btn"
+                    className={`liquid-glass-sub-btn ${isRouteActive('ventas_aliados') ? 'active-route' : ''}`}
                     title={isCollapsed ? 'Ventas Aliados' : undefined} onClick={() => onNavigate('ventas_aliados')}
                     style={{
                       ...subnavButtonStyle,
@@ -397,14 +397,17 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
                 )}
 
                 <button
-                  className="liquid-glass-sub-btn"
+                  className={`liquid-glass-sub-btn ${isRouteActive('ventas_cotizaciones') ? 'active-route' : ''}`}
                   title={isCollapsed ? 'Registro de Cotizaciones' : undefined} onClick={() => onNavigate('ventas_cotizaciones')}
                   style={{
                     ...subnavButtonStyle,
                     color: isRouteActive('ventas_cotizaciones') ? '#E87217' : '#FFFFFF',
                   }}
                 >
-                  <span style={{ fontSize: '18px', width: '25px', textAlign: 'center', display: 'inline-block' }}>📋</span>
+                  <img
+                    src={nuevacotizacion}
+                    style={{ width: '22px', height: '22px', objectFit: 'contain' }}
+                  />
                   <span className="nav-text">Cotizaciones</span>
                 </button>
               </div>
@@ -416,7 +419,7 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
         {canViewReportes && (
           <div>
             <button
-              className="liquid-glass-btn"
+              className={`liquid-glass-btn ${isParentActive('reportes') ? 'active-parent' : ''}`}
               title={isCollapsed ? 'Reportes' : undefined} onClick={() => toggleMenu('reportes')}
               style={{
                 ...navButtonStyle,
@@ -433,9 +436,9 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             {openMenus.reportes && (
               <div className="submenu-container" style={submenuContainerStyle}>
                 {[
-                  { id: 'reportes_operativo', label: 'Operativo', allowed: isAdmin || isOperativo },
+                  { id: 'reportes_operativo', label: 'Operativo', allowed: isAdmin },
                   { id: 'reportes_comisiones', label: 'Comisiones', allowed: isAdmin },
-                  { id: 'reportes_ventas', label: 'Reporte Ventas', allowed: isAdmin || isOperativo },
+                  { id: 'reportes_ventas', label: 'Reporte Ventas', allowed: isAdmin },
                   { id: 'reportes_gastos', label: 'Gastos', allowed: isAdmin },
                   { id: 'reportes_cuentas_cobrar', label: 'Cuentas por Cobrar', allowed: true },
                   { id: 'reportes_cuentas_pagar', label: 'Cuentas por Pagar', allowed: isAdmin || isAdministracion || isOperativo },
@@ -872,9 +875,9 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
           z-index: 3;
         }
 
-        /* LIQUID GLASS HOVER EFFECT (Explore pill style) */
-        .liquid-glass-btn:hover,
-        .liquid-glass-sub-btn:hover {
+        /* LIQUID GLASS HOVER EFFECT (Explore pill style in expanded mode) */
+        .sidebar-container:not(.collapsed) .liquid-glass-btn:hover,
+        .sidebar-container:not(.collapsed) .liquid-glass-sub-btn:hover {
           background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0.16) 100%) !important;
           backdrop-filter: blur(14px) saturate(190%) !important;
           -webkit-backdrop-filter: blur(14px) saturate(190%) !important;
@@ -888,15 +891,14 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
           transform: translateX(3px) scale(1.01) !important;
         }
 
-        .liquid-glass-btn:hover::before,
-        .liquid-glass-sub-btn:hover::before {
+        .sidebar-container:not(.collapsed) .liquid-glass-btn:hover::before,
+        .sidebar-container:not(.collapsed) .liquid-glass-sub-btn:hover::before {
           opacity: 1;
           transform: translateY(0);
         }
 
-        /* Tactile Click / Press feedback */
-        .liquid-glass-btn:active,
-        .liquid-glass-sub-btn:active {
+        .sidebar-container:not(.collapsed) .liquid-glass-btn:active,
+        .sidebar-container:not(.collapsed) .liquid-glass-sub-btn:active {
           transform: translateX(1px) scale(0.98) !important;
           box-shadow: 
             inset 0 1px 1px 0 rgba(255, 255, 255, 0.6),
@@ -904,28 +906,183 @@ export default function Sidebar({ activeRoute, onNavigate, onLogout, user }) {
             0 3px 8px 0 rgba(0, 0, 0, 0.25) !important;
         }
 
-        /* Collapsed Sidebar adjustments */
-        .sidebar-container.collapsed .nav-text {
-          display: none;
+        /* Active route state in expanded mode */
+        .sidebar-container:not(.collapsed) .liquid-glass-btn.active-route,
+        .sidebar-container:not(.collapsed) .liquid-glass-sub-btn.active-route {
+          background: linear-gradient(135deg, rgba(232, 114, 23, 0.22) 0%, rgba(255, 255, 255, 0.06) 50%, rgba(232, 114, 23, 0.16) 100%) !important;
+          border: 1px solid rgba(232, 114, 23, 0.5) !important;
+          box-shadow: 
+            inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.5),
+            inset 0 -1px 1px 0 rgba(0, 0, 0, 0.15),
+            0 4px 12px rgba(232, 114, 23, 0.2) !important;
         }
-        .sidebar-container.collapsed > nav > button,
-        .sidebar-container.collapsed > nav > div > button,
-        .sidebar-container.collapsed div button.liquid-glass-btn {
+
+        .sidebar-container:not(.collapsed) .liquid-glass-btn.active-parent {
+          border: 1px solid rgba(232, 114, 23, 0.35) !important;
+        }
+
+        /* ========================================================= */
+        /* COLLAPSED SIDEBAR ADJUSTMENTS (Perfect Circular Glass Dock)*/
+        /* ========================================================= */
+        .sidebar-container.collapsed {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+        }
+
+        .sidebar-container.collapsed .nav-text,
+        .sidebar-container.collapsed span.nav-text {
+          display: none !important;
+        }
+
+        .sidebar-container.collapsed nav {
+          padding: 0 10px !important;
+          align-items: center !important;
+          gap: 8px !important;
+        }
+
+        .sidebar-container.collapsed nav > div {
+          width: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+        }
+
+        /* Main Navigation Buttons in Collapsed Mode -> PERFECT CIRCLE */
+        .sidebar-container.collapsed .liquid-glass-btn {
+          width: 44px !important;
+          height: 44px !important;
+          min-width: 44px !important;
+          min-height: 44px !important;
+          max-width: 44px !important;
+          max-height: 44px !important;
+          border-radius: 50% !important;
+          margin: 0 auto !important;
+          padding: 0 !important;
+          display: flex !important;
+          align-items: center !important;
           justify-content: center !important;
-          padding: 10px 0 !important;
+          box-sizing: border-box !important;
         }
+
+        .sidebar-container.collapsed .liquid-glass-btn img {
+          width: 24px !important;
+          height: 24px !important;
+          object-fit: contain !important;
+          margin: 0 !important;
+        }
+
+        .sidebar-container.collapsed .liquid-glass-btn::before {
+          left: 4px !important;
+          right: 4px !important;
+          top: 2px !important;
+          height: 42% !important;
+          border-radius: 50% 50% 35% 35% !important;
+        }
+
+        /* Submenu Container in Collapsed Mode:
+           Centered vertical capsule, no border-left pushing icons */
+        .sidebar-container.collapsed .submenu-container {
+          margin: 6px auto !important;
+          padding: 6px 0 !important;
+          width: 48px !important;
+          border-left: none !important;
+          background: rgba(0, 0, 0, 0.24) !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          border-radius: 26px !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 6px !important;
+          box-sizing: border-box !important;
+          box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.35) !important;
+        }
+
+        /* Submenu Circular buttons when collapsed (Never clipped) */
+        .sidebar-container.collapsed .liquid-glass-sub-btn {
+          width: 38px !important;
+          height: 38px !important;
+          min-width: 38px !important;
+          min-height: 38px !important;
+          max-width: 38px !important;
+          max-height: 38px !important;
+          border-radius: 50% !important;
+          margin: 0 auto !important;
+          padding: 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          overflow: visible !important;
+          box-sizing: border-box !important;
+        }
+
+        .sidebar-container.collapsed .liquid-glass-sub-btn img {
+          width: 22px !important;
+          height: 22px !important;
+          max-width: 22px !important;
+          max-height: 22px !important;
+          object-fit: contain !important;
+          margin: 0 auto !important;
+          display: block !important;
+        }
+
+
+
+        .sidebar-container.collapsed .liquid-glass-sub-btn::before {
+          left: 3px !important;
+          right: 3px !important;
+          top: 2px !important;
+          height: 42% !important;
+          border-radius: 50% 50% 35% 35% !important;
+        }
+
+        /* Hover Feedback in Collapsed Mode -> PERFECT CIRCLE GLASS */
         .sidebar-container.collapsed .liquid-glass-btn:hover,
         .sidebar-container.collapsed .liquid-glass-sub-btn:hover {
-          transform: scale(1.06) !important;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0.18) 100%) !important;
+          backdrop-filter: blur(14px) saturate(190%) !important;
+          -webkit-backdrop-filter: blur(14px) saturate(190%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.55) !important;
+          border-radius: 50% !important;
+          box-shadow: 
+            inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.85),
+            inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.25),
+            0 4px 14px rgba(0, 0, 0, 0.35),
+            0 0 12px rgba(255, 255, 255, 0.2) !important;
+          transform: scale(1.08) !important;
         }
-        /* For submenus in collapsed mode */
-        .sidebar-container.collapsed .submenu-container {
-          margin-left: 20px !important;
-          padding-left: 10px !important;
+
+        .sidebar-container.collapsed .liquid-glass-btn:hover::before,
+        .sidebar-container.collapsed .liquid-glass-sub-btn:hover::before {
+          opacity: 1 !important;
+          transform: translateY(0) !important;
         }
-        .sidebar-container.collapsed .submenu-container button {
-          justify-content: center !important;
-          padding: 6px 0 !important;
+
+        .sidebar-container.collapsed .liquid-glass-btn:active,
+        .sidebar-container.collapsed .liquid-glass-sub-btn:active {
+          transform: scale(0.96) !important;
+          border-radius: 50% !important;
+          box-shadow: 
+            inset 0 1px 1px 0 rgba(255, 255, 255, 0.6),
+            inset 0 -1px 1px 0 rgba(255, 255, 255, 0.15),
+            0 2px 6px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        /* Active Selected State in Collapsed Mode -> CIRCULAR LIQUID GLASS WITH BRAND ACCENT */
+        .sidebar-container.collapsed .liquid-glass-btn.active-route,
+        .sidebar-container.collapsed .liquid-glass-sub-btn.active-route {
+          background: linear-gradient(135deg, rgba(232, 114, 23, 0.3) 0%, rgba(255, 255, 255, 0.08) 50%, rgba(232, 114, 23, 0.24) 100%) !important;
+          border: 1px solid rgba(232, 114, 23, 0.7) !important;
+          border-radius: 50% !important;
+          box-shadow: 
+            inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.6),
+            inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2),
+            0 0 14px rgba(232, 114, 23, 0.4) !important;
+        }
+
+        .sidebar-container.collapsed .liquid-glass-btn.active-parent {
+          border: 1px solid rgba(232, 114, 23, 0.45) !important;
+          border-radius: 50% !important;
         }
       `}</style>
     </aside>
