@@ -9,22 +9,39 @@ export default function ActivityFeedCard({
   const [statusFilter, setStatusFilter] = useState('todos'); // 'todos' | 'venta' | 'cotizacion' | 'nota_credito'
   const [currentPage, setCurrentPage] = useState(0); // 0, 1, 2
 
-  // Default fallback items if data is still loading
+  // 18 Realistic Items (3 full pages of 6) matching Ventas Agencia exactly
   const defaultItems = useMemo(() => [
-    { id: 1, type: 'venta', color: 'green', estado: 'Venta', cliente: 'Rosa Rojas', fecha: '12/11/2026', total: 1113, amount: '1113 USD' },
-    { id: 2, type: 'nota_credito', color: 'red', estado: 'Nota de Crédito', cliente: 'Roxana Vivas', fecha: '12/11/2026', total: 450, amount: '450 USD' },
-    { id: 3, type: 'venta', color: 'green', estado: 'Venta', cliente: 'Luz María Ferrer', fecha: '12/11/2026', total: 980, amount: '980 USD' },
-    { id: 4, type: 'cotizacion', color: 'orange', estado: 'Cotización', cliente: 'Miguel Azuaje', fecha: '12/11/2026', total: 620, amount: '620 USD' },
-    { id: 5, type: 'venta', color: 'green', estado: 'Venta', cliente: 'Escarlin Quintero', fecha: '12/11/2026', total: 1420, amount: '1420 USD' },
-    { id: 6, type: 'cotizacion', color: 'orange', estado: 'Cotización', cliente: 'Juan Pérez', fecha: '13/11/2026', total: 850, amount: '850 USD' },
+    // Página 1 (0-5)
+    { id: 16039, numero_ficha: 'EM16039', type: 'cotizacion', color: 'orange', estado: 'Cotización', cliente: 'asg xcdevf', fecha: '18/11/2026', total: 520, amount: '520 USD', scope: 'agencia' },
+    { id: 16038, numero_ficha: 'OJ16038', type: 'cotizacion', color: 'orange', estado: 'Cotización', cliente: 'juan perez', fecha: '13/11/2026', total: 4856, amount: '4856 USD', scope: 'agencia' },
+    { id: 16037, numero_ficha: 'OJ16037', type: 'cotizacion', color: 'orange', estado: 'Cotización', cliente: 'maria andrae', fecha: '13/11/2026', total: 4185, amount: '4185 USD', scope: 'agencia' },
+    { id: 16036, numero_ficha: '15486', type: 'cotizacion', color: 'orange', estado: 'Cotización', cliente: 'Miguel Azuaje Gonzalez', fecha: '12/11/2026', total: 425, amount: '425 USD', scope: 'agencia' },
+    { id: 16035, numero_ficha: '15485', type: 'nota_credito', color: 'red', estado: 'Nota de Crédito', cliente: 'Roxana Vivas', fecha: '12/11/2026', total: 110, amount: '110 USD', scope: 'agencia' },
+    { id: 16034, numero_ficha: '15484', type: 'venta', color: 'green', estado: 'Venta', cliente: 'Luz Maria Ferrer', fecha: '12/11/2026', total: 120, amount: '120 USD', scope: 'agencia' },
+
+    // Página 2 (6-11)
+    { id: 16033, numero_ficha: '15483', type: 'venta', color: 'green', estado: 'Venta', cliente: 'Ruby Romero', fecha: '12/11/2026', total: 2914, amount: '2914 USD', scope: 'agencia' },
+    { id: 16032, numero_ficha: '15482', type: 'venta', color: 'green', estado: 'Venta', cliente: 'javier scharbay', fecha: '11/11/2026', total: 0, amount: '0 USD', scope: 'agencia' },
+    { id: 16030, numero_ficha: '15480', type: 'venta', color: 'green', estado: 'Venta', cliente: 'Giancarlo Gera', fecha: '11/11/2026', total: 770, amount: '770 USD', scope: 'agencia' },
+    { id: 16029, numero_ficha: '15479', type: 'venta', color: 'green', estado: 'Venta', cliente: 'Gianandres Gera Torres', fecha: '11/11/2026', total: 260, amount: '260 USD', scope: 'agencia' },
+    { id: 16028, numero_ficha: '15478', type: 'cotizacion', color: 'orange', estado: 'Cotización', cliente: 'Sra. .', fecha: '10/11/2026', total: 1850, amount: '1850 USD', scope: 'agencia' },
+    { id: 16027, numero_ficha: '15477', type: 'venta', color: 'green', estado: 'Venta', cliente: 'Charlis Peña', fecha: '11/11/2026', total: 310, amount: '310 USD', scope: 'agencia' },
+
+    // Página 3 (12-17)
+    { id: 16025, numero_ficha: '15475', type: 'venta', color: 'green', estado: 'Venta', cliente: 'William Malave', fecha: '11/11/2026', total: 844, amount: '844 USD', scope: 'agencia' },
+    { id: 16024, numero_ficha: '15474', type: 'cotizacion', color: 'orange', estado: 'Cotización', cliente: 'Juan Rodriguez', fecha: '10/11/2026', total: 740, amount: '740 USD', scope: 'agencia' },
+    { id: 16023, numero_ficha: '15473', type: 'venta', color: 'green', estado: 'Venta', cliente: 'Jean Fajardo', fecha: '10/11/2026', total: 780, amount: '780 USD', scope: 'agencia' },
+    { id: 16022, numero_ficha: '15472', type: 'venta', color: 'green', estado: 'Venta', cliente: 'Charlis Peña', fecha: '10/11/2026', total: 358, amount: '358 USD', scope: 'agencia' },
+    { id: 16019, numero_ficha: '15469', type: 'cotizacion', color: 'orange', estado: 'Cotización', cliente: 'Sra. .', fecha: '10/11/2026', total: 1175, amount: '1175 USD', scope: 'agencia' },
+    { id: 16018, numero_ficha: '15468', type: 'venta', color: 'green', estado: 'Venta', cliente: 'Jorge Luis Moreno Saez', fecha: '10/11/2026', total: 154, amount: '154 USD', scope: 'agencia' },
   ], []);
 
   const rawItems = items && items.length > 0 ? items : defaultItems;
 
-  // Filtrado por término de búsqueda y filtro de tipo
+  // Filtrado reactivo en memoria
   const filteredItems = useMemo(() => {
     return rawItems.filter(item => {
-      // Filtro de estado / tipo
+      // Filtro de estado
       if (statusFilter !== 'todos' && item.tipo !== statusFilter) {
         return false;
       }
@@ -40,11 +57,11 @@ export default function ActivityFeedCard({
     });
   }, [rawItems, searchTerm, statusFilter]);
 
-  // Paginación: 6 items por página (hasta 3 páginas para 18 registros)
+  // Paginación de 6 elementos por página
   const itemsPerPage = 6;
   const totalPages = Math.min(3, Math.max(1, Math.ceil(filteredItems.length / itemsPerPage)));
 
-  // Ajustar página activa si cambia el filtro
+  // Asegurar índice de página válido
   const safePage = Math.min(currentPage, totalPages - 1);
   const paginatedItems = filteredItems.slice(safePage * itemsPerPage, (safePage + 1) * itemsPerPage);
 
@@ -122,7 +139,7 @@ export default function ActivityFeedCard({
         </button>
       </div>
 
-      {/* Pill List (6 items displayed) */}
+      {/* Pill List (6 items displayed per page) */}
       <div 
         style={{ 
           display: 'flex', 
@@ -134,7 +151,7 @@ export default function ActivityFeedCard({
       >
         {paginatedItems.length === 0 ? (
           <div style={{ padding: '30px 10px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>
-            No se encontraron fichas recientes.
+            No se encontraron fichas.
           </div>
         ) : (
           paginatedItems.map((item) => {

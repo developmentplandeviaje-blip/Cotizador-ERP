@@ -87,13 +87,23 @@ class DashboardController extends Controller
                 $percentage = 15;
             }
 
+            $nameParts = preg_split('/\s+/', trim((string)$seller->name));
+            $initials = '';
+            if (count($nameParts) >= 2) {
+                $initials = strtoupper(mb_substr($nameParts[0], 0, 1) . mb_substr(end($nameParts), 0, 1));
+            } elseif (count($nameParts) === 1 && !empty($nameParts[0])) {
+                $initials = strtoupper(mb_substr($nameParts[0], 0, 2));
+            }
+
             return [
                 'user_id' => $seller->user_id,
                 'name' => $seller->name,
                 'level' => $seller->level,
                 'total' => $total,
-                'amount' => 'USD ' . number_format(round($total), 0, '', ''),
+                'amount' => 'USD ' . number_format(round($total), 0, '.', ','),
                 'percentage' => $percentage,
+                'initials' => $initials,
+                'avatar' => null,
             ];
         });
 
@@ -113,6 +123,8 @@ class DashboardController extends Controller
         $userLevel = strtolower(trim($currentUser?->level ?? ''));
         $isFreelancer = $userLevel === 'freelancer' || !empty($currentUser?->id_freelancer);
         $isAliado = $userLevel === 'aliado' || !empty($currentUser?->id_aliado);
+        $isAsesor = $userLevel === 'asesor';
+        $canViewAll = in_array($userLevel, ['admin', 'administrador', 'lider', 'líder', 'operativo', 'administracion', 'administración', 'contabilidad', 'tarifas']);
 
         // Roles oficiales de la agencia:
         // Asesores, líderes, operativo, tarifas, contabilidad y administración
@@ -125,7 +137,7 @@ class DashboardController extends Controller
         // Se evalúa la concurrencia de nombres de clientes/pasajeros (pax) en el sistema:
         // - Frecuentes: Clientes cuyo nombre completo tiene más de una concurrencia histórica (total_ocurrencias > 1)
         // - Nuevos: Clientes cuyo nombre completo solo se ha registrado una vez (total_ocurrencias = 1)
-        // - Si la sesión es de un freelancer o aliado, muestra sus clientes propios
+        // - Si la sesión es de un asesor, freelancer o aliado, muestra sus clientes propios
         $clientesQuery = "
             SELECT 
                 COUNT(DISTINCT CASE WHEN h.total_ocurrencias > 1 THEN h.nombre_key END) as frecuentes,
@@ -159,6 +171,9 @@ class DashboardController extends Controller
                 $clientesQuery .= " AND v.id_user = ? ";
                 $clientesParams[] = $currentUser->id;
             }
+        } elseif (($isAsesor || !$canViewAll) && $currentUser) {
+            $clientesQuery .= " AND v.id_user = ? ";
+            $clientesParams[] = $currentUser->id;
         }
 
         $clientesStats = DB::selectOne($clientesQuery, $clientesParams);
@@ -169,7 +184,7 @@ class DashboardController extends Controller
         // - Confirmadas: Fichas que cambiaron a estado de venta (confirmadas)
         // - Anuladas: Fichas canceladas o eliminadas generadas por usuarios de la agencia (asesores, líderes, operativo, tarifas, contabilidad y administración),
         //             quedadas en cotización o nota de crédito (excluyendo administradores).
-        // - Si la sesión es de un freelancer o aliado, muestra exclusivamente las fichas propias
+        // - Si la sesión es de un asesor, freelancer o aliado, muestra exclusivamente las fichas propias
         $ventasQuery = DB::table('ventas as v')
             ->leftJoin('user as u', 'v.id_user', '=', 'u.id')
             ->whereBetween('v.fecha_creacion', [$startDate, $endDate]);
@@ -194,6 +209,15 @@ class DashboardController extends Controller
                         $q->where('v.id_user', $currentUser->id);
                     }
                 })
+                ->selectRaw("
+                    COUNT(CASE WHEN LOWER(v.estado) = 'venta' THEN 1 END) as confirmadas,
+                    COUNT(CASE WHEN LOWER(v.estado) != 'venta' THEN 1 END) as anuladas
+                ")
+                ->first();
+        } elseif (($isAsesor || !$canViewAll) && $currentUser) {
+            // Sesión Asesor: muestra sus propias fichas
+            $ventasStats = (clone $ventasQuery)
+                ->where('v.id_user', $currentUser->id)
                 ->selectRaw("
                     COUNT(CASE WHEN LOWER(v.estado) = 'venta' THEN 1 END) as confirmadas,
                     COUNT(CASE WHEN LOWER(v.estado) != 'venta' THEN 1 END) as anuladas
@@ -259,6 +283,9 @@ class DashboardController extends Controller
                 $speedUserCondition = " AND v.id_user = ? ";
                 $speedParams[] = $currentUser->id;
             }
+        } elseif (($isAsesor || !$canViewAll) && $currentUser) {
+            $speedUserCondition = " AND v.id_user = ? ";
+            $speedParams[] = $currentUser->id;
         }
 
         $speedStats = DB::selectOne("
@@ -395,6 +422,9 @@ class DashboardController extends Controller
                 $trimestralUserCondition = " AND v.id_user = ? ";
                 $trimestralParams[] = $currentUser->id;
             }
+        } elseif (($isAsesor || !$canViewAll) && $currentUser) {
+            $trimestralUserCondition = " AND v.id_user = ? ";
+            $trimestralParams[] = $currentUser->id;
         }
 
         $trimestralRow = DB::selectOne("
@@ -497,15 +527,22 @@ class DashboardController extends Controller
             } else {
                 $fichasQuery->where('v.id_user', $currentUser->id);
             }
+        } elseif (($isAsesor || !$canViewAll) && $currentUser) {
+            // Perfil Asesor: muestra exclusivamente sus fichas propias
+            $fichasQuery->where('v.id_user', $currentUser->id);
         } else {
-            // Agencia: Restricción de asesor individual si no puede ver todas
-            if (!$canViewAll && $currentUser) {
-                $fichasQuery->where('v.id_user', $currentUser->id);
-            }
+            // Scope Agencia: Excluir explícitamente Freelancers y Aliados para coincidir 1:1 con Ventas Agencia
+            $fichasQuery->where(function($q) {
+                $q->where(function($sub) {
+                    $sub->where('u.level', '!=', 'Freelancer')
+                        ->orWhereNull('u.level');
+                })
+                ->whereNull('u.id_freelancer')
+                ->whereNull('u.id_aliado');
+            });
         }
 
-        $fichasRows = $fichasQuery->orderByDesc('v.fecha_creacion')
-            ->orderByDesc('v.id')
+        $fichasRows = $fichasQuery->orderByDesc('v.id')
             ->limit(18)
             ->get();
 

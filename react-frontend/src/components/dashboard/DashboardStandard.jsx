@@ -8,17 +8,30 @@ import TopVentas3DPillars from './components/TopVentas3DPillars';
 import TrimestralChart from './components/TrimestralChart';
 import ActivityFeedCard from './components/ActivityFeedCard';
 
-export default function DashboardStandard({ user, onNavigate }) {
-  const [dateRange, setDateRange] = useState({
+export default function DashboardStandard({ user, onNavigate, onUserChange }) {
+  const userLevel = (user?.level || '').trim().toLowerCase();
+  const isFreelancer = userLevel === 'freelancer' || Boolean(user?.id_freelancer);
+
+  const [data, setData] = useState({
     rangoFecha: "13 • Nov | 20 • Nov",
     startLabel: "13 • Nov",
     endLabel: "20 • Nov",
     startDate: "2026-11-13",
     endDate: "2026-11-20",
-    speed: null
+    topVentas: [],
+    speed: null,
+    trimestral: null,
+    fichasRecientes: [],
+    loading: true
   });
 
-  const fetchDateRange = async (start, end) => {
+  const fetchDashboardData = async (start, end, label) => {
+    setData(prev => ({ 
+      ...prev, 
+      loading: true,
+      ...(start && end ? { startDate: start, endDate: end } : {}),
+      ...(label ? { rangoFecha: label } : {})
+    }));
     try {
       let url = '/v1/dashboard/top-ventas';
       if (start && end) {
@@ -26,23 +39,28 @@ export default function DashboardStandard({ user, onNavigate }) {
       }
       const res = await axios.get(url);
       if (res.data && res.data.success) {
-        setDateRange({
-          rangoFecha: res.data.rango_fecha || "13 • Nov | 20 • Nov",
-          startLabel: res.data.start_label || "13 • Nov",
-          endLabel: res.data.end_label || "20 • Nov",
-          startDate: res.data.fecha_inicio || start || "2026-11-13",
-          endDate: res.data.fecha_fin || end || "2026-11-20",
-          speed: res.data.speed || null
+        setData({
+          rangoFecha: res.data.rango_fecha || label || "06 • Nov | 12 • Nov",
+          startLabel: res.data.start_label || "06 • Nov",
+          endLabel: res.data.end_label || "12 • Nov",
+          startDate: res.data.fecha_inicio || start || "2026-11-06",
+          endDate: res.data.fecha_fin || end || "2026-11-12",
+          topVentas: res.data.top_ventas || [],
+          speed: res.data.speed || null,
+          trimestral: res.data.trimestral || null,
+          fichasRecientes: res.data.fichas_recientes || [],
+          loading: false
         });
       }
     } catch (err) {
-      console.error('Error fetching date range:', err);
+      console.error('Error fetching dashboard standard data:', err);
+      setData(prev => ({ ...prev, loading: false }));
     }
   };
 
   useEffect(() => {
-    fetchDateRange();
-  }, []);
+    fetchDashboardData();
+  }, [user?.id]);
 
   return (
     <div className="dashboard-root">
@@ -57,65 +75,85 @@ export default function DashboardStandard({ user, onNavigate }) {
             gap: '16px'
           }}
         >
-          {/* Top Left: Date Filter */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <DateFilterPill 
-              label={dateRange.rangoFecha}
-              start={dateRange.startLabel}
-              end={dateRange.endLabel}
-              startDate={dateRange.startDate}
-              endDate={dateRange.endDate}
-              onSelectRange={(start, end) => fetchDateRange(start, end)}
-            />
-          </div>
+          {/* Top Left */}
+          {!isFreelancer ? (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <DateFilterPill 
+                label={data.rangoFecha}
+                start={data.startLabel}
+                end={data.endLabel}
+                startDate={data.startDate}
+                endDate={data.endDate}
+                onSelectRange={(start, end, label) => fetchDashboardData(start, end, label)}
+              />
+            </div>
+          ) : (
+            <div />
+          )}
 
-          {/* Top Center: Monthly Goal & Received Card */}
+          {/* Top Center: Monthly Goal Card */}
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <MonthlyGoalCard 
-              meta={dateRange.speed?.mensual?.formatted_meta || "45,000.00"} 
-              totalRecibido={dateRange.speed?.mensual?.formatted_total || "0.00"} 
+              meta={data.speed?.mensual?.formatted_meta || "45,000.00"} 
+              totalRecibido={data.speed?.mensual?.formatted_total || "0.00"} 
               moneda="USD" 
             />
           </div>
 
           {/* Top Right: User Profile Card */}
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <UserProfileCard user={user} activeDot={0} />
+            <UserProfileCard user={user} onUserChange={onUserChange} />
           </div>
         </div>
 
-        {/* Main Grid: 3 Columns matching Image 1 */}
+        {/* Main Grid:
+            - Freelancer: 2 columnas expandidas (Estadísticas Trimestral + Feed de Ventas)
+            - Asesores / Otros: 3 columnas (Top De Ventas + Trimestral + Feed) */}
         <div 
           style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'minmax(260px, 1fr) minmax(420px, 1.7fr) minmax(280px, 1.1fr)', 
-            gap: '20px', 
+            gridTemplateColumns: isFreelancer 
+              ? 'minmax(500px, 1.65fr) minmax(340px, 1fr)' 
+              : 'minmax(280px, 1fr) minmax(480px, 1.8fr) minmax(320px, 1.15fr)', 
+            gap: '22px', 
             alignItems: 'stretch',
             width: '100%',
+            flex: 1,
             marginTop: '4px'
           }}
         >
-          {/* Column 1: Top De Ventas (3D Cylindrical Podium) */}
-          <div style={{ height: '100%' }}>
-            <TopVentas3DPillars />
-          </div>
+          {/* Column 1: Top De Ventas (Oculto para Freelancer) */}
+          {!isFreelancer && (
+            <div style={{ height: '100%' }}>
+              <TopVentas3DPillars topVentas={data.topVentas} loading={data.loading} />
+            </div>
+          )}
 
-          {/* Column 2: Estadísticas Trimestral (Dual-wave chart) */}
+          {/* Estadísticas Trimestral (Dual-wave chart con datos propios) */}
           <div style={{ height: '100%' }}>
             <TrimestralChart 
-              rendimiento="853 VENTAS" 
-              variabilidad="7,78%" 
+              trimestralData={data.trimestral}
+              loading={data.loading}
             />
           </div>
 
-          {/* Column 3: Recent Activity Feed (Search & Glowing Pills) */}
+          {/* Recent Activity Feed (Fichas recientes propias) */}
           <div style={{ height: '100%' }}>
             <ActivityFeedCard 
+              items={data.fichasRecientes}
+              loading={data.loading}
               onViewItem={(item) => {
-                if (item.type === 'venta' && onNavigate) {
-                  onNavigate('ventas_agencia');
-                } else if (item.type === 'cotizacion' && onNavigate) {
-                  onNavigate('ventas_cotizaciones');
+                const scope = item.scope || (isFreelancer ? 'freelancer' : (user?.id_aliado ? 'aliados' : 'agencia'));
+                try {
+                  sessionStorage.setItem(`editing_venta_${scope}`, String(item.id));
+                  window.location.hash = `ventas_${scope}?editar=${item.id}`;
+                } catch {}
+                if (onNavigate) {
+                  if (item.tipo === 'cotizacion') {
+                    onNavigate('ventas_cotizaciones');
+                  } else {
+                    onNavigate(`ventas_${scope}`);
+                  }
                 }
               }}
             />

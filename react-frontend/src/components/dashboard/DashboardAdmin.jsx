@@ -9,7 +9,7 @@ import DonutKpiCard from './components/DonutKpiCard';
 import TrimestralChart from './components/TrimestralChart';
 import ActivityFeedCard from './components/ActivityFeedCard';
 
-export default function DashboardAdmin({ user, onNavigate }) {
+export default function DashboardAdmin({ user, onNavigate, onUserChange }) {
   const [topVentasData, setTopVentasData] = useState({
     rangoFecha: "13 • Nov | 20 • Nov",
     startLabel: "13 • Nov",
@@ -25,8 +25,13 @@ export default function DashboardAdmin({ user, onNavigate }) {
     loading: true
   });
 
-  const fetchTopVentas = async (start, end) => {
-    setTopVentasData(prev => ({ ...prev, loading: true }));
+  const fetchTopVentas = async (start, end, label) => {
+    setTopVentasData(prev => ({ 
+      ...prev, 
+      loading: true,
+      ...(start && end ? { startDate: start, endDate: end } : {}),
+      ...(label ? { rangoFecha: label } : {})
+    }));
     try {
       let url = '/v1/dashboard/top-ventas';
       if (start && end) {
@@ -35,11 +40,11 @@ export default function DashboardAdmin({ user, onNavigate }) {
       const res = await axios.get(url);
       if (res.data && res.data.success) {
         setTopVentasData({
-          rangoFecha: res.data.rango_fecha || "13 • Nov | 20 • Nov",
-          startLabel: res.data.start_label || "13 • Nov",
-          endLabel: res.data.end_label || "20 • Nov",
-          startDate: res.data.fecha_inicio || start || "2026-11-13",
-          endDate: res.data.fecha_fin || end || "2026-11-20",
+          rangoFecha: res.data.rango_fecha || label || "06 • Nov | 12 • Nov",
+          startLabel: res.data.start_label || "06 • Nov",
+          endLabel: res.data.end_label || "12 • Nov",
+          startDate: res.data.fecha_inicio || start || "2026-11-06",
+          endDate: res.data.fecha_fin || end || "2026-11-12",
           topVentas: res.data.top_ventas || [],
           clientes: res.data.clientes || { frecuentes: 0, nuevos: 0 },
           ventasKpi: res.data.ventas_kpi || { confirmadas: 0, anuladas: 0 },
@@ -57,19 +62,20 @@ export default function DashboardAdmin({ user, onNavigate }) {
 
   useEffect(() => {
     fetchTopVentas();
-  }, []);
+  }, [user?.id]);
 
   return (
     <div className="dashboard-root">
       <div className="dashboard-glass-container">
-        {/* Main 2-Section Grid: Left+Center Main Workspace (Left 72%) vs Right Column (Right 28%) */}
+        {/* Main 2-Section Grid: Left+Center Main Workspace vs Right Column */}
         <div 
           style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'minmax(600px, 2.5fr) minmax(290px, 1fr)', 
-            gap: '20px', 
+            gridTemplateColumns: 'minmax(650px, 2.6fr) minmax(320px, 1.1fr)', 
+            gap: '24px', 
             alignItems: 'stretch',
-            width: '100%'
+            width: '100%',
+            flex: 1
           }}
         >
           {/* ================= LEFT + CENTER SECTION ================= */}
@@ -93,7 +99,7 @@ export default function DashboardAdmin({ user, onNavigate }) {
                     end={topVentasData.endLabel}
                     startDate={topVentasData.startDate}
                     endDate={topVentasData.endDate}
-                    onSelectRange={(start, end) => fetchTopVentas(start, end)}
+                    onSelectRange={(start, end, label) => fetchTopVentas(start, end, label)}
                   />
                 </div>
 
@@ -109,7 +115,7 @@ export default function DashboardAdmin({ user, onNavigate }) {
               {/* Center Column: User Profile + Dual Donuts */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
                 {/* User Profile Card */}
-                <UserProfileCard user={user} activeDot={0} />
+                <UserProfileCard user={user} onUserChange={onUserChange} />
 
                 {/* Dual Donut Cards (Clientes & Ventas) */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', width: '100%' }}>

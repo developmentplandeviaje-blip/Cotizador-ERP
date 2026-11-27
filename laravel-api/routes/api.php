@@ -29,9 +29,11 @@ Route::get('/test', function () {
 
 // Protected routes (Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
-    // Auth profile & logout
+    // Auth profile & logout & session switching
     Route::get('/v1/auth/profile', [AuthController::class, 'profile']);
     Route::post('/v1/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/v1/auth/associated-accounts', [AuthController::class, 'getAssociatedAccounts']);
+    Route::post('/v1/auth/switch-account', [AuthController::class, 'switchAccount']);
 
     // Catalog: Ubicaciones
     Route::apiResource('/v1/catalog/ubicaciones', UbicacionController::class)->parameters([

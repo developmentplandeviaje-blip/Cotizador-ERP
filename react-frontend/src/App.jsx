@@ -148,8 +148,17 @@ function App() {
       const base = getBaseRoute(window.location.hash);
       setActiveRouteState(base);
     };
+    const handleUserChanged = (e) => {
+      if (e.detail) {
+        setUser(e.detail);
+      }
+    };
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('auth:user_changed', handleUserChanged);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('auth:user_changed', handleUserChanged);
+    };
   }, []);
 
   // Control de Acceso por Rol (RBAC Guard)
@@ -454,7 +463,13 @@ function App() {
       {activeRoute === 'ventas_agencia' && <VentasList tipo="agencia" user={user} />}
       {activeRoute === 'ventas_freelancer' && <VentasList tipo="freelancer" user={user} />}
       {activeRoute === 'ventas_aliados' && <VentasList tipo="aliados" user={user} />}
-      {activeRoute === 'dashboard' && <Dashboard user={user} onNavigate={(route) => setActiveRoute(route)} />}
+      {activeRoute === 'dashboard' && (
+        <Dashboard 
+          user={user} 
+          onNavigate={(route) => setActiveRoute(route)} 
+          onUserChange={(newUser) => setUser(newUser)} 
+        />
+      )}
 
       {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'servicios_aerolineas' && activeRoute !== 'usuarios_agencia' && activeRoute !== 'usuarios_freelancer' && activeRoute !== 'usuarios_aliados' && activeRoute !== 'metodos_pago' && activeRoute !== 'nueva_cotizacion' && activeRoute !== 'ventas_cotizaciones' && activeRoute !== 'ventas_agencia' && activeRoute !== 'ventas_freelancer' && activeRoute !== 'ventas_aliados' && activeRoute !== 'dashboard' && (
         <div style={{

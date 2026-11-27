@@ -157,4 +157,133 @@ class AuthController extends Controller
             'message' => 'Sesión cerrada exitosamente.'
         ], 200);
     }
+
+    /**
+     * Get all associated accounts for the authenticated user.
+     * Evaluates users with matching normalized name or shared Aliado ID.
+     */
+    public function getAssociatedAccounts(Request $request)
+    {
+        $currentUser = $request->user();
+        if (!$currentUser) {
+            return response()->json(['success' => false, 'accounts' => []], 401);
+        }
+
+        $cleanFirst = trim(preg_replace('/\s*\(admin\)\s*/i', '', (string)$currentUser->first_name));
+        $cleanLast = trim((string)$currentUser->last_name);
+
+        $query = User::where('status', 1);
+
+        $query->where(function ($q) use ($currentUser, $cleanFirst, $cleanLast) {
+            $q->where('id', $currentUser->id);
+
+            if (!empty($cleanFirst) && !empty($cleanLast)) {
+                $q->orWhere(function ($sub) use ($cleanFirst, $cleanLast) {
+                    $sub->whereRaw("REPLACE(REPLACE(LOWER(TRIM(first_name)), '(admin)', ''), ' ', '') = ?", [
+                        str_replace(' ', '', strtolower($cleanFirst))
+                    ])
+                    ->whereRaw("REPLACE(LOWER(TRIM(last_name)), ' ', '') = ?", [
+                        str_replace(' ', '', strtolower($cleanLast))
+                    ]);
+                });
+            }
+
+            if (!empty($currentUser->id_aliado)) {
+                $q->orWhere('id_aliado', $currentUser->id_aliado);
+            }
+        });
+
+        $accounts = $query->orderBy('id', 'asc')->get()->map(function ($u) use ($currentUser) {
+            return [
+                'id' => $u->id,
+                'first_name' => trim((string)$u->first_name),
+                'last_name' => trim((string)$u->last_name),
+                'email' => $u->email,
+                'level' => $u->level,
+                'is_current' => $u->id === $currentUser->id,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'current_user_id' => $currentUser->id,
+            'total' => $accounts->count(),
+            'accounts' => $accounts,
+        ]);
+    }
+
+    /**
+     * Switch session to an associated user account.
+     */
+    public function switchAccount(Request $request)
+    {
+        $currentUser = $request->user();
+        if (!$currentUser) {
+            return response()->json(['message' => 'No autenticado.'], 401);
+        }
+
+        $targetId = $request->input('target_user_id');
+        if (!$targetId) {
+            return response()->json(['message' => 'ID de usuario requerido.'], 422);
+        }
+
+        $cleanFirst = trim(preg_replace('/\s*\(admin\)\s*/i', '', (string)$currentUser->first_name));
+        $cleanLast = trim((string)$currentUser->last_name);
+
+        $targetUser = User::where('id', $targetId)
+            ->where('status', 1)
+            ->where(function ($q) use ($currentUser, $cleanFirst, $cleanLast) {
+                $q->where('id', $currentUser->id);
+
+                if (!empty($cleanFirst) && !empty($cleanLast)) {
+                    $q->orWhere(function ($sub) use ($cleanFirst, $cleanLast) {
+                        $sub->whereRaw("REPLACE(REPLACE(LOWER(TRIM(first_name)), '(admin)', ''), ' ', '') = ?", [
+                            str_replace(' ', '', strtolower($cleanFirst))
+                        ])
+                        ->whereRaw("REPLACE(LOWER(TRIM(last_name)), ' ', '') = ?", [
+                            str_replace(' ', '', strtolower($cleanLast))
+                        ]);
+                    });
+                }
+
+                if (!empty($currentUser->id_aliado)) {
+                    $q->orWhere('id_aliado', $currentUser->id_aliado);
+                }
+            })
+            ->first();
+
+        if (!$targetUser) {
+            return response()->json(['message' => 'Cuenta asociada no válida o inaccesible.'], 403);
+        }
+
+        // Generate Sanctum token for the target user
+        $token = $targetUser->createToken('auth_token')->plainTextToken;
+
+        $branding = null;
+        if ($targetUser->level === 'Freelancer') {
+            $freelancer = \Illuminate\Support\Facades\DB::table('freelancer')->where('id', $targetUser->id_freelancer)->first();
+            if ($freelancer) {
+                $branding = [
+                    'rif' => $freelancer->rif,
+                    'color_primario' => $freelancer->color_primario,
+                    'logo_url' => $freelancer->logo_url,
+                    'hoja_membrete_config' => json_decode($freelancer->hoja_membrete_config, true),
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => [
+                'id' => $targetUser->id,
+                'first_name' => $targetUser->first_name,
+                'last_name' => $targetUser->last_name,
+                'email' => $targetUser->email,
+                'level' => $targetUser->level,
+                'branding' => $branding,
+            ]
+        ], 200);
+    }
 }

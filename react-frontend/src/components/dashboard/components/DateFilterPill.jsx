@@ -27,7 +27,7 @@ const QUICK_WEEKS = [
     end: "12 • Nov",
     startDate: "2026-11-06",
     endDate: "2026-11-12",
-    description: "Semana 06 al 12 de Noviembre (Con Ventas)"
+    description: "Semana 06 al 12 de Noviembre"
   },
   {
     label: "30 • Oct | 05 • Nov",
