@@ -4,7 +4,7 @@ import Badge from '../common/Badge';
 import ConfirmationModal from '../common/ConfirmationModal';
 import CustomSelect from '../common/CustomSelect';
 import Pagination from '../common/Pagination';
-import { DetalleVentaModal, RegistrarPagoModal } from './modals';
+import { DetalleVentaModal, RegistrarPagoModal, VoucherServicioModal, NotaCreditoModal } from './modals';
 import EditarCotizacion from './EditarCotizacion';
 import InformeCotizacionRapidaModal from '../cotizacion/modals/InformeCotizacionRapidaModal';
 import { showToast } from '../../utils/toast';
@@ -67,6 +67,52 @@ export default function VentasList({ tipo = 'agencia', user }) {
   const [isConfirmingSale, setIsConfirmingSale] = useState(false);
   const [selectedVentaInforme, setSelectedVentaInforme] = useState(null);
   const [loadingInforme, setLoadingInforme] = useState(false);
+  const [selectedVentaVoucher, setSelectedVentaVoucher] = useState(null);
+  const [loadingVoucher, setLoadingVoucher] = useState(false);
+  const [selectedVentaNotaCredito, setSelectedVentaNotaCredito] = useState(null);
+  const [loadingNotaCredito, setLoadingNotaCredito] = useState(false);
+
+  // Carga completa de la venta para visor de Nota de Crédito oficial
+  const handleOpenNotaCredito = async (v) => {
+    if (!v) return;
+    setLoadingNotaCredito(true);
+    try {
+      const res = await axios.get(`/v1/ventas/${v.id}`);
+      const data = res.data || {};
+      const fullVenta = data.venta || v;
+      setSelectedVentaNotaCredito({
+        ...fullVenta,
+        items: data.totales?.items || fullVenta.items || [],
+        totales: data.totales,
+      });
+    } catch (err) {
+      console.warn('Error al cargar detalle completo para Nota de Crédito:', err);
+      setSelectedVentaNotaCredito(v);
+    } finally {
+      setLoadingNotaCredito(false);
+    }
+  };
+
+  // Carga completa de la venta para visor de vouchers oficiales
+  const handleOpenVoucher = async (v) => {
+    if (!v) return;
+    setLoadingVoucher(true);
+    try {
+      const res = await axios.get(`/v1/ventas/${v.id}`);
+      const data = res.data || {};
+      const fullVenta = data.venta || v;
+      setSelectedVentaVoucher({
+        ...fullVenta,
+        items: data.totales?.items || fullVenta.items || [],
+        totales: data.totales,
+      });
+    } catch (err) {
+      console.warn('Error al cargar detalle completo para vouchers:', err);
+      setSelectedVentaVoucher(v);
+    } finally {
+      setLoadingVoucher(false);
+    }
+  };
 
   // Carga completa de la venta para visor de informe oficial
   const handleOpenInforme = async (v) => {
@@ -903,28 +949,80 @@ export default function VentasList({ tipo = 'agencia', user }) {
                             <img src={imgedit} alt="Editar" />
                           </button>
 
-                          {/* Ver / Imprimir Informe de Venta o Cotización */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenInforme(v)}
-                            disabled={loadingInforme}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              background: 'rgba(0, 32, 109, 0.45)',
-                              border: '1px solid rgba(242, 101, 34, 0.45)',
-                              borderRadius: '8px',
-                              padding: '6px 10px',
-                              color: '#60A5FA',
-                              cursor: 'pointer',
-                              fontSize: '0.8rem',
-                              transition: 'all 0.2s',
-                            }}
-                            title="Ver / Imprimir informe oficial"
-                          >
-                            <img src={imprimirIcon} alt="Informe" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
-                          </button>
+                          {/* Acciones de Documentos Oficiales: Cotización/Venta vs Nota de Crédito */}
+                          {!(v.estado || '').toLowerCase().includes('nota de cr') ? (
+                            <>
+                              {/* Ver / Imprimir Informe de Venta o Cotización */}
+                              <button
+                                type="button"
+                                onClick={() => handleOpenInforme(v)}
+                                disabled={loadingInforme}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  background: 'rgba(0, 32, 109, 0.45)',
+                                  border: '1px solid rgba(242, 101, 34, 0.45)',
+                                  borderRadius: '8px',
+                                  padding: '6px 10px',
+                                  color: '#60A5FA',
+                                  cursor: 'pointer',
+                                  fontSize: '0.8rem',
+                                  transition: 'all 0.2s',
+                                }}
+                                title="Ver / Imprimir informe oficial"
+                              >
+                                <img src={imprimirIcon} alt="Informe" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
+                              </button>
+
+                              {/* Ver / Imprimir Vouchers de Servicio */}
+                              <button
+                                type="button"
+                                onClick={() => handleOpenVoucher(v)}
+                                disabled={loadingVoucher}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  background: 'rgba(242, 101, 34, 0.2)',
+                                  border: '1px solid rgba(242, 101, 34, 0.5)',
+                                  borderRadius: '8px',
+                                  padding: '6px 10px',
+                                  color: '#FDBA74',
+                                  cursor: 'pointer',
+                                  fontSize: '0.8rem',
+                                  transition: 'all 0.2s',
+                                }}
+                                title="Ver / Imprimir Vouchers de Servicio"
+                              >
+                                <img src={imprimirIcon} alt="Vouchers" style={{ width: '16px', height: '16px', filter: 'brightness(0) saturate(100%) invert(67%) sepia(85%) saturate(3025%) hue-rotate(345deg) brightness(101%) contrast(98%)' }} />
+                              </button>
+                            </>
+                          ) : (
+                            /* Ver / Imprimir Nota de Crédito Oficial */
+                            <button
+                              type="button"
+                              onClick={() => handleOpenNotaCredito(v)}
+                              disabled={loadingNotaCredito}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                background: '#00206D',
+                                border: '1.5px solid #F26522',
+                                borderRadius: '8px',
+                                padding: '6px 10px',
+                                color: '#FFFFFF',
+                                cursor: 'pointer',
+                                fontSize: '0.8rem',
+                                boxShadow: '0 2px 8px rgba(242, 101, 34, 0.35)',
+                                transition: 'all 0.2s',
+                              }}
+                              title="Ver / Imprimir Nota de Crédito Oficial"
+                            >
+                              <img src={imprimirIcon} alt="Nota de Crédito" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
+                            </button>
+                          )}
 
                           {/* Registrar Pago (Solo si la ficha está en estado Venta/Confirmada) */}
                           {isConfirmed && (
@@ -1053,6 +1151,24 @@ export default function VentasList({ tipo = 'agencia', user }) {
               : 'cotizacion'
           }
           tasaReferencialVES={62.50}
+        />
+      )}
+
+      {/* Modal de Vouchers de Servicio Oficiales */}
+      {selectedVentaVoucher && (
+        <VoucherServicioModal
+          isOpen={Boolean(selectedVentaVoucher)}
+          onClose={() => setSelectedVentaVoucher(null)}
+          cotizacion={selectedVentaVoucher}
+        />
+      )}
+
+      {/* Modal de Nota de Crédito Oficial (Plantilla-voucher-NC) */}
+      {selectedVentaNotaCredito && (
+        <NotaCreditoModal
+          isOpen={Boolean(selectedVentaNotaCredito)}
+          onClose={() => setSelectedVentaNotaCredito(null)}
+          cotizacion={selectedVentaNotaCredito}
         />
       )}
     </div>

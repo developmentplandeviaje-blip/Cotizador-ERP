@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { InformeCotizacionRapidaModal } from './modals';
+import { InformeCotizacionRapidaModal, VoucherServicioModal } from './modals';
 import imgSearch from '../../assets/lupa.svg';
 import imgreport from '../../assets/reportes.svg';
+import imprimirIcon from '../../assets/Imprimir.svg';
 import Badge from '../common/Badge';
 import Pagination from '../common/Pagination';
 
@@ -16,6 +17,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
   const [filterTipo, setFilterTipo] = useState('todos'); // 'todos' | 'formal' | 'rapida'
   const [page, setPage] = useState(1);
   const [selectedCotizacion, setSelectedCotizacion] = useState(null);
+  const [selectedCotizacionVoucher, setSelectedCotizacionVoucher] = useState(null);
 
   const canViewAll = ['administrador', 'admin', 'lider', 'líder', 'operativo', 'administracion', 'contabilidad'].includes((user?.level || '').toLowerCase().trim());
   const showAsesorColumn = canViewAll;
@@ -515,7 +517,7 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                         <button
                           type="button"
                           onClick={() => setSelectedCotizacion(cotiz)}
-                          title="Generar y visualizar el documento de Cotización Rápida"
+                          title="Generar y visualizar el documento de Cotización"
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -541,6 +543,38 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
                           }}
                         >
                           <img src={imgreport} alt="" style={{ width: '18px', height: '18px' }} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCotizacionVoucher(cotiz)}
+                          title="Ver / Imprimir Vouchers de Servicio"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '4px 4px',
+                            background: 'transparent',
+                            border: 'transparent',
+                            borderRadius: '8px',
+                            color: '#FFFFFF',
+                            fontSize: '0.8rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            whiteSpace: 'nowrap',
+                            marginLeft: '6px',
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.background = 'rgba(242, 101, 34, 0.25)';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                          }}
+                        >
+                          <img src={imprimirIcon} alt="Voucher" style={{ width: '18px', height: '18px', filter: 'brightness(0) saturate(100%) invert(67%) sepia(85%) saturate(3025%) hue-rotate(345deg) brightness(101%) contrast(98%)' }} />
                         </button>
                       </td>
                     </tr>
@@ -578,6 +612,15 @@ export default function RegistroCotizaciones({ user, onNuevaCotizacion }) {
         cotizacion={selectedCotizacion}
         tasaReferencialVES={62.50}
       />
+
+      {/* Modal Voucher de Servicio Oficial */}
+      {selectedCotizacionVoucher && (
+        <VoucherServicioModal
+          isOpen={!!selectedCotizacionVoucher}
+          onClose={() => setSelectedCotizacionVoucher(null)}
+          cotizacion={selectedCotizacionVoucher}
+        />
+      )}
     </div>
   );
 }

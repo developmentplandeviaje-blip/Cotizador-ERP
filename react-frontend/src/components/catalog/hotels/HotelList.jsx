@@ -12,6 +12,7 @@ import imgAgregar from '../../../assets/Agregar.svg';
 import Pagination from '../../common/Pagination';
 import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
+import TarifasReportModal from '../common/TarifasReportModal.jsx';
 
 export default function HotelList({ user }) {
   const [hotels, setHotels] = useState([]);
@@ -34,6 +35,7 @@ export default function HotelList({ user }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [tarifasReportItems, setTarifasReportItems] = useState([]);
 
   const isFreelancer = user?.level === 'Freelancer';
   const userRole = (user?.level || '').trim().toLowerCase();
@@ -192,7 +194,15 @@ export default function HotelList({ user }) {
             <button
               className="btn-secondary"
               title="Imprimir"
-              onClick={() => window.print()}
+              onClick={async () => {
+                try {
+                  const res = await axios.get('/v1/catalog/hoteles', { params: { search, per_page: 1000, sort_by: sortConfig.key, sort_dir: sortConfig.direction } });
+                  setTarifasReportItems(res.data.data || []);
+                } catch (error) {
+                  console.error('Error cargando hoteles para impresión:', error);
+                  setTarifasReportItems(hotels);
+                }
+              }}
               style={{ padding: '8px 14px', borderRadius: '9999px' }}
             >
               <img
@@ -408,7 +418,16 @@ export default function HotelList({ user }) {
                                 textAlign: 'left',
                               }}>
                                 <button
-                                  onClick={() => { setActiveMenuHotelId(null); window.print(); }}
+                                  onClick={async () => {
+                                    setActiveMenuHotelId(null);
+                                    try {
+                                      const res = await axios.get(`/v1/catalog/hoteles/${hotel.id}`);
+                                      setTarifasReportItems([res.data.data || res.data]);
+                                    } catch (error) {
+                                      console.error('Error cargando hotel para impresión:', error);
+                                      setTarifasReportItems([hotel]);
+                                    }
+                                  }}
                                   style={{ width: '100%', textAlign: 'left', padding: '8px 10px 8px 24px', background: 'none', border: 'none', color: '#595959', fontSize: '0.875rem', cursor: 'pointer', fontWeight: '600' }}
                                 >
                                   Imprimir
@@ -524,6 +543,14 @@ export default function HotelList({ user }) {
           <Pagination page={page} lastPage={lastPage} setPage={setPage} />
         </div>
       </div>
+
+      <TarifasReportModal
+        isOpen={tarifasReportItems.length > 0}
+        onClose={() => setTarifasReportItems([])}
+        type="hoteles"
+        items={tarifasReportItems}
+        showNetCosts={!isFreelancer}
+      />
 
       {/* Hotel Create / Edit Wizard Modal */}
       <HotelModal

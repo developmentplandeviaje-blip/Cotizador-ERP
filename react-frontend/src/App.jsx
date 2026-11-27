@@ -18,6 +18,7 @@ import NuevaCotizacion from './components/cotizacion/NuevaCotizacion';
 import RegistroCotizaciones from './components/cotizacion/RegistroCotizaciones';
 import VentasList from './components/ventas/VentasList';
 import MetodoPagoPublico from './components/public/MetodoPagoPublico';
+import Dashboard from './components/dashboard/Dashboard';
 
 // Configure default base URL for Axios
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -453,7 +454,7 @@ function App() {
       {activeRoute === 'ventas_agencia' && <VentasList tipo="agencia" user={user} />}
       {activeRoute === 'ventas_freelancer' && <VentasList tipo="freelancer" user={user} />}
       {activeRoute === 'ventas_aliados' && <VentasList tipo="aliados" user={user} />}
-      {activeRoute === 'dashboard' && renderDashboard()}
+      {activeRoute === 'dashboard' && <Dashboard user={user} onNavigate={(route) => setActiveRoute(route)} />}
 
       {activeRoute !== 'servicios_hoteles' && activeRoute !== 'servicios_ubicaciones' && activeRoute !== 'servicios_excursiones' && activeRoute !== 'servicios_paquetes' && activeRoute !== 'servicios_vehiculos' && activeRoute !== 'servicios_traslados' && activeRoute !== 'servicios_aerolineas' && activeRoute !== 'usuarios_agencia' && activeRoute !== 'usuarios_freelancer' && activeRoute !== 'usuarios_aliados' && activeRoute !== 'metodos_pago' && activeRoute !== 'nueva_cotizacion' && activeRoute !== 'ventas_cotizaciones' && activeRoute !== 'ventas_agencia' && activeRoute !== 'ventas_freelancer' && activeRoute !== 'ventas_aliados' && activeRoute !== 'dashboard' && (
         <div style={{

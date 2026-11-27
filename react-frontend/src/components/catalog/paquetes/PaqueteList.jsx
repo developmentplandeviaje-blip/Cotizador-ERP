@@ -9,6 +9,7 @@ import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
 import imgPaquetes from '../../../assets/Paqueteria.svg';
 import { showToast } from '../../../utils/toast';
+import TarifasReportModal from '../common/TarifasReportModal.jsx';
 
 export default function PaqueteList({ user }) {
   const userStored = user || JSON.parse(localStorage.getItem('user') || '{}');
@@ -39,6 +40,7 @@ export default function PaqueteList({ user }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [isTarifasReportOpen, setIsTarifasReportOpen] = useState(false);
 
   // Fetch ubicaciones for the filter dropdown
   useEffect(() => {
@@ -145,8 +147,16 @@ export default function PaqueteList({ user }) {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    try {
+      const res = await axios.get('/v1/catalog/paquetes', {
+        params: { search, id_ubicacion: selectedUbicacion || undefined, all: 1, sort_by: sortConfig.key, sort_dir: sortConfig.direction },
+      });
+      setPaquetes(res.data.data || []);
+    } catch (error) {
+      console.error('Error cargando paquetes para impresión:', error);
+    }
+    setIsTarifasReportOpen(true);
   };
 
   return (
@@ -492,6 +502,14 @@ export default function PaqueteList({ user }) {
           <Pagination page={page} lastPage={lastPage} setPage={setPage} />
         </div>
       </div>
+
+      <TarifasReportModal
+        isOpen={isTarifasReportOpen}
+        onClose={() => setIsTarifasReportOpen(false)}
+        type="paquetes"
+        items={paquetes}
+        showNetCosts={!isFreelancer}
+      />
 
       {/* Paquete Create/Edit Modal */}
       <PaqueteModal

@@ -29,6 +29,9 @@ class TarifaHabitacionResource extends JsonResource
             'promocion' => (bool) $this->promocion,
             'suplemento' => (bool) $this->suplemento,
             'moneda' => $this->moneda ?? 'USD',
+            'fecha_actualizacion' => $this->fecha_actualizacion
+                ? $this->fecha_actualizacion->format('Y-m-d H:i:s')
+                : null,
         ];
 
         if ($isFreelancer) {

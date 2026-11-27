@@ -6,7 +6,7 @@ import ConfirmationModal from '../common/ConfirmationModal';
 import CustomSelect from '../common/CustomSelect';
 import CustomDatePicker from '../common/CustomDatePicker';
 import CustomNumberInput from '../common/CustomNumberInput';
-import { EditarProductoModal, EliminarProductoModal, InformeCotizacionRapidaModal } from '../cotizacion/modals';
+import { EditarProductoModal, EliminarProductoModal, InformeCotizacionRapidaModal, VoucherServicioModal, NotaCreditoModal } from '../cotizacion/modals';
 import { RegistrarPagoModal } from './modals';
 import { showToast } from '../../utils/toast';
 import { formatEmail, validateEmail, formatTelefono, formatCedula } from '../../utils/validation';
@@ -18,6 +18,7 @@ import imgCalendario from '../../assets/calendario-01.svg';
 import imgAbono from '../../assets/Alcontado.svg';
 import imgProductos from '../../assets/resumen-productos.svg';
 import imgUsuarios from '../../assets/Usuarios-01.svg';
+import imprimirIcon from '../../assets/Imprimir.svg';
 
 const TIPO_DOC_OPTIONS = [
   { value: 'V', label: 'V-' },
@@ -433,7 +434,10 @@ export default function EditarCotizacion({
   const [pagoToDelete, setPagoToDelete] = useState(null);
   const [isDeletingPago, setIsDeletingPago] = useState(false);
   const [showInformeModal, setShowInformeModal] = useState(false);
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [selectedVoucherService, setSelectedVoucherService] = useState(null);
   const [showNotaCreditoModal, setShowNotaCreditoModal] = useState(false);
+  const [showDocNotaCreditoModal, setShowDocNotaCreditoModal] = useState(false);
   const [isConvertingNotaCredito, setIsConvertingNotaCredito] = useState(false);
 
   // Desbloqueo temporal de edición de productos por administrador (24 horas)
@@ -1882,6 +1886,62 @@ export default function EditarCotizacion({
             </button>
           )}
 
+          {/* Botón Ver / Imprimir Vouchers de Servicio */}
+          {!isNotaCredito && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedVoucherService(null);
+                setShowVoucherModal(true);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 16px',
+                borderRadius: '8px',
+                background: 'rgba(242, 101, 34, 0.15)',
+                border: '1px solid rgba(242, 101, 34, 0.45)',
+                color: '#FDBA74',
+                fontWeight: 700,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              title="Ver o imprimir vouchers de los servicios"
+            >
+              <img src={imprimirIcon} alt="" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
+              <span>Vouchers de Servicio</span>
+            </button>
+          )}
+
+          {/* Botón Ver / Imprimir Nota de Crédito Oficial (Exclusivo cuando es Nota de Crédito) */}
+          {isNotaCredito && (
+            <button
+              type="button"
+              onClick={() => setShowDocNotaCreditoModal(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '9px 18px',
+                borderRadius: '8px',
+                background: '#00206D',
+                border: '1.5px solid #F26522',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(242, 101, 34, 0.4)',
+                transition: 'all 0.2s',
+              }}
+              title="Ver o imprimir documento oficial de Nota de Crédito"
+            >
+              <img src={imprimirIcon} alt="" style={{ width: '16px', height: '16px', filter: 'brightness(0) invert(1)' }} />
+              <span>Nota de Crédito</span>
+            </button>
+          )}
+
           {/* Botón Convertir en Nota de Crédito (Sólo cuando es Venta confirmada y aún no es Nota de Crédito) */}
           {isConfirmed && !isNotaCredito && (
             <button
@@ -3066,23 +3126,73 @@ export default function EditarCotizacion({
                     </td>
                     {isServicesLocked ? (
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <span
-                          style={{
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            background: 'rgba(74, 222, 128, 0.15)',
-                            color: '#4ADE80',
-                            border: '1px solid rgba(74, 222, 128, 0.3)',
-                          }}
-                        >
-                          Fijo
-                        </span>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              background: 'rgba(74, 222, 128, 0.15)',
+                              color: '#4ADE80',
+                              border: '1px solid rgba(74, 222, 128, 0.3)',
+                            }}
+                          >
+                            Fijo
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedVoucherService(it);
+                              setShowVoucherModal(true);
+                            }}
+                            style={{
+                              background: 'rgba(242, 101, 34, 0.15)',
+                              border: '1px solid rgba(242, 101, 34, 0.4)',
+                              color: '#FDBA74',
+                              borderRadius: '6px',
+                              padding: '3px 8px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              transition: 'all 0.15s',
+                            }}
+                            title="Ver o imprimir voucher de este servicio"
+                          >
+                            <img src={imprimirIcon} alt="" style={{ width: '12px', height: '12px', filter: 'brightness(0) invert(1)' }} />
+                            <span>Voucher</span>
+                          </button>
+                        </div>
                       </td>
                     ) : (
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedVoucherService(it);
+                              setShowVoucherModal(true);
+                            }}
+                            style={{
+                              background: 'rgba(242, 101, 34, 0.15)',
+                              border: '1px solid rgba(242, 101, 34, 0.4)',
+                              color: '#FDBA74',
+                              borderRadius: '6px',
+                              padding: '4px 8px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'all 0.15s',
+                            }}
+                            title="Ver o imprimir voucher de este servicio"
+                          >
+                            <img src={imprimirIcon} alt="" style={{ width: '13px', height: '13px', filter: 'brightness(0) invert(1)' }} />
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => {
@@ -3741,6 +3851,28 @@ export default function EditarCotizacion({
           cotizacion={cotizacionParaInforme}
           tipoInforme={isConfirmed ? 'venta' : 'cotizacion'}
           tasaReferencialVES={62.50}
+        />
+      )}
+
+      {/* MODAL: Voucher de Servicio Oficial (Plantilla-voucher-NC) */}
+      {showVoucherModal && (
+        <VoucherServicioModal
+          isOpen={showVoucherModal}
+          onClose={() => {
+            setShowVoucherModal(false);
+            setSelectedVoucherService(null);
+          }}
+          cotizacion={cotizacionParaInforme}
+          servicioInicial={selectedVoucherService}
+        />
+      )}
+
+      {/* MODAL: Documento Oficial de Nota de Crédito (Plantilla-voucher-NC) */}
+      {showDocNotaCreditoModal && (
+        <NotaCreditoModal
+          isOpen={showDocNotaCreditoModal}
+          onClose={() => setShowDocNotaCreditoModal(false)}
+          cotizacion={cotizacionParaInforme}
         />
       )}
 

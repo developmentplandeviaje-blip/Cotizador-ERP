@@ -8,6 +8,7 @@ import imgImprimir from '../../../assets/Imprimir.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
+import TarifasReportModal from '../common/TarifasReportModal.jsx';
 
 export default function TrasladoList({ user }) {
   const userStored = user || JSON.parse(localStorage.getItem('user') || '{}');
@@ -38,6 +39,7 @@ export default function TrasladoList({ user }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [isTarifasReportOpen, setIsTarifasReportOpen] = useState(false);
   const [togglingDestacadoId, setTogglingDestacadoId] = useState(null);
 
   const handleToggleDestacado = async (item) => {
@@ -164,8 +166,16 @@ export default function TrasladoList({ user }) {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    try {
+      const res = await axios.get('/v1/catalog/traslados', {
+        params: { search, id_ubicacion: selectedUbicacion || undefined, tipo_servicio: selectedTipoServicio || undefined, all: 1, sort_by: sortConfig.key, sort_dir: sortConfig.direction },
+      });
+      setTraslados(res.data.data || []);
+    } catch (error) {
+      console.error('Error cargando traslados para impresión:', error);
+    }
+    setIsTarifasReportOpen(true);
   };
 
   return (
@@ -586,6 +596,14 @@ export default function TrasladoList({ user }) {
         onClose={() => setIsModalOpen(false)}
         onSaveSuccess={handleSaveSuccess}
         trasladoToEdit={trasladoToEdit}
+      />
+
+      <TarifasReportModal
+        isOpen={isTarifasReportOpen}
+        onClose={() => setIsTarifasReportOpen(false)}
+        type="traslados"
+        items={traslados}
+        showNetCosts={!isFreelancer}
       />
 
       {/* Modal de Confirmación de Eliminación Segura */}

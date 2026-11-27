@@ -8,6 +8,7 @@ import imgImprimir from '../../../assets/Imprimir.svg';
 import imgAgregar from '../../../assets/Agregar.svg';
 import imgSearch from '../../../assets/lupa.svg';
 import { showToast } from '../../../utils/toast';
+import TarifasReportModal from '../common/TarifasReportModal.jsx';
 
 export default function ExcursionList({ user }) {
   const userStored = user || JSON.parse(localStorage.getItem('user') || '{}');
@@ -37,6 +38,7 @@ export default function ExcursionList({ user }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [isTarifasReportOpen, setIsTarifasReportOpen] = useState(false);
 
   // Fetch ubicaciones for the filter dropdown
   useEffect(() => {
@@ -141,8 +143,16 @@ export default function ExcursionList({ user }) {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    try {
+      const res = await axios.get('/v1/catalog/excursiones', {
+        params: { search, id_ubicacion: selectedUbicacion || undefined, all: 1, sort_by: sortConfig.key, sort_dir: sortConfig.direction },
+      });
+      setExcursiones(res.data.data || []);
+    } catch (error) {
+      console.error('Error cargando excursiones para impresión:', error);
+    }
+    setIsTarifasReportOpen(true);
   };
 
   return (
@@ -487,6 +497,14 @@ export default function ExcursionList({ user }) {
         onClose={() => setIsModalOpen(false)}
         onSaveSuccess={handleSaveSuccess}
         excursionToEdit={excursionToEdit}
+      />
+
+      <TarifasReportModal
+        isOpen={isTarifasReportOpen}
+        onClose={() => setIsTarifasReportOpen(false)}
+        type="excursiones"
+        items={excursiones}
+        showNetCosts={!isFreelancer}
       />
 
       {/* Modal de Confirmación de Eliminación Segura */}

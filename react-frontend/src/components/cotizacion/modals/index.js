@@ -4,3 +4,5 @@ export { default as VaciarProductosModal } from './VaciarProductosModal';
 export { default as InformeCotizacionRapidaModal } from './InformeCotizacionRapidaModal';
 export { default as AgruparProductosHotelModal } from './AgruparProductosHotelModal';
 export { default as ConfigurarHorarioCierreModal } from './ConfigurarHorarioCierreModal';
+export { default as VoucherServicioModal } from '../../ventas/modals/VoucherServicioModal';
+export { default as NotaCreditoModal } from '../../ventas/modals/NotaCreditoModal';

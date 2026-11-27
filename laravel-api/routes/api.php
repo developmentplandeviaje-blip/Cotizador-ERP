@@ -155,4 +155,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/ventas/{id}/pagos', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'registrarPago']);
     Route::put('/v1/ventas/{id}/pagos/{pagoId}', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'actualizarPago']);
     Route::delete('/v1/ventas/{id}/pagos/{pagoId}', [\App\Http\Controllers\Api\v1\Sale\VentaController::class, 'eliminarPago']);
+
+    // Reports: Módulo de Reportes Oficiales
+    Route::get('/v1/reportes/comisiones', [\App\Http\Controllers\Api\v1\Report\ReporteController::class, 'comisiones']);
+    Route::get('/v1/reportes/cuentas-cobrar', [\App\Http\Controllers\Api\v1\Report\ReporteController::class, 'cuentasPorCobrar']);
+    Route::get('/v1/reportes/cuentas-pagar', [\App\Http\Controllers\Api\v1\Report\ReporteController::class, 'cuentasPorPagar']);
+    Route::get('/v1/reportes/pagos-entrantes', [\App\Http\Controllers\Api\v1\Report\ReporteController::class, 'pagosEntrantes']);
+    Route::get('/v1/reportes/checkin', [\App\Http\Controllers\Api\v1\Report\ReporteController::class, 'checkin']);
+    Route::get('/v1/reportes/estado-venta', [\App\Http\Controllers\Api\v1\Report\ReporteController::class, 'estadoVenta']);
+
+    // Dashboard
+    Route::get('/v1/dashboard/top-ventas', [\App\Http\Controllers\Api\v1\Dashboard\DashboardController::class, 'topVentas']);
 });

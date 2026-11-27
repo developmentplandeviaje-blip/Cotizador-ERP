@@ -1,0 +1,410 @@
+/* ==========================================================================
+   DASHBOARD 100% EXACT REPLICATION STYLES (GLASSMORPHISM / NEON-GLOW)
+   ========================================================================== */
+
+.dashboard-root {
+  width: 100%;
+  padding: 0 0 24px 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #ffffff;
+}
+
+/* Outer Glass Container */
+.dashboard-glass-container {
+  width: 100%;
+  max-width: 1260px;
+  background: rgba(30, 42, 68, 0.42);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 36px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.65),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+  padding: 24px 28px 28px 28px;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Individual Glass Cards */
+.dash-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 24px;
+  box-shadow: 
+    0 12px 30px rgba(0, 0, 0, 0.28),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Date Pill Button */
+.dash-date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.2px solid rgba(255, 255, 255, 0.22);
+  border-radius: 14px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+  user-select: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dash-date-pill:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.dash-date-pill .sep {
+  opacity: 0.4;
+  font-weight: 300;
+}
+
+/* Date Filter Popover & Dropdown */
+.dash-date-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 320px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(37, 99, 235, 0.25);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeInDown 0.18s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dash-date-popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.dash-date-popover-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dash-date-popover-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.dash-date-popover-close:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dash-date-popover-hint {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: -4px;
+}
+
+.dash-date-quick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.dash-date-quick-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #f1f5f9;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.dash-date-quick-btn:hover {
+  background: rgba(37, 99, 235, 0.25);
+  border-color: rgba(96, 165, 250, 0.5);
+  color: #ffffff;
+}
+
+.dash-date-quick-btn.active {
+  background: rgba(37, 99, 235, 0.35);
+  border-color: #3b82f6;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.dash-date-custom-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+}
+
+.dash-date-inputs-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.dash-date-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dash-date-input-group label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.dash-date-input-group input[type="date"] {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  color: #ffffff;
+  padding: 5px 8px;
+  font-size: 0.75rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.dash-date-input-group input[type="date"]:focus {
+  border-color: #3b82f6;
+}
+
+.dash-date-apply-btn {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.dash-date-apply-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5);
+}
+
+/* Glow Meta Badge (Orange) */
+.dash-glow-badge-orange {
+  display: inline-block;
+  background: linear-gradient(135deg, #ff7b00 0%, #ff5500 100%);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 6px 18px;
+  border-radius: 9999px;
+  box-shadow: 
+    0 0 25px rgba(255, 115, 0, 0.75),
+    0 0 10px rgba(255, 136, 0, 0.9),
+    inset 0 1px 1px rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.3px;
+  text-align: center;
+}
+
+/* User Avatar Sphere */
+.dash-avatar-orb {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #2979ff 0%, #0d47a1 60%, #051b4d 100%);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    inset 0 3px 6px rgba(255, 255, 255, 0.6),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.6),
+    0 4px 15px rgba(13, 71, 161, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Dots Carousel Indicator */
+.dash-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dash-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #64748b;
+  transition: all 0.25s ease;
+}
+
+.dash-dot.active-orange {
+  background: #ff7300;
+  box-shadow: 0 0 10px rgba(255, 115, 0, 0.85);
+  transform: scale(1.15);
+}
+
+.dash-dot.active-white {
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+  transform: scale(1.15);
+}
+
+/* Feed Search Bar */
+.dash-feed-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1.2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  padding: 8px 14px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.dash-feed-search-bar input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.dash-feed-search-bar input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* Activity Pills with Cyber Glow */
+.activity-pill {
+  width: 100%;
+  border-radius: 9999px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-sizing: border-box;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  user-select: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.activity-pill:hover {
+  transform: translateY(-1px);
+}
+
+.activity-pill-red {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.88) 0%, rgba(185, 28, 28, 0.85) 100%);
+  border: 1px solid rgba(252, 165, 165, 0.35);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.activity-pill-crimson {
+  background: linear-gradient(90deg, rgba(220, 38, 38, 0.75) 0%, rgba(153, 27, 27, 0.75) 100%);
+  border: 1px solid rgba(252, 165, 165, 0.25);
+  box-shadow: 0 0 15px rgba(220, 38, 38, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  color: #fecaca;
+}
+
+.activity-pill-green {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.82) 0%, rgba(21, 128, 61, 0.82) 100%);
+  border: 1px solid rgba(134, 239, 172, 0.3);
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.activity-pill-orange {
+  background: linear-gradient(90deg, rgba(249, 115, 22, 0.85) 0%, rgba(194, 65, 12, 0.85) 100%);
+  border: 1px solid rgba(253, 186, 116, 0.35);
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.activity-badge-usd {
+  background: #0f1c3f;
+  color: #60a5fa;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+/* Custom Scrollbar */
+.dash-custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.dash-custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+}
+.dash-custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+.dash-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
